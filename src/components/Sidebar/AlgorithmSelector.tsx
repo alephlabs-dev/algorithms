@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { cn } from "@/utils/cn";
 import { Algorithm } from "@/types";
 import { useStore } from "@/store";
@@ -26,16 +27,24 @@ export const AlgorithmSelector = () => {
             key={algorithm}
             variant="ghost"
             className={cn(
-              "px-4 py-2 capitalize text-base text-foreground justify-start hover:bg-accent hover:text-foreground h-auto",
+              "relative px-4 py-2 capitalize text-base text-foreground justify-start hover:bg-accent hover:text-foreground h-auto",
               {
-                "bg-primary text-background hover:bg-primary/90 hover:text-background":
+                "text-background hover:bg-transparent hover:text-background":
                   activeAlgorithm === algorithm,
               }
             )}
             onClick={() => setActiveAlgorithm(algorithm)}
             disabled={isPlaying}
           >
-            {algorithm} Sort
+            {/* One shared background that slides to the selected algorithm. */}
+            {activeAlgorithm === algorithm && (
+              <motion.span
+                layoutId="active-algorithm"
+                className="absolute inset-0 rounded bg-primary"
+                transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+              />
+            )}
+            <span className="relative">{algorithm} Sort</span>
           </Button>
         ))}
       </div>

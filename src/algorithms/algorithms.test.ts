@@ -33,6 +33,8 @@ describe.each(Object.entries(sortAlgorithms))("%s sort", (_, algorithm) => {
       expect(ascending(last.done)).toEqual(ascending(input));
       expect(last.active).toEqual([]);
       expect(last.temp).toEqual([]);
+      expect(last.focus).toEqual([]);
+      expect(last.pivot).toBeNull();
     });
 
     it("keeps every frame a permutation of the input", () => {
@@ -47,6 +49,27 @@ describe.each(Object.entries(sortAlgorithms))("%s sort", (_, algorithm) => {
         for (const value of frame.done) {
           expect(frame.items.indexOf(value)).toBe(sorted.indexOf(value));
         }
+      }
+    });
+
+    it("never shows a value as both compared and done", () => {
+      for (const { active, done } of frames) {
+        for (const value of active) expect(done).not.toContain(value);
+      }
+    });
+
+    it("only hops values that actually moved", () => {
+      for (let k = 1; k < frames.length; k++) {
+        const { hop, items } = frames[k];
+        if (hop === null) continue;
+        expect(items.indexOf(hop)).not.toBe(frames[k - 1].items.indexOf(hop));
+      }
+    });
+
+    it("keeps the pivot inside the focused range", () => {
+      for (const { pivot, focus, items } of frames) {
+        for (const value of focus) expect(items).toContain(value);
+        if (pivot !== null) expect(focus).toContain(pivot);
       }
     });
 

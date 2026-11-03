@@ -13,6 +13,9 @@ function* sortRange(
     return;
   }
 
+  // Dim everything outside this partition and mark the pivot.
+  yield { type: "highlight", focus: range(lo, hi + 1), pivot: hi, temp: [] };
+
   // Everything left of `store` is smaller than the pivot.
   let store = lo;
   for (let i = lo; i < hi; i++) {
@@ -29,7 +32,7 @@ function* sortRange(
 
   if (store !== hi) yield { type: "swap", i: store, j: hi };
   // The pivot is now in its final place.
-  yield { type: "done", indices: [store], temp: [] };
+  yield { type: "done", indices: [store], temp: [], pivot: null };
 
   yield* sortRange(arr, lo, store - 1);
   yield* sortRange(arr, store + 1, hi);

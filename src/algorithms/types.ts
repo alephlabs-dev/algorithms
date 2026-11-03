@@ -14,6 +14,10 @@ type HighlightOverrides = {
   active?: number[];
   /** Replace the "temp" highlight (yellow) with these positions. */
   temp?: number[];
+  /** Positions currently being worked on; everything else is dimmed. Empty clears it. */
+  focus?: number[];
+  /** Position of the pivot (quick sort), or null to clear it. */
+  pivot?: number | null;
 };
 
 export type Step = HighlightOverrides &
@@ -21,7 +25,13 @@ export type Step = HighlightOverrides &
     | { type: "compare"; i: number; j: number }
     | { type: "swap"; i: number; j: number }
     /** Write `values` into the array starting at `start` (used by merge sort). */
-    | { type: "overwrite"; start: number; values: number[] }
+    | {
+        type: "overwrite";
+        start: number;
+        values: number[];
+        /** Position of a value that jumped left over others, so it can be drawn hopping. */
+        hop?: number;
+      }
     /** Only change highlights. */
     | { type: "highlight" }
     /** These positions hold their final value. */
@@ -40,5 +50,10 @@ export type Frame = {
   active: number[];
   temp: number[];
   done: number[];
+  /** Values being worked on; empty means everything. */
+  focus: number[];
+  pivot: number | null;
+  /** Value that moves over its neighbours in this frame (drawn as an arc). */
+  hop: number | null;
   stats: Stats;
 };

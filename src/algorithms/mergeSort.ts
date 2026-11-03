@@ -14,7 +14,7 @@ function* sortRange(
   yield* sortRange(arr, mid, hi);
 
   // Show the two halves about to be merged.
-  yield { type: "highlight", active: range(lo, hi), temp: [] };
+  yield { type: "highlight", active: range(lo, hi), temp: [], focus: range(lo, hi) };
 
   const left = arr.slice(lo, mid);
   const right = arr.slice(mid, hi);
@@ -32,12 +32,15 @@ function* sortRange(
       takeLeft = left.length > 0;
     }
     merged.push(takeLeft ? left.shift()! : right.shift()!);
+    const placedAt = lo + merged.length - 1;
 
     yield {
       type: "overwrite",
       start: lo,
       values: [...merged, ...left, ...right],
       temp: range(lo, lo + merged.length),
+      // A value taken from the right half jumps over what's left of the left half.
+      hop: !takeLeft && left.length > 0 ? placedAt : undefined,
     };
   }
 }

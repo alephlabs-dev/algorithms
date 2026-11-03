@@ -11,21 +11,29 @@ export const recordFrames = (
   const arr = [...input];
   let active: number[] = [];
   let temp: number[] = [];
+  let focus: number[] = [];
+  let pivot: number | null = null;
+  let hop: number | null = null;
   const done = new Set<number>();
   const stats = { comparisons: 0, swaps: 0, writes: 0 };
 
   const valuesAt = (indices: number[]) => indices.map((i) => arr[i]);
   const snapshot = (): Frame => ({
     items: [...arr],
-    active,
+    // A value that just reached its final place stops being "compared".
+    active: active.filter((value) => !done.has(value)),
     temp,
     done: [...done],
+    focus,
+    pivot,
+    hop,
     stats: { ...stats },
   });
 
   const frames = [snapshot()];
 
   for (const step of algorithm(arr)) {
+    hop = null;
     switch (step.type) {
       case "compare":
         stats.comparisons++;
@@ -34,11 +42,14 @@ export const recordFrames = (
       case "swap":
         stats.swaps++;
         [arr[step.i], arr[step.j]] = [arr[step.j], arr[step.i]];
+        // The value that moved right hops over the other one.
+        hop = arr[Math.max(step.i, step.j)];
         break;
       case "overwrite":
         stats.writes++;
         arr.splice(step.start, step.values.length, ...step.values);
         active = [];
+        if (step.hop !== undefined) hop = arr[step.hop];
         break;
       case "done":
         valuesAt(step.indices).forEach((value) => done.add(value));
@@ -48,11 +59,17 @@ export const recordFrames = (
     }
     if (step.active) active = valuesAt(step.active);
     if (step.temp) temp = valuesAt(step.temp);
+    if (step.focus) focus = valuesAt(step.focus);
+    if (step.pivot !== undefined)
+      pivot = step.pivot === null ? null : arr[step.pivot];
     frames.push(snapshot());
   }
 
   active = [];
   temp = [];
+  focus = [];
+  pivot = null;
+  hop = null;
   arr.forEach((value) => done.add(value));
   frames.push(snapshot());
 

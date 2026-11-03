@@ -1,4 +1,5 @@
 import { useStore } from "@/store";
+import { motion } from "framer-motion";
 
 import { Badge } from "./ui/badge";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
@@ -9,12 +10,21 @@ export const Header = () => {
 
   return (
     <div className="flex flex-col w-full gap-4 lg:gap-8 text-foreground p-8 md:p-0">
-      <h1 className="text-2xl lg:text-4xl font-semibold">
-        {sortingAlgorithms[activeAlgorithm].title}
-      </h1>
-      <p className="lg:text-lg">
-        {sortingAlgorithms[activeAlgorithm].longDescription}
-      </p>
+      {/* Keyed by algorithm so the text fades in whenever it changes. */}
+      <motion.div
+        key={activeAlgorithm}
+        className="flex flex-col gap-4 lg:gap-8"
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+      >
+        <h1 className="text-2xl lg:text-4xl font-semibold">
+          {sortingAlgorithms[activeAlgorithm].title}
+        </h1>
+        <p className="lg:text-lg">
+          {sortingAlgorithms[activeAlgorithm].longDescription}
+        </p>
+      </motion.div>
 
       <div className="flex flex-col md:flex-row gap-4 bg-accent lg:bg-background p-4 lg:p-0 rounded md:w-fit">
         <h2 className="flex items-center gap-2 font-medium lg:flex-row-reverse lg:bg-accent lg:px-4 lg:py-2 lg:rounded">
