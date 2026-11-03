@@ -4,6 +4,7 @@ import { BarsRenderer } from "@/canvas/barsRenderer";
 import { useElementSize } from "@/hooks/useElementSize";
 import { selectFrame, selectLastIndex, useStore } from "@/store";
 import { moveDuration } from "@/utils/speed";
+import { PseudocodeCaption } from "../Pseudocode";
 
 export const AlgorithmVisualizer = () => {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -55,8 +56,10 @@ export const AlgorithmVisualizer = () => {
   };
 
   return (
-    <div className="border border-accent/50 lg:border-none lg:bg-accent rounded-sm overflow-hidden h-full p-1 md:p-2 lg:p-3 xl:p-8">
-      <div ref={wrapperRef} className="relative w-full h-full">
+    <div className="flex flex-col gap-1 border border-accent/50 lg:border-none lg:bg-accent rounded-sm overflow-hidden h-full min-w-0 p-1 md:p-2 lg:p-3 xl:p-8">
+      {/* On wide screens the full pseudocode sits beside the bars instead. */}
+      <PseudocodeCaption className="xl:hidden" />
+      <div ref={wrapperRef} className="relative w-full flex-1 min-h-0">
         <canvas
           ref={canvasRef}
           role="img"

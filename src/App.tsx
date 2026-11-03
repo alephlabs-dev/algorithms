@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { Sidebar } from "./components/Sidebar";
 import { Separator } from "./components/ui/separator";
 import { MobileHeader } from "./components/MobileHeader";
+import { PseudocodePanel } from "./components/Pseudocode";
 
 function App() {
   const setIsMobile = useStore((s) => s.setIsMobile);
@@ -33,7 +34,12 @@ function App() {
           <Separator />
         </div>
         <MobileSettings />
-        <AlgorithmVisualizer />
+        <div className="flex flex-1 min-h-0 gap-6">
+          <div className="flex-1 min-w-0">
+            <AlgorithmVisualizer />
+          </div>
+          <PseudocodePanel className="hidden xl:flex w-72 shrink-0" />
+        </div>
         <MobileAlgorithmSelector />
         <Controls />
       </main>
