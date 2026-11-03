@@ -2,15 +2,15 @@ import { selectFrame, useStore } from "@/store";
 import { Item } from "./Item";
 import { calculateItemHeight } from "./barHeight";
 import { cn } from "@/utils/cn";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useMemo, useRef } from "react";
-import { useResizeObserver } from "usehooks-ts";
+import { useElementSize } from "@/hooks/useElementSize";
 import { useShallow } from "zustand/react/shallow";
 
 export const AlgorithmVisualizer = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   // Tracks the container height so bars rescale when the window is resized.
-  const { height: itemMaxHeight = 0 } = useResizeObserver({ ref: containerRef });
+  const { height: itemMaxHeight } = useElementSize(containerRef);
 
   const { frame, isFinished, arrayId, displayMode } = useStore(
     useShallow((s) => ({
@@ -28,7 +28,7 @@ export const AlgorithmVisualizer = () => {
   const focusSet = useMemo(() => new Set(frame.focus), [frame]);
 
   return (
-    <div className="border border-accent/50 lg:border-none lg:bg-accent rounded flex items-center justify-center overflow-hidden h-full p-1 md:p-2 lg:p-3 xl:p-8">
+    <div className="border border-accent/50 lg:border-none lg:bg-accent rounded-sm flex items-center justify-center overflow-hidden h-full p-1 md:p-2 lg:p-3 xl:p-8">
       <div
         ref={containerRef}
         className={cn(

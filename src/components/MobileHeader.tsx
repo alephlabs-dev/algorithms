@@ -8,7 +8,7 @@ export const MobileHeader = () => {
   const activeAlgorithm = useStore((s) => s.activeAlgorithm);
   const { title, shortDescription } = sortingAlgorithms[activeAlgorithm];
   return (
-    <div className="flex md:hidden flex-col gap-2 bg-accent p-4 rounded">
+    <div className="flex md:hidden flex-col gap-2 bg-accent p-4 rounded-sm">
       {/* Button sits beside the title to leave more height for the visualizer. */}
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-2xl font-medium relative">{title}</h2>

@@ -6,7 +6,7 @@ import { Progress } from "./Progress";
 
 const Swatch = ({ className, label }: { className: string; label: string }) => (
   <li className="flex items-center gap-2">
-    <span aria-hidden className={cn("h-3 w-3 rounded-sm", className)} />
+    <span aria-hidden className={cn("h-3 w-3 rounded-xs", className)} />
     {label}
   </li>
 );

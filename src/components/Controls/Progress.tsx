@@ -14,7 +14,7 @@ export const Progress = () => {
 
   return (
     <div className="flex items-center gap-4">
-      <span className="tabular-nums whitespace-nowrap min-w-[6.5rem]">
+      <span className="tabular-nums whitespace-nowrap min-w-26">
         Step {frameIndex} / {lastIndex}
       </span>
       <Slider

@@ -44,7 +44,7 @@ export const MobileSettings = () => {
   return (
     <div className="flex lg:hidden flex-col gap-2">
       <div className="flex items-center justify-between">
-        <div className="rounded flex items-center overflow-hidden">
+        <div className="rounded-sm flex items-center overflow-hidden">
           {displayModes.map((mode) => (
             <Button
               key={mode}
@@ -62,7 +62,7 @@ export const MobileSettings = () => {
             </Button>
           ))}
         </div>
-        <div className="rounded flex items-center overflow-hidden">
+        <div className="rounded-sm flex items-center overflow-hidden">
           {Object.entries(sizesMap)
             .filter(([size]) => !isMobile || (isMobile && Number(size) < 40))
             .map(([size, label]) => (
@@ -86,7 +86,7 @@ export const MobileSettings = () => {
             ))}
         </div>
       </div>
-      <div className="rounded flex items-center overflow-hidden">
+      <div className="rounded-sm flex items-center overflow-hidden">
         {(Object.keys(inputOrders) as InputOrder[]).map((order) => (
           <Button
             key={order}

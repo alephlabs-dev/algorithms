@@ -1,6 +1,6 @@
 import { cn } from "@/utils/cn";
 import { useStore } from "@/store";
-import { motion, useAnimate, useReducedMotion } from "framer-motion";
+import { motion, useAnimate, useReducedMotion } from "motion/react";
 import { memo, useEffect, useRef } from "react";
 import { calculateItemHeight } from "./barHeight";
 
@@ -95,7 +95,7 @@ export const Item = memo(
         <div ref={scope}>
           <motion.div
             className={cn(
-              "rounded-sm md:rounded grid place-items-center bg-foreground origin-center w-full transition-[background-color,opacity] duration-200",
+              "rounded-xs md:rounded-sm grid place-items-center bg-foreground origin-center w-full transition-[background-color,opacity] duration-200",
               {
                 "bg-primary": isDone,
                 "bg-tertiary": isTemp,

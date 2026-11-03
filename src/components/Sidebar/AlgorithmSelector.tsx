@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { cn } from "@/utils/cn";
 import { Algorithm } from "@/types";
 import { useStore } from "@/store";
@@ -40,7 +40,7 @@ export const AlgorithmSelector = () => {
             {activeAlgorithm === algorithm && (
               <motion.span
                 layoutId="active-algorithm"
-                className="absolute inset-0 rounded bg-primary"
+                className="absolute inset-0 rounded-sm bg-primary"
                 transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               />
             )}

@@ -1,11 +1,13 @@
 import path from "node:path";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import { VitePluginUmami } from "./vite-plugin-umami";
 
 export default defineConfig({
   plugins: [
     react(),
+    tailwindcss(),
     VitePluginUmami({
       // Umami script injection
       umami: {
@@ -16,7 +18,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(import.meta.dirname, "./src"),
     },
   },
 });

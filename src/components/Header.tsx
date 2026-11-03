@@ -1,5 +1,5 @@
 import { useStore } from "@/store";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 import { Badge } from "./ui/badge";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
@@ -26,8 +26,8 @@ export const Header = () => {
         </p>
       </motion.div>
 
-      <div className="flex flex-col md:flex-row gap-4 bg-accent lg:bg-background p-4 lg:p-0 rounded md:w-fit">
-        <h2 className="flex items-center gap-2 font-medium lg:flex-row-reverse lg:bg-accent lg:px-4 lg:py-2 lg:rounded">
+      <div className="flex flex-col md:flex-row gap-4 bg-accent lg:bg-background p-4 lg:p-0 rounded-sm md:w-fit">
+        <h2 className="flex items-center gap-2 font-medium lg:flex-row-reverse lg:bg-accent lg:px-4 lg:py-2 lg:rounded-sm">
           <ArrowRightIcon className="w-4 h-4 hidden lg:inline-block" /> Time
           Complexity <TimerIcon className="w-4 h-4" />
         </h2>
