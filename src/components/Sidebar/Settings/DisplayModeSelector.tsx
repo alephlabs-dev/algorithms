@@ -2,37 +2,21 @@ import { cn } from "@/utils/cn";
 import { useStore } from "@/store";
 import { useShallow } from "zustand/react/shallow";
 import { Button } from "@/components/ui/button";
-
-const displayModes = ["bars", "numbers"] as const;
+import { displayModes } from "@/consts/displayModes";
+import type { DisplayMode } from "@/types";
 
 export const DisplayModeSelector = () => {
-  const {
-    displayMode,
-    setDisplayMode,
-    size,
-    setSize,
-    isPlaying,
-    setDoneItems,
-  } = useStore(
+  const { displayMode, setDisplayMode, isPlaying } = useStore(
     useShallow((s) => ({
       displayMode: s.displayMode,
       setDisplayMode: s.setDisplayMode,
-      size: s.size,
-      setSize: s.setSize,
       isPlaying: s.isPlaying,
-      setDoneItems: s.setDoneItems,
     }))
   );
 
-  const handleDisplayModeChange = (mode: (typeof displayModes)[number]) => {
-    if (mode !== displayMode) {
-      setDoneItems([]);
-      setDisplayMode(mode);
-
-      if (mode === "numbers" && size > 20) {
-        setSize(20);
-      }
-    }
+  // The store caps the array size when switching to numbers mode.
+  const handleDisplayModeChange = (mode: DisplayMode) => {
+    if (mode !== displayMode) setDisplayMode(mode);
   };
 
   return (

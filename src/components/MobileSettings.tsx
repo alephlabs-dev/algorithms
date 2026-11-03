@@ -12,7 +12,6 @@ export const MobileSettings = () => {
   const {
     displayMode,
     setDisplayMode,
-    setDoneItems,
     setSize,
     size: activeSize,
     isMobile,
@@ -21,7 +20,6 @@ export const MobileSettings = () => {
     useShallow((s) => ({
       displayMode: s.displayMode,
       setDisplayMode: s.setDisplayMode,
-      setDoneItems: s.setDoneItems,
       setSize: s.setSize,
       size: s.size,
       isMobile: s.isMobile,
@@ -29,25 +27,13 @@ export const MobileSettings = () => {
     }))
   );
 
+  // The store caps the array size when switching to numbers mode.
   const handleDisplayModeChange = (mode: DisplayMode) => {
-    if (mode !== displayMode) {
-      setDoneItems([]);
-      setDisplayMode(mode);
-
-      if (
-        (mode === "numbers" && activeSize > 20) ||
-        (isMobile && activeSize > 10)
-      ) {
-        setSize(isMobile ? 10 : 20);
-      }
-    }
+    if (mode !== displayMode) setDisplayMode(mode);
   };
 
   const handleSizeChange = (size: number) => {
-    if (size !== activeSize) {
-      setDoneItems([]);
-      setSize(size);
-    }
+    if (size !== activeSize) setSize(size);
   };
 
   return (

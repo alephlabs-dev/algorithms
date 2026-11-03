@@ -1,4 +1,4 @@
-import { useStore } from "@/store";
+import { selectFrame, useStore } from "@/store";
 import { Item } from "./Item";
 import { cn } from "@/utils/cn";
 import { useMemo, useRef } from "react";
@@ -10,21 +10,18 @@ export const AlgorithmVisualizer = () => {
   // Tracks the container height so bars rescale when the window is resized.
   const { height: itemMaxHeight = 0 } = useResizeObserver({ ref: containerRef });
 
-  const { items, activeItems, doneItems, tempItems, arrayId, displayMode } =
-    useStore(
-      useShallow((s) => ({
-        items: s.items,
-        activeItems: s.activeItems,
-        doneItems: s.doneItems,
-        tempItems: s.tempItems,
-        arrayId: s.arrayId,
-        displayMode: s.displayMode,
-      }))
-    );
+  const { frame, arrayId, displayMode } = useStore(
+    useShallow((s) => ({
+      frame: selectFrame(s),
+      arrayId: s.arrayId,
+      displayMode: s.displayMode,
+    }))
+  );
+  const { items } = frame;
 
-  const activeSet = useMemo(() => new Set(activeItems), [activeItems]);
-  const doneSet = useMemo(() => new Set(doneItems), [doneItems]);
-  const tempSet = useMemo(() => new Set(tempItems), [tempItems]);
+  const activeSet = useMemo(() => new Set(frame.active), [frame]);
+  const doneSet = useMemo(() => new Set(frame.done), [frame]);
+  const tempSet = useMemo(() => new Set(frame.temp), [frame]);
 
   return (
     <div className="border border-accent/50 lg:border-none lg:bg-accent rounded flex items-center justify-center overflow-hidden h-full p-1 md:p-2 lg:p-3 xl:p-8">

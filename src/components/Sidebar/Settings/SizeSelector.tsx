@@ -9,24 +9,19 @@ export const SizeSelector = () => {
   const {
     size: activeSize,
     setSize,
-    setDoneItems,
     isPlaying,
     displayMode,
   } = useStore(
     useShallow((s) => ({
       size: s.size,
       setSize: s.setSize,
-      setDoneItems: s.setDoneItems,
       isPlaying: s.isPlaying,
       displayMode: s.displayMode,
     }))
   );
 
   const handleSizeChange = (size: number) => {
-    if (size !== activeSize) {
-      setDoneItems([]);
-      setSize(size);
-    }
+    if (size !== activeSize) setSize(size);
   };
 
   return (

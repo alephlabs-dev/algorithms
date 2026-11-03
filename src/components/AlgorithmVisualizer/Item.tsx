@@ -18,13 +18,12 @@ const calculateItemHeight = (item: number, itemMaxHeight: number) => {
 
 export const Item = memo(
   ({ item, isActive, isDone, isTemp, itemMaxHeight }: Props) => {
-    const speedRef = useStore((s) => s.speedRef);
+    const speed = useStore((s) => s.speed);
     const displayMode = useStore((s) => s.displayMode);
     const size = useStore((s) => s.size);
 
-    // Animation lasts ~80% of the step delay (0–1000ms), so faster speeds animate faster.
-    // Read at render: items re-render whenever their highlight changes, which is right around when they move.
-    const animationDuration = Math.max(0.05, (speedRef.current / 1000) * 0.8);
+    // Animation lasts ~80% of the frame delay (0–1000ms), so faster speeds animate faster.
+    const animationDuration = Math.max(0.05, (speed / 1000) * 0.8);
 
     const itemStyles = {
       height:
