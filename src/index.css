@@ -17,8 +17,13 @@
   --color-foreground: #eee5e9;
   --color-accent: #294237;
   --color-primary: #3ecf8e;
-  --color-secondary: #7828c8;
+  /* Light enough to read on the dark visualizer (3.7:1 on accent, 6.6:1 on background). */
+  --color-secondary: #b07cff;
   --color-tertiary: #ffd700;
+  /* Control borders and slider tracks: 3.7:1 on background. */
+  --color-line: #527565;
+  /* Bars outside the range being worked on: recede without turning grey. */
+  --color-dim: #7a9688;
 }
 
 /*

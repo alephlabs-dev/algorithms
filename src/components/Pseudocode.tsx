@@ -64,7 +64,7 @@ export const PseudocodeCaption = ({ className }: { className?: string }) => {
       <DrawerTrigger asChild>
         <button
           className={cn(
-            "flex w-full items-center gap-2 rounded-sm px-2 py-1 text-left font-mono text-xs text-foreground/80 hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
+            "flex w-full min-h-8 lg:min-h-0 items-center gap-2 rounded-sm px-2 py-1 text-left font-mono text-xs text-foreground/80 hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
             className
           )}
           aria-label={`Current step: ${text}. Show pseudocode`}

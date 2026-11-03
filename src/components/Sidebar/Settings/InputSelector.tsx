@@ -30,9 +30,9 @@ export const InputSelector = () => {
             key={order}
             variant="ghost"
             className={cn(
-              "px-4 py-2 text-white hover:bg-accent hover:text-white h-auto border-2 border-accent",
+              "px-4 py-2 text-white hover:bg-accent hover:text-white h-auto border-2 border-line",
               {
-                "bg-accent hover:bg-accent/90 hover:text-white":
+                "bg-accent border-foreground/70 hover:bg-accent/90 hover:text-white":
                   order === inputOrder,
               }
             )}

@@ -16,7 +16,11 @@ import { SpeedSlider } from "./SpeedSlider";
 import { StatusBar } from "./StatusBar";
 
 const buttonClass =
-  "bg-background border-2 border-accent hover:bg-accent text-base text-foreground hover:text-foreground h-auto py-2";
+  "bg-background border-2 border-line hover:bg-accent text-base text-foreground hover:text-foreground h-11";
+
+// Play/Pause is the main action, so it's the only filled button in the bar.
+const primaryClass =
+  "bg-foreground border-foreground text-background hover:bg-foreground/90 hover:text-background";
 
 export const Controls = () => {
   const {
@@ -63,7 +67,7 @@ export const Controls = () => {
           </Button>
           <Button
             variant="ghost"
-            className={cn(buttonClass, "px-4 w-full md:w-28 xl:w-40")}
+            className={cn(buttonClass, primaryClass, "px-4 w-full md:w-28 xl:w-40")}
             onClick={isPlaying ? pause : play}
             aria-keyshortcuts="Space"
             title={isPlaying ? "Pause (Space)" : "Play (Space)"}

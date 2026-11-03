@@ -51,9 +51,9 @@ export const MobileSettings = () => {
             <Button
               key={mode}
               className={cn(
-                "p-2 border-2 border-r-0 border-accent/50 bg-background rounded-none h-10 w-10 active:bg-accent hover:bg-accent last:border-r-2",
+                "p-2 border-2 border-r-0 border-line bg-background rounded-none h-11 w-11 active:bg-accent hover:bg-accent last:border-r-2",
                 {
-                  "bg-accent": displayMode === mode,
+                  "bg-accent ring-1 ring-inset ring-foreground/70": displayMode === mode,
                   "text-xs font-light": mode === "numbers",
                 }
               )}
@@ -71,9 +71,9 @@ export const MobileSettings = () => {
               <Button
                 key={size}
                 className={cn(
-                  "p-0 border-2 border-r-0 border-accent/50 bg-background rounded-none w-10 h-10 text-xs active:bg-accent hover:bg-accent last:border-r-2",
+                  "p-0 border-2 border-r-0 border-line bg-background rounded-none w-11 h-11 text-xs active:bg-accent hover:bg-accent last:border-r-2",
                   {
-                    "bg-accent": size === activeSize,
+                    "bg-accent ring-1 ring-inset ring-foreground/70": size === activeSize,
                   }
                 )}
                 onClick={() => handleSizeChange(size)}
@@ -93,8 +93,8 @@ export const MobileSettings = () => {
           <Button
             key={order}
             className={cn(
-              "flex-1 px-2 border-2 border-r-0 border-accent/50 bg-background rounded-none h-10 text-xs active:bg-accent hover:bg-accent last:border-r-2",
-              { "bg-accent": inputOrder === order }
+              "flex-1 px-2 border-2 border-r-0 border-line bg-background rounded-none h-11 text-xs active:bg-accent hover:bg-accent last:border-r-2",
+              { "bg-accent ring-1 ring-inset ring-foreground/70": inputOrder === order }
             )}
             onClick={() => setInputOrder(order)}
             disabled={isPlaying}

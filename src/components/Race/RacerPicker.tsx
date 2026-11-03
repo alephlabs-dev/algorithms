@@ -77,10 +77,10 @@ export const RacerChips = ({ className }: { className?: string }) => {
             disabled={isPlaying || !canToggle(selected, algorithm)}
             onClick={() => toggle(algorithm)}
             className={cn(
-              "shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-40 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
+              "shrink-0 rounded-full border h-11 px-4 text-xs font-medium transition-colors disabled:opacity-40 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
               isOn
                 ? "border-primary bg-primary text-background disabled:opacity-100"
-                : "border-accent text-foreground"
+                : "border-line text-foreground"
             )}
           >
             {shortName(algorithm)}

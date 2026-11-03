@@ -45,7 +45,8 @@ type ItemState = {
 const MAX_AREA_WIDTH = 896; // matches the old max-w-4xl layout
 const BAR_MAX_HEIGHT = 0.8; // leaves room above the tallest bar for lifts and arcs
 const LIFT = 0.06;
-const DIMMED_ALPHA = 0.4;
+// Highlighted items outside the focus fade a little; plain ones switch to the dim color.
+const DIMMED_ALPHA = 0.6;
 const WAVE_DURATION = 0.4;
 const MIN_HOP_DURATION = 0.08; // below this, moves are too quick for an arc to read
 
@@ -54,6 +55,7 @@ const palette = {
   active: hexToRgb(colors.secondary),
   temp: hexToRgb(colors.tertiary),
   done: hexToRgb(colors.primary),
+  dim: hexToRgb(colors.dim),
 };
 
 const clamp01 = (p: number) => Math.min(Math.max(p, 0), 1);
@@ -208,14 +210,19 @@ export class BarsRenderer {
       else item.hopHeight = 0;
 
       follow(item.lift, active.has(id) ? 1 : 0, fadeTime);
-      follow(item.alpha, focus.size > 0 && !focus.has(id) ? DIMMED_ALPHA : 1, fadeTime);
+      // Items that already reached their place stay green even outside the focus.
+      const dimmed = focus.size > 0 && !focus.has(id) && !done.has(id);
+      const highlighted = active.has(id) || temp.has(id);
+      follow(item.alpha, dimmed && highlighted ? DIMMED_ALPHA : 1, fadeTime);
       const color: RGB = active.has(id)
         ? palette.active
         : temp.has(id)
           ? palette.temp
           : done.has(id)
             ? palette.done
-            : palette.base;
+            : dimmed
+              ? palette.dim
+              : palette.base;
       item.color.forEach((channel, c) => follow(channel, color[c], fadeTime));
 
       if (item.growDelay > 0) {
@@ -324,6 +331,15 @@ export class BarsRenderer {
       else ctx.rect(x, y, w, h);
       ctx.fill();
 
+      // A thin outline on compared items, so they don't depend on color alone.
+      if (item.lift.value > 0.05 && w >= 4) {
+        ctx.strokeStyle = `rgb(255 255 255 / ${0.9 * item.lift.value})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(x + 0.75, y + 0.75, w - 1.5, h - 1.5, Math.max(0, radius - 0.75));
+        ctx.stroke();
+      }
+
       if (id === input.frame.pivot) {
         ctx.strokeStyle = "#ffffff";
         ctx.lineWidth = 2;
@@ -333,9 +349,8 @@ export class BarsRenderer {
       }
 
       if (!isBars) {
-        // Dark text on light tiles (base, yellow), white on dark ones (purple, green).
-        const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-        ctx.fillStyle = luminance > 165 ? colors.background : "#ffffff";
+        // Every tile color is light, so dark text reads best on all of them (≥ 6:1).
+        ctx.fillStyle = colors.background;
         ctx.font = font;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";

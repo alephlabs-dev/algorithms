@@ -15,7 +15,7 @@ export const MobileHeader = () => {
         <Drawer>
           <DrawerTrigger asChild>
             <Button
-              className="shrink-0 bg-background hover:bg-background/90 hover:text-foreground"
+              className="shrink-0 h-9 px-4 bg-background hover:bg-background/90 hover:text-foreground"
               size="sm"
             >
               Learn more
@@ -30,7 +30,8 @@ export const MobileHeader = () => {
           </DrawerContent>
         </Drawer>
       </div>
-      <p className="line-clamp-2">{shortDescription}</p>
+      {/* Short phones need the height for the bars; the full text is behind "Learn more". */}
+      <p className="line-clamp-2 [@media(max-height:760px)]:hidden">{shortDescription}</p>
     </div>
   );
 };

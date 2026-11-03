@@ -5,8 +5,9 @@ export const colors = {
   foreground: "#eee5e9",
   accent: "#294237",
   primary: "#3ecf8e",
-  secondary: "#7828c8",
+  secondary: "#b07cff",
   tertiary: "#ffd700",
+  dim: "#7a9688",
 } as const;
 
 export type RGB = [number, number, number];
