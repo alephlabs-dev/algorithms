@@ -1,5 +1,6 @@
 import { cn } from "@/utils/cn";
 import { useStore } from "@/store";
+import { useShallow } from "zustand/react/shallow";
 import { Button } from "@/components/ui/button";
 
 const displayModes = ["bars", "numbers"] as const;
@@ -12,7 +13,16 @@ export const DisplayModeSelector = () => {
     setSize,
     isPlaying,
     setDoneItems,
-  } = useStore();
+  } = useStore(
+    useShallow((s) => ({
+      displayMode: s.displayMode,
+      setDisplayMode: s.setDisplayMode,
+      size: s.size,
+      setSize: s.setSize,
+      isPlaying: s.isPlaying,
+      setDoneItems: s.setDoneItems,
+    }))
+  );
 
   const handleDisplayModeChange = (mode: (typeof displayModes)[number]) => {
     if (mode !== displayMode) {

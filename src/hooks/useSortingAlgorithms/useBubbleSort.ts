@@ -37,10 +37,11 @@ const bubble = async ({
 };
 
 export const useBubbleSort = () => {
-  const { items, setItems, setActiveItems, setDoneItems, speedRef } =
-    useStore();
-
   const sort = async (signal: AbortSignal) => {
+    // Read the store when the run starts instead of subscribing to it,
+    // so the component that owns this hook doesn't re-render on every step.
+    const { items, setItems, setActiveItems, setDoneItems, speedRef } =
+      useStore.getState();
     const result = [...items];
     const finished = await bubble({
       arr: result,

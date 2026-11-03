@@ -2,16 +2,15 @@ import { useStore } from "@/store";
 import { sleep, swap } from "./utils";
 
 export const useInsertionSort = () => {
-  const {
-    setItems,
-    setActiveItems,
-    items,
-    setDoneItems,
-    speedRef,
-    setTempItems,
-  } = useStore();
-
   const insertionSort = async (signal: AbortSignal) => {
+    const {
+      setItems,
+      setActiveItems,
+      items,
+      setDoneItems,
+      speedRef,
+      setTempItems,
+    } = useStore.getState();
     const arr = [...items];
     let aborted = false;
     setTempItems([arr[0]]);

@@ -5,7 +5,7 @@ import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { ArrowRightIcon, TimerIcon } from "@radix-ui/react-icons";
 
 export const Header = () => {
-  const { activeAlgorithm } = useStore();
+  const activeAlgorithm = useStore((s) => s.activeAlgorithm);
 
   return (
     <div className="flex flex-col w-full gap-4 lg:gap-8 text-foreground p-8 md:p-0">

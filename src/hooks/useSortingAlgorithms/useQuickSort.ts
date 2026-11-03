@@ -58,16 +58,15 @@ const sort = async (
 };
 
 export const useQuickSort = () => {
-  const {
-    items,
-    setItems,
-    setActiveItems,
-    setTempItems,
-    setDoneItems,
-    speedRef,
-  } = useStore();
-
   const handleSort = async (signal: AbortSignal) => {
+    const {
+      items,
+      setItems,
+      setActiveItems,
+      setTempItems,
+      setDoneItems,
+      speedRef,
+    } = useStore.getState();
     const config: SortConfig = {
       setItems,
       setActiveItems,

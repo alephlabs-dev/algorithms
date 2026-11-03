@@ -1,6 +1,7 @@
 import { BarChartIcon } from "@radix-ui/react-icons";
 import { Button } from "./ui/button";
 import { useStore } from "@/store";
+import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/utils/cn";
 import { DisplayMode } from "@/types";
 import { displayModes } from "@/consts/displayModes";
@@ -16,7 +17,17 @@ export const MobileSettings = () => {
     size: activeSize,
     isMobile,
     isPlaying,
-  } = useStore();
+  } = useStore(
+    useShallow((s) => ({
+      displayMode: s.displayMode,
+      setDisplayMode: s.setDisplayMode,
+      setDoneItems: s.setDoneItems,
+      setSize: s.setSize,
+      size: s.size,
+      isMobile: s.isMobile,
+      isPlaying: s.isPlaying,
+    }))
+  );
 
   const handleDisplayModeChange = (mode: DisplayMode) => {
     if (mode !== displayMode) {

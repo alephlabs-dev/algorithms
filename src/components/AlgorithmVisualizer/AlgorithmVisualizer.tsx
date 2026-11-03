@@ -1,32 +1,35 @@
 import { useStore } from "@/store";
-import { Reorder } from "framer-motion";
 import { Item } from "./Item";
 import { cn } from "@/utils/cn";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useResizeObserver } from "usehooks-ts";
+import { useShallow } from "zustand/react/shallow";
 
 export const AlgorithmVisualizer = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   // Tracks the container height so bars rescale when the window is resized.
   const { height: itemMaxHeight = 0 } = useResizeObserver({ ref: containerRef });
 
-  const {
-    items,
-    setItems,
-    activeItems,
-    doneItems,
-    tempItems,
-    arrayId,
-    displayMode,
-  } = useStore();
+  const { items, activeItems, doneItems, tempItems, arrayId, displayMode } =
+    useStore(
+      useShallow((s) => ({
+        items: s.items,
+        activeItems: s.activeItems,
+        doneItems: s.doneItems,
+        tempItems: s.tempItems,
+        arrayId: s.arrayId,
+        displayMode: s.displayMode,
+      }))
+    );
+
+  const activeSet = useMemo(() => new Set(activeItems), [activeItems]);
+  const doneSet = useMemo(() => new Set(doneItems), [doneItems]);
+  const tempSet = useMemo(() => new Set(tempItems), [tempItems]);
 
   return (
     <div className="border border-accent/50 lg:border-none lg:bg-accent rounded flex items-center justify-center overflow-hidden h-full p-1 md:p-2 lg:p-3 xl:p-8">
-      <Reorder.Group
+      <div
         ref={containerRef}
-        axis="x"
-        values={items}
-        onReorder={setItems}
         className={cn(
           "w-full lg:max-w-4xl flex items-end justify-center md:gap-2 gap-1 lg:gap-3 h-full",
           {
@@ -39,12 +42,12 @@ export const AlgorithmVisualizer = () => {
             key={`${arrayId}-${item}`}
             itemMaxHeight={itemMaxHeight}
             item={item}
-            isActive={activeItems.includes(item)}
-            isDone={doneItems.includes(item)}
-            isTemp={tempItems.includes(item)}
+            isActive={activeSet.has(item)}
+            isDone={doneSet.has(item)}
+            isTemp={tempSet.has(item)}
           />
         ))}
-      </Reorder.Group>
+      </div>
     </div>
   );
 };

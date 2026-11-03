@@ -2,10 +2,9 @@ import { useStore } from "@/store";
 import { sleep, swap } from "./utils";
 
 export const useSelectionSort = () => {
-  const { items, setItems, setActiveItems, setDoneItems, speedRef } =
-    useStore();
-
   const sort = async (signal: AbortSignal) => {
+    const { items, setItems, setActiveItems, setDoneItems, speedRef } =
+      useStore.getState();
     const result = [...items];
 
     for (let i = 0; i < result.length - 1; i++) {

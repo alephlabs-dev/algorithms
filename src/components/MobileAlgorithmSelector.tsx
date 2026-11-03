@@ -1,6 +1,7 @@
 import { cn } from "@/utils/cn";
 import { Algorithm } from "@/types";
 import { useStore } from "@/store";
+import { useShallow } from "zustand/react/shallow";
 import { Button } from "./ui/button";
 import { Title } from "./Sidebar/Title";
 import { Drawer, DrawerContent, DrawerTrigger, DrawerClose } from "./ui/drawer";
@@ -10,7 +11,13 @@ import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 const algorithms = Object.keys(sortingAlgorithms) as Algorithm[];
 
 export const MobileAlgorithmSelector = () => {
-  const { activeAlgorithm, setActiveAlgorithm, isPlaying } = useStore();
+  const { activeAlgorithm, setActiveAlgorithm, isPlaying } = useStore(
+    useShallow((s) => ({
+      activeAlgorithm: s.activeAlgorithm,
+      setActiveAlgorithm: s.setActiveAlgorithm,
+      isPlaying: s.isPlaying,
+    }))
+  );
 
   const { title } = sortingAlgorithms[activeAlgorithm];
 

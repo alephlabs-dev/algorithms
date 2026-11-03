@@ -1,6 +1,7 @@
 import { cn } from "@/utils/cn";
 import { Algorithm } from "@/types";
 import { useStore } from "@/store";
+import { useShallow } from "zustand/react/shallow";
 import { Button } from "../ui/button";
 import { Title } from "./Title";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
@@ -8,7 +9,13 @@ import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 const algorithms = Object.keys(sortingAlgorithms) as Algorithm[];
 
 export const AlgorithmSelector = () => {
-  const { activeAlgorithm, setActiveAlgorithm, isPlaying } = useStore();
+  const { activeAlgorithm, setActiveAlgorithm, isPlaying } = useStore(
+    useShallow((s) => ({
+      activeAlgorithm: s.activeAlgorithm,
+      setActiveAlgorithm: s.setActiveAlgorithm,
+      isPlaying: s.isPlaying,
+    }))
+  );
 
   return (
     <div className="flex flex-col gap-4">

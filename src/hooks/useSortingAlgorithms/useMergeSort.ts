@@ -69,16 +69,15 @@ const mergeSort = async (
 };
 
 export const useMergeSort = () => {
-  const {
-    items,
-    setItems,
-    setActiveItems,
-    setTempItems,
-    setDoneItems,
-    speedRef,
-  } = useStore();
-
   const sort = async (signal: AbortSignal) => {
+    const {
+      items,
+      setItems,
+      setActiveItems,
+      setTempItems,
+      setDoneItems,
+      speedRef,
+    } = useStore.getState();
     const sortedArray = await mergeSort([...items], {
       setItems,
       setActiveItems,

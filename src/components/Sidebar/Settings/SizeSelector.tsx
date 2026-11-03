@@ -1,5 +1,6 @@
 import { cn } from "@/utils/cn";
 import { useStore } from "@/store";
+import { useShallow } from "zustand/react/shallow";
 import { TooltipInfo } from "./TooltipInfo";
 import { Button } from "@/components/ui/button";
 import { sizesMap } from "@/consts/sizesMap";
@@ -11,7 +12,15 @@ export const SizeSelector = () => {
     setDoneItems,
     isPlaying,
     displayMode,
-  } = useStore();
+  } = useStore(
+    useShallow((s) => ({
+      size: s.size,
+      setSize: s.setSize,
+      setDoneItems: s.setDoneItems,
+      isPlaying: s.isPlaying,
+      displayMode: s.displayMode,
+    }))
+  );
 
   const handleSizeChange = (size: number) => {
     if (size !== activeSize) {

@@ -11,7 +11,8 @@ import { Separator } from "./components/ui/separator";
 import { MobileHeader } from "./components/MobileHeader";
 
 function App() {
-  const { setIsMobile, setSize } = useStore();
+  const setIsMobile = useStore((s) => s.setIsMobile);
+  const setSize = useStore((s) => s.setSize);
 
   const isMobile = useMediaQuery("(max-width: 768px)");
 

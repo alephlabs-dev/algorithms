@@ -1,6 +1,6 @@
 import { cn } from "@/utils/cn";
 import { useStore } from "@/store";
-import { motion, Reorder } from "framer-motion";
+import { motion } from "framer-motion";
 import { memo } from "react";
 import { MAX_ITEM } from "@/utils/generateItems";
 
@@ -18,9 +18,12 @@ const calculateItemHeight = (item: number, itemMaxHeight: number) => {
 
 export const Item = memo(
   ({ item, isActive, isDone, isTemp, itemMaxHeight }: Props) => {
-    const { speedRef, displayMode, size } = useStore();
+    const speedRef = useStore((s) => s.speedRef);
+    const displayMode = useStore((s) => s.displayMode);
+    const size = useStore((s) => s.size);
 
     // Animation lasts ~80% of the step delay (0–1000ms), so faster speeds animate faster.
+    // Read at render: items re-render whenever their highlight changes, which is right around when they move.
     const animationDuration = Math.max(0.05, (speedRef.current / 1000) * 0.8);
 
     const itemStyles = {
@@ -33,9 +36,9 @@ export const Item = memo(
     const animationState = isDone ? "done" : isActive ? "active" : "inactive";
 
     return (
-      <Reorder.Item
-        drag={false}
-        value={item}
+      <motion.div
+        // `layout` animates the bar sliding to its new position when the array is reordered.
+        layout
         className={cn(
           "rounded-sm md:rounded grid place-items-center bg-foreground origin-center w-full",
           {
@@ -73,7 +76,7 @@ export const Item = memo(
             {item}
           </motion.span>
         )}
-      </Reorder.Item>
+      </motion.div>
     );
   }
 );

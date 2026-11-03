@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { Drawer, DrawerContent, DrawerTrigger } from "./ui/drawer";
 
 export const MobileHeader = () => {
-  const { activeAlgorithm } = useStore();
+  const activeAlgorithm = useStore((s) => s.activeAlgorithm);
   const { title, shortDescription } = sortingAlgorithms[activeAlgorithm];
   return (
     <div className="flex md:hidden flex-col gap-2 bg-accent p-4 rounded">

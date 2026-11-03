@@ -4,19 +4,23 @@ import { Button } from "@/components/ui/button";
 
 import { useSortingAlgorithms } from "@/hooks/useSortingAlgorithms";
 import { useStore } from "@/store";
+import { useShallow } from "zustand/react/shallow";
 import { SpeedSlider } from "./SpeedSlider";
 
 import type { Algorithm } from "@/types";
 
 export const Controls = () => {
-  const {
-    isPlaying,
-    activeAlgorithm,
-    createNewArray,
-    setIsPlaying,
-    doneItems,
-    items,
-  } = useStore();
+  const { isPlaying, activeAlgorithm, createNewArray, setIsPlaying, isDone } =
+    useStore(
+      useShallow((s) => ({
+        isPlaying: s.isPlaying,
+        activeAlgorithm: s.activeAlgorithm,
+        createNewArray: s.createNewArray,
+        setIsPlaying: s.setIsPlaying,
+        // Derived here so Controls only re-renders when "done" flips, not on every step.
+        isDone: s.doneItems.length === s.items.length,
+      }))
+    );
   const { selectionSort, bubbleSort, quickSort, insertionSort, mergeSort } =
     useSortingAlgorithms();
   // One controller per run, so a stopped run can never be confused with a new one.
@@ -50,8 +54,6 @@ export const Controls = () => {
 
   // Stop any running sort if the controls unmount.
   useEffect(() => () => abortControllerRef.current?.abort(), []);
-
-  const isDone = doneItems.length === items.length;
 
   return (
     <div className="flex flex-col lg:flex-row items-center gap-4">

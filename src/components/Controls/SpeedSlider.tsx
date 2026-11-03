@@ -2,7 +2,7 @@ import { useStore } from "@/store";
 import { Slider } from "../ui/slider";
 
 export const SpeedSlider = () => {
-  const { speedRef } = useStore();
+  const speedRef = useStore((s) => s.speedRef);
 
   const handleSpeedChange = (value: number[]) => {
     speedRef.current = 2000 - value[0];
