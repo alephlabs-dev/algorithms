@@ -7,8 +7,18 @@ import { newSeed, seededRandom } from "./utils/random";
 import { DEFAULT_SPEED } from "./utils/speed";
 import type { Algorithm, DisplayMode, InputOrder } from "./types";
 
+export type View = "single" | "race";
+
+export const MIN_RACERS = 2;
+export const MAX_RACERS = 4;
+
 export type StoreState = {
   isMobile: boolean;
+  /** One algorithm with all the details, or several racing on the same array. */
+  view: View;
+  raceAlgorithms: Algorithm[];
+  /** One timeline per racer, on the same array as `timeline`. Empty outside race view. */
+  raceTimelines: Timeline[];
   activeAlgorithm: Algorithm;
   size: number;
   displayMode: DisplayMode;
@@ -22,10 +32,16 @@ export type StoreState = {
   arrayId: number;
   /** The whole run, precomputed. Frame 0 is the unsorted array. */
   timeline: Timeline;
+  /**
+   * Playback position. In single view it's a frame index; in race view it's a
+   * count of operations, so every lane runs on the same, fair clock.
+   */
   frameIndex: number;
   isPlaying: boolean;
 
   setIsMobile: (isMobile: boolean) => void;
+  setView: (view: View) => void;
+  toggleRaceAlgorithm: (algorithm: Algorithm) => void;
   setDisplayMode: (displayMode: DisplayMode) => void;
   setActiveAlgorithm: (algorithm: Algorithm) => void;
   setSize: (size: number) => void;
@@ -44,7 +60,10 @@ export type StoreState = {
 
 export const selectFrame = (state: StoreState) =>
   state.timeline.frameAt(state.frameIndex);
-export const selectLastIndex = (state: StoreState) => state.timeline.length - 1;
+export const selectLastIndex = (state: StoreState) =>
+  state.view === "race"
+    ? Math.max(0, ...state.raceTimelines.map((t) => t.totalOps))
+    : state.timeline.length - 1;
 
 export const MOBILE_QUERY = "(max-width: 768px)";
 
@@ -64,6 +83,12 @@ const newRun = (algorithm: Algorithm, items: readonly number[]) => ({
 const itemsFor = (size: number, order: InputOrder, seed: number) =>
   generateItems(size, order, seededRandom(seed));
 
+// In sidebar order, like any selection the user makes.
+const DEFAULT_RACERS: Algorithm[] = ["insertion", "bubble", "quick", "merge"];
+
+const raceTimelinesFor = (view: View, algorithms: Algorithm[], items: readonly number[]) =>
+  view === "race" ? algorithms.map((a) => timelineFor(a, items)) : [];
+
 // Start from the link's settings when there are any.
 const initial = (() => {
   const url = readUrlState(window.location.search);
@@ -73,15 +98,21 @@ const initial = (() => {
   const inputOrder = url.inputOrder ?? "random";
   const seed = url.seed ?? newSeed();
   const activeAlgorithm = url.algorithm ?? "selection";
+  const view = url.view ?? "single";
+  const raceAlgorithms = url.raceAlgorithms ?? DEFAULT_RACERS;
+  const items = itemsFor(size, inputOrder, seed);
   return {
     isMobile,
+    view,
+    raceAlgorithms,
+    raceTimelines: raceTimelinesFor(view, raceAlgorithms, items),
     activeAlgorithm,
     size,
     displayMode,
     inputOrder,
     speed: url.speed ?? DEFAULT_SPEED,
     seed,
-    timeline: timelineFor(activeAlgorithm, itemsFor(size, inputOrder, seed)),
+    timeline: timelineFor(activeAlgorithm, items),
   };
 })();
 
@@ -98,6 +129,32 @@ export const useStore = create<StoreState>((set, get) => ({
     const maxSize = maxSizeFor(displayMode, isMobile);
     if (size > maxSize) setSize(maxSize);
   },
+
+  setView: (view) =>
+    set((state) => ({
+      view,
+      frameIndex: 0,
+      isPlaying: false,
+      raceTimelines: raceTimelinesFor(view, state.raceAlgorithms, state.timeline.values),
+    })),
+
+  // Keeps between MIN_RACERS and MAX_RACERS lanes, in the sidebar's order.
+  toggleRaceAlgorithm: (algorithm) =>
+    set((state) => {
+      const selected = state.raceAlgorithms.includes(algorithm);
+      const count = state.raceAlgorithms.length;
+      if ((selected && count <= MIN_RACERS) || (!selected && count >= MAX_RACERS)) return {};
+      const order = Object.keys(sortAlgorithms) as Algorithm[];
+      const raceAlgorithms = order.filter((a) =>
+        a === algorithm ? !selected : state.raceAlgorithms.includes(a)
+      );
+      return {
+        raceAlgorithms,
+        frameIndex: 0,
+        isPlaying: false,
+        raceTimelines: raceTimelinesFor(state.view, raceAlgorithms, state.timeline.values),
+      };
+    }),
 
   setDisplayMode: (displayMode) => {
     set({ displayMode });
@@ -116,11 +173,13 @@ export const useStore = create<StoreState>((set, get) => ({
   setSize: (size) =>
     set((state) => {
       const seed = newSeed();
+      const items = itemsFor(size, state.inputOrder, seed);
       return {
         size,
         seed,
         arrayId: state.arrayId + 1,
-        ...newRun(state.activeAlgorithm, itemsFor(size, state.inputOrder, seed)),
+        raceTimelines: raceTimelinesFor(state.view, state.raceAlgorithms, items),
+        ...newRun(state.activeAlgorithm, items),
       };
     }),
 
@@ -137,15 +196,14 @@ export const useStore = create<StoreState>((set, get) => ({
     set((state) => ({
       isPlaying: true,
       // Replay from the start if the run already finished.
-      frameIndex:
-        state.frameIndex >= state.timeline.length - 1 ? 0 : state.frameIndex,
+      frameIndex: state.frameIndex >= selectLastIndex(state) ? 0 : state.frameIndex,
     })),
 
   pause: () => set({ isPlaying: false }),
 
   advanceBy: (steps) =>
     set((state) => {
-      const lastIndex = state.timeline.length - 1;
+      const lastIndex = selectLastIndex(state);
       const frameIndex = Math.min(state.frameIndex + steps, lastIndex);
       return { frameIndex, isPlaying: frameIndex < lastIndex };
     }),
@@ -153,7 +211,7 @@ export const useStore = create<StoreState>((set, get) => ({
   stepForward: () =>
     set((state) => ({
       isPlaying: false,
-      frameIndex: Math.min(state.frameIndex + 1, state.timeline.length - 1),
+      frameIndex: Math.min(state.frameIndex + 1, selectLastIndex(state)),
     })),
 
   stepBackward: () =>
@@ -164,6 +222,6 @@ export const useStore = create<StoreState>((set, get) => ({
 
   seek: (frameIndex) =>
     set((state) => ({
-      frameIndex: Math.min(Math.max(frameIndex, 0), state.timeline.length - 1),
+      frameIndex: Math.min(Math.max(frameIndex, 0), selectLastIndex(state)),
     })),
 }));

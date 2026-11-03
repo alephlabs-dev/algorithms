@@ -103,8 +103,12 @@ export class Timeline {
   /** Value of each item, by id. */
   readonly values: readonly number[];
   readonly length: number;
+  /** Comparisons + swaps + writes over the whole run. */
+  readonly totalOps: number;
 
   private readonly steps: (Step | FinishStep)[];
+  /** Operations done by frame k (cumulative), for races that run on an operation clock. */
+  private readonly opsAt: Uint32Array;
   private readonly checkpoints: State[];
   private cursor: { index: number; state: State };
   private cache = new Map<number, Frame>();
@@ -128,9 +132,12 @@ export class Timeline {
 
     // The generator reads `working.values`, which each applied step updates.
     const working = cloneState(initial);
+    const ops: number[] = [0];
     const record = (step: Step | FinishStep) => {
       applyStep(working, step);
       this.steps.push(step);
+      const { comparisons, swaps, writes } = working.stats;
+      ops.push(comparisons + swaps + writes);
       if (this.steps.length % CHECKPOINT_EVERY === 0) {
         this.checkpoints.push(cloneState(working));
       }
@@ -139,6 +146,8 @@ export class Timeline {
     record({ type: "finish" });
 
     this.length = this.steps.length + 1;
+    this.opsAt = Uint32Array.from(ops);
+    this.totalOps = ops[ops.length - 1];
     this.cursor = { index: 0, state: cloneState(initial) };
   }
 
@@ -164,6 +173,22 @@ export class Timeline {
     if (this.cache.size >= 8) this.cache.delete(this.cache.keys().next().value!);
     this.cache.set(i, frame);
     return frame;
+  }
+
+  /**
+   * The frame showing the run after `ops` operations: the last frame with at
+   * most that many, so frames that only move highlights pass instantly.
+   */
+  frameIndexAtOps(ops: number): number {
+    if (ops >= this.totalOps) return this.length - 1;
+    let lo = 0;
+    let hi = this.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (this.opsAt[mid] <= ops) lo = mid;
+      else hi = mid - 1;
+    }
+    return lo;
   }
 
   /** Values in array order for a frame. */

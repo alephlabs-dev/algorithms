@@ -11,6 +11,8 @@ const searchFor = (s: StoreState) =>
     displayMode: s.displayMode,
     speed: s.speed,
     seed: s.seed,
+    view: s.view,
+    raceAlgorithms: s.raceAlgorithms,
   });
 
 const settingsChanged = (a: StoreState, b: StoreState) =>
@@ -19,7 +21,9 @@ const settingsChanged = (a: StoreState, b: StoreState) =>
   a.inputOrder !== b.inputOrder ||
   a.displayMode !== b.displayMode ||
   a.speed !== b.speed ||
-  a.seed !== b.seed;
+  a.seed !== b.seed ||
+  a.view !== b.view ||
+  a.raceAlgorithms !== b.raceAlgorithms;
 
 /**
  * Keeps the address bar in sync with the settings, so the current URL is always

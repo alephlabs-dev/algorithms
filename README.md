@@ -16,28 +16,27 @@ https://github.com/user-attachments/assets/c3705203-1f45-4e31-867c-3eb92f1a8f0e
 
 ## Features
 
-- **Responsive Design**: The visualizer is fully responsive, offering a seamless experience on both desktop and mobile devices.
-- **Algorithm Visualizations**: Currently supports the following sorting algorithms:
-  - Selection Sort
-  - Insertion Sort
-  - Bubble Sort
-  - Quick Sort
-  - Merge Sort
+- **Nine algorithms**: Selection, Insertion, Bubble, Cocktail Shaker, Shell, Quick, Merge, Heap and Radix Sort.
+- **Race mode**: Run 2–4 algorithms side by side on the same array and the same clock, where each tick is one operation (a comparison, a swap or a write).
+- **Pseudocode**: The current line is highlighted as the algorithm runs; on phones it shows as a one-line caption that opens the full code.
 - **Playback Controls**: Play, pause, step forward and back, or drag the progress bar to any point of the run.
-- **Live Counters**: See how many comparisons and swaps (or writes, for Merge Sort) each algorithm needs.
+- **Live Counters**: Comparisons and swaps (or writes, for algorithms that move values instead of swapping them).
+- **Large arrays**: From 10 up to 400 items, drawn on canvas at 60+ fps, with an exponential speed control from 1 to ~2000 steps per second.
+- **Input Presets**: Random, nearly sorted, reversed, sorted or few unique values, to see best and worst cases.
+- **Shareable links**: The URL holds every setting plus a seed, so a link reproduces the exact same array.
 - **Color Legend**: Explains what each highlight color means for the selected algorithm.
-- **Input Presets**: Start from a random, nearly sorted, reversed or sorted array to see best and worst cases.
 - **Keyboard Shortcuts**: `Space` to play/pause, `←`/`→` to step, `R` for a new array.
-- **Customizable Settings**: Users can adjust the speed of the visualization, the size of the array, and the display mode (bars or numbers).
+- **Accessible**: Keyboard focus rings, a text description of each step for screen readers, and `prefers-reduced-motion` support.
+- **Responsive Design**: Works on desktop, tablet and phone.
 
 ## Built With
 
-- **Vite**: For fast and optimized development and build tooling.
-- **React**: For building the user interface.
-- **TypeScript**: Ensuring type safety and reducing runtime errors.
-- **Zustand**: For simple and scalable state management.
-- **Framer Motion**: For smooth and customizable animations.
-- **PNPM**: For fast, disk space efficient package management.
+- **Vite** and **React 19** with **TypeScript**.
+- **Zustand** for state management.
+- **Canvas 2D** for the visualization, with a small custom animation engine.
+- **Tailwind CSS 4**, **Radix UI** and **vaul** for the interface.
+- **Vitest** for tests.
+- **PNPM** for package management.
 
 ## Installation
 
@@ -70,7 +69,9 @@ pnpm test
 
 ## How It Works
 
-Each algorithm in `src/algorithms` is a generator that yields the steps it takes (`compare`, `swap`, `overwrite`, `done`) without touching React or timers. `recordFrames` runs it once and turns those steps into a list of frames, and the UI just plays that list back. That keeps the algorithms small and testable, and makes pausing, stepping and seeking trivial.
+Each algorithm in `src/algorithms` is a generator that yields the steps it takes (`compare`, `swap`, `move`, `done`, plus the pseudocode line) without touching React or timers. A `Timeline` runs it once and records the steps, with a full snapshot every 512 steps, so any frame can be rebuilt quickly and playing forward costs one step. The UI just picks a frame: pausing, stepping, seeking and racing are all index changes.
+
+`src/canvas` draws frames on a canvas and animates between them: moves follow an ease-in-out curve with the swap arc tied to the same progress, and highlights ease with a critically damped spring. The animation loop only runs while something moves.
 
 ## Usage
 

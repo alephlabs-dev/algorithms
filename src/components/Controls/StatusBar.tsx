@@ -12,8 +12,10 @@ const Swatch = ({ className, label }: { className: string; label: string }) => (
 );
 
 const Legend = () => {
-  const activeAlgorithm = useStore((s) => s.activeAlgorithm);
-  const { tempLabel } = sortingAlgorithms[activeAlgorithm];
+  // Yellow means something different per algorithm, so races leave it out.
+  const tempLabel = useStore((s) =>
+    s.view === "race" ? undefined : sortingAlgorithms[s.activeAlgorithm].tempLabel
+  );
 
   return (
     <ul aria-label="Legend" className="flex flex-wrap items-center gap-x-3 md:gap-x-4 gap-y-1">
@@ -53,16 +55,20 @@ const Stats = () => {
  * Legend, progress bar and counters. On phones the legend and counters share a
  * row above the progress bar; on wide screens all three fit on one row.
  */
-export const StatusBar = () => (
+export const StatusBar = () => {
+  // Each race lane shows its own count, so the global counters are for single view.
+  const isRace = useStore((s) => s.view === "race");
+  return (
   <div className="flex flex-wrap xl:flex-nowrap items-center gap-x-6 gap-y-2 text-xs md:text-sm text-foreground">
     <div className="order-1">
       <Legend />
     </div>
     <div className="order-2 xl:order-3 ml-auto xl:ml-0">
-      <Stats />
+      {!isRace && <Stats />}
     </div>
     <div className="order-3 xl:order-2 basis-full xl:basis-auto xl:flex-1">
       <Progress />
     </div>
   </div>
 );
+};

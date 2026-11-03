@@ -8,7 +8,7 @@ import {
 } from "@radix-ui/react-icons";
 import { useShallow } from "zustand/react/shallow";
 import { Button } from "@/components/ui/button";
-import { useStore } from "@/store";
+import { selectLastIndex, useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { KeyboardShortcuts } from "./KeyboardShortcuts";
 import { Playback } from "./Playback";
@@ -38,7 +38,7 @@ export const Controls = () => {
       createNewArray: s.createNewArray,
       // Booleans, so Controls only re-renders when they flip.
       atStart: s.frameIndex === 0,
-      atEnd: s.frameIndex === s.timeline.length - 1,
+      atEnd: s.frameIndex === selectLastIndex(s),
     }))
   );
 

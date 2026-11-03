@@ -16,6 +16,7 @@ export const MobileSettings = () => {
     size: activeSize,
     isMobile,
     isPlaying,
+    isRace,
     inputOrder,
     setInputOrder,
   } = useStore(
@@ -26,6 +27,7 @@ export const MobileSettings = () => {
       size: s.size,
       isMobile: s.isMobile,
       isPlaying: s.isPlaying,
+      isRace: s.view === "race",
       inputOrder: s.inputOrder,
       setInputOrder: s.setInputOrder,
     }))
@@ -43,7 +45,8 @@ export const MobileSettings = () => {
   return (
     <div className="flex lg:hidden flex-col gap-2">
       <div className="flex items-center justify-between">
-        <div className="rounded-sm flex items-center overflow-hidden">
+        {/* Race lanes always draw bars. */}
+        <div className={cn("rounded-sm flex items-center overflow-hidden", { invisible: isRace })}>
           {displayModes.map((mode) => (
             <Button
               key={mode}

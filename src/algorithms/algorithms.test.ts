@@ -123,6 +123,19 @@ describe.each(Object.entries(sortAlgorithms))("%s sort", (name, algorithm) => {
   });
 });
 
+describe("operation clock", () => {
+  it("maps operation counts to frames", () => {
+    const timeline = new Timeline(sortAlgorithms.bubble, [3, 2, 1]);
+    const { comparisons, swaps, writes } = timeline.frameAt(timeline.length - 1).stats;
+    expect(timeline.totalOps).toBe(comparisons + swaps + writes);
+    expect(timeline.frameIndexAtOps(timeline.totalOps)).toBe(timeline.length - 1);
+    for (let ops = 0; ops < timeline.totalOps; ops++) {
+      const { stats } = timeline.frameAt(timeline.frameIndexAtOps(ops));
+      expect(stats.comparisons + stats.swaps + stats.writes).toBe(ops);
+    }
+  });
+});
+
 const statsFor = (name: keyof typeof sortAlgorithms, input: number[]) => {
   const timeline = new Timeline(sortAlgorithms[name], input);
   return timeline.frameAt(timeline.length - 1).stats;

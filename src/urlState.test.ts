@@ -9,6 +9,8 @@ describe("url state", () => {
     displayMode: "bars",
     speed: 0.35,
     seed: 123456789,
+    view: "race",
+    raceAlgorithms: ["shell", "quick", "heap"],
   };
 
   it("round-trips through the query string", () => {
@@ -17,7 +19,7 @@ describe("url state", () => {
 
   it("ignores unknown or malformed values", () => {
     expect(
-      readUrlState("?algo=bogo&size=37&input=shuffled&mode=dots&speed=4&seed=-1")
+      readUrlState("?algo=bogo&size=37&input=shuffled&mode=dots&speed=4&seed=-1&view=grid&race=quick")
     ).toEqual({});
   });
 

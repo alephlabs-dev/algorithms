@@ -1,21 +1,23 @@
 import { useShallow } from "zustand/react/shallow";
-import { useStore } from "@/store";
+import { selectLastIndex, useStore } from "@/store";
 import { Slider } from "../ui/slider";
 
 // Kept separate from Controls because it re-renders on every frame.
 export const Progress = () => {
-  const { frameIndex, lastIndex, seek } = useStore(
+  const { frameIndex, lastIndex, seek, isRace } = useStore(
     useShallow((s) => ({
       frameIndex: s.frameIndex,
-      lastIndex: s.timeline.length - 1,
+      lastIndex: selectLastIndex(s),
       seek: s.seek,
+      isRace: s.view === "race",
     }))
   );
 
   return (
     <div className="flex items-center gap-4">
       <span className="tabular-nums whitespace-nowrap min-w-26">
-        Step {frameIndex} / {lastIndex}
+        {isRace ? "Ops" : "Step"} {frameIndex.toLocaleString("en-US")} /{" "}
+        {lastIndex.toLocaleString("en-US")}
       </span>
       <Slider
         aria-label="Progress"
