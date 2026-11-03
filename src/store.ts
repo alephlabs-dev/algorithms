@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { Timeline, sortAlgorithms } from "./algorithms";
 import { generateItems } from "./utils/generateItems";
+import { DEFAULT_SPEED } from "./utils/speed";
 import type { Algorithm, DisplayMode, InputOrder } from "./types";
 
 export type StoreState = {
@@ -10,7 +11,7 @@ export type StoreState = {
   displayMode: DisplayMode;
   /** How the generated array starts out (random, reversed...). */
   inputOrder: InputOrder;
-  /** Delay between frames in ms (0–1000). */
+  /** Slider position, 0–1 on an exponential scale (see utils/speed). */
   speed: number;
   /** Bumped on every new array so bars remount instead of animating. */
   arrayId: number;
@@ -29,8 +30,8 @@ export type StoreState = {
 
   play: () => void;
   pause: () => void;
-  /** Moves to the next frame and stops at the end. Called by the playback timer. */
-  advance: () => void;
+  /** Moves `steps` frames ahead and stops at the end. Called by the playback loop. */
+  advanceBy: (steps: number) => void;
   stepForward: () => void;
   stepBackward: () => void;
   seek: (frameIndex: number) => void;
@@ -52,7 +53,7 @@ const newRun = (algorithm: Algorithm, items: readonly number[]) => ({
   isPlaying: false,
 });
 
-const INITIAL_SIZE = 30;
+const INITIAL_SIZE = 40;
 const INITIAL_ALGORITHM: Algorithm = "selection";
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -61,7 +62,7 @@ export const useStore = create<StoreState>((set, get) => ({
   size: INITIAL_SIZE,
   displayMode: "bars",
   inputOrder: "random",
-  speed: 500,
+  speed: DEFAULT_SPEED,
   arrayId: 0,
   ...newRun(INITIAL_ALGORITHM, generateItems(INITIAL_SIZE, "random")),
 
@@ -107,10 +108,10 @@ export const useStore = create<StoreState>((set, get) => ({
 
   pause: () => set({ isPlaying: false }),
 
-  advance: () =>
+  advanceBy: (steps) =>
     set((state) => {
       const lastIndex = state.timeline.length - 1;
-      const frameIndex = Math.min(state.frameIndex + 1, lastIndex);
+      const frameIndex = Math.min(state.frameIndex + steps, lastIndex);
       return { frameIndex, isPlaying: frameIndex < lastIndex };
     }),
 

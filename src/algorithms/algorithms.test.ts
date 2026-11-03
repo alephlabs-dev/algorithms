@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { generateUniqueRandomItems } from "@/utils/generateItems";
-import { Timeline, range, sortAlgorithms } from ".";
+import { Timeline, pseudocode, range, sortAlgorithms } from ".";
+import type { Algorithm } from "@/types";
 import type { Frame } from "./types";
 
 const ascending = (arr: readonly number[]) => [...arr].sort((a, b) => a - b);
@@ -18,7 +19,20 @@ const inputs: Record<string, number[]> = {
 const allFrames = (timeline: Timeline): Frame[] =>
   Array.from({ length: timeline.length }, (_, k) => timeline.frameAt(k));
 
-describe.each(Object.entries(sortAlgorithms))("%s sort", (_, algorithm) => {
+describe.each(Object.entries(sortAlgorithms))("%s sort", (name, algorithm) => {
+  const code = pseudocode[name as Algorithm];
+
+  it("has short pseudocode that reads well line by line", () => {
+    expect(code.length).toBeGreaterThanOrEqual(6);
+    expect(code.length).toBeLessThanOrEqual(14);
+    for (const line of code) expect(line.length).toBeLessThanOrEqual(40);
+  });
+
+  it("annotates steps with pseudocode lines", () => {
+    const frames = allFrames(new Timeline(algorithm, inputs.random));
+    expect(frames.some((frame) => frame.line !== null)).toBe(true);
+  });
+
   describe.each(Object.entries(inputs))("on %s input", (_, input) => {
     const timeline = new Timeline(algorithm, input);
     const frames = allFrames(timeline);
@@ -26,6 +40,13 @@ describe.each(Object.entries(sortAlgorithms))("%s sort", (_, algorithm) => {
     const first = frames[0];
     const last = frames[frames.length - 1];
     const sorted = ascending(input);
+
+    it("only points at lines that exist in its pseudocode", () => {
+      for (const { line } of frames) {
+        if (line !== null) expect(line).toBeLessThan(code.length);
+        if (line !== null) expect(line).toBeGreaterThanOrEqual(0);
+      }
+    });
 
     it("starts from the input with nothing highlighted", () => {
       expect(valuesOf(first)).toEqual(input);
@@ -145,15 +166,41 @@ describe("complexity matches the descriptions", () => {
     }
   });
 
-  it("merge sort is stable", () => {
-    // Equal values must keep their original order (ids increase within a value).
-    const input = [2, 1, 2, 1, 2, 1, 3, 3, 1];
-    const timeline = new Timeline(sortAlgorithms.merge, input);
-    const { order } = timeline.frameAt(timeline.length - 1);
-    for (let k = 1; k < order.length; k++) {
-      if (input[order[k]] === input[order[k - 1]]) {
-        expect(order[k]).toBeGreaterThan(order[k - 1]);
-      }
+  it("cocktail sort is O(n) on sorted input thanks to the early exit", () => {
+    expect(statsFor("cocktail", sorted)).toEqual({ comparisons: n - 1, swaps: 0, writes: 0 });
+  });
+
+  it("heap sort stays within 2·n·log2(n) comparisons", () => {
+    for (const input of [sorted, reversed, generateUniqueRandomItems(n)]) {
+      expect(statsFor("heap", input).comparisons).toBeLessThanOrEqual(2 * n * Math.log2(n));
     }
   });
+
+  it("shell sort needs fewer swaps than insertion sort on reversed input", () => {
+    expect(statsFor("shell", reversed).swaps).toBeLessThan(statsFor("insertion", reversed).swaps);
+  });
+
+  it("radix sort never compares and writes every item once per digit", () => {
+    for (const input of [reversed, [5, 120, 7, 7, 999, 1, 40, 120]]) {
+      const digits = String(Math.max(...input)).length;
+      const stats = statsFor("radix", input);
+      expect(stats.comparisons).toBe(0);
+      expect(stats.writes).toBe(input.length * digits);
+    }
+  });
+
+  it.each(["merge", "radix", "insertion", "bubble", "cocktail"] as const)(
+    "%s sort is stable",
+    (name) => {
+      // Equal values must keep their original order (ids increase within a value).
+      const input = [2, 1, 12, 2, 1, 2, 1, 3, 3, 1, 12, 21];
+      const timeline = new Timeline(sortAlgorithms[name], input);
+      const { order } = timeline.frameAt(timeline.length - 1);
+      for (let k = 1; k < order.length; k++) {
+        if (input[order[k]] === input[order[k - 1]]) {
+          expect(order[k]).toBeGreaterThan(order[k - 1]);
+        }
+      }
+    }
+  );
 });

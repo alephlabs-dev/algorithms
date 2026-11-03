@@ -6,7 +6,7 @@ import { cn } from "@/utils/cn";
 const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
->(({ className, "aria-label": ariaLabel, ...props }, ref) => (
+>(({ className, "aria-label": ariaLabel, "aria-valuetext": ariaValueText, ...props }, ref) => (
   <SliderPrimitive.Root
     ref={ref}
     className={cn(
@@ -19,7 +19,7 @@ const Slider = React.forwardRef<
       <SliderPrimitive.Range className="absolute h-full bg-primary" />
     </SliderPrimitive.Track>
     {/* Radix reads the accessible name from the thumb, which has role="slider". */}
-    <SliderPrimitive.Thumb aria-label={ariaLabel} className="cursor-pointer block h-4 w-4 rounded-full border border-accent hover:border-primary bg-primary shadow-sm transition-colors focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50" />
+    <SliderPrimitive.Thumb aria-label={ariaLabel} aria-valuetext={ariaValueText} className="cursor-pointer block h-4 w-4 rounded-full border border-accent hover:border-primary bg-primary shadow-sm transition-colors focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50" />
   </SliderPrimitive.Root>
 ));
 Slider.displayName = SliderPrimitive.Root.displayName;

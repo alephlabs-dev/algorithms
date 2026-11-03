@@ -54,7 +54,7 @@ export const MobileAlgorithmSelector = () => {
                   key={algorithm}
                   variant="ghost"
                   className={cn(
-                    "px-4 py-2 capitalize text-base text-foreground justify-start hover:bg-accent hover:text-foreground h-auto",
+                    "px-4 py-2 text-base text-foreground justify-start hover:bg-accent hover:text-foreground h-auto",
                     {
                       "bg-primary text-background hover:bg-primary/90 hover:text-background":
                         activeAlgorithm === algorithm,
@@ -63,7 +63,7 @@ export const MobileAlgorithmSelector = () => {
                   onClick={() => setActiveAlgorithm(algorithm)}
                   disabled={isPlaying}
                 >
-                  {algorithm} Sort
+                  {sortingAlgorithms[algorithm].title}
                 </Button>
               </DrawerClose>
             ))}

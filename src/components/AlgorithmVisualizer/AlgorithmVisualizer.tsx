@@ -1,69 +1,68 @@
-import { selectFrame, useStore } from "@/store";
-import { Item } from "./Item";
-import { calculateItemHeight } from "./barHeight";
-import { cn } from "@/utils/cn";
-import { motion } from "motion/react";
-import { useMemo, useRef } from "react";
-import { useElementSize } from "@/hooks/useElementSize";
+import { useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { BarsRenderer } from "@/canvas/barsRenderer";
+import { useElementSize } from "@/hooks/useElementSize";
+import { selectFrame, selectLastIndex, useStore } from "@/store";
+import { moveDuration } from "@/utils/speed";
 
 export const AlgorithmVisualizer = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  // Tracks the container height so bars rescale when the window is resized.
-  const { height: itemMaxHeight } = useElementSize(containerRef);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rendererRef = useRef<BarsRenderer | null>(null);
+  const { width, height } = useElementSize(wrapperRef);
 
-  const { frame, isFinished, arrayId, displayMode, values } = useStore(
+  const { frame, values, frameIndex, lastIndex, arrayId, displayMode, speed } = useStore(
     useShallow((s) => ({
       frame: selectFrame(s),
-      isFinished: s.frameIndex > 0 && s.frameIndex === s.timeline.length - 1,
+      values: s.timeline.values,
+      frameIndex: s.frameIndex,
+      lastIndex: selectLastIndex(s),
       arrayId: s.arrayId,
       displayMode: s.displayMode,
-      values: s.timeline.values,
+      speed: s.speed,
     }))
   );
-  const { order, pivot } = frame;
 
-  const activeSet = useMemo(() => new Set(frame.active), [frame]);
-  const doneSet = useMemo(() => new Set(frame.done), [frame]);
-  const tempSet = useMemo(() => new Set(frame.temp), [frame]);
-  const focusSet = useMemo(() => new Set(frame.focus), [frame]);
+  useEffect(() => {
+    const renderer = new BarsRenderer(canvasRef.current!);
+    rendererRef.current = renderer;
+    return () => renderer.destroy();
+  }, []);
+
+  useEffect(() => {
+    rendererRef.current?.resize(width, height, window.devicePixelRatio || 1);
+  }, [width, height]);
+
+  useEffect(() => {
+    rendererRef.current?.update({
+      frame,
+      values,
+      mode: displayMode,
+      moveDuration: moveDuration(speed),
+      celebrate: frameIndex > 0 && frameIndex === lastIndex,
+      runId: arrayId,
+    });
+  }, [frame, values, displayMode, speed, frameIndex, lastIndex, arrayId]);
+
+  // The canvas is a picture to screen readers, so describe the current step in words.
+  const describe = () => {
+    if (frameIndex === lastIndex && frameIndex > 0) return "The array is sorted.";
+    if (frame.active.length === 2) {
+      const [a, b] = frame.active.map((id) => values[id]);
+      return `Comparing ${a} and ${b}.`;
+    }
+    return "";
+  };
 
   return (
-    <div className="border border-accent/50 lg:border-none lg:bg-accent rounded-sm flex items-center justify-center overflow-hidden h-full p-1 md:p-2 lg:p-3 xl:p-8">
-      <div
-        ref={containerRef}
-        className={cn(
-          "relative w-full lg:max-w-4xl flex items-end justify-center md:gap-2 gap-1 lg:gap-3 h-full",
-          {
-            "items-center": displayMode === "numbers",
-          }
-        )}
-      >
-        {/* Quick sort: a line at the pivot's height shows which bars are smaller. */}
-        {pivot !== null && displayMode === "bars" && (
-          <motion.div
-            aria-hidden
-            className="absolute inset-x-0 border-t border-dashed border-white/60 pointer-events-none"
-            initial={false}
-            animate={{ bottom: calculateItemHeight(values[pivot], itemMaxHeight) }}
-            transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-          />
-        )}
-        {order.map((item, index) => (
-          <Item
-            key={`${arrayId}-${item}`}
-            itemMaxHeight={itemMaxHeight}
-            item={values[item]}
-            index={index}
-            isActive={activeSet.has(item)}
-            isDone={doneSet.has(item)}
-            isTemp={tempSet.has(item)}
-            isPivot={item === pivot}
-            isDimmed={focusSet.size > 0 && !focusSet.has(item)}
-            hop={item === frame.hop}
-            celebrate={isFinished}
-          />
-        ))}
+    <div className="border border-accent/50 lg:border-none lg:bg-accent rounded-sm overflow-hidden h-full p-1 md:p-2 lg:p-3 xl:p-8">
+      <div ref={wrapperRef} className="relative w-full h-full">
+        <canvas
+          ref={canvasRef}
+          role="img"
+          aria-label={`Array of ${values.length} items, step ${frameIndex} of ${lastIndex}. ${describe()}`}
+          className="absolute inset-0 w-full h-full"
+        />
       </div>
     </div>
   );

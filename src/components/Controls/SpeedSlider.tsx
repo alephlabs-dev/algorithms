@@ -1,7 +1,8 @@
 import { useStore } from "@/store";
+import { formatStepsPerSecond } from "@/utils/speed";
 import { Slider } from "../ui/slider";
 
-const MAX_DELAY = 1000;
+const RESOLUTION = 1000;
 
 export const SpeedSlider = () => {
   const speed = useStore((s) => s.speed);
@@ -10,15 +11,18 @@ export const SpeedSlider = () => {
   return (
     <div className="flex items-center gap-4 text-foreground w-full">
       <h3 className="font-semibold">Speed</h3>
-      {/* Right means faster, so the slider value is the inverse of the delay. */}
       <Slider
         aria-label="Speed"
-        value={[MAX_DELAY - speed]}
+        aria-valuetext={`${formatStepsPerSecond(speed)} steps per second`}
+        value={[Math.round(speed * RESOLUTION)]}
         min={0}
-        max={MAX_DELAY}
+        max={RESOLUTION}
         step={1}
-        onValueChange={([value]) => setSpeed(MAX_DELAY - value)}
+        onValueChange={([value]) => setSpeed(value / RESOLUTION)}
       />
+      <span className="text-xs tabular-nums whitespace-nowrap min-w-[4.5rem] text-right">
+        {formatStepsPerSecond(speed)} steps/s
+      </span>
     </div>
   );
 };

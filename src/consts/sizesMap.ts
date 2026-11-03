@@ -1,8 +1,6 @@
-import { Size } from "@/types";
+import type { Size } from "@/types";
 
-export const sizesMap: Record<Size, string> = {
-  10: "Small",
-  20: "Medium",
-  30: "Large",
-  40: "XL",
-};
+export const sizes: Size[] = [10, 20, 40, 100, 200, 400];
+
+/** Bars get too thin to read past this on a phone. */
+export const MAX_MOBILE_SIZE = 200;

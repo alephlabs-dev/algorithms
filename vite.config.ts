@@ -1,7 +1,8 @@
 import path from "node:path";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import { defineConfig } from "vite";
+// vitest/config re-exports Vite's defineConfig with the `test` options typed.
+import { configDefaults, defineConfig } from "vitest/config";
 import { VitePluginUmami } from "./vite-plugin-umami";
 
 export default defineConfig({
@@ -16,6 +17,10 @@ export default defineConfig({
       },
     }),
   ],
+  test: {
+    // Agent worktrees live under .claude/ and carry their own copy of the tests.
+    exclude: [...configDefaults.exclude, ".claude/**"],
+  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),

@@ -1,6 +1,18 @@
 import { range } from "./timeline";
 import type { SortAlgorithm, Step } from "./types";
 
+export const mergePseudocode = [
+  "mergesort(lo, hi):",
+  "  if hi - lo <= 1: return",
+  "  mid = (lo + hi) / 2",
+  "  mergesort(lo, mid)",
+  "  mergesort(mid, hi)",
+  "  merge the two sorted halves:",
+  "    if left[0] <= right[0]:",
+  "      take left[0]",
+  "    else: take right[0]",
+];
+
 // Sorts arr[lo, hi) (hi exclusive).
 function* sortRange(
   arr: readonly number[],
@@ -14,7 +26,13 @@ function* sortRange(
   yield* sortRange(arr, mid, hi);
 
   // Show the two halves about to be merged.
-  yield { type: "highlight", active: range(lo, hi), temp: [], focus: range(lo, hi) };
+  yield {
+    type: "highlight",
+    active: range(lo, hi),
+    temp: [],
+    focus: range(lo, hi),
+    line: 5,
+  };
 
   const left = arr.slice(lo, mid);
   const right = arr.slice(mid, hi);
@@ -26,7 +44,7 @@ function* sortRange(
     const rightIndex = target + left.length;
     let takeLeft: boolean;
     if (left.length && right.length) {
-      yield { type: "compare", i: target, j: rightIndex };
+      yield { type: "compare", i: target, j: rightIndex, line: 6 };
       // `<=` takes from the left on ties, which keeps the sort stable.
       takeLeft = left[0] <= right[0];
     } else {
@@ -41,6 +59,7 @@ function* sortRange(
       from: takeLeft ? target : rightIndex,
       to: target,
       temp: range(lo, lo + merged.length),
+      line: takeLeft ? 7 : 8,
     };
   }
 }

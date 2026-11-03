@@ -9,9 +9,9 @@ const countInversions = (arr: number[]) => {
 };
 
 describe("generateItems", () => {
-  const orders = ["random", "nearlySorted", "reversed", "sorted"] as const;
+  const distinctOrders = ["random", "nearlySorted", "reversed", "sorted"] as const;
 
-  it.each(orders)("%s: returns unique values in range", (order) => {
+  it.each(distinctOrders)("%s: small arrays have unique values in range", (order) => {
     const items = generateItems(40, order);
     expect(items).toHaveLength(40);
     expect(new Set(items).size).toBe(40);
@@ -19,6 +19,13 @@ describe("generateItems", () => {
       expect(value).toBeGreaterThanOrEqual(MIN_ITEM);
       expect(value).toBeLessThanOrEqual(MAX_ITEM);
     }
+  });
+
+  it.each(distinctOrders)("%s: large arrays are a permutation of 1..n", (order) => {
+    const items = generateItems(400, order);
+    expect([...items].sort((a, b) => a - b)).toEqual(
+      Array.from({ length: 400 }, (_, k) => k + 1)
+    );
   });
 
   it("sorted is ascending and reversed is descending", () => {
@@ -31,5 +38,19 @@ describe("generateItems", () => {
       // Each neighbour swap adds at most one inversion.
       expect(countInversions(generateItems(30, "nearlySorted"))).toBeLessThanOrEqual(3);
     }
+  });
+
+  it("few unique repeats a handful of values", () => {
+    const items = generateItems(100, "fewUnique");
+    expect(items).toHaveLength(100);
+    expect(new Set(items).size).toBeLessThanOrEqual(5);
+  });
+
+  it("is reproducible with the same random source", () => {
+    const seeded = () => {
+      let state = 42;
+      return () => ((state = (state * 16807) % 2147483647) - 1) / 2147483646;
+    };
+    expect(generateItems(40, "random", seeded())).toEqual(generateItems(40, "random", seeded()));
   });
 });

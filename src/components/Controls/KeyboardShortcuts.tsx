@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { useStore } from "@/store";
 
-const isTextField = (el: Element) =>
+const isTextField = (el: Element | null) =>
   el instanceof HTMLInputElement ||
   el instanceof HTMLTextAreaElement ||
-  (el as HTMLElement).isContentEditable;
+  (el instanceof HTMLElement && el.isContentEditable);
 
 /**
  * Space: play/pause · ←/→: step · R: new array.
@@ -14,10 +14,11 @@ export const KeyboardShortcuts = () => {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
-      const target = event.target as Element;
+      // Events dispatched on document/window have no element target.
+      const target = event.target instanceof Element ? event.target : null;
       if (isTextField(target)) return;
       // Sliders already use the arrow keys.
-      const onSlider = target.getAttribute("role") === "slider";
+      const onSlider = target?.getAttribute("role") === "slider";
       // A focused button already activates on Space; don't toggle twice.
       const onButton = target instanceof HTMLButtonElement;
 

@@ -6,8 +6,7 @@ import { cn } from "@/utils/cn";
 import type { DisplayMode, InputOrder } from "@/types";
 import { displayModes } from "@/consts/displayModes";
 import { inputOrders } from "@/consts/inputOrders";
-import { sizesMap } from "@/consts/sizesMap";
-import { getInitials } from "@/utils/getInitials";
+import { MAX_MOBILE_SIZE, sizes } from "@/consts/sizesMap";
 
 export const MobileSettings = () => {
   const {
@@ -49,7 +48,7 @@ export const MobileSettings = () => {
             <Button
               key={mode}
               className={cn(
-                "p-2 border-2 border-r-0 border-accent/50 bg-background rounded-none h-10 w-10 active:bg-accent hover:bg-accent focus:bg-accent last:border-r-2",
+                "p-2 border-2 border-r-0 border-accent/50 bg-background rounded-none h-10 w-10 active:bg-accent hover:bg-accent last:border-r-2",
                 {
                   "bg-accent": displayMode === mode,
                   "text-xs font-light": mode === "numbers",
@@ -63,25 +62,25 @@ export const MobileSettings = () => {
           ))}
         </div>
         <div className="rounded-sm flex items-center overflow-hidden">
-          {Object.entries(sizesMap)
-            .filter(([size]) => !isMobile || (isMobile && Number(size) < 40))
-            .map(([size, label]) => (
+          {sizes
+            .filter((size) => size <= MAX_MOBILE_SIZE)
+            .map((size) => (
               <Button
-                key={label}
+                key={size}
                 className={cn(
-                  "p-2 border-2 border-r-0 border-accent/50 bg-background rounded-none w-10 h-10 active:bg-accent hover:bg-accent focus:bg-accent last:border-r-2",
+                  "p-0 border-2 border-r-0 border-accent/50 bg-background rounded-none w-10 h-10 text-xs active:bg-accent hover:bg-accent last:border-r-2",
                   {
-                    "bg-accent": Number(size) === activeSize,
+                    "bg-accent": size === activeSize,
                   }
                 )}
-                onClick={() => handleSizeChange(Number(size))}
+                onClick={() => handleSizeChange(size)}
                 disabled={
                   isPlaying ||
                   (displayMode === "numbers" &&
-                    (Number(size) > 20 || (isMobile && Number(size) > 10)))
+                    (size > 20 || (isMobile && size > 10)))
                 }
               >
-                {getInitials(label)}
+                {size}
               </Button>
             ))}
         </div>
@@ -91,7 +90,7 @@ export const MobileSettings = () => {
           <Button
             key={order}
             className={cn(
-              "flex-1 px-2 border-2 border-r-0 border-accent/50 bg-background rounded-none h-10 text-xs active:bg-accent hover:bg-accent focus:bg-accent last:border-r-2",
+              "flex-1 px-2 border-2 border-r-0 border-accent/50 bg-background rounded-none h-10 text-xs active:bg-accent hover:bg-accent last:border-r-2",
               { "bg-accent": inputOrder === order }
             )}
             onClick={() => setInputOrder(order)}

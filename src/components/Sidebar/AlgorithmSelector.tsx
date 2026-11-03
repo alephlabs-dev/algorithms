@@ -1,4 +1,3 @@
-import { motion } from "motion/react";
 import { cn } from "@/utils/cn";
 import { Algorithm } from "@/types";
 import { useStore } from "@/store";
@@ -17,17 +16,26 @@ export const AlgorithmSelector = () => {
       isPlaying: s.isPlaying,
     }))
   );
+  const activeIndex = algorithms.indexOf(activeAlgorithm);
 
   return (
     <div className="flex flex-col gap-4">
       <Title title="Sorting Algorithms" />
-      <div className="flex flex-col gap-2">
+      <div className="relative flex flex-col gap-2">
+        {/* One shared highlight that slides to the selected algorithm. Each row is
+            h-10 plus a gap-2, so row k sits at k × 3rem. */}
+        <span
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-10 rounded-sm bg-primary transition-transform duration-300 ease-out motion-reduce:transition-none"
+          style={{ transform: `translateY(${activeIndex * 3}rem)` }}
+        />
         {algorithms.map((algorithm) => (
           <Button
             key={algorithm}
             variant="ghost"
+            aria-pressed={activeAlgorithm === algorithm}
             className={cn(
-              "relative px-4 py-2 capitalize text-base text-foreground justify-start hover:bg-accent hover:text-foreground h-auto",
+              "relative h-10 px-4 text-base text-foreground justify-start hover:bg-accent hover:text-foreground transition-colors",
               {
                 "text-background hover:bg-transparent hover:text-background":
                   activeAlgorithm === algorithm,
@@ -36,15 +44,7 @@ export const AlgorithmSelector = () => {
             onClick={() => setActiveAlgorithm(algorithm)}
             disabled={isPlaying}
           >
-            {/* One shared background that slides to the selected algorithm. */}
-            {activeAlgorithm === algorithm && (
-              <motion.span
-                layoutId="active-algorithm"
-                className="absolute inset-0 rounded-sm bg-primary"
-                transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
-              />
-            )}
-            <span className="relative">{algorithm} Sort</span>
+            {sortingAlgorithms[algorithm].title}
           </Button>
         ))}
       </div>
