@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { createRef, MutableRefObject } from "react";
+import type { MutableRefObject } from "react";
 import { generateUniqueRandomItems } from "./utils/generateItems";
 import type { Algorithm, DisplayMode, StateUpdater } from "./types";
 import { resolveState } from "./utils/stateUpdater";
@@ -8,7 +8,6 @@ export type StoreState = {
   isMobile: boolean;
   arrayId: number;
   speedRef: MutableRefObject<number>;
-  abortRef: MutableRefObject<boolean>;
   isPlaying: boolean;
   activeAlgorithm: Algorithm;
   size: number;
@@ -29,17 +28,13 @@ export type StoreState = {
   createNewArray: () => void;
 };
 
-let speedRef = createRef<number>() as React.MutableRefObject<number>; // eslint-disable-line prefer-const
-speedRef.current = 500;
-
-let abortRef = createRef<boolean>() as React.MutableRefObject<boolean>; // eslint-disable-line prefer-const
-abortRef.current = false;
+// Delay between steps in ms. Kept outside React state so the slider doesn't re-render the app.
+const speedRef: MutableRefObject<number> = { current: 500 };
 
 export const useStore = create<StoreState>((set) => ({
   isMobile: false,
   arrayId: 0,
   speedRef,
-  abortRef,
   isPlaying: false,
   activeAlgorithm: "selection",
   displayMode: "bars",

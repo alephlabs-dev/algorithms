@@ -3,34 +3,26 @@ import { sleep } from "./utils";
 
 type SortConfig = Pick<
   StoreState,
-  | "setItems"
-  | "setActiveItems"
-  | "setTempItems"
-  | "setDoneItems"
-  | "speedRef"
-  | "abortRef"
->;
+  "setItems" | "setActiveItems" | "setTempItems" | "speedRef"
+> & { signal: AbortSignal };
 
+// Returns null if the run was aborted.
 const merge = async (
   leftArr: number[],
   rightArr: number[],
   config: SortConfig
 ): Promise<number[] | null> => {
-  const { setItems, setActiveItems, speedRef, abortRef, setTempItems } = config;
+  const { setItems, setActiveItems, speedRef, setTempItems, signal } = config;
 
   const sortedArray: number[] = [];
   setActiveItems([...leftArr, ...rightArr]);
-  await sleep(speedRef.current);
+  await sleep(speedRef.current, signal);
+  if (signal.aborted) return null;
 
   while (leftArr.length || rightArr.length) {
-    if (abortRef.current) {
-      setActiveItems([]);
-      setTempItems([]);
-      return null; // Stop if abortRef is set
-    }
-
     if (leftArr.length && rightArr.length) {
-      if (leftArr[0] < rightArr[0]) {
+      // `<=` takes from the left on ties, which keeps the sort stable.
+      if (leftArr[0] <= rightArr[0]) {
         sortedArray.push(leftArr.shift()!);
       } else {
         sortedArray.push(rightArr.shift()!);
@@ -52,13 +44,8 @@ const merge = async (
         ...prev.slice(index + sortedSubArray.length),
       ];
     });
-    await sleep(speedRef.current);
-
-    if (abortRef.current) {
-      setActiveItems([]);
-      setTempItems([]);
-      return null; // Check abortRef again after sleep
-    }
+    await sleep(speedRef.current, signal);
+    if (signal.aborted) return null;
   }
 
   setActiveItems([]);
@@ -70,25 +57,15 @@ const mergeSort = async (
   arr: number[],
   config: SortConfig
 ): Promise<number[] | null> => {
-  if (config.abortRef.current) {
-    config.setActiveItems([]);
-    config.setTempItems([]);
-    return null; // Abort early if abortRef is set
-  }
-
   if (arr.length <= 1) return arr;
 
   const middleIndex = Math.floor(arr.length / 2);
   const leftArr = await mergeSort(arr.slice(0, middleIndex), config);
+  if (leftArr === null) return null;
   const rightArr = await mergeSort(arr.slice(middleIndex), config);
+  if (rightArr === null) return null;
 
-  if (leftArr === null || rightArr === null) {
-    config.setActiveItems([]);
-    config.setTempItems([]);
-    return null; // Propagate null if aborted
-  }
-
-  return await merge(leftArr, rightArr, config);
+  return merge(leftArr, rightArr, config);
 };
 
 export const useMergeSort = () => {
@@ -99,29 +76,22 @@ export const useMergeSort = () => {
     setTempItems,
     setDoneItems,
     speedRef,
-    abortRef,
   } = useStore();
 
-  const config: SortConfig = {
-    setItems,
-    setActiveItems,
-    setTempItems,
-    setDoneItems,
-    speedRef,
-    abortRef,
-  };
-
-  const sort = async () => {
-    const sortedArray = await mergeSort([...items], config);
-    if (sortedArray !== null && !abortRef.current) {
+  const sort = async (signal: AbortSignal) => {
+    const sortedArray = await mergeSort([...items], {
+      setItems,
+      setActiveItems,
+      setTempItems,
+      speedRef,
+      signal,
+    });
+    if (sortedArray !== null) {
       setItems(sortedArray);
       setDoneItems(sortedArray);
     }
     setActiveItems([]);
-
-    if (abortRef.current) {
-      abortRef.current = false; // Reset abortRef after sorting is complete
-    }
+    setTempItems([]);
   };
 
   return sort;

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { PauseIcon, PlayIcon, UpdateIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 
@@ -13,30 +14,42 @@ export const Controls = () => {
     activeAlgorithm,
     createNewArray,
     setIsPlaying,
-    abortRef,
     doneItems,
     items,
   } = useStore();
   const { selectionSort, bubbleSort, quickSort, insertionSort, mergeSort } =
     useSortingAlgorithms();
+  // One controller per run, so a stopped run can never be confused with a new one.
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const handlePlayAnimation = async () => {
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
     setIsPlaying(true);
-    const algorithmMap: Record<Algorithm, () => Promise<void>> = {
+    const algorithmMap: Record<Algorithm, (signal: AbortSignal) => Promise<void>> = {
       selection: selectionSort,
       bubble: bubbleSort,
       quick: quickSort,
       insertion: insertionSort,
       merge: mergeSort,
     };
-    await algorithmMap[activeAlgorithm]();
-    setIsPlaying(false);
+    try {
+      await algorithmMap[activeAlgorithm](controller.signal);
+    } finally {
+      // Only unlock the UI once the sort has really stopped writing to the store.
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+        setIsPlaying(false);
+      }
+    }
   };
 
   const handleStopAnimation = () => {
-    setIsPlaying(false);
-    abortRef.current = true;
+    abortControllerRef.current?.abort();
   };
+
+  // Stop any running sort if the controls unmount.
+  useEffect(() => () => abortControllerRef.current?.abort(), []);
 
   const isDone = doneItems.length === items.length;
 

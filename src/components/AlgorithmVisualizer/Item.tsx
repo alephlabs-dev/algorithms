@@ -20,11 +20,8 @@ export const Item = memo(
   ({ item, isActive, isDone, isTemp, itemMaxHeight }: Props) => {
     const { speedRef, displayMode, size } = useStore();
 
-    // Calculate animation duration, normalized between 0.05 and 2 seconds
-    const animationDuration = Math.max(
-      0.05,
-      0.05 + ((2000 - speedRef.current) / 1980) * 1.95
-    );
+    // Animation lasts ~80% of the step delay (0–1000ms), so faster speeds animate faster.
+    const animationDuration = Math.max(0.05, (speedRef.current / 1000) * 0.8);
 
     const itemStyles = {
       height:
@@ -57,10 +54,8 @@ export const Item = memo(
           inactive: { y: 0 },
         }}
         transition={{
+          // Framer ignores duration/bounce if stiffness/damping/mass are also set.
           type: "spring",
-          damping: 20,
-          stiffness: 150,
-          mass: 1,
           bounce: 0.3,
           duration: animationDuration,
         }}

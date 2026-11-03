@@ -3,13 +3,8 @@ import { markAsDone, sleep, swap } from "./utils";
 
 type SortConfig = Pick<
   StoreState,
-  | "setItems"
-  | "setActiveItems"
-  | "setTempItems"
-  | "setDoneItems"
-  | "speedRef"
-  | "abortRef"
->;
+  "setItems" | "setActiveItems" | "setTempItems" | "setDoneItems" | "speedRef"
+> & { signal: AbortSignal };
 
 const partition = async (
   arr: number[],
@@ -17,24 +12,16 @@ const partition = async (
   right: number,
   config: SortConfig
 ): Promise<number | null> => {
-  const {
-    setItems,
-    setActiveItems,
-    setTempItems,
-    setDoneItems,
-    speedRef,
-    abortRef,
-  } = config;
-
-  if (abortRef.current) return null; // Stop if abortRef is set
+  const { setItems, setActiveItems, setTempItems, setDoneItems, speedRef, signal } =
+    config;
 
   const pivotValue = arr[right];
   let pivotIndex = left;
 
   for (let i = left; i < right; i++) {
-    if (abortRef.current) return null; // Stop if abortRef is set
     setActiveItems([arr[i], pivotValue]);
-    await sleep(speedRef.current);
+    await sleep(speedRef.current, signal);
+    if (signal.aborted) return null;
 
     if (arr[i] < pivotValue) {
       swap(arr, i, pivotIndex);
@@ -47,7 +34,7 @@ const partition = async (
   swap(arr, pivotIndex, right);
   setItems([...arr]);
   setTempItems([]);
-  markAsDone(arr[pivotIndex], setDoneItems); // Mark the pivot as done
+  markAsDone(arr[pivotIndex], setDoneItems); // The pivot is now in its final place
 
   return pivotIndex;
 };
@@ -58,20 +45,15 @@ const sort = async (
   right: number,
   config: SortConfig
 ): Promise<void> => {
+  if (config.signal.aborted) return;
+
   if (left < right) {
     const partitionIndex = await partition(arr, left, right, config);
-    if (partitionIndex === null) {
-      config.setActiveItems([]); // Ensure active items are cleared
-      return;
-    }
+    if (partitionIndex === null) return;
     await sort(arr, left, partitionIndex - 1, config);
     await sort(arr, partitionIndex + 1, right, config);
   } else if (left === right) {
     markAsDone(arr[left], config.setDoneItems);
-  }
-
-  if (left === 0 && right === arr.length - 1) {
-    config.setActiveItems([]);
   }
 };
 
@@ -83,29 +65,23 @@ export const useQuickSort = () => {
     setTempItems,
     setDoneItems,
     speedRef,
-    abortRef,
   } = useStore();
 
-  const config: SortConfig = {
-    setItems,
-    setActiveItems,
-    setTempItems,
-    setDoneItems,
-    speedRef,
-    abortRef,
-  };
+  const handleSort = async (signal: AbortSignal) => {
+    const config: SortConfig = {
+      setItems,
+      setActiveItems,
+      setTempItems,
+      setDoneItems,
+      speedRef,
+      signal,
+    };
 
-  const handleSort = async () => {
-    try {
-      await sort([...items], 0, items.length - 1, config);
-    } finally {
-      if (abortRef.current) {
-        config.setDoneItems([]); // Clear done items
-      }
-      config.abortRef.current = false; // Ensure abortRef is reset
-      config.setActiveItems([]); // Clear active items
-      config.setTempItems([]); // Clear temp items
-    }
+    await sort([...items], 0, items.length - 1, config);
+
+    if (signal.aborted) setDoneItems([]);
+    setActiveItems([]);
+    setTempItems([]);
   };
 
   return handleSort;

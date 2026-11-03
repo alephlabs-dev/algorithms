@@ -9,28 +9,28 @@ export const useInsertionSort = () => {
     setDoneItems,
     speedRef,
     setTempItems,
-    abortRef,
   } = useStore();
 
-  const insertionSort = async () => {
+  const insertionSort = async (signal: AbortSignal) => {
     const arr = [...items];
+    let aborted = false;
     setTempItems([arr[0]]);
 
-    for (let i = 1; i < arr.length; i++) {
-      if (abortRef.current) break; // Check if animation should stop
+    outer: for (let i = 1; i < arr.length; i++) {
       const current = arr[i];
-      const subArr = arr.slice(0, i);
 
-      for (let j = subArr.length - 1; j >= 0; j--) {
-        if (abortRef.current) break; // Check if animation should stop
-        const compared = subArr[j];
-
-        setActiveItems([current, compared]);
-        await sleep(speedRef.current);
-        if (compared > current) {
+      // `current` moves left one slot per swap, so arr[j] is always the
+      // next element of the sorted prefix to compare against.
+      for (let j = i - 1; j >= 0; j--) {
+        setActiveItems([current, arr[j]]);
+        await sleep(speedRef.current, signal);
+        if (signal.aborted) {
+          aborted = true;
+          break outer;
+        }
+        if (arr[j] > current) {
           swap(arr, j, j + 1);
           setItems([...arr]);
-          setTempItems((prev) => [...prev, current]);
         } else {
           break;
         }
@@ -40,12 +40,7 @@ export const useInsertionSort = () => {
 
     setActiveItems([]);
     setTempItems([]);
-    if (abortRef.current) {
-      setDoneItems([]);
-      abortRef.current = false;
-    } else {
-      setDoneItems(arr);
-    }
+    setDoneItems(aborted ? [] : arr);
   };
 
   return insertionSort;
