@@ -9,7 +9,7 @@ const searchFor = (s: StoreState) =>
     size: s.size as Size,
     inputOrder: s.inputOrder,
     displayMode: s.displayMode,
-    speed: s.speed,
+    speed: s.speedIsAuto ? undefined : s.speed,
     seed: s.seed,
     view: s.view,
     raceAlgorithms: s.raceAlgorithms,
@@ -21,6 +21,7 @@ const settingsChanged = (a: StoreState, b: StoreState) =>
   a.inputOrder !== b.inputOrder ||
   a.displayMode !== b.displayMode ||
   a.speed !== b.speed ||
+  a.speedIsAuto !== b.speedIsAuto ||
   a.seed !== b.seed ||
   a.view !== b.view ||
   a.raceAlgorithms !== b.raceAlgorithms;

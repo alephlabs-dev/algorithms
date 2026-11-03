@@ -4,7 +4,7 @@ import { MAX_MOBILE_SIZE } from "./consts/sizesMap";
 import { readUrlState } from "./urlState";
 import { generateItems } from "./utils/generateItems";
 import { newSeed, seededRandom } from "./utils/random";
-import { DEFAULT_SPEED } from "./utils/speed";
+import { autoSpeed } from "./utils/speed";
 import type { Algorithm, DisplayMode, InputOrder } from "./types";
 
 export type View = "single" | "race";
@@ -26,6 +26,11 @@ export type StoreState = {
   inputOrder: InputOrder;
   /** Slider position, 0–1 on an exponential scale (see utils/speed). */
   speed: number;
+  /**
+   * Whether the app picks the speed (so long runs don't take forever). Turns off
+   * once the user moves the slider, until they switch views.
+   */
+  speedIsAuto: boolean;
   /** Seeds the current array, so a link can reproduce it exactly. */
   seed: number;
   /** Bumped on every new array so bars remount instead of animating. */
@@ -101,127 +106,151 @@ const initial = (() => {
   const view = url.view ?? "single";
   const raceAlgorithms = url.raceAlgorithms ?? DEFAULT_RACERS;
   const items = itemsFor(size, inputOrder, seed);
+  const raceTimelines = raceTimelinesFor(view, raceAlgorithms, items);
+  const timeline = timelineFor(activeAlgorithm, items);
+  const lastIndex =
+    view === "race" ? Math.max(...raceTimelines.map((t) => t.totalOps)) : timeline.length - 1;
   return {
     isMobile,
     view,
     raceAlgorithms,
-    raceTimelines: raceTimelinesFor(view, raceAlgorithms, items),
+    raceTimelines,
     activeAlgorithm,
     size,
     displayMode,
     inputOrder,
-    speed: url.speed ?? DEFAULT_SPEED,
+    // A speed in the link is a deliberate choice; otherwise pick one for this run.
+    speed: url.speed ?? autoSpeed(lastIndex, view),
+    speedIsAuto: url.speed === undefined,
     seed,
-    timeline: timelineFor(activeAlgorithm, items),
+    timeline,
   };
 })();
 
-export const useStore = create<StoreState>((set, get) => ({
-  ...initial,
-  arrayId: 0,
-  frameIndex: 0,
-  isPlaying: false,
+export const useStore = create<StoreState>((set, get) => {
+  /** Call after any change that creates a new run. */
+  const applyAutoSpeed = () => {
+    const state = get();
+    if (state.speedIsAuto) set({ speed: autoSpeed(selectLastIndex(state), state.view) });
+  };
 
-  // Shrinks the array if the screen got too small for it (e.g. rotating a tablet).
-  setIsMobile: (isMobile) => {
-    set({ isMobile });
-    const { size, displayMode, setSize } = get();
-    const maxSize = maxSizeFor(displayMode, isMobile);
-    if (size > maxSize) setSize(maxSize);
-  },
+  return {
+    ...initial,
+    arrayId: 0,
+    frameIndex: 0,
+    isPlaying: false,
 
-  setView: (view) =>
-    set((state) => ({
-      view,
-      frameIndex: 0,
-      isPlaying: false,
-      raceTimelines: raceTimelinesFor(view, state.raceAlgorithms, state.timeline.values),
-    })),
+    // Shrinks the array if the screen got too small for it (e.g. rotating a tablet).
+    setIsMobile: (isMobile) => {
+      set({ isMobile });
+      const { size, displayMode, setSize } = get();
+      const maxSize = maxSizeFor(displayMode, isMobile);
+      if (size > maxSize) setSize(maxSize);
+    },
 
-  // Keeps between MIN_RACERS and MAX_RACERS lanes, in the sidebar's order.
-  toggleRaceAlgorithm: (algorithm) =>
-    set((state) => {
-      const selected = state.raceAlgorithms.includes(algorithm);
-      const count = state.raceAlgorithms.length;
-      if ((selected && count <= MIN_RACERS) || (!selected && count >= MAX_RACERS)) return {};
-      const order = Object.keys(sortAlgorithms) as Algorithm[];
-      const raceAlgorithms = order.filter((a) =>
-        a === algorithm ? !selected : state.raceAlgorithms.includes(a)
-      );
-      return {
-        raceAlgorithms,
+    setView: (view) => {
+      set((state) => ({
+        view,
         frameIndex: 0,
         isPlaying: false,
-        raceTimelines: raceTimelinesFor(state.view, raceAlgorithms, state.timeline.values),
-      };
-    }),
+        // Each view gets its own automatic speed, even if the slider was moved in the other.
+        speedIsAuto: true,
+        raceTimelines: raceTimelinesFor(view, state.raceAlgorithms, state.timeline.values),
+      }));
+      applyAutoSpeed();
+    },
 
-  setDisplayMode: (displayMode) => {
-    set({ displayMode });
-    const { size, isMobile, setSize } = get();
-    const maxSize = maxSizeFor(displayMode, isMobile);
-    if (size > maxSize) setSize(maxSize);
-  },
+    // Keeps between MIN_RACERS and MAX_RACERS lanes, in the sidebar's order.
+    toggleRaceAlgorithm: (algorithm) => {
+      set((state) => {
+        const selected = state.raceAlgorithms.includes(algorithm);
+        const count = state.raceAlgorithms.length;
+        if ((selected && count <= MIN_RACERS) || (!selected && count >= MAX_RACERS)) return {};
+        const order = Object.keys(sortAlgorithms) as Algorithm[];
+        const raceAlgorithms = order.filter((a) =>
+          a === algorithm ? !selected : state.raceAlgorithms.includes(a)
+        );
+        return {
+          raceAlgorithms,
+          frameIndex: 0,
+          isPlaying: false,
+          raceTimelines: raceTimelinesFor(state.view, raceAlgorithms, state.timeline.values),
+        };
+      });
+      applyAutoSpeed();
+    },
 
-  // Keeps the same array so algorithms can be compared on identical data.
-  setActiveAlgorithm: (algorithm) =>
-    set((state) => ({
-      activeAlgorithm: algorithm,
-      ...newRun(algorithm, state.timeline.values),
-    })),
+    setDisplayMode: (displayMode) => {
+      set({ displayMode });
+      const { size, isMobile, setSize } = get();
+      const maxSize = maxSizeFor(displayMode, isMobile);
+      if (size > maxSize) setSize(maxSize);
+    },
 
-  setSize: (size) =>
-    set((state) => {
-      const seed = newSeed();
-      const items = itemsFor(size, state.inputOrder, seed);
-      return {
-        size,
-        seed,
-        arrayId: state.arrayId + 1,
-        raceTimelines: raceTimelinesFor(state.view, state.raceAlgorithms, items),
-        ...newRun(state.activeAlgorithm, items),
-      };
-    }),
+    // Keeps the same array so algorithms can be compared on identical data.
+    setActiveAlgorithm: (algorithm) => {
+      set((state) => ({
+        activeAlgorithm: algorithm,
+        ...newRun(algorithm, state.timeline.values),
+      }));
+      applyAutoSpeed();
+    },
 
-  setInputOrder: (inputOrder) => {
-    set({ inputOrder });
-    get().createNewArray();
-  },
+    setSize: (size) => {
+      set((state) => {
+        const seed = newSeed();
+        const items = itemsFor(size, state.inputOrder, seed);
+        return {
+          size,
+          seed,
+          arrayId: state.arrayId + 1,
+          raceTimelines: raceTimelinesFor(state.view, state.raceAlgorithms, items),
+          ...newRun(state.activeAlgorithm, items),
+        };
+      });
+      applyAutoSpeed();
+    },
 
-  setSpeed: (speed) => set({ speed }),
+    setInputOrder: (inputOrder) => {
+      set({ inputOrder });
+      get().createNewArray();
+    },
 
-  createNewArray: () => get().setSize(get().size),
+    setSpeed: (speed) => set({ speed, speedIsAuto: false }),
 
-  play: () =>
-    set((state) => ({
-      isPlaying: true,
-      // Replay from the start if the run already finished.
-      frameIndex: state.frameIndex >= selectLastIndex(state) ? 0 : state.frameIndex,
-    })),
+    createNewArray: () => get().setSize(get().size),
 
-  pause: () => set({ isPlaying: false }),
+    play: () =>
+      set((state) => ({
+        isPlaying: true,
+        // Replay from the start if the run already finished.
+        frameIndex: state.frameIndex >= selectLastIndex(state) ? 0 : state.frameIndex,
+      })),
 
-  advanceBy: (steps) =>
-    set((state) => {
-      const lastIndex = selectLastIndex(state);
-      const frameIndex = Math.min(state.frameIndex + steps, lastIndex);
-      return { frameIndex, isPlaying: frameIndex < lastIndex };
-    }),
+    pause: () => set({ isPlaying: false }),
 
-  stepForward: () =>
-    set((state) => ({
-      isPlaying: false,
-      frameIndex: Math.min(state.frameIndex + 1, selectLastIndex(state)),
-    })),
+    advanceBy: (steps) =>
+      set((state) => {
+        const lastIndex = selectLastIndex(state);
+        const frameIndex = Math.min(state.frameIndex + steps, lastIndex);
+        return { frameIndex, isPlaying: frameIndex < lastIndex };
+      }),
 
-  stepBackward: () =>
-    set((state) => ({
-      isPlaying: false,
-      frameIndex: Math.max(state.frameIndex - 1, 0),
-    })),
+    stepForward: () =>
+      set((state) => ({
+        isPlaying: false,
+        frameIndex: Math.min(state.frameIndex + 1, selectLastIndex(state)),
+      })),
 
-  seek: (frameIndex) =>
-    set((state) => ({
-      frameIndex: Math.min(Math.max(frameIndex, 0), selectLastIndex(state)),
-    })),
-}));
+    stepBackward: () =>
+      set((state) => ({
+        isPlaying: false,
+        frameIndex: Math.max(state.frameIndex - 1, 0),
+      })),
+
+    seek: (frameIndex) =>
+      set((state) => ({
+        frameIndex: Math.min(Math.max(frameIndex, 0), selectLastIndex(state)),
+      })),
+  };
+});

@@ -14,7 +14,8 @@ export type UrlState = {
   size: Size;
   inputOrder: InputOrder;
   displayMode: DisplayMode;
-  speed: number;
+  /** Only present when the user picked it; otherwise the app chooses per run. */
+  speed?: number;
   seed: number;
   view: "single" | "race";
   raceAlgorithms: Algorithm[];
@@ -64,7 +65,7 @@ export const toSearch = (state: UrlState) =>
     size: String(state.size),
     input: state.inputOrder,
     mode: state.displayMode,
-    speed: state.speed.toFixed(2),
+    ...(state.speed !== undefined && { speed: state.speed.toFixed(2) }),
     seed: state.seed.toString(36),
     view: state.view,
     race: state.raceAlgorithms.join(","),

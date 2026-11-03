@@ -20,3 +20,18 @@ export const formatStepsPerSecond = (speed: number) => {
   const sps = stepsPerSecond(speed);
   return sps < 10 ? sps.toFixed(1) : String(Math.round(sps));
 };
+
+/** Inverse of `stepsPerSecond`, clamped to the slider's range. */
+export const speedForStepsPerSecond = (sps: number) =>
+  Math.min(1, Math.max(0, Math.log2(sps) / DOUBLINGS));
+
+// How long a run should take at most when the speed is picked automatically.
+// Small arrays stay at the default speed; only long runs get faster.
+const TARGET_SECONDS = { single: 240, race: 30 } as const;
+
+/**
+ * A speed that finishes `steps` steps within the target time for the view,
+ * never slower than the default.
+ */
+export const autoSpeed = (steps: number, view: keyof typeof TARGET_SECONDS) =>
+  Math.max(DEFAULT_SPEED, speedForStepsPerSecond(steps / TARGET_SECONDS[view]));
