@@ -1,7 +1,7 @@
 import { AlgorithmVisualizer } from "./components/AlgorithmVisualizer";
 import { Header } from "./components/Header";
 import { Controls } from "./components/Controls";
-import { useStore } from "./store";
+import { MOBILE_QUERY, useStore } from "./store";
 import { MobileSettings } from "./components/MobileSettings";
 import { MobileAlgorithmSelector } from "./components/MobileAlgorithmSelector";
 import { useMediaQuery } from "./hooks/useMediaQuery";
@@ -13,16 +13,11 @@ import { PseudocodePanel } from "./components/Pseudocode";
 
 function App() {
   const setIsMobile = useStore((s) => s.setIsMobile);
-  const setSize = useStore((s) => s.setSize);
-
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useMediaQuery(MOBILE_QUERY);
 
   useEffect(() => {
     setIsMobile(isMobile);
-    if (isMobile) {
-      setSize(20);
-    }
-  }, [isMobile, setIsMobile, setSize]);
+  }, [isMobile, setIsMobile]);
 
   return (
     <div className="flex h-dvh bg-background text-foreground">

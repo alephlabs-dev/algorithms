@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import { Timeline, sortAlgorithms } from "./algorithms";
+import { MAX_MOBILE_SIZE } from "./consts/sizesMap";
+import { readUrlState } from "./urlState";
 import { generateItems } from "./utils/generateItems";
+import { newSeed, seededRandom } from "./utils/random";
 import { DEFAULT_SPEED } from "./utils/speed";
 import type { Algorithm, DisplayMode, InputOrder } from "./types";
 
@@ -13,6 +16,8 @@ export type StoreState = {
   inputOrder: InputOrder;
   /** Slider position, 0–1 on an exponential scale (see utils/speed). */
   speed: number;
+  /** Seeds the current array, so a link can reproduce it exactly. */
+  seed: number;
   /** Bumped on every new array so bars remount instead of animating. */
   arrayId: number;
   /** The whole run, precomputed. Frame 0 is the unsorted array. */
@@ -41,8 +46,11 @@ export const selectFrame = (state: StoreState) =>
   state.timeline.frameAt(state.frameIndex);
 export const selectLastIndex = (state: StoreState) => state.timeline.length - 1;
 
+export const MOBILE_QUERY = "(max-width: 768px)";
+
+/** Numbers mode only fits so many tiles, and phones only so many bars. */
 const maxSizeFor = (displayMode: DisplayMode, isMobile: boolean) =>
-  displayMode === "numbers" ? (isMobile ? 10 : 20) : Infinity;
+  displayMode === "numbers" ? (isMobile ? 10 : 20) : isMobile ? MAX_MOBILE_SIZE : Infinity;
 
 const timelineFor = (algorithm: Algorithm, items: readonly number[]) =>
   new Timeline(sortAlgorithms[algorithm], items);
@@ -53,20 +61,43 @@ const newRun = (algorithm: Algorithm, items: readonly number[]) => ({
   isPlaying: false,
 });
 
-const INITIAL_SIZE = 40;
-const INITIAL_ALGORITHM: Algorithm = "selection";
+const itemsFor = (size: number, order: InputOrder, seed: number) =>
+  generateItems(size, order, seededRandom(seed));
+
+// Start from the link's settings when there are any.
+const initial = (() => {
+  const url = readUrlState(window.location.search);
+  const isMobile = window.matchMedia(MOBILE_QUERY).matches;
+  const displayMode = url.displayMode ?? "bars";
+  const size = Math.min(url.size ?? (isMobile ? 20 : 40), maxSizeFor(displayMode, isMobile));
+  const inputOrder = url.inputOrder ?? "random";
+  const seed = url.seed ?? newSeed();
+  const activeAlgorithm = url.algorithm ?? "selection";
+  return {
+    isMobile,
+    activeAlgorithm,
+    size,
+    displayMode,
+    inputOrder,
+    speed: url.speed ?? DEFAULT_SPEED,
+    seed,
+    timeline: timelineFor(activeAlgorithm, itemsFor(size, inputOrder, seed)),
+  };
+})();
 
 export const useStore = create<StoreState>((set, get) => ({
-  isMobile: false,
-  activeAlgorithm: INITIAL_ALGORITHM,
-  size: INITIAL_SIZE,
-  displayMode: "bars",
-  inputOrder: "random",
-  speed: DEFAULT_SPEED,
+  ...initial,
   arrayId: 0,
-  ...newRun(INITIAL_ALGORITHM, generateItems(INITIAL_SIZE, "random")),
+  frameIndex: 0,
+  isPlaying: false,
 
-  setIsMobile: (isMobile) => set({ isMobile }),
+  // Shrinks the array if the screen got too small for it (e.g. rotating a tablet).
+  setIsMobile: (isMobile) => {
+    set({ isMobile });
+    const { size, displayMode, setSize } = get();
+    const maxSize = maxSizeFor(displayMode, isMobile);
+    if (size > maxSize) setSize(maxSize);
+  },
 
   setDisplayMode: (displayMode) => {
     set({ displayMode });
@@ -83,11 +114,15 @@ export const useStore = create<StoreState>((set, get) => ({
     })),
 
   setSize: (size) =>
-    set((state) => ({
-      size,
-      arrayId: state.arrayId + 1,
-      ...newRun(state.activeAlgorithm, generateItems(size, state.inputOrder)),
-    })),
+    set((state) => {
+      const seed = newSeed();
+      return {
+        size,
+        seed,
+        arrayId: state.arrayId + 1,
+        ...newRun(state.activeAlgorithm, itemsFor(size, state.inputOrder, seed)),
+      };
+    }),
 
   setInputOrder: (inputOrder) => {
     set({ inputOrder });
