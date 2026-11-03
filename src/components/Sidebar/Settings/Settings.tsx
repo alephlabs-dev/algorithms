@@ -1,4 +1,5 @@
 import { DisplayModeSelector } from "./DisplayModeSelector";
+import { InputSelector } from "./InputSelector";
 import { SizeSelector } from "./SizeSelector";
 import { Title } from "../Title";
 
@@ -7,6 +8,7 @@ export const Settings = () => {
     <div className="flex flex-col gap-8">
       <Title title="Settings" />
       <SizeSelector />
+      <InputSelector />
       <DisplayModeSelector />
     </div>
   );

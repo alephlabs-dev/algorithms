@@ -4,7 +4,13 @@ import { useStore } from "@/store";
 import { useShallow } from "zustand/react/shallow";
 import { Button } from "./ui/button";
 import { Title } from "./Sidebar/Title";
-import { Drawer, DrawerContent, DrawerTrigger, DrawerClose } from "./ui/drawer";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerTitle,
+  DrawerTrigger,
+} from "./ui/drawer";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 
@@ -33,7 +39,12 @@ export const MobileAlgorithmSelector = () => {
           <ChevronDownIcon className="h-6 w-6 ml-auto" />
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="bg-background border-none border-accent/50">
+      <DrawerContent
+        className="bg-background border-none border-accent/50"
+        aria-describedby={undefined}
+      >
+        {/* Screen readers need a dialog title; the visible heading is below. */}
+        <DrawerTitle className="sr-only">Choose a sorting algorithm</DrawerTitle>
         <div className="flex flex-col w-full gap-4 text-foreground p-8">
           <Title title="Sorting Algorithms" />
           <div className="flex flex-col gap-4">

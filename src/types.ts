@@ -6,3 +6,4 @@ export type Algorithm =
   | "merge";
 export type DisplayMode = "bars" | "numbers";
 export type Size = 10 | 20 | 30 | 40;
+export type InputOrder = "random" | "nearlySorted" | "reversed" | "sorted";

@@ -10,9 +10,10 @@ import { useShallow } from "zustand/react/shallow";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
+import { KeyboardShortcuts } from "./KeyboardShortcuts";
 import { Playback } from "./Playback";
-import { Progress } from "./Progress";
 import { SpeedSlider } from "./SpeedSlider";
+import { StatusBar } from "./StatusBar";
 
 const buttonClass =
   "bg-background border-2 border-accent hover:bg-accent text-base text-foreground hover:text-foreground h-auto py-2";
@@ -44,23 +45,28 @@ export const Controls = () => {
   return (
     <div className="flex flex-col gap-4">
       <Playback />
-      <Progress />
-      <div className="flex flex-col lg:flex-row items-center gap-4">
+      <KeyboardShortcuts />
+      <StatusBar />
+      <div className="flex flex-col md:flex-row items-center gap-4">
         <SpeedSlider />
-        <div className="flex items-center gap-2 lg:gap-4 w-full lg:w-auto">
+        <div className="flex items-center gap-2 xl:gap-4 w-full md:w-auto">
           <Button
             variant="ghost"
             className={cn(buttonClass, "px-3 shrink-0")}
             onClick={stepBackward}
             disabled={atStart}
             aria-label="Previous step"
+            aria-keyshortcuts="ArrowLeft"
+            title="Previous step (←)"
           >
             <ChevronLeftIcon className="h-5 w-5" />
           </Button>
           <Button
             variant="ghost"
-            className={cn(buttonClass, "px-4 w-full lg:w-40")}
+            className={cn(buttonClass, "px-4 w-full md:w-32 xl:w-40")}
             onClick={isPlaying ? pause : play}
+            aria-keyshortcuts="Space"
+            title={isPlaying ? "Pause (Space)" : "Play (Space)"}
           >
             {isPlaying ? (
               <>
@@ -82,13 +88,17 @@ export const Controls = () => {
             onClick={stepForward}
             disabled={atEnd}
             aria-label="Next step"
+            aria-keyshortcuts="ArrowRight"
+            title="Next step (→)"
           >
             <ChevronRightIcon className="h-5 w-5" />
           </Button>
           <Button
             variant="ghost"
-            className={cn(buttonClass, "px-4 w-full lg:w-40")}
+            className={cn(buttonClass, "px-4 w-full md:w-32 xl:w-40")}
             onClick={createNewArray}
+            aria-keyshortcuts="R"
+            title="New array (R)"
             disabled={isPlaying}
           >
             <UpdateIcon className="h-4 w-4 mr-2" /> Reset

@@ -1,13 +1,15 @@
 import { create } from "zustand";
 import { recordFrames, sortAlgorithms, type Frame } from "./algorithms";
-import { generateUniqueRandomItems } from "./utils/generateItems";
-import type { Algorithm, DisplayMode } from "./types";
+import { generateItems } from "./utils/generateItems";
+import type { Algorithm, DisplayMode, InputOrder } from "./types";
 
 export type StoreState = {
   isMobile: boolean;
   activeAlgorithm: Algorithm;
   size: number;
   displayMode: DisplayMode;
+  /** How the generated array starts out (random, reversed...). */
+  inputOrder: InputOrder;
   /** Delay between frames in ms (0–1000). */
   speed: number;
   /** Bumped on every new array so bars remount instead of animating. */
@@ -21,6 +23,7 @@ export type StoreState = {
   setDisplayMode: (displayMode: DisplayMode) => void;
   setActiveAlgorithm: (algorithm: Algorithm) => void;
   setSize: (size: number) => void;
+  setInputOrder: (inputOrder: InputOrder) => void;
   setSpeed: (speed: number) => void;
   createNewArray: () => void;
 
@@ -55,9 +58,10 @@ export const useStore = create<StoreState>((set, get) => ({
   activeAlgorithm: INITIAL_ALGORITHM,
   size: INITIAL_SIZE,
   displayMode: "bars",
+  inputOrder: "random",
   speed: 500,
   arrayId: 0,
-  ...newRun(INITIAL_ALGORITHM, generateUniqueRandomItems(INITIAL_SIZE)),
+  ...newRun(INITIAL_ALGORITHM, generateItems(INITIAL_SIZE, "random")),
 
   setIsMobile: (isMobile) => set({ isMobile }),
 
@@ -79,8 +83,13 @@ export const useStore = create<StoreState>((set, get) => ({
     set((state) => ({
       size,
       arrayId: state.arrayId + 1,
-      ...newRun(state.activeAlgorithm, generateUniqueRandomItems(size)),
+      ...newRun(state.activeAlgorithm, generateItems(size, state.inputOrder)),
     })),
+
+  setInputOrder: (inputOrder) => {
+    set({ inputOrder });
+    get().createNewArray();
+  },
 
   setSpeed: (speed) => set({ speed }),
 

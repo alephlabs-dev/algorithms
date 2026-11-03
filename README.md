@@ -25,6 +25,9 @@ https://github.com/user-attachments/assets/c3705203-1f45-4e31-867c-3eb92f1a8f0e
   - Merge Sort
 - **Playback Controls**: Play, pause, step forward and back, or drag the progress bar to any point of the run.
 - **Live Counters**: See how many comparisons and swaps (or writes, for Merge Sort) each algorithm needs.
+- **Color Legend**: Explains what each highlight color means for the selected algorithm.
+- **Input Presets**: Start from a random, nearly sorted, reversed or sorted array to see best and worst cases.
+- **Keyboard Shortcuts**: `Space` to play/pause, `←`/`→` to step, `R` for a new array.
 - **Customizable Settings**: Users can adjust the speed of the visualization, the size of the array, and the display mode (bars or numbers).
 
 ## Built With

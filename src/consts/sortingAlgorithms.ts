@@ -9,6 +9,10 @@ type AlgorithmDetails = {
     average: string;
     worst: string;
   };
+  /** What the yellow highlight means for this algorithm, if it uses it. */
+  tempLabel?: string;
+  /** Merge sort moves values by writing them rather than swapping. */
+  countsWrites?: boolean;
 };
 
 export const sortingAlgorithms: Record<Algorithm, AlgorithmDetails> = {
@@ -35,6 +39,7 @@ export const sortingAlgorithms: Record<Algorithm, AlgorithmDetails> = {
       average: "O(n²)",
       worst: "O(n²)",
     },
+    tempLabel: "Sorted section",
   },
   bubble: {
     title: "Bubble Sort",
@@ -59,6 +64,7 @@ export const sortingAlgorithms: Record<Algorithm, AlgorithmDetails> = {
       average: "O(n log n)",
       worst: "O(n²)",
     },
+    tempLabel: "Smaller than pivot",
   },
   merge: {
     title: "Merge Sort",
@@ -71,5 +77,7 @@ export const sortingAlgorithms: Record<Algorithm, AlgorithmDetails> = {
       average: "O(n log n)",
       worst: "O(n log n)",
     },
+    tempLabel: "Merged",
+    countsWrites: true,
   },
 };
