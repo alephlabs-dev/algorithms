@@ -1,4 +1,4 @@
-import { range } from "./recordFrames";
+import { range } from "./timeline";
 import type { SortAlgorithm, Step } from "./types";
 
 // Lomuto partition with the last element as pivot.

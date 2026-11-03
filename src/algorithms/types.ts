@@ -2,14 +2,15 @@
  * A sorting algorithm is a generator that *describes* what it does, one step at a time.
  *
  * It receives the working array read-only and never mutates it: it yields a `swap` or
- * `overwrite` step and the recorder applies it before resuming the generator, so after
+ * `move` step and the timeline applies it before resuming the generator, so after
  * each `yield` the array already reflects that step.
  *
  * Indices in a step refer to positions in the array at the moment the step is yielded.
  */
 export type SortAlgorithm = (arr: readonly number[]) => Generator<Step, void>;
 
-type HighlightOverrides = {
+/** Optional extras any step can carry. Positions are converted to items when applied. */
+type Annotations = {
   /** Replace the "active" highlight (purple) with these positions. */
   active?: number[];
   /** Replace the "temp" highlight (yellow) with these positions. */
@@ -18,21 +19,20 @@ type HighlightOverrides = {
   focus?: number[];
   /** Position of the pivot (quick sort), or null to clear it. */
   pivot?: number | null;
+  /** Pseudocode line (0-based) this step belongs to; it stays until another step changes it. */
+  line?: number;
 };
 
-export type Step = HighlightOverrides &
+export type Step = Annotations &
   (
     | { type: "compare"; i: number; j: number }
     | { type: "swap"; i: number; j: number }
-    /** Write `values` into the array starting at `start` (used by merge sort). */
-    | {
-        type: "overwrite";
-        start: number;
-        values: number[];
-        /** Position of a value that jumped left over others, so it can be drawn hopping. */
-        hop?: number;
-      }
-    /** Only change highlights. */
+    /**
+     * Take the value at `from` and insert it at `to`, shifting the ones in between.
+     * Counts as one write even when `from === to` (the value is written in place).
+     */
+    | { type: "move"; from: number; to: number }
+    /** Only change annotations. */
     | { type: "highlight" }
     /** These positions hold their final value. */
     | { type: "done"; indices: number[] }
@@ -44,16 +44,22 @@ export type Stats = {
   writes: number;
 };
 
-/** Everything needed to draw one moment of the animation. Highlights hold values, not indices. */
+/**
+ * Everything needed to draw one moment of the animation.
+ * Items are ids (0..n-1, stable for the whole run); `values[id]` gives the value.
+ */
 export type Frame = {
-  items: number[];
+  /** Item ids in array order. */
+  order: number[];
   active: number[];
   temp: number[];
   done: number[];
-  /** Values being worked on; empty means everything. */
+  /** Items being worked on; empty means everything. */
   focus: number[];
   pivot: number | null;
-  /** Value that moves over its neighbours in this frame (drawn as an arc). */
+  /** Item that moves over its neighbours in this frame (drawn as an arc). */
   hop: number | null;
+  /** Current pseudocode line, if the algorithm annotates them. */
+  line: number | null;
   stats: Stats;
 };

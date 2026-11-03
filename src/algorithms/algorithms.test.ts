@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { generateUniqueRandomItems } from "@/utils/generateItems";
-import { recordFrames, sortAlgorithms } from ".";
-import { range } from "./recordFrames";
+import { Timeline, range, sortAlgorithms } from ".";
+import type { Frame } from "./types";
 
 const ascending = (arr: readonly number[]) => [...arr].sort((a, b) => a - b);
 
@@ -9,19 +9,26 @@ const inputs: Record<string, number[]> = {
   random: generateUniqueRandomItems(40),
   sorted: range(1, 31),
   reversed: range(1, 31).reverse(),
+  "repeated values": [3, 1, 2, 3, 1, 2, 3, 1, 2, 2, 1, 3],
   "two items": [9, 3],
   "one item": [7],
   empty: [],
 };
 
+const allFrames = (timeline: Timeline): Frame[] =>
+  Array.from({ length: timeline.length }, (_, k) => timeline.frameAt(k));
+
 describe.each(Object.entries(sortAlgorithms))("%s sort", (_, algorithm) => {
   describe.each(Object.entries(inputs))("on %s input", (_, input) => {
-    const frames = recordFrames(algorithm, input);
+    const timeline = new Timeline(algorithm, input);
+    const frames = allFrames(timeline);
+    const valuesOf = (frame: Frame) => frame.order.map((id) => timeline.values[id]);
     const first = frames[0];
     const last = frames[frames.length - 1];
+    const sorted = ascending(input);
 
     it("starts from the input with nothing highlighted", () => {
-      expect(first.items).toEqual(input);
+      expect(valuesOf(first)).toEqual(input);
       expect(first.active).toEqual([]);
       expect(first.temp).toEqual([]);
       expect(first.done).toEqual([]);
@@ -29,8 +36,8 @@ describe.each(Object.entries(sortAlgorithms))("%s sort", (_, algorithm) => {
     });
 
     it("ends sorted with every item done", () => {
-      expect(last.items).toEqual(ascending(input));
-      expect(ascending(last.done)).toEqual(ascending(input));
+      expect(valuesOf(last)).toEqual(sorted);
+      expect(ascending(last.done)).toEqual(range(0, input.length));
       expect(last.active).toEqual([]);
       expect(last.temp).toEqual([]);
       expect(last.focus).toEqual([]);
@@ -39,36 +46,34 @@ describe.each(Object.entries(sortAlgorithms))("%s sort", (_, algorithm) => {
 
     it("keeps every frame a permutation of the input", () => {
       for (const frame of frames) {
-        expect(ascending(frame.items)).toEqual(ascending(input));
+        expect(ascending(frame.order)).toEqual(range(0, input.length));
       }
     });
 
     it("only marks items done once they are in their final place", () => {
-      const sorted = ascending(input);
       for (const frame of frames) {
-        for (const value of frame.done) {
-          expect(frame.items.indexOf(value)).toBe(sorted.indexOf(value));
+        for (const id of frame.done) {
+          expect(timeline.values[id]).toBe(sorted[frame.order.indexOf(id)]);
         }
       }
     });
 
-    it("never shows a value as both compared and done", () => {
+    it("never shows an item as both compared and done", () => {
       for (const { active, done } of frames) {
-        for (const value of active) expect(done).not.toContain(value);
+        for (const id of active) expect(done).not.toContain(id);
       }
     });
 
-    it("only hops values that actually moved", () => {
+    it("only hops items that actually moved", () => {
       for (let k = 1; k < frames.length; k++) {
-        const { hop, items } = frames[k];
+        const { hop, order } = frames[k];
         if (hop === null) continue;
-        expect(items.indexOf(hop)).not.toBe(frames[k - 1].items.indexOf(hop));
+        expect(order.indexOf(hop)).not.toBe(frames[k - 1].order.indexOf(hop));
       }
     });
 
     it("keeps the pivot inside the focused range", () => {
-      for (const { pivot, focus, items } of frames) {
-        for (const value of focus) expect(items).toContain(value);
+      for (const { pivot, focus } of frames) {
         if (pivot !== null) expect(focus).toContain(pivot);
       }
     });
@@ -84,11 +89,22 @@ describe.each(Object.entries(sortAlgorithms))("%s sort", (_, algorithm) => {
       }
     });
   });
+
+  it("rebuilds any frame from checkpoints exactly as playing forward does", () => {
+    // Big enough to cross several checkpoints.
+    const input = range(1, 121).reverse();
+    const sequential = allFrames(new Timeline(algorithm, input));
+    const jumping = new Timeline(algorithm, input);
+    const order = [...sequential.keys()].sort(() => Math.random() - 0.5);
+    for (const k of order.slice(0, 200)) {
+      expect(jumping.frameAt(k)).toEqual(sequential[k]);
+    }
+  });
 });
 
 const statsFor = (name: keyof typeof sortAlgorithms, input: number[]) => {
-  const frames = recordFrames(sortAlgorithms[name], input);
-  return frames[frames.length - 1].stats;
+  const timeline = new Timeline(sortAlgorithms[name], input);
+  return timeline.frameAt(timeline.length - 1).stats;
 };
 
 describe("complexity matches the descriptions", () => {
@@ -126,6 +142,18 @@ describe("complexity matches the descriptions", () => {
       const stats = statsFor("merge", input);
       expect(stats.comparisons).toBeLessThanOrEqual(n * Math.ceil(Math.log2(n)));
       expect(stats.swaps).toBe(0);
+    }
+  });
+
+  it("merge sort is stable", () => {
+    // Equal values must keep their original order (ids increase within a value).
+    const input = [2, 1, 2, 1, 2, 1, 3, 3, 1];
+    const timeline = new Timeline(sortAlgorithms.merge, input);
+    const { order } = timeline.frameAt(timeline.length - 1);
+    for (let k = 1; k < order.length; k++) {
+      if (input[order[k]] === input[order[k - 1]]) {
+        expect(order[k]).toBeGreaterThan(order[k - 1]);
+      }
     }
   });
 });

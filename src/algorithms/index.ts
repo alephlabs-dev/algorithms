@@ -14,5 +14,5 @@ export const sortAlgorithms: Record<Algorithm, SortAlgorithm> = {
   merge: mergeSort,
 };
 
-export { recordFrames } from "./recordFrames";
+export { Timeline, range } from "./timeline";
 export type { Frame, SortAlgorithm, Stats, Step } from "./types";

@@ -7,7 +7,7 @@ export const Progress = () => {
   const { frameIndex, lastIndex, seek } = useStore(
     useShallow((s) => ({
       frameIndex: s.frameIndex,
-      lastIndex: s.frames.length - 1,
+      lastIndex: s.timeline.length - 1,
       seek: s.seek,
     }))
   );

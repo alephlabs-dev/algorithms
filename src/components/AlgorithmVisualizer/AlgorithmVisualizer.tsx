@@ -12,15 +12,16 @@ export const AlgorithmVisualizer = () => {
   // Tracks the container height so bars rescale when the window is resized.
   const { height: itemMaxHeight } = useElementSize(containerRef);
 
-  const { frame, isFinished, arrayId, displayMode } = useStore(
+  const { frame, isFinished, arrayId, displayMode, values } = useStore(
     useShallow((s) => ({
       frame: selectFrame(s),
-      isFinished: s.frameIndex > 0 && s.frameIndex === s.frames.length - 1,
+      isFinished: s.frameIndex > 0 && s.frameIndex === s.timeline.length - 1,
       arrayId: s.arrayId,
       displayMode: s.displayMode,
+      values: s.timeline.values,
     }))
   );
-  const { items, pivot } = frame;
+  const { order, pivot } = frame;
 
   const activeSet = useMemo(() => new Set(frame.active), [frame]);
   const doneSet = useMemo(() => new Set(frame.done), [frame]);
@@ -44,15 +45,15 @@ export const AlgorithmVisualizer = () => {
             aria-hidden
             className="absolute inset-x-0 border-t border-dashed border-white/60 pointer-events-none"
             initial={false}
-            animate={{ bottom: calculateItemHeight(pivot, itemMaxHeight) }}
+            animate={{ bottom: calculateItemHeight(values[pivot], itemMaxHeight) }}
             transition={{ type: "spring", bounce: 0, duration: 0.3 }}
           />
         )}
-        {items.map((item, index) => (
+        {order.map((item, index) => (
           <Item
             key={`${arrayId}-${item}`}
             itemMaxHeight={itemMaxHeight}
-            item={item}
+            item={values[item]}
             index={index}
             isActive={activeSet.has(item)}
             isDone={doneSet.has(item)}

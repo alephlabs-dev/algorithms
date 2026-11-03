@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { recordFrames, sortAlgorithms, type Frame } from "./algorithms";
+import { Timeline, sortAlgorithms } from "./algorithms";
 import { generateItems } from "./utils/generateItems";
 import type { Algorithm, DisplayMode, InputOrder } from "./types";
 
@@ -14,8 +14,8 @@ export type StoreState = {
   speed: number;
   /** Bumped on every new array so bars remount instead of animating. */
   arrayId: number;
-  /** The whole run, precomputed. frames[0] is the unsorted array. */
-  frames: Frame[];
+  /** The whole run, precomputed. Frame 0 is the unsorted array. */
+  timeline: Timeline;
   frameIndex: number;
   isPlaying: boolean;
 
@@ -36,16 +36,18 @@ export type StoreState = {
   seek: (frameIndex: number) => void;
 };
 
-export const selectFrame = (state: StoreState) => state.frames[state.frameIndex];
+export const selectFrame = (state: StoreState) =>
+  state.timeline.frameAt(state.frameIndex);
+export const selectLastIndex = (state: StoreState) => state.timeline.length - 1;
 
 const maxSizeFor = (displayMode: DisplayMode, isMobile: boolean) =>
   displayMode === "numbers" ? (isMobile ? 10 : 20) : Infinity;
 
-const framesFor = (algorithm: Algorithm, items: readonly number[]) =>
-  recordFrames(sortAlgorithms[algorithm], items);
+const timelineFor = (algorithm: Algorithm, items: readonly number[]) =>
+  new Timeline(sortAlgorithms[algorithm], items);
 
 const newRun = (algorithm: Algorithm, items: readonly number[]) => ({
-  frames: framesFor(algorithm, items),
+  timeline: timelineFor(algorithm, items),
   frameIndex: 0,
   isPlaying: false,
 });
@@ -76,7 +78,7 @@ export const useStore = create<StoreState>((set, get) => ({
   setActiveAlgorithm: (algorithm) =>
     set((state) => ({
       activeAlgorithm: algorithm,
-      ...newRun(algorithm, state.frames[0].items),
+      ...newRun(algorithm, state.timeline.values),
     })),
 
   setSize: (size) =>
@@ -100,14 +102,14 @@ export const useStore = create<StoreState>((set, get) => ({
       isPlaying: true,
       // Replay from the start if the run already finished.
       frameIndex:
-        state.frameIndex >= state.frames.length - 1 ? 0 : state.frameIndex,
+        state.frameIndex >= state.timeline.length - 1 ? 0 : state.frameIndex,
     })),
 
   pause: () => set({ isPlaying: false }),
 
   advance: () =>
     set((state) => {
-      const lastIndex = state.frames.length - 1;
+      const lastIndex = state.timeline.length - 1;
       const frameIndex = Math.min(state.frameIndex + 1, lastIndex);
       return { frameIndex, isPlaying: frameIndex < lastIndex };
     }),
@@ -115,7 +117,7 @@ export const useStore = create<StoreState>((set, get) => ({
   stepForward: () =>
     set((state) => ({
       isPlaying: false,
-      frameIndex: Math.min(state.frameIndex + 1, state.frames.length - 1),
+      frameIndex: Math.min(state.frameIndex + 1, state.timeline.length - 1),
     })),
 
   stepBackward: () =>
@@ -126,6 +128,6 @@ export const useStore = create<StoreState>((set, get) => ({
 
   seek: (frameIndex) =>
     set((state) => ({
-      frameIndex: Math.min(Math.max(frameIndex, 0), state.frames.length - 1),
+      frameIndex: Math.min(Math.max(frameIndex, 0), state.timeline.length - 1),
     })),
 }));

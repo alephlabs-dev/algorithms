@@ -38,7 +38,7 @@ export const Controls = () => {
       createNewArray: s.createNewArray,
       // Booleans, so Controls only re-renders when they flip.
       atStart: s.frameIndex === 0,
-      atEnd: s.frameIndex === s.frames.length - 1,
+      atEnd: s.frameIndex === s.timeline.length - 1,
     }))
   );
 

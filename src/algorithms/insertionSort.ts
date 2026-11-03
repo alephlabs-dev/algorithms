@@ -1,4 +1,4 @@
-import { range } from "./recordFrames";
+import { range } from "./timeline";
 import type { SortAlgorithm } from "./types";
 
 export const insertionSort: SortAlgorithm = function* (arr) {
