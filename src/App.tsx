@@ -26,9 +26,9 @@ function App() {
   return (
     <div className="flex h-dvh bg-background text-foreground">
       <Sidebar />
-      <main className="lg:container lg:max-w-7xl flex flex-col gap-4 lg:gap-10 p-4 md:p-8 lg:p-10 h-full w-full">
+      <main className="lg:container lg:max-w-7xl flex flex-col gap-4 lg:gap-6 xl:gap-10 p-4 md:p-8 lg:p-10 h-full w-full">
         <MobileHeader />
-        <div className="hidden md:flex flex-col gap-10">
+        <div className="hidden md:flex flex-col gap-6 xl:gap-10">
           <Header />
           <Separator />
         </div>

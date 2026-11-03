@@ -63,7 +63,7 @@ export const Controls = () => {
           </Button>
           <Button
             variant="ghost"
-            className={cn(buttonClass, "px-4 w-full md:w-32 xl:w-40")}
+            className={cn(buttonClass, "px-4 w-full md:w-28 xl:w-40")}
             onClick={isPlaying ? pause : play}
             aria-keyshortcuts="Space"
             title={isPlaying ? "Pause (Space)" : "Play (Space)"}
@@ -95,13 +95,15 @@ export const Controls = () => {
           </Button>
           <Button
             variant="ghost"
-            className={cn(buttonClass, "px-4 w-full md:w-32 xl:w-40")}
+            // Icon-only between md and xl so the speed slider keeps a usable width.
+            className={cn(buttonClass, "px-4 w-full md:max-xl:w-auto md:max-xl:px-3 xl:w-40")}
             onClick={createNewArray}
             aria-keyshortcuts="R"
             title="New array (R)"
             disabled={isPlaying}
           >
-            <UpdateIcon className="h-4 w-4 mr-2" /> Reset
+            <UpdateIcon className="h-4 w-4 mr-2 md:max-xl:mr-0" />
+            <span className="md:max-xl:sr-only">Reset</span>
           </Button>
         </div>
       </div>
