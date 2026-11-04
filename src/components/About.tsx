@@ -3,7 +3,7 @@ import { pseudocode } from "@/algorithms";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { MUD_COST, pathPseudocode, type PathAlgorithm } from "@/pathfinding";
 import { algorithmGroups } from "@/consts/algorithmGroups";
-import { RACE_DESCRIPTION } from "@/consts/race";
+import { PATH_RACE_DESCRIPTION, RACE_DESCRIPTION } from "@/consts/race";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { routePath, type Route } from "@/routes";
 import type { Algorithm } from "@/types";
@@ -211,6 +211,13 @@ const PathArticle = ({ algorithm, onNavigate }: { algorithm: PathAlgorithm; onNa
           drag the green start or the target to move them. Then compare with another search on the same grid:
         </p>
         <PathIndex current={algorithm} onNavigate={onNavigate} />
+        <p className="text-foreground/80">
+          Or{" "}
+          <PageLink to={{ kind: "pathRace" }} onNavigate={onNavigate}>
+            race them
+          </PageLink>{" "}
+          side by side.
+        </p>
       </Section>
     </>
   );
@@ -260,11 +267,18 @@ const HomeArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
         ))}
       </ul>
     </Section>
-    <Section title="Race sorting algorithms">
+    <Section title="Race them">
       <p className="leading-relaxed text-foreground/80">
         {RACE_DESCRIPTION}{" "}
         <PageLink to={{ kind: "race" }} onNavigate={onNavigate}>
-          Start a race
+          Race sorting algorithms
+        </PageLink>
+        .
+      </p>
+      <p className="leading-relaxed text-foreground/80">
+        {PATH_RACE_DESCRIPTION}{" "}
+        <PageLink to={{ kind: "pathRace" }} onNavigate={onNavigate}>
+          Race pathfinding algorithms
         </PageLink>
         .
       </p>
@@ -293,12 +307,37 @@ const RaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
   </>
 );
 
+const PathRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
+  <>
+    <header className="flex flex-col gap-3">
+      <h1 className="text-display font-semibold">Pathfinding algorithm race</h1>
+      <p className="text-lg text-foreground/80">
+        Put two to four searches on the same grid and see which one reaches the target first, and which one finds the
+        better path.
+      </p>
+    </header>
+    <Section title="How the race works">
+      <p className="leading-relaxed text-foreground/80">{PATH_RACE_DESCRIPTION}</p>
+      <p className="leading-relaxed text-foreground/80">
+        Finishing first and finding the best path are different things. Greedy Best-First Search heads straight for the
+        target and usually wins, but its path can be long. Dijkstra and A* always find the cheapest path, and A* looks
+        at far fewer cells to do it. Add some mud with the brush and watch Breadth-First Search walk straight through
+        it.
+      </p>
+    </Section>
+    <Section title="Learn each search">
+      <PathIndex onNavigate={onNavigate} />
+    </Section>
+  </>
+);
+
 export const About = ({ route, onNavigate }: Props) => (
   <article className="mx-auto flex w-full max-w-3xl flex-col gap-12 px-4 pb-20 pt-16 text-foreground md:px-6">
     {route.kind === "home" && <HomeArticle onNavigate={onNavigate} />}
     {route.kind === "race" && <RaceArticle onNavigate={onNavigate} />}
     {route.kind === "algorithm" && <AlgorithmArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
     {route.kind === "path" && <PathArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
+    {route.kind === "pathRace" && <PathRaceArticle onNavigate={onNavigate} />}
     <footer className="border-t border-edge pt-6 text-sm text-foreground/60">
       Made by Aleph Labs ·{" "}
       <a

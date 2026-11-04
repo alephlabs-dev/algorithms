@@ -5,9 +5,10 @@ import { useStore } from "@/store";
 import type { Algorithm } from "@/types";
 import { cn } from "@/utils/cn";
 import { ArrayCanvas } from "../AlgorithmVisualizer/ArrayCanvas";
+import { ordinal } from "@/utils/ordinal";
+import { PlaceBadge } from "./RaceParts";
 import { RaceResults } from "./RaceResults";
 
-const ordinal = (n: number) => ["1st", "2nd", "3rd", "4th"][n - 1] ?? `${n}th`;
 const formatOps = (n: number) => n.toLocaleString("en-US");
 
 type LaneProps = {
@@ -40,16 +41,7 @@ const RaceLane = ({ algorithm, timeline, clock, place, runId, className }: LaneP
     >
       <header className="flex items-center gap-2 text-xs md:text-sm text-foreground">
         <h3 className="truncate font-semibold">{title}</h3>
-        {finished && (
-          <span
-            className={cn("rounded-full px-2 py-0.5 font-mono text-xs font-semibold", {
-              "bg-primary text-background": place === 1,
-              "bg-foreground/15": place !== 1,
-            })}
-          >
-            {ordinal(place)}
-          </span>
-        )}
+        {finished && <PlaceBadge place={place} />}
         <span className="ml-auto whitespace-nowrap font-mono text-foreground/70">
           {formatOps(ops)} ops
         </span>

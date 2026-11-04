@@ -49,7 +49,11 @@ const apply = (s: State, step: PathStep, grid: Grid) => {
 /** A whole search, recorded up front: frame i is the grid after i steps. */
 export class PathTimeline {
   readonly length: number;
+  /** Cells the search examines in all; races run on this clock. */
+  readonly totalVisits: number;
   private readonly steps: PathStep[] = [];
+  /** For each visit, in order, the frame just before it. */
+  private readonly beforeVisit: number[] = [];
   private readonly checkpoints: State[] = [];
   private cursor: { index: number; state: State };
   private cache = new Map<number, PathFrame>();
@@ -70,11 +74,13 @@ export class PathTimeline {
     const working = clone(initial);
     this.checkpoints.push(clone(initial));
     for (const step of search(grid)) {
+      if (step.type === "visit") this.beforeVisit.push(this.steps.length);
       this.steps.push(step);
       apply(working, step, grid);
       if (this.steps.length % CHECKPOINT_EVERY === 0) this.checkpoints.push(clone(working));
     }
     this.length = this.steps.length + 1;
+    this.totalVisits = this.beforeVisit.length;
     this.cursor = { index: 0, state: clone(initial) };
   }
 
@@ -100,6 +106,16 @@ export class PathTimeline {
     if (this.cache.size >= 8) this.cache.delete(this.cache.keys().next().value!);
     this.cache.set(i, frame);
     return frame;
+  }
+
+  /**
+   * The frame after `visits` cells have been examined (and the frontier updated
+   * for the last one). Once every visit is done, the last frame: the path traced.
+   */
+  frameIndexAtVisits(visits: number): number {
+    if (visits <= 0) return 0;
+    if (visits >= this.totalVisits) return this.length - 1;
+    return this.beforeVisit[visits];
   }
 
   /** The step that leads from frame `index - 1` to frame `index`. */

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { routePath } from "./routes";
+import type { PathAlgorithm } from "./pathfinding/types";
 import { readLocation, readUrlState, toPathSearch, toSearch, type UrlState } from "./urlState";
 
 describe("url state", () => {
@@ -19,6 +20,7 @@ describe("url state", () => {
     expect(readLocation(routePath({ kind: "algorithm", algorithm: "heap" }), toSearch(single))).toEqual({
       ...single,
       isHome: false,
+      isPath: false,
       path: {},
     });
     // The race page has no algorithm of its own (toEqual ignores undefined keys).
@@ -26,6 +28,7 @@ describe("url state", () => {
       ...state,
       algorithm: undefined,
       isHome: false,
+      isPath: false,
       path: {},
     });
   });
@@ -53,10 +56,30 @@ describe("url state", () => {
   });
 
   it("round-trips a pathfinding grid", () => {
-    const grid = { gridSize: "medium" as const, cells: "AbC-_9", start: 400, end: 12 };
+    const grid = {
+      gridSize: "medium" as const,
+      cells: "AbC-_9",
+      start: 400,
+      end: 12,
+      racers: ["bfs", "astar", "greedy"] as PathAlgorithm[],
+    };
     expect(readLocation(routePath({ kind: "path", algorithm: "astar" }), toPathSearch(grid))).toMatchObject({
       pathAlgorithm: "astar",
+      isPath: true,
+      view: "single",
       path: grid,
     });
+    expect(readLocation(routePath({ kind: "pathRace" }), toPathSearch(grid))).toMatchObject({
+      isPath: true,
+      view: "race",
+      path: grid,
+    });
+  });
+
+  it("keeps pathfinding racers valid and in order", () => {
+    const at = (race: string) => readLocation("/pathfinding/race", `?race=${race}`).path.racers;
+    expect(at("greedy,bfs,greedy")).toEqual(["bfs", "greedy"]);
+    expect(at("astar")).toBeUndefined();
+    expect(at("quick,merge")).toBeUndefined();
   });
 });

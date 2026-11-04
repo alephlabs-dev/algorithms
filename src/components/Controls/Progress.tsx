@@ -19,7 +19,7 @@ export const Progress = ({ className }: { className?: string }) => {
       isPath: s.module === "pathfinding",
     }))
   );
-  const unit = isRace ? "operation" : "step";
+  const unit = isRace ? (isPath ? "cell" : "operation") : "step";
 
   return (
     <div className={cn("flex min-w-0 flex-col gap-2.5", className)}>
@@ -39,9 +39,9 @@ export const Progress = ({ className }: { className?: string }) => {
         <span aria-hidden className="whitespace-nowrap">
           {isRace ? "" : "step "}
           {format(frameIndex)} / {format(lastIndex)}
-          {isRace && " ops"}
+          {isRace && (isPath ? " cells" : " ops")}
         </span>
-        {isPath ? <PathStatsInline /> : !isRace && <StatsInline />}
+        {!isRace && (isPath ? <PathStatsInline /> : <StatsInline />)}
       </div>
     </div>
   );

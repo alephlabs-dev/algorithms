@@ -23,11 +23,13 @@ export const Playback = () => {
       const delay = stepDelay(state.speed);
       const lastIndex = selectLastIndex(state);
 
-      // Each step costs its share of a beat (see STEP_WEIGHT). Races run on an
-      // operation clock where every tick is one operation, so they stay uniform.
+      // Each step costs its share of a beat (see STEP_WEIGHT). Races tick once per
+      // operation or cell examined, the same for every lane, so they stay uniform.
       const costOf = (index: number) => {
-        if (state.module === "pathfinding") return delay * PATH_STEP_WEIGHT[state.pathTimeline.stepAt(index)?.type ?? "done"];
-        return state.view === "race" ? delay : delay * STEP_WEIGHT[state.timeline.kindAt(index) ?? "finish"];
+        if (state.view === "race") return delay;
+        if (state.module === "pathfinding")
+          return delay * PATH_STEP_WEIGHT[state.pathTimeline.stepAt(index)?.type ?? "done"];
+        return delay * STEP_WEIGHT[state.timeline.kindAt(index) ?? "finish"];
       };
 
       let steps = 0;

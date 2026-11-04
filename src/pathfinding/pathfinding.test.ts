@@ -102,6 +102,19 @@ describe("pathfinding", () => {
     expect(forward.stats.visited).toBe([...forward.states].filter((s) => s === VISITED).length);
   });
 
+  it("runs a race clock in cells examined: frame k has exactly k visits, then the path", () => {
+    for (const grid of grids(3)) {
+      for (const algorithm of algorithms) {
+        const timeline = new PathTimeline(pathSearches[algorithm], grid);
+        expect(timeline.totalVisits).toBe(timeline.frameAt(timeline.length - 1).stats.visited);
+        for (let visits = 0; visits < timeline.totalVisits; visits++) {
+          expect(timeline.frameAt(timeline.frameIndexAtVisits(visits)).stats.visited).toBe(visits);
+        }
+        expect(timeline.frameIndexAtVisits(timeline.totalVisits)).toBe(timeline.length - 1);
+      }
+    }
+  });
+
   it("carves mazes where every open cell is reachable", () => {
     const grid = applyPreset(emptyGrid(17, 33), "maze", seededRandom(7));
     const seen = new Set([grid.start]);

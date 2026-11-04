@@ -7,6 +7,7 @@ import { MobileRaceBar, MobileTopBar } from "./components/MobileTopBar";
 import { PathStage } from "./components/Pathfinding/PathStage";
 import { PathLegend, PathTools } from "./components/Pathfinding/PathTools";
 import { NowCard, StepCaption } from "./components/Pseudocode";
+import { PathRaceLanes } from "./components/Race/PathRaceLanes";
 import { RaceLanes } from "./components/Race/RaceLanes";
 import { Legend } from "./components/RunInfo";
 import { TopBar } from "./components/TopBar";
@@ -55,6 +56,16 @@ function App() {
               {/* Never taller than the stage: the card scrolls inside if it has to. */}
               <NowCard className="hidden max-h-full w-80 shrink-0 self-start xl:flex" />
             </div>
+          </>
+        ) : isPath ? (
+          <>
+            <MobileRaceBar className="lg:hidden" />
+            {/* Drawing works on any lane: they all share the grid. */}
+            <div className="-mb-1 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 lg:-mt-2">
+              <PathTools className="-ml-1" />
+              <PathLegend className="hidden md:flex" />
+            </div>
+            <PathRaceLanes />
           </>
         ) : (
           <>
