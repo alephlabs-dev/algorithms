@@ -1,8 +1,8 @@
 import type { StepKind } from "@/algorithms";
 
-// The speed slider goes from 0 to 1 on an exponential scale: 1 step per second
-// at the left end, ~2000 at the right. That range is what lets the same slider
-// work for 10 items and for 400.
+// Internally speed is a position from 0 to 1 on an exponential scale: 1 step
+// per second at 0, ~2000 at 1. That range covers 10 items and 400 alike. People
+// pick a preset relative to a pace chosen for the current run (see speedFor).
 const DOUBLINGS = 11;
 
 export const DEFAULT_SPEED = 0.2;
@@ -37,6 +37,29 @@ const TARGET_SECONDS = { single: 240, race: 30 } as const;
  */
 export const autoSpeed = (steps: number, view: keyof typeof TARGET_SECONDS) =>
   Math.max(DEFAULT_SPEED, speedForStepsPerSecond(steps / TARGET_SECONDS[view]));
+
+export const speedPresets = ["0.5x", "1x", "2x", "4x", "max"] as const;
+export type SpeedPreset = (typeof speedPresets)[number];
+export const DEFAULT_PRESET: SpeedPreset = "1x";
+
+export const presetLabels: Record<SpeedPreset, string> = {
+  "0.5x": "0.5×",
+  "1x": "1×",
+  "2x": "2×",
+  "4x": "4×",
+  max: "Max",
+};
+
+const multipliers: Record<Exclude<SpeedPreset, "max">, number> = { "0.5x": 0.5, "1x": 1, "2x": 2, "4x": 4 };
+
+/**
+ * The speed for a preset on a run of `steps` steps: 1× is a comfortable pace for
+ * that run (see autoSpeed), the others are multiples of it, and Max is the top speed.
+ */
+export const speedFor = (preset: SpeedPreset, steps: number, view: keyof typeof TARGET_SECONDS) =>
+  preset === "max"
+    ? 1
+    : Math.min(1, autoSpeed(steps, view) + Math.log2(multipliers[preset]) / DOUBLINGS);
 
 /**
  * Share of a full step each kind of step takes during playback. Moves get the

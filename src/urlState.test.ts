@@ -7,7 +7,7 @@ describe("url state", () => {
     size: 100,
     inputOrder: "reversed",
     displayMode: "bars",
-    speed: 0.35,
+    speed: "2x",
     seed: 123456789,
     view: "race",
     raceAlgorithms: ["shell", "quick", "heap"],

@@ -1,0 +1,53 @@
+import { useShallow } from "zustand/react/shallow";
+import { useStore } from "@/store";
+import { cn } from "@/utils/cn";
+import { formatStepsPerSecond, presetLabels, speedPresets, type SpeedPreset } from "@/utils/speed";
+import { Button } from "../ui/button";
+import { SegmentedControl } from "../ui/segmented";
+
+const useSpeed = () =>
+  useStore(
+    useShallow((s) => ({ preset: s.speedPreset, speed: s.speed, setPreset: s.setSpeedPreset }))
+  );
+
+const HELP = "1× is a comfortable pace for this array; it adapts to the array size.";
+
+/** Speed presets relative to a pace picked for each run. Wide layouts. */
+export const SpeedControl = ({ className }: { className?: string }) => {
+  const { preset, speed, setPreset } = useSpeed();
+  return (
+    <div className={cn("flex items-center gap-3", className)}>
+      <span className="text-sm font-semibold" title={HELP}>
+        Speed
+      </span>
+      <SegmentedControl<SpeedPreset>
+        label="Speed"
+        options={speedPresets.map((p) => ({ value: p, label: <span className="font-mono">{presetLabels[p]}</span>, title: `${presetLabels[p]} speed` }))}
+        value={preset}
+        onChange={setPreset}
+        compact
+        className="w-52 xl:w-64"
+      />
+      <span className="hidden w-16 font-mono text-xs text-foreground/60 2xl:inline" aria-hidden>
+        {formatStepsPerSecond(speed)}/s
+      </span>
+    </div>
+  );
+};
+
+/** One button that cycles through the presets, for narrow layouts where a row is too costly. */
+export const SpeedCycleButton = ({ className }: { className?: string }) => {
+  const { preset, setPreset } = useSpeed();
+  const next = speedPresets[(speedPresets.indexOf(preset) + 1) % speedPresets.length];
+  return (
+    <Button
+      size="icon"
+      className={cn("w-14 shrink-0 font-mono", className)}
+      onClick={() => setPreset(next)}
+      aria-label={`Speed ${presetLabels[preset]}. Tap for ${presetLabels[next]}`}
+      title={HELP}
+    >
+      {presetLabels[preset]}
+    </Button>
+  );
+};

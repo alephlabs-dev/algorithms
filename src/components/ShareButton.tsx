@@ -5,7 +5,14 @@ import { Button } from "./ui/button";
 type Status = "idle" | "copied" | "failed";
 
 /** Copies the current URL, which always holds the settings and the array's seed. */
-export const ShareButton = ({ iconOnly = false }: { iconOnly?: boolean }) => {
+export const ShareButton = ({
+  iconOnly = false,
+  labelClassName,
+}: {
+  iconOnly?: boolean;
+  /** Lets a layout hide the text at some widths (it stays the accessible name). */
+  labelClassName?: string;
+}) => {
   const [status, setStatus] = useState<Status>("idle");
 
   useEffect(() => {
@@ -31,11 +38,15 @@ export const ShareButton = ({ iconOnly = false }: { iconOnly?: boolean }) => {
       variant="ghost"
       size={iconOnly ? "icon" : "sm"}
       onClick={copy}
-      aria-label={iconOnly ? label : undefined}
+      aria-label={iconOnly || labelClassName ? label : undefined}
       title="Copy a link to this exact array and settings"
     >
       {status === "copied" ? <CheckIcon className="text-primary" /> : <Link2Icon />}
-      {!iconOnly && <span aria-live="polite">{label}</span>}
+      {!iconOnly && (
+        <span aria-live="polite" className={labelClassName}>
+          {label}
+        </span>
+      )}
     </Button>
   );
 };

@@ -3,7 +3,9 @@ import { AlgorithmVisualizer } from "./components/AlgorithmVisualizer";
 import { Controls } from "./components/Controls";
 import { Header } from "./components/Header";
 import { MobileRaceBar, MobileTopBar } from "./components/MobileTopBar";
-import { PseudocodePanel } from "./components/Pseudocode";
+import { CodeCard } from "./components/Pseudocode";
+import { StatsCard } from "./components/RunInfo";
+import { SettingsToolbar } from "./components/Settings/SettingsPanel";
 import { RaceHeader } from "./components/Race/RaceHeader";
 import { RaceLanes } from "./components/Race/RaceLanes";
 import { Sidebar } from "./components/Sidebar";
@@ -34,13 +36,19 @@ function App() {
               <div className="min-w-0 flex-1">
                 <AlgorithmVisualizer />
               </div>
-              <PseudocodePanel className="hidden w-72 shrink-0 xl:flex" />
+              {/* Code and counters beside the bars; each card is as tall as its content. */}
+              {/* Never taller than the bars: the code card scrolls inside if it has to. */}
+              <div className="hidden max-h-full min-h-0 w-72 shrink-0 flex-col gap-4 self-start xl:flex">
+                <CodeCard />
+                <StatsCard />
+              </div>
             </div>
           </>
         ) : (
           <>
             <MobileRaceBar className="lg:hidden" />
             <RaceHeader className="hidden lg:flex" />
+            <SettingsToolbar className="-my-2 -ml-3 hidden lg:flex" />
             <RaceLanes />
           </>
         )}

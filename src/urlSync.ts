@@ -9,7 +9,7 @@ const searchFor = (s: StoreState) =>
     size: s.size as Size,
     inputOrder: s.inputOrder,
     displayMode: s.displayMode,
-    speed: s.speedIsAuto ? undefined : s.speed,
+    speed: s.speedPreset,
     seed: s.seed,
     view: s.view,
     raceAlgorithms: s.raceAlgorithms,
@@ -20,8 +20,7 @@ const settingsChanged = (a: StoreState, b: StoreState) =>
   a.size !== b.size ||
   a.inputOrder !== b.inputOrder ||
   a.displayMode !== b.displayMode ||
-  a.speed !== b.speed ||
-  a.speedIsAuto !== b.speedIsAuto ||
+  a.speedPreset !== b.speedPreset ||
   a.seed !== b.seed ||
   a.view !== b.view ||
   a.raceAlgorithms !== b.raceAlgorithms;
@@ -39,7 +38,7 @@ export const startUrlSync = () => {
   useStore.subscribe((state, previous) => {
     // Playback changes the store every frame; only settings matter here.
     if (!settingsChanged(state, previous)) return;
-    // Debounced so dragging the speed slider doesn't spam history updates.
+    // Debounced so quick changes don't spam history updates.
     window.clearTimeout(timeout);
     timeout = window.setTimeout(write, 150);
   });

@@ -4,7 +4,7 @@ import { MAX_MOBILE_SIZE } from "./consts/sizesMap";
 import { readUrlState } from "./urlState";
 import { generateItems } from "./utils/generateItems";
 import { newSeed, seededRandom } from "./utils/random";
-import { autoSpeed } from "./utils/speed";
+import { DEFAULT_PRESET, speedFor, type SpeedPreset } from "./utils/speed";
 import type { Algorithm, DisplayMode, InputOrder } from "./types";
 
 export type View = "single" | "race";
@@ -24,13 +24,10 @@ export type StoreState = {
   displayMode: DisplayMode;
   /** How the generated array starts out (random, reversed...). */
   inputOrder: InputOrder;
-  /** Slider position, 0–1 on an exponential scale (see utils/speed). */
+  /** Effective speed, 0–1 on an exponential scale (see utils/speed). Derived from the preset. */
   speed: number;
-  /**
-   * Whether the app picks the speed (so long runs don't take forever). Turns off
-   * once the user moves the slider, until they switch views.
-   */
-  speedIsAuto: boolean;
+  /** The chosen speed, relative to a pace picked for each run. */
+  speedPreset: SpeedPreset;
   /** Seeds the current array, so a link can reproduce it exactly. */
   seed: number;
   /** Bumped on every new array so bars remount instead of animating. */
@@ -57,7 +54,7 @@ export type StoreState = {
   setActiveAlgorithm: (algorithm: Algorithm) => void;
   setSize: (size: number) => void;
   setInputOrder: (inputOrder: InputOrder) => void;
-  setSpeed: (speed: number) => void;
+  setSpeedPreset: (preset: SpeedPreset) => void;
   setScrubbing: (isScrubbing: boolean) => void;
   setHelpOpen: (isHelpOpen: boolean) => void;
   createNewArray: () => void;
@@ -127,9 +124,8 @@ const initial = (() => {
     size,
     displayMode,
     inputOrder,
-    // A speed in the link is a deliberate choice; otherwise pick one for this run.
-    speed: url.speed ?? autoSpeed(lastIndex, view),
-    speedIsAuto: url.speed === undefined,
+    speedPreset: url.speed ?? DEFAULT_PRESET,
+    speed: speedFor(url.speed ?? DEFAULT_PRESET, lastIndex, view),
     seed,
     timeline,
   };
@@ -139,7 +135,7 @@ export const useStore = create<StoreState>((set, get) => {
   /** Call after any change that creates a new run. */
   const applyAutoSpeed = () => {
     const state = get();
-    if (state.speedIsAuto) set({ speed: autoSpeed(selectLastIndex(state), state.view) });
+    set({ speed: speedFor(state.speedPreset, selectLastIndex(state), state.view) });
   };
 
   return {
@@ -163,8 +159,6 @@ export const useStore = create<StoreState>((set, get) => {
         view,
         frameIndex: 0,
         isPlaying: false,
-        // Each view gets its own automatic speed, even if the slider was moved in the other.
-        speedIsAuto: true,
         raceTimelines: raceTimelinesFor(view, state.raceAlgorithms, state.timeline.values),
       }));
       applyAutoSpeed();
@@ -237,7 +231,10 @@ export const useStore = create<StoreState>((set, get) => {
       get().createNewArray();
     },
 
-    setSpeed: (speed) => set({ speed, speedIsAuto: false }),
+    setSpeedPreset: (speedPreset) => {
+      set({ speedPreset });
+      applyAutoSpeed();
+    },
     setScrubbing: (isScrubbing) => set({ isScrubbing }),
     setHelpOpen: (isHelpOpen) => set({ isHelpOpen }),
 

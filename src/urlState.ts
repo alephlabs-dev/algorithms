@@ -3,6 +3,7 @@ import { displayModes } from "./consts/displayModes";
 import { inputOrders } from "./consts/inputOrders";
 import { sizes } from "./consts/sizesMap";
 import type { Algorithm, DisplayMode, InputOrder, Size } from "./types";
+import { DEFAULT_PRESET, speedPresets, type SpeedPreset } from "./utils/speed";
 
 // Kept in sync with MIN_RACERS / MAX_RACERS in the store (not imported to avoid a cycle).
 const MIN_RACERS = 2;
@@ -14,8 +15,8 @@ export type UrlState = {
   size: Size;
   inputOrder: InputOrder;
   displayMode: DisplayMode;
-  /** Only present when the user picked it; otherwise the app chooses per run. */
-  speed?: number;
+  /** Left out of the URL when it's the default. */
+  speed?: SpeedPreset;
   seed: number;
   view: "single" | "race";
   raceAlgorithms: Algorithm[];
@@ -41,8 +42,8 @@ export const readUrlState = (search: string): Partial<UrlState> => {
   const displayMode = params.get("mode");
   if (isOneOf(displayModes, displayMode)) state.displayMode = displayMode;
 
-  const speed = Number(params.get("speed"));
-  if (params.has("speed") && Number.isFinite(speed) && speed >= 0 && speed <= 1) state.speed = speed;
+  const speed = params.get("speed");
+  if (isOneOf(speedPresets, speed)) state.speed = speed;
 
   const seed = parseInt(params.get("seed") ?? "", 36);
   if (Number.isInteger(seed) && seed >= 0 && seed < 2 ** 32) state.seed = seed;
@@ -65,7 +66,7 @@ export const toSearch = (state: UrlState) =>
     size: String(state.size),
     input: state.inputOrder,
     mode: state.displayMode,
-    ...(state.speed !== undefined && { speed: state.speed.toFixed(2) }),
+    ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
     seed: state.seed.toString(36),
     view: state.view,
     race: state.raceAlgorithms.join(","),

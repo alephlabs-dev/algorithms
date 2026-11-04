@@ -1,6 +1,8 @@
 import { useShallow } from "zustand/react/shallow";
 import { selectFrame, selectLastIndex, useStore } from "@/store";
 import { PseudocodeCaption } from "../Pseudocode";
+import { StatsInline } from "../RunInfo";
+import { SettingsToolbar } from "../Settings/SettingsPanel";
 import { ArrayCanvas } from "./ArrayCanvas";
 import { FinishSummary } from "./FinishSummary";
 
@@ -28,19 +30,27 @@ export const AlgorithmVisualizer = () => {
   };
 
   return (
-    <div className="relative flex flex-col gap-1 border border-accent/50 lg:border-none lg:bg-accent rounded-sm overflow-hidden h-full min-w-0 p-1 md:p-2 lg:p-3 xl:p-8">
-      {/* On wide screens the full pseudocode sits beside the bars instead. */}
-      <PseudocodeCaption className="xl:hidden" />
-      <ArrayCanvas
-        frame={frame}
-        values={values}
-        mode={displayMode}
-        celebrate={finished}
-        runId={arrayId}
-        label={`Array of ${values.length} items, step ${frameIndex} of ${lastIndex}. ${describe()}`}
-      />
-      {/* Sits in the empty band above the bars (below the caption on narrow screens). */}
-      <FinishSummary className="absolute inset-x-2 top-11 flex justify-center xl:top-4" />
+    <div className="flex h-full min-w-0 flex-col gap-2 overflow-hidden rounded-sm border border-accent/50 p-1 md:p-2 lg:border-none lg:bg-accent lg:p-4 xl:p-6">
+      <div className="flex min-h-8 items-center justify-between gap-2">
+        {/* Desktop: settings sit on the bars they change. Narrower: the current code line. */}
+        <SettingsToolbar className="-ml-3 hidden lg:flex" />
+        <PseudocodeCaption className="flex-1 lg:hidden" />
+        {/* On xl these counters live in the card beside the bars. */}
+        <StatsInline className="pr-2 xl:hidden" />
+      </div>
+      <PseudocodeCaption className="hidden lg:flex xl:hidden" />
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <ArrayCanvas
+          frame={frame}
+          values={values}
+          mode={displayMode}
+          celebrate={finished}
+          runId={arrayId}
+          label={`Array of ${values.length} items, step ${frameIndex} of ${lastIndex}. ${describe()}`}
+        />
+        {/* In the empty band above the tallest bars (they reach 80% of the height). */}
+        <FinishSummary className="absolute inset-x-2 top-2 flex justify-center" />
+      </div>
     </div>
   );
 };

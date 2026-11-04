@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { autoSpeed, DEFAULT_SPEED, speedForStepsPerSecond, stepsPerSecond } from "./speed";
+import { autoSpeed, DEFAULT_SPEED, speedFor, speedForStepsPerSecond, stepsPerSecond } from "./speed";
 
 describe("speed", () => {
   it("converts between slider position and steps per second", () => {
@@ -20,5 +20,13 @@ describe("speed", () => {
     expect(steps / stepsPerSecond(autoSpeed(steps, "single"))).toBeCloseTo(240);
     const ops = 7_000; // bubble sort on 100 items, racing
     expect(ops / stepsPerSecond(autoSpeed(ops, "race"))).toBeCloseTo(30);
+  });
+
+  it("presets are multiples of the run's own pace", () => {
+    const steps = 5_000;
+    const base = stepsPerSecond(speedFor("1x", steps, "single"));
+    expect(stepsPerSecond(speedFor("2x", steps, "single"))).toBeCloseTo(base * 2);
+    expect(stepsPerSecond(speedFor("0.5x", steps, "single"))).toBeCloseTo(base / 2);
+    expect(speedFor("max", steps, "single")).toBe(1);
   });
 });

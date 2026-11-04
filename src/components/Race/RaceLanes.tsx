@@ -22,7 +22,9 @@ type LaneProps = {
 };
 
 const RaceLane = ({ algorithm, timeline, clock, place, runId, className }: LaneProps) => {
-  const frame = timeline.frameAt(timeline.frameIndexAtOps(clock));
+  // Before the first operation every lane shows the untouched array, not the
+  // setup highlights some algorithms emit before their first comparison.
+  const frame = timeline.frameAt(clock === 0 ? 0 : timeline.frameIndexAtOps(clock));
   const finished = clock > 0 && clock >= timeline.totalOps;
   const ops = Math.min(clock, timeline.totalOps);
   const { title } = sortingAlgorithms[algorithm];

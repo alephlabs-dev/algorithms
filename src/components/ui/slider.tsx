@@ -11,16 +11,17 @@ const Slider = React.forwardRef<
     ref={ref}
     className={cn(
       // The padding/negative margin pair gives a 44px touch area (4px track + 2×20px) without changing layout height.
-      "relative flex w-full touch-none select-none items-center py-5 -my-5",
+      "group relative flex w-full cursor-pointer touch-none select-none items-center py-5 -my-5",
       className
     )}
     {...props}
   >
-    <SliderPrimitive.Track className="relative h-1 w-full grow overflow-hidden rounded-full bg-line">
-      <SliderPrimitive.Range className="absolute h-full bg-primary" />
+    {/* Video-timeline style: a light fill on a visible track that thickens on hover. */}
+    <SliderPrimitive.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-line transition-[height] duration-150 group-hover:h-2 motion-reduce:transition-none">
+      <SliderPrimitive.Range className="absolute h-full bg-foreground" />
     </SliderPrimitive.Track>
     {/* Radix reads the accessible name from the thumb, which has role="slider". */}
-    <SliderPrimitive.Thumb aria-label={ariaLabel} aria-valuetext={ariaValueText} className="cursor-pointer block h-4 w-4 rounded-full border-2 border-background hover:border-primary bg-primary shadow-sm transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50" />
+    <SliderPrimitive.Thumb aria-label={ariaLabel} aria-valuetext={ariaValueText} className="block h-3.5 w-3.5 rounded-full bg-foreground shadow-md ring-2 ring-background transition-transform duration-150 group-hover:scale-125 active:scale-125 motion-reduce:transition-none focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50" />
   </SliderPrimitive.Root>
 ));
 Slider.displayName = SliderPrimitive.Root.displayName;
