@@ -15,7 +15,7 @@ export const Progress = () => {
 
   return (
     <div className="flex items-center gap-4">
-      <span className="tabular-nums whitespace-nowrap min-w-26">
+      <span className="min-w-28 whitespace-nowrap font-mono text-xs">
         {isRace ? "Ops" : "Step"} {frameIndex.toLocaleString("en-US")} /{" "}
         {lastIndex.toLocaleString("en-US")}
       </span>

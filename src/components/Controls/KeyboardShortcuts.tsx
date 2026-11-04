@@ -17,8 +17,9 @@ export const KeyboardShortcuts = () => {
       // Events dispatched on document/window have no element target.
       const target = event.target instanceof Element ? event.target : null;
       if (isTextField(target)) return;
-      // Sliders already use the arrow keys.
-      const onSlider = target?.getAttribute("role") === "slider";
+      // Sliders and radio groups (segmented controls) already use the arrow keys.
+      const role = target?.getAttribute("role");
+      const onSlider = role === "slider" || role === "radio";
       // A focused button already activates on Space; don't toggle twice.
       const onButton = target instanceof HTMLButtonElement;
 

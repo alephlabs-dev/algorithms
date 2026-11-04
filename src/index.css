@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@import '@fontsource-variable/bricolage-grotesque';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
 
 @utility container {
   margin-inline: auto;
@@ -13,6 +15,17 @@
 }
 
 @theme {
+  /*
+    Type: display face for titles only, system sans for UI, mono for anything
+    that is data (counts, steps, speed, sizes, pseudocode).
+    Scale: 12 (xs) · 14 (sm) · 16 (base) · 20 (xl) · 32 (display). Weights: 400 and 600.
+    Spacing: 4 · 8 · 12 · 16 · 24 · 40 (Tailwind 1 · 2 · 3 · 4 · 6 · 10).
+  */
+  --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+  --text-display: 2rem;
+  --text-display--line-height: 1.15;
+
   --color-background: #0a100d;
   --color-foreground: #eee5e9;
   --color-accent: #294237;

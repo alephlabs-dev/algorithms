@@ -42,7 +42,7 @@ type ItemState = {
   waveStart: number | null;
 };
 
-const MAX_AREA_WIDTH = 896; // matches the old max-w-4xl layout
+const MAX_AREA_WIDTH = 1200; // beyond this, bars for small arrays get uncomfortably wide
 const BAR_MAX_HEIGHT = 0.8; // leaves room above the tallest bar for lifts and arcs
 const LIFT = 0.06;
 // Highlighted items outside the focus fade a little; plain ones switch to the dim color.
@@ -84,6 +84,8 @@ export class BarsRenderer {
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext("2d")!;
+    // Number tiles use a web font; draw again once it's ready instead of keeping the fallback.
+    document.fonts?.ready.then(() => this.draw());
   }
 
   destroy() {
@@ -301,7 +303,7 @@ export class BarsRenderer {
       .map((item, id) => ({ item, id }))
       .sort((a, b) => Number(a.item.arc > 0) - Number(b.item.arc > 0));
 
-    const font = `600 ${Math.max(10, Math.round(tile * 0.38))}px ui-sans-serif, system-ui, sans-serif`;
+    const font = `600 ${Math.max(10, Math.round(tile * 0.38))}px "JetBrains Mono Variable", ui-monospace, monospace`;
 
     // Thin bars are snapped to device pixels; otherwise their fractional edges
     // blend into stripes (moiré) across the array.

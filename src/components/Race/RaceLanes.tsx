@@ -36,10 +36,10 @@ const RaceLane = ({ algorithm, timeline, clock, place, runId, className }: LaneP
       )}
     >
       <header className="flex items-center gap-2 text-xs md:text-sm text-foreground">
-        <h3 className="font-medium truncate">{title}</h3>
+        <h3 className="truncate font-semibold">{title}</h3>
         {finished && (
           <span
-            className={cn("rounded-sm px-1.5 py-0.5 text-[11px] font-semibold", {
+            className={cn("rounded-sm px-1.5 py-0.5 font-mono text-xs font-semibold", {
               "bg-primary text-background": place === 1,
               "bg-foreground/15": place !== 1,
             })}
@@ -47,7 +47,7 @@ const RaceLane = ({ algorithm, timeline, clock, place, runId, className }: LaneP
             {ordinal(place)}
           </span>
         )}
-        <span className="ml-auto tabular-nums text-foreground/70 whitespace-nowrap">
+        <span className="ml-auto whitespace-nowrap font-mono text-foreground/70">
           {formatOps(ops)} ops
         </span>
       </header>

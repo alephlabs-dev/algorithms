@@ -1,53 +1,56 @@
+import { ChevronDownIcon, TimerIcon } from "@radix-ui/react-icons";
 import { useStore } from "@/store";
-
-import { Badge } from "./ui/badge";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
-import { TimerIcon } from "@radix-ui/react-icons";
+import { cn } from "@/utils/cn";
+import { Badge } from "./ui/badge";
 
-export const Header = () => {
+/** Best / average / worst time complexity for an algorithm. */
+export const Complexity = ({ className }: { className?: string }) => {
   const activeAlgorithm = useStore((s) => s.activeAlgorithm);
+  const { timeComplexity } = sortingAlgorithms[activeAlgorithm];
+  return (
+    <div className={cn("flex flex-wrap items-center gap-2 text-sm", className)}>
+      <span className="flex items-center gap-1.5 text-foreground/70">
+        <TimerIcon className="h-4 w-4" /> Time
+      </span>
+      {(["best", "average", "worst"] as const).map((key) => (
+        <Badge key={key} className="gap-1.5 font-normal">
+          <span className="capitalize text-foreground/70">{key}</span>
+          <span className="font-mono">{timeComplexity[key]}</span>
+        </Badge>
+      ))}
+    </div>
+  );
+};
+
+/**
+ * Desktop header: the name and complexity on one row, a one-line summary, and
+ * the long explanation folded away so the bars get the height.
+ */
+export const Header = ({ className }: { className?: string }) => {
+  const activeAlgorithm = useStore((s) => s.activeAlgorithm);
+  const { title, shortDescription, longDescription } = sortingAlgorithms[activeAlgorithm];
 
   return (
-    <div className="flex flex-col w-full gap-4 lg:gap-6 xl:gap-8 text-foreground p-8 md:p-0">
-      {/* Keyed by algorithm so the text fades in whenever it changes. */}
-      <div
-        key={activeAlgorithm}
-        className="flex flex-col gap-4 lg:gap-6 xl:gap-8 animate-in fade-in slide-in-from-bottom-1 duration-300 motion-reduce:animate-none"
-      >
-        <h1 className="text-2xl lg:text-3xl xl:text-4xl font-semibold">
-          {sortingAlgorithms[activeAlgorithm].title}
-        </h1>
-        <p className="xl:text-lg">
-          {sortingAlgorithms[activeAlgorithm].longDescription}
-        </p>
+    <header
+      key={activeAlgorithm}
+      className={cn(
+        "flex flex-col gap-3 text-foreground animate-in fade-in duration-300 motion-reduce:animate-none",
+        className
+      )}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+        <h1 className="font-display text-display font-semibold">{title}</h1>
+        <Complexity />
       </div>
-
-      {/* A label for the badges, styled so it doesn't read as a button. */}
-      <div className="flex flex-col md:flex-row md:items-center gap-4 bg-accent md:bg-transparent p-4 md:p-0 rounded-sm md:w-fit">
-        <h2 className="flex items-center gap-2 text-sm font-medium text-foreground/80">
-          <TimerIcon className="w-4 h-4" /> Time complexity
-        </h2>
-        <div className="flex items-center gap-2 lg:gap-4">
-          <Badge className="flex flex-col md:flex-row w-1/3 md:w-auto md:gap-2">
-            Best
-            <span className="font-normal">
-              {sortingAlgorithms[activeAlgorithm].timeComplexity.best}
-            </span>
-          </Badge>
-          <Badge className="flex flex-col md:flex-row w-1/3 md:w-auto md:gap-2">
-            Average
-            <span className="font-normal">
-              {sortingAlgorithms[activeAlgorithm].timeComplexity.average}
-            </span>
-          </Badge>
-          <Badge className="flex flex-col md:flex-row w-1/3 md:w-auto md:gap-2">
-            Worst
-            <span className="font-normal">
-              {sortingAlgorithms[activeAlgorithm].timeComplexity.worst}
-            </span>
-          </Badge>
-        </div>
-      </div>
-    </div>
+      <p className="max-w-3xl text-foreground/80">{shortDescription}</p>
+      <details className="group max-w-3xl">
+        <summary className="flex w-fit cursor-pointer list-none items-center gap-1 rounded-sm text-sm font-semibold text-foreground/80 hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-details-marker]:hidden">
+          How it works
+          <ChevronDownIcon className="h-4 w-4 transition-transform group-open:rotate-180 motion-reduce:transition-none" />
+        </summary>
+        <p className="mt-2 text-foreground/80">{longDescription}</p>
+      </details>
+    </header>
   );
 };

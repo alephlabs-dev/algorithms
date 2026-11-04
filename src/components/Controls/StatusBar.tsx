@@ -36,14 +36,14 @@ const Stats = () => {
   );
 
   return (
-    <dl className="flex gap-6 tabular-nums whitespace-nowrap">
+    <dl className="flex gap-6 whitespace-nowrap">
       <div className="flex gap-2">
         <dt>Comparisons</dt>
-        <dd className="font-semibold min-w-[3ch]">{stats.comparisons}</dd>
+        <dd className="min-w-[3ch] font-mono font-semibold">{stats.comparisons}</dd>
       </div>
       <div className="flex gap-2">
         <dt>{countsWrites ? "Writes" : "Swaps"}</dt>
-        <dd className="font-semibold min-w-[3ch]">
+        <dd className="min-w-[3ch] font-mono font-semibold">
           {countsWrites ? stats.writes : stats.swaps}
         </dd>
       </div>

@@ -41,7 +41,7 @@ export const PseudocodePanel = ({ className }: { className?: string }) => {
       aria-label="Pseudocode"
       className={cn("flex-col gap-3 overflow-auto rounded-sm bg-accent/40 py-4", className)}
     >
-      <h2 className="flex items-center gap-2 px-4 text-sm font-medium text-foreground/80">
+      <h2 className="flex items-center gap-2 px-4 text-xs font-semibold uppercase tracking-wider text-foreground/60">
         <CodeIcon className="h-4 w-4" /> Pseudocode
       </h2>
       <CodeLines lines={lines} line={line} />
@@ -75,7 +75,7 @@ export const PseudocodeCaption = ({ className }: { className?: string }) => {
       </DrawerTrigger>
       <DrawerContent aria-describedby={undefined}>
         <div className="flex flex-col gap-4 p-6 pb-10 text-foreground">
-          <DrawerTitle className="flex items-center gap-2 text-base font-medium">
+          <DrawerTitle className="flex items-center gap-2 font-display text-xl font-semibold">
             <CodeIcon className="h-4 w-4" /> Pseudocode
           </DrawerTitle>
           <CodeLines lines={lines} line={line} />

@@ -9,18 +9,10 @@ import {
 import { useShallow } from "zustand/react/shallow";
 import { Button } from "@/components/ui/button";
 import { selectLastIndex, useStore } from "@/store";
-import { cn } from "@/utils/cn";
 import { KeyboardShortcuts } from "./KeyboardShortcuts";
 import { Playback } from "./Playback";
 import { SpeedSlider } from "./SpeedSlider";
 import { StatusBar } from "./StatusBar";
-
-const buttonClass =
-  "bg-background border-2 border-line hover:bg-accent text-base text-foreground hover:text-foreground h-11";
-
-// Play/Pause is the main action, so it's the only filled button in the bar.
-const primaryClass =
-  "bg-foreground border-foreground text-background hover:bg-foreground/90 hover:text-background";
 
 export const Controls = () => {
   const {
@@ -51,62 +43,63 @@ export const Controls = () => {
       <Playback />
       <KeyboardShortcuts />
       <StatusBar />
-      <div className="flex flex-col md:flex-row items-center gap-4">
+      <div className="flex flex-col items-center gap-4 md:flex-row">
         <SpeedSlider />
-        <div className="flex items-center gap-2 xl:gap-4 w-full md:w-auto">
+        <div className="flex w-full items-center gap-2 md:w-auto xl:gap-3">
           <Button
-            variant="ghost"
-            className={cn(buttonClass, "px-3 shrink-0")}
+            size="icon"
+            className="shrink-0"
             onClick={stepBackward}
             disabled={atStart}
             aria-label="Previous step"
             aria-keyshortcuts="ArrowLeft"
             title="Previous step (←)"
           >
-            <ChevronLeftIcon className="h-5 w-5" />
+            <ChevronLeftIcon />
           </Button>
+          {/* The main action: the only filled button in the bar. */}
           <Button
-            variant="ghost"
-            className={cn(buttonClass, primaryClass, "px-4 w-full md:w-28 xl:w-40")}
+            variant="primary"
+            className="w-full md:w-28 xl:w-36"
             onClick={isPlaying ? pause : play}
             aria-keyshortcuts="Space"
             title={isPlaying ? "Pause (Space)" : "Play (Space)"}
           >
             {isPlaying ? (
               <>
-                <PauseIcon className="h-4 w-4 mr-2" /> Pause
+                <PauseIcon /> Pause
               </>
             ) : atEnd ? (
               <>
-                <ResetIcon className="h-4 w-4 mr-2" /> Replay
+                <ResetIcon /> Replay
               </>
             ) : (
               <>
-                <PlayIcon className="h-4 w-4 mr-2" /> Play
+                <PlayIcon /> Play
               </>
             )}
           </Button>
           <Button
-            variant="ghost"
-            className={cn(buttonClass, "px-3 shrink-0")}
+            size="icon"
+            className="shrink-0"
             onClick={stepForward}
             disabled={atEnd}
             aria-label="Next step"
             aria-keyshortcuts="ArrowRight"
             title="Next step (→)"
           >
-            <ChevronRightIcon className="h-5 w-5" />
+            <ChevronRightIcon />
           </Button>
           <Button
-            variant="ghost"
             // Icon-only between md and xl so the speed slider keeps a usable width.
-            className={cn(buttonClass, "px-4 w-full md:max-xl:w-auto md:max-xl:px-3 xl:w-40")}
+            className="w-full md:max-xl:w-11 md:max-xl:px-0 xl:w-36"
             onClick={createNewArray}
             aria-keyshortcuts="R"
             title="New array (R)"
+            aria-label="New array"
             disabled={isPlaying}
           >
-            <UpdateIcon className="h-4 w-4 mr-2 md:max-xl:mr-0" />
+            <UpdateIcon />
             <span className="md:max-xl:sr-only">Reset</span>
           </Button>
         </div>

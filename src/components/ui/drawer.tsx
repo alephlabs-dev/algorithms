@@ -45,7 +45,7 @@ const DrawerTitle = ({
   ...props
 }: ComponentProps<typeof DrawerPrimitive.Title>) => (
   <DrawerPrimitive.Title
-    className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+    className={cn("text-xl font-semibold leading-none", className)}
     {...props}
   />
 );

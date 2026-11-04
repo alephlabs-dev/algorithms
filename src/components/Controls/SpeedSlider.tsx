@@ -10,7 +10,7 @@ export const SpeedSlider = () => {
 
   return (
     <div className="flex items-center gap-4 text-foreground w-full">
-      <h3 className="font-semibold">Speed</h3>
+      <h3 className="text-sm font-semibold">Speed</h3>
       <Slider
         aria-label="Speed"
         aria-valuetext={`${formatStepsPerSecond(speed)} steps per second`}
@@ -20,7 +20,7 @@ export const SpeedSlider = () => {
         step={1}
         onValueChange={([value]) => setSpeed(value / RESOLUTION)}
       />
-      <span className="text-xs tabular-nums whitespace-nowrap min-w-[4.5rem] text-right">
+      <span className="min-w-20 whitespace-nowrap text-right font-mono text-xs">
         {formatStepsPerSecond(speed)} steps/s
       </span>
     </div>
