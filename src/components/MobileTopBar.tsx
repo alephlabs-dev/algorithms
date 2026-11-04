@@ -1,21 +1,16 @@
 import { ChevronDownIcon, InfoCircledIcon, MixerHorizontalIcon } from "@radix-ui/react-icons";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { algorithmGroups } from "@/consts/algorithmGroups";
-import { pathAlgorithms, pathTraits } from "@/consts/pathAlgorithms";
-import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
-import type { PathAlgorithm } from "@/pathfinding";
-import { useSettingsSummary } from "@/hooks/useSettingsSummary";
+import { useModuleUI, useSettingsSummary } from "@/modules";
 import { MAX_RACERS, useStore } from "@/store";
-import type { Algorithm } from "@/types";
 import { cn } from "@/utils/cn";
-import { PATH_RACE_DESCRIPTION, RACE_DESCRIPTION } from "@/consts/race";
-import { Complexity, TourLink } from "./TopBar";
+import { TourLink } from "./TopBar";
 import { ModuleButton } from "./ModuleSwitcher";
 import { RacerList } from "./Race/RacerPicker";
 import { ShareButton } from "./ShareButton";
 import { ThemeToggle } from "./ThemeToggle";
-import { SettingsPanel } from "./Settings/SettingsPanel";
+import { SettingsPanel } from "./Settings/ModuleSettings";
+import { StageInfo } from "./StageInfo";
 import { Button } from "./ui/button";
 import { Drawer, DrawerClose, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
 import { ViewSwitch } from "./ViewSwitch";
@@ -43,7 +38,7 @@ const InfoButton = ({ label, children }: { label: string; children: ReactNode })
 
 /** Settings live in a sheet on phones and tablets; the button's name says what's set. */
 const SettingsButton = () => {
-  const summary = useSettingsSummary();
+  const { label: summary } = useSettingsSummary();
   return (
     <Drawer>
       <DrawerTrigger asChild>
@@ -80,42 +75,30 @@ const FieldChevron = () => (
  * iOS wheel, the Android list), with this module's algorithms only.
  */
 const AlgorithmField = () => {
-  const { value, isPath, setActiveAlgorithm, setPathAlgorithm } = useStore(
-    useShallow((s) => ({
-      isPath: s.module === "pathfinding",
-      // Options are "sort:quick" or "path:astar", since both families share one picker.
-      value: s.module === "pathfinding" ? `path:${s.pathAlgorithm}` : `sort:${s.activeAlgorithm}`,
-      setActiveAlgorithm: s.setActiveAlgorithm,
-      setPathAlgorithm: s.setPathAlgorithm,
-    })),
-  );
+  const { algorithms, current, pick } = useModuleUI();
+  const value = useStore(current);
   return (
     <div data-tour="picker" className="relative min-w-0 flex-1">
       <select
         aria-label="Algorithm"
         value={value}
-        onChange={(event) => {
-          const [family, name] = event.target.value.split(":");
-          if (family === "path") setPathAlgorithm(name as PathAlgorithm);
-          else setActiveAlgorithm(name as Algorithm);
-        }}
+        onChange={(event) => pick(event.target.value)}
         className={cn(fieldClass, "appearance-none")}
       >
-        {isPath
-          ? (Object.keys(pathAlgorithms) as PathAlgorithm[]).map((algorithm) => (
-              <option key={algorithm} value={`path:${algorithm}`}>
-                {pathAlgorithms[algorithm].title}
-              </option>
-            ))
-          : algorithmGroups.map((group) => (
-              <optgroup key={group.label} label={`${group.label} · ${group.hint}`}>
-                {group.algorithms.map((algorithm) => (
-                  <option key={algorithm} value={`sort:${algorithm}`}>
-                    {sortingAlgorithms[algorithm].title}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
+        {algorithms.map((group, k) => {
+          const options = group.items.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.title}
+            </option>
+          ));
+          return group.label ? (
+            <optgroup key={group.label} label={`${group.label} · ${group.hint}`}>
+              {options}
+            </optgroup>
+          ) : (
+            <Fragment key={k}>{options}</Fragment>
+          );
+        })}
       </select>
       <FieldChevron />
     </div>
@@ -124,14 +107,12 @@ const AlgorithmField = () => {
 
 /** Picking 2–4 racers doesn't fit a native select, so the same field opens a checklist. */
 const RacersField = () => {
+  const { algorithms, racers } = useModuleUI();
   const names = useStore(
-    useShallow((s) =>
-      s.module === "pathfinding"
-        ? s.pathRaceAlgorithms.map((a) => pathAlgorithms[a].short)
-        : s.raceAlgorithms.map((a) =>
-            sortingAlgorithms[a].title.replace(/ Sort$/, "").replace("Cocktail Shaker", "Cocktail"),
-          ),
-    ),
+    useShallow((s) => {
+      const shortOf = new Map(algorithms.flatMap((g) => g.items).map((item) => [item.id, item.short]));
+      return racers(s).map((id) => shortOf.get(id) ?? id);
+    })
   );
 
   return (
@@ -164,25 +145,15 @@ const ViewRow = () => (
 
 /** Phones and tablets: the view, then the algorithm as a field (tap to change), (i) and settings. */
 export const MobileTopBar = ({ className }: { className?: string }) => {
-  const activeAlgorithm = useStore((s) => s.activeAlgorithm);
-  const pathAlgorithm = useStore((s) => (s.module === "pathfinding" ? s.pathAlgorithm : null));
-  const { title, shortDescription, longDescription } = pathAlgorithm
-    ? pathAlgorithms[pathAlgorithm]
-    : sortingAlgorithms[activeAlgorithm];
-
+  const { about } = useModuleUI();
+  const title = useStore((s) => about(s).title);
   return (
     <div className={cn("flex flex-col gap-3", className)}>
       <ViewRow />
       <div className="flex items-center gap-1">
         <AlgorithmField />
         <InfoButton label={title}>
-          <p className="text-foreground/80">{shortDescription}</p>
-          <p className="text-foreground/80">{longDescription}</p>
-          {pathAlgorithm ? (
-            <p className="font-mono text-xs text-foreground/70">{pathTraits(pathAlgorithm)}</p>
-          ) : (
-            <Complexity />
-          )}
+          <StageInfo compact />
           <DrawerClose asChild>
             <TourLink />
           </DrawerClose>
@@ -194,21 +165,18 @@ export const MobileTopBar = ({ className }: { className?: string }) => {
 };
 
 /** Race view on phones and tablets: the racers as a field, then settings. */
-export const MobileRaceBar = ({ className }: { className?: string }) => {
-  const isPath = useStore((s) => s.module === "pathfinding");
-  return (
-    <div className={cn("flex flex-col gap-3", className)}>
-      <ViewRow />
-      <div className="flex items-center gap-1">
-        <RacersField />
-        <InfoButton label="Race">
-          <p className="text-foreground/80">{isPath ? PATH_RACE_DESCRIPTION : RACE_DESCRIPTION}</p>
-          <DrawerClose asChild>
-            <TourLink />
-          </DrawerClose>
-        </InfoButton>
-        <SettingsButton />
-      </div>
+export const MobileRaceBar = ({ className }: { className?: string }) => (
+  <div className={cn("flex flex-col gap-3", className)}>
+    <ViewRow />
+    <div className="flex items-center gap-1">
+      <RacersField />
+      <InfoButton label="Race">
+        <StageInfo />
+        <DrawerClose asChild>
+          <TourLink />
+        </DrawerClose>
+      </InfoButton>
+      <SettingsButton />
     </div>
-  );
-};
+  </div>
+);

@@ -3,7 +3,8 @@ import { useShallow } from "zustand/react/shallow";
 import { Button } from "@/components/ui/button";
 import { selectLastIndex, useStore } from "@/store";
 import { cn } from "@/utils/cn";
-import { SettingsMenu } from "../Settings/SettingsPanel";
+import { useModuleUI } from "@/modules";
+import { SettingsMenu } from "../Settings/ModuleSettings";
 import { KeyboardShortcuts } from "./KeyboardShortcuts";
 import { Playback } from "./Playback";
 import { Progress } from "./Progress";
@@ -15,7 +16,8 @@ import { SpeedControl, SpeedCycleButton } from "./SpeedControl";
  * buttons around a large Play.
  */
 export const Controls = ({ className }: { className?: string }) => {
-  const { isPlaying, play, pause, stepForward, stepBackward, createNewArray, atStart, atEnd, isPath } = useStore(
+  const { newRunLabel } = useModuleUI();
+  const { isPlaying, play, pause, stepForward, stepBackward, createNewArray, atStart, atEnd } = useStore(
     useShallow((s) => ({
       isPlaying: s.isPlaying,
       play: s.play,
@@ -23,7 +25,6 @@ export const Controls = ({ className }: { className?: string }) => {
       stepForward: s.stepForward,
       stepBackward: s.stepBackward,
       createNewArray: s.createNewArray,
-      isPath: s.module === "pathfinding",
       // Booleans, so the dock only re-renders when they flip.
       atStart: s.frameIndex === 0,
       atEnd: s.frameIndex === selectLastIndex(s),
@@ -76,9 +77,9 @@ export const Controls = ({ className }: { className?: string }) => {
       size="icon"
       className="shrink-0"
       onClick={createNewArray}
-      aria-label={isPath ? "New layout" : "New array"}
+      aria-label={newRunLabel}
       aria-keyshortcuts="R"
-      title={isPath ? "New layout of the same kind (R)" : "New array (R)"}
+      title={`${newRunLabel} (R)`}
     >
       <UpdateIcon />
     </Button>

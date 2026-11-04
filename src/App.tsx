@@ -1,33 +1,28 @@
 import { useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { About } from "./components/About";
-import { AlgorithmVisualizer } from "./components/AlgorithmVisualizer";
 import { Controls } from "./components/Controls";
 import { Landing } from "./components/Landing/Landing";
 import { MobileRaceBar, MobileTopBar } from "./components/MobileTopBar";
-import { PathStage } from "./components/Pathfinding/PathStage";
-import { PathLegend, PathTools } from "./components/Pathfinding/PathTools";
 import { NowCard, StepCaption } from "./components/Pseudocode";
-import { PathRaceLanes } from "./components/Race/PathRaceLanes";
-import { RaceLanes } from "./components/Race/RaceLanes";
-import { Legend } from "./components/RunInfo";
 import { ScrollHint } from "./components/ScrollHint";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { TopBar } from "./components/TopBar";
 import { Tour } from "./components/Tour";
 import { useMediaQuery } from "./hooks/useMediaQuery";
+import { useModuleUI } from "./modules";
 import { MOBILE_QUERY, useStore } from "./store";
 import { navigate, routeFor } from "./urlSync";
 
 /**
  * One stage, edge to edge: a slim bar on top that names what's playing, the
- * bars in the middle with the "Now" card beside them on wide screens, and a
- * floating dock at the bottom.
+ * module's stage in the middle with the code card beside it on wide screens,
+ * and a floating dock at the bottom. What's on stage comes from the module.
  */
 function App() {
   const setIsMobile = useStore((s) => s.setIsMobile);
   const view = useStore((s) => s.view);
-  const isPath = useStore((s) => s.module === "pathfinding");
+  const { Stage, RaceStage, Tools, Legend } = useModuleUI();
   const isLanding = useStore((s) => s.isLanding);
   const isMobile = useMediaQuery(MOBILE_QUERY);
   const route = useStore(useShallow(routeFor));
@@ -47,38 +42,27 @@ function App() {
             <MobileTopBar className="lg:hidden" />
             <div className="flex min-h-0 flex-1 gap-8">
               <div className="flex min-w-0 flex-1 flex-col gap-2 lg:px-4">
-                {/* Pathfinding is about editing the grid, so its tools sit right above it. */}
-                {/* Phones keep them in the settings sheet, so the grid gets the room. */}
-                {isPath && <PathTools className="-ml-1 hidden md:flex" />}
+                {/* Phones keep the module's tools in the settings sheet, so the stage gets the room. */}
+                {Tools && <Tools className="-ml-1 hidden md:flex" />}
                 <div className="flex min-h-10 items-center justify-between gap-4 xl:hidden">
                   <StepCaption className="-ml-3 flex-1" />
-                  {isPath ? (
-                    <PathLegend className="hidden shrink-0 md:flex" />
-                  ) : (
-                    <Legend className="hidden shrink-0 md:flex" />
-                  )}
+                  <Legend className="hidden shrink-0 md:flex" />
                 </div>
-                {isPath ? <PathStage /> : <AlgorithmVisualizer />}
+                <Stage />
               </div>
               {/* Never taller than the stage: the card scrolls inside if it has to. */}
               <NowCard className="hidden max-h-full w-80 shrink-0 self-start xl:flex" />
             </div>
           </>
-        ) : isPath ? (
-          <>
-            <MobileRaceBar className="lg:hidden" />
-            {/* Drawing works on any lane: they all share the grid. */}
-            <div className="-mb-1 hidden flex-wrap items-center justify-between gap-x-6 gap-y-2 md:flex lg:-mt-2">
-              <PathTools className="-ml-1" />
-              <PathLegend className="hidden md:flex" />
-            </div>
-            <PathRaceLanes />
-          </>
         ) : (
           <>
             <MobileRaceBar className="lg:hidden" />
-            <Legend className="-mb-2 lg:-mt-2" />
-            <RaceLanes />
+            {/* A module with tools is one whose stage needs every bit of a phone's room: its legend waits for wider screens too. */}
+            <div className="-mb-1 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 lg:-mt-2">
+              {Tools && <Tools className="-ml-1 hidden md:flex" />}
+              <Legend className={Tools ? "hidden md:flex" : undefined} />
+            </div>
+            <RaceStage />
           </>
         )}
         <Controls />

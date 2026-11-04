@@ -1,52 +1,15 @@
 import { moduleOf, routeFromPath, routePath, type Route } from "./routes";
 import { applyHead } from "./seo/head";
 import { tourDone, useStore, type StoreState } from "./store";
-import type { Size } from "./types";
-import { encodeCells } from "./pathfinding/grid";
-import { toPathSearch, toSearch } from "./urlState";
+import { engines } from "./modules/engine";
 
 /** The page the store is showing. */
-export const routeFor = (s: StoreState): Route => {
-  if (s.isLanding) return { kind: "home" };
-  if (s.module === "pathfinding") {
-    if (s.view === "race") return { kind: "pathRace" };
-    return s.isModuleStart ? { kind: "pathfinding" } : { kind: "path", algorithm: s.pathAlgorithm };
-  }
-  if (s.view === "race") return { kind: "race" };
-  return s.isModuleStart ? { kind: "sorting" } : { kind: "algorithm", algorithm: s.activeAlgorithm };
-};
+export const routeFor = (s: StoreState): Route => (s.isLanding ? { kind: "home" } : engines[s.module].route(s));
 
-const searchFor = (s: StoreState) =>
-  // The landing page is just the page: its address has nothing to carry.
-  s.isLanding
-    ? ""
-    : s.module === "pathfinding"
-    ? toPathSearch({
-        gridSize: s.gridSize,
-        cells: encodeCells(s.grid.cells),
-        start: s.grid.start,
-        end: s.grid.end,
-        racers: s.pathRaceAlgorithms,
-        speed: s.speedPreset,
-      })
-    : toSearch({
-        // The store only ever holds sizes from the sizes list.
-        size: s.size as Size,
-        inputOrder: s.inputOrder,
-        displayMode: s.displayMode,
-        speed: s.speedPreset,
-        seed: s.seed,
-        raceAlgorithms: s.raceAlgorithms,
-      });
+// The landing page is just the page: its address has nothing to carry.
+const searchFor = (s: StoreState) => (s.isLanding ? "" : engines[s.module].search(s));
 
-const pageChanged = (a: StoreState, b: StoreState) =>
-  a.isLanding !== b.isLanding ||
-  a.isModuleStart !== b.isModuleStart ||
-  a.module !== b.module ||
-  a.view !== b.view ||
-  (a.module === "pathfinding"
-    ? a.pathAlgorithm !== b.pathAlgorithm
-    : a.view === "single" && a.activeAlgorithm !== b.activeAlgorithm);
+const pageChanged = (a: StoreState, b: StoreState) => routePath(routeFor(a)) !== routePath(routeFor(b));
 
 const settingsChanged = (a: StoreState, b: StoreState) =>
   a.size !== b.size ||
