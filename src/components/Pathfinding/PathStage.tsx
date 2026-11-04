@@ -177,7 +177,8 @@ const PathFinishSummary = ({ className }: { className?: string }) => {
           <span className={cn("font-semibold", frame.found ? "text-primary" : "text-foreground")}>
             {frame.found ? "Path found" : "No path"}
           </span>
-          <span className="font-mono text-xs text-foreground/80">
+          {/* Phones show the counts in the dock right below; this keeps the pill to one line. */}
+          <span className="hidden font-mono text-xs text-foreground/80 sm:inline">
             {frame.found && `${count(frame.stats.pathLength, "step")} · cost ${frame.stats.pathCost} · `}
             {count(frame.stats.visited, "cell")} looked at
           </span>

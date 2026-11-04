@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { seededRandom } from "@/utils/random";
-import { applyPreset, decodeCells, emptyGrid, encodeCells, neighbors, stepCost, withTerrain } from "./grid";
+import {
+  applyPreset,
+  decodeCells,
+  emptyGrid,
+  encodeCells,
+  gridDimensions,
+  gridSizes,
+  neighbors,
+  stepCost,
+  withTerrain,
+} from "./grid";
 import { pathSearches } from "./searches";
 import { PathTimeline } from "./timeline";
 import { EMPTY, MUD, ON_PATH, VISITED, WALL, type Grid, type PathAlgorithm } from "./types";
@@ -122,6 +132,26 @@ describe("pathfinding", () => {
     while (queue.length) for (const n of neighbors(grid, queue.shift()!)) if (!seen.has(n) && seen.add(n)) queue.push(n);
     const open = [...grid.cells.keys()].filter((c) => grid.cells[c] !== WALL);
     expect(seen.size).toBe(open.length);
+  });
+
+  it("keeps start and end inside every maze, wherever they are", () => {
+    const random = seededRandom(3);
+    for (const size of gridSizes) {
+      for (const phone of [false, true]) {
+        const { rows, cols } = gridDimensions(size, phone);
+        for (let k = 0; k < 40; k++) {
+          // Default spots first, then markers moved anywhere (edges and corners too).
+          let grid = emptyGrid(rows, cols);
+          if (k > 0) {
+            const start = Math.floor(random() * rows * cols);
+            const end = (start + 1 + Math.floor(random() * (rows * cols - 1))) % (rows * cols);
+            grid = { ...grid, start, end };
+          }
+          const maze = applyPreset(grid, "maze", seededRandom(k));
+          expect(new PathTimeline(pathSearches.bfs, maze).frameAt(Infinity).found).toBe(true);
+        }
+      }
+    }
   });
 
   it("packs terrain into a URL-safe string and back", () => {

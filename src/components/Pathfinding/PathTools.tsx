@@ -1,7 +1,7 @@
 import { useShallow } from "zustand/react/shallow";
 import { gridSizeLabels, presets } from "@/consts/pathLabels";
-import { MUD_COST, type GridSize } from "@/pathfinding";
-import { selectPathFrame, useStore, type Brush } from "@/store";
+import { gridSizes, MUD_COST, type GridSize } from "@/pathfinding";
+import { raceMaxGridSize, selectPathFrame, useStore, type Brush } from "@/store";
 import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";
 import { SegmentedControl } from "../ui/segmented";
@@ -58,13 +58,22 @@ export const PathTools = ({ className }: { className?: string }) => (
 );
 
 export const GridSizePicker = () => {
-  const { gridSize, setGridSize } = useStore(useShallow((s) => ({ gridSize: s.gridSize, setGridSize: s.setGridSize })));
+  const { gridSize, setGridSize, cap } = useStore(
+    useShallow((s) => ({
+      gridSize: s.gridSize,
+      setGridSize: s.setGridSize,
+      // Races show four grids at once, so the biggest sizes are off there.
+      cap: s.view === "race" ? gridSizes.indexOf(raceMaxGridSize(s.isMobile)) : Infinity,
+    }))
+  );
   return (
     <SegmentedControl<GridSize>
       label="Grid size"
       options={(Object.keys(gridSizeLabels) as GridSize[]).map((size) => ({
         value: size,
         label: gridSizeLabels[size],
+        disabled: gridSizes.indexOf(size) > cap,
+        title: gridSizes.indexOf(size) > cap ? `${gridSizeLabels[size]}: too small to follow in a race` : undefined,
       }))}
       value={gridSize}
       onChange={(size) => size !== gridSize && setGridSize(size)}

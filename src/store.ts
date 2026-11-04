@@ -6,6 +6,7 @@ import {
   decodeCells,
   emptyGrid,
   gridDimensions,
+  gridSizes,
   pathSearches,
   PathTimeline,
   type Grid,
@@ -150,6 +151,15 @@ const paceOf = (module: Module, view: View): Pace =>
 
 export const MOBILE_QUERY = "(max-width: 768px)";
 
+/** Race lanes are a quarter of the stage, so bigger grids get too small to follow. */
+export const raceMaxGridSize = (isMobile: boolean): GridSize => (isMobile ? "small" : "medium");
+
+/** The grid size to use: the one asked for, capped in a pathfinding race. */
+const fitGridSize = (size: GridSize, view: View, isMobile: boolean) => {
+  const cap = raceMaxGridSize(isMobile);
+  return view === "race" && gridSizes.indexOf(size) > gridSizes.indexOf(cap) ? cap : size;
+};
+
 /** Numbers mode only fits so many tiles, and phones only so many bars. */
 const maxSizeFor = (displayMode: DisplayMode, isMobile: boolean) =>
   displayMode === "numbers" ? (isMobile ? 10 : 20) : isMobile ? MAX_MOBILE_SIZE : Infinity;
@@ -222,7 +232,7 @@ const initial = (() => {
   const timeline = timelineFor(activeAlgorithm, items);
   const module: Module = url.isPath ? "pathfinding" : "sorting";
   const pathAlgorithm = url.pathAlgorithm ?? "astar";
-  const gridSize = url.path.gridSize ?? (isMobile ? "small" : "medium");
+  const gridSize = fitGridSize(url.path.gridSize ?? (isMobile ? "small" : "medium"), url.isPath ? view : "single", isMobile);
   const grid = gridFromLink(url.path, gridSize, isMobile);
   const pathTimeline = pathTimelineFor(pathAlgorithm, grid);
   const pathRaceAlgorithms = url.path.racers ?? DEFAULT_PATH_RACERS;
@@ -313,6 +323,18 @@ export const useStore = create<StoreState>((set, get) => {
 
     // Within the module on screen: sorting races on the array, pathfinding on the grid.
     setView: (view) => {
+      // A big grid gets a fresh layout at the largest size a race shows well.
+      const before = get();
+      const fitted = before.module === "pathfinding" ? fitGridSize(before.gridSize, view, before.isMobile) : before.gridSize;
+      if (fitted !== before.gridSize) {
+        const grid = gridFor(fitted, before.isMobile, before.gridPreset);
+        set({
+          gridSize: fitted,
+          grid,
+          gridId: before.gridId + 1,
+          pathTimeline: pathTimelineFor(before.pathAlgorithm, grid),
+        });
+      }
       set((state) => ({
         view,
         isHome: false,
@@ -462,8 +484,9 @@ export const useStore = create<StoreState>((set, get) => {
       applyAutoSpeed();
     },
 
-    setGridSize: (gridSize) => {
+    setGridSize: (requested) => {
       set((state) => {
+        const gridSize = state.module === "pathfinding" ? fitGridSize(requested, state.view, state.isMobile) : requested;
         const grid = gridFor(gridSize, state.isMobile, state.gridPreset);
         return { gridSize, gridId: state.gridId + 1, ...pathRunsFor(state, grid) };
       });

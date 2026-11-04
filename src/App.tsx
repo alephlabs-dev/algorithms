@@ -10,6 +10,7 @@ import { NowCard, StepCaption } from "./components/Pseudocode";
 import { PathRaceLanes } from "./components/Race/PathRaceLanes";
 import { RaceLanes } from "./components/Race/RaceLanes";
 import { Legend } from "./components/RunInfo";
+import { ScrollHint } from "./components/ScrollHint";
 import { TopBar } from "./components/TopBar";
 import { Tour } from "./components/Tour";
 import { useMediaQuery } from "./hooks/useMediaQuery";
@@ -75,6 +76,7 @@ function App() {
           </>
         )}
         <Controls />
+        <ScrollHint route={route} className="-my-2 h-6 lg:-my-3" />
         <Tour />
       </main>
       {/* Below the stage: the page's written content, also prerendered for search engines. */}
