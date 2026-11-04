@@ -4,7 +4,7 @@ This project is a visualizer for various sorting algorithms. It provides an inte
 
 ## Demo
 
-Check out the live demo of the application [here](https://sorting-algorithms-app-v2.vercel.app/).
+Check out the live demo of the application [here](https://algorithms-aleph.vercel.app/).
 
 ### Desktop View
 
@@ -43,8 +43,8 @@ https://github.com/user-attachments/assets/c3705203-1f45-4e31-867c-3eb92f1a8f0e
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/ignaciomartinelias/sorting-algorithms-app-v2.git
-cd sorting-algorithms-app-v2
+git clone https://github.com/alephlabs-dev/algorithms.git
+cd algorithms
 ```
 
 2. Install dependencies using PNPM:

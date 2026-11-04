@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "sorting-algorithms-app-v2.vercel.app" }],
+      "destination": "https://algorithms-aleph.vercel.app/$1",
+      "permanent": true
+    }
+  ]
+}
