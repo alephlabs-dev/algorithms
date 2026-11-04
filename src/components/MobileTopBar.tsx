@@ -11,6 +11,7 @@ import type { Algorithm } from "@/types";
 import { cn } from "@/utils/cn";
 import { PATH_RACE_DESCRIPTION, RACE_DESCRIPTION } from "@/consts/race";
 import { Complexity, TourLink } from "./TopBar";
+import { ModuleButton } from "./ModuleSwitcher";
 import { RacerList } from "./Race/RacerPicker";
 import { ShareButton } from "./ShareButton";
 import { ThemeToggle } from "./ThemeToggle";
@@ -76,11 +77,12 @@ const FieldChevron = () => (
 
 /**
  * A native select styled as a field, so phones open their own picker (the
- * iOS wheel, the Android list), grouped by family like the desktop sidebar.
+ * iOS wheel, the Android list), with this module's algorithms only.
  */
 const AlgorithmField = () => {
-  const { value, setActiveAlgorithm, setPathAlgorithm } = useStore(
+  const { value, isPath, setActiveAlgorithm, setPathAlgorithm } = useStore(
     useShallow((s) => ({
+      isPath: s.module === "pathfinding",
       // Options are "sort:quick" or "path:astar", since both families share one picker.
       value: s.module === "pathfinding" ? `path:${s.pathAlgorithm}` : `sort:${s.activeAlgorithm}`,
       setActiveAlgorithm: s.setActiveAlgorithm,
@@ -99,22 +101,21 @@ const AlgorithmField = () => {
         }}
         className={cn(fieldClass, "appearance-none")}
       >
-        {algorithmGroups.map((group) => (
-          <optgroup key={group.label} label={`${group.label} · ${group.hint}`}>
-            {group.algorithms.map((algorithm) => (
-              <option key={algorithm} value={`sort:${algorithm}`}>
-                {sortingAlgorithms[algorithm].title}
+        {isPath
+          ? (Object.keys(pathAlgorithms) as PathAlgorithm[]).map((algorithm) => (
+              <option key={algorithm} value={`path:${algorithm}`}>
+                {pathAlgorithms[algorithm].title}
               </option>
+            ))
+          : algorithmGroups.map((group) => (
+              <optgroup key={group.label} label={`${group.label} · ${group.hint}`}>
+                {group.algorithms.map((algorithm) => (
+                  <option key={algorithm} value={`sort:${algorithm}`}>
+                    {sortingAlgorithms[algorithm].title}
+                  </option>
+                ))}
+              </optgroup>
             ))}
-          </optgroup>
-        ))}
-        <optgroup label="Pathfinding">
-          {(Object.keys(pathAlgorithms) as PathAlgorithm[]).map((algorithm) => (
-            <option key={algorithm} value={`path:${algorithm}`}>
-              {pathAlgorithms[algorithm].title}
-            </option>
-          ))}
-        </optgroup>
       </select>
       <FieldChevron />
     </div>
@@ -154,7 +155,8 @@ const RacersField = () => {
 /** The view switch and share link, above the picker. */
 const ViewRow = () => (
   <div className="flex items-center gap-2">
-    <ViewSwitch className="flex-1" />
+    <ModuleButton />
+    <ViewSwitch className="min-w-0 flex-1" />
     <ShareButton iconOnly />
     <ThemeToggle />
   </div>

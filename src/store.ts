@@ -62,8 +62,10 @@ export type StoreState = {
   gridId: number;
   /** One algorithm with all the details, or several racing on the same array or grid. */
   view: View;
-  /** On the home page (/): the default algorithm shows, but the URL stays / until something is picked. */
-  isHome: boolean;
+  /** On the landing page (/), in front of the modules. */
+  isLanding: boolean;
+  /** On a module's own page (/sorting, /pathfinding): its algorithm shows, but the URL stays there until something is picked. */
+  isModuleStart: boolean;
   raceAlgorithms: Algorithm[];
   /** One timeline per racer, on the same array as `timeline`. Empty outside race view. */
   raceTimelines: Timeline[];
@@ -248,7 +250,8 @@ const initial = (() => {
     pathTimeline,
     pathRaceAlgorithms,
     pathRaceTimelines,
-    isHome: url.isHome,
+    isLanding: url.isLanding,
+    isModuleStart: url.isModuleStart,
     view,
     raceAlgorithms,
     raceTimelines,
@@ -282,8 +285,8 @@ export const useStore = create<StoreState>((set, get) => {
     isHelpOpen: false,
     theme: document.documentElement.dataset.theme === "light" ? "light" : "dark",
 
-    // A first visit opens the tour of the module it lands on (not the race view).
-    isTourOpen: !tourDone(initial.module) && initial.view === "single",
+    // A first visit opens the tour of the module it lands on (not the race view, nor the landing page).
+    isTourOpen: !tourDone(initial.module) && initial.view === "single" && !initial.isLanding,
     openTour: () => {
       // Each tour walks through the single view of its module.
       if (get().view === "race") get().setView("single");
@@ -337,7 +340,7 @@ export const useStore = create<StoreState>((set, get) => {
       }
       set((state) => ({
         view,
-        isHome: false,
+        isModuleStart: false,
         frameIndex: 0,
         isPlaying: false,
         raceTimelines: raceTimelinesFor(
@@ -427,7 +430,7 @@ export const useStore = create<StoreState>((set, get) => {
         view: "single",
         raceTimelines: [],
         pathRaceTimelines: [],
-        isHome: false,
+        isModuleStart: false,
         ...newRun(algorithm, state.timeline.values),
       }));
       applyAutoSpeed();
@@ -470,11 +473,9 @@ export const useStore = create<StoreState>((set, get) => {
     // The grid stays the same so algorithms can be compared on it.
     setPathAlgorithm: (algorithm) => {
       set((state) => ({
-        // Coming over from sorting for the first time: show how the grid works.
-        ...(state.module === "sorting" && !tourDone("pathfinding") && { isTourOpen: true, isHelpOpen: false }),
         module: "pathfinding",
         view: "single",
-        isHome: false,
+        isModuleStart: false,
         pathAlgorithm: algorithm,
         pathTimeline: pathTimelineFor(algorithm, state.grid),
         pathRaceTimelines: [],

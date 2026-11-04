@@ -8,7 +8,10 @@ import { cn } from "@/utils/cn";
 const labelFor = (route: Route) => {
   switch (route.kind) {
     case "home":
-      return "About these algorithms";
+    case "sorting":
+      return "About sorting algorithms";
+    case "pathfinding":
+      return "About pathfinding algorithms";
     case "race":
     case "pathRace":
       return "How the race works";

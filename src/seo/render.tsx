@@ -1,5 +1,6 @@
 import { renderToString } from "react-dom/server";
 import { About } from "@/components/About";
+import { Landing } from "@/components/Landing/Landing";
 import { allRoutes, routePath, SITE_URL, type Route } from "@/routes";
 import { renderHead } from "./head";
 
@@ -16,15 +17,19 @@ const ROOT = '<div id="root"></div>';
  */
 export const renderPage = (template: string, route: Route): string => {
   if (!template.includes(ROOT)) throw new Error(`index.html is missing ${ROOT}`);
-  const article = renderToString(<About route={route} />);
-  return renderHead(template, route).replace(ROOT, `<div id="root"><div class="h-dvh"></div>${article}</div>`);
+  // The landing page is all content; other pages are a visualizer with their article below.
+  const body =
+    route.kind === "home"
+      ? renderToString(<Landing />)
+      : `<div class="h-dvh"></div>${renderToString(<About route={route} />)}`;
+  return renderHead(template, route).replace(ROOT, `<div id="root">${body}</div>`);
 };
 
 export const sitemap = (lastModified: string): string => {
   const urls = allRoutes
     .map((route) => {
       const path = routePath(route);
-      const priority = route.kind === "home" ? "1.0" : "0.8";
+      const priority = route.kind === "home" ? "1.0" : route.kind === "sorting" || route.kind === "pathfinding" ? "0.9" : "0.8";
       return `  <url><loc>${SITE_URL}${path === "/" ? "/" : path}</loc><lastmod>${lastModified}</lastmod><priority>${priority}</priority></url>`;
     })
     .join("\n");
