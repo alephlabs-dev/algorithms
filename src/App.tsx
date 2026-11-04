@@ -43,7 +43,8 @@ function App() {
             <div className="flex min-h-0 flex-1 gap-8">
               <div className="flex min-w-0 flex-1 flex-col gap-2 lg:px-4">
                 {/* Pathfinding is about editing the grid, so its tools sit right above it. */}
-                {isPath && <PathTools className="-ml-1" />}
+                {/* Phones keep them in the settings sheet, so the grid gets the room. */}
+                {isPath && <PathTools className="-ml-1 hidden md:flex" />}
                 <div className="flex min-h-10 items-center justify-between gap-4 xl:hidden">
                   <StepCaption className="-ml-3 flex-1" />
                   {isPath ? (
@@ -62,7 +63,7 @@ function App() {
           <>
             <MobileRaceBar className="lg:hidden" />
             {/* Drawing works on any lane: they all share the grid. */}
-            <div className="-mb-1 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 lg:-mt-2">
+            <div className="-mb-1 hidden flex-wrap items-center justify-between gap-x-6 gap-y-2 md:flex lg:-mt-2">
               <PathTools className="-ml-1" />
               <PathLegend className="hidden md:flex" />
             </div>
