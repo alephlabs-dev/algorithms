@@ -1,15 +1,10 @@
 import { CodeIcon } from "@radix-ui/react-icons";
 import { useShallow } from "zustand/react/shallow";
-import { pseudocode } from "@/algorithms";
 import { useThrottled } from "@/hooks/useThrottled";
-import { pathPseudocode } from "@/pathfinding";
-import { selectFrame, selectPathFrame, useStore, type StoreState } from "@/store";
+import { useModuleUI } from "@/modules";
+import { useStore, type StoreState } from "@/store";
 import { cn } from "@/utils/cn";
-import { narrate } from "@/utils/narrate";
-import { narratePath } from "@/utils/narratePath";
 import { stepsPerSecond } from "@/utils/speed";
-import { PathLegend } from "./Pathfinding/PathTools";
-import { Legend } from "./RunInfo";
 import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
 import { SectionLabel } from "./ui/section-label";
 
@@ -19,17 +14,17 @@ const READABLE_STEPS_PER_SECOND = 6;
 // The highlighted line and the sentence change at most this often.
 const UPDATE_INTERVAL_MS = 250;
 
-// The code of whatever is on stage, sorting or pathfinding.
-const linesOf = (s: StoreState) => (s.module === "pathfinding" ? pathPseudocode[s.pathAlgorithm] : pseudocode[s.activeAlgorithm]);
+const tooFastFor = (s: StoreState) => s.isPlaying && stepsPerSecond(s.speed) > READABLE_STEPS_PER_SECOND;
 
 // Only re-renders when the line or the play state changes, not on every frame.
 const usePseudocode = () => {
+  const { code } = useModuleUI();
   const state = useStore(
     useShallow((s) => ({
-      lines: linesOf(s),
-      line: s.module === "pathfinding" ? selectPathFrame(s).line : selectFrame(s).line,
+      lines: code.lines(s),
+      line: code.line(s),
       isPlaying: s.isPlaying,
-      tooFast: s.isPlaying && stepsPerSecond(s.speed) > READABLE_STEPS_PER_SECOND,
+      tooFast: tooFastFor(s),
     }))
   );
   const line = useThrottled(state.line, UPDATE_INTERVAL_MS);
@@ -38,23 +33,14 @@ const usePseudocode = () => {
 
 /** The current step in one plain sentence, e.g. "Compare 17 with the pivot 33: it's smaller." */
 const useNarration = () => {
-  const { module, timeline, pathTimeline, pathAlgorithm, frameIndex, lines, tooFast } = useStore(
-    useShallow((s) => ({
-      module: s.module,
-      timeline: s.timeline,
-      pathTimeline: s.pathTimeline,
-      pathAlgorithm: s.pathAlgorithm,
-      frameIndex: s.frameIndex,
-      lines: linesOf(s),
-      tooFast: s.isPlaying && stepsPerSecond(s.speed) > READABLE_STEPS_PER_SECOND,
-    }))
-  );
+  const { code } = useModuleUI();
+  const frameIndex = useStore((s) => s.frameIndex);
+  const tooFast = useStore(tooFastFor);
   const index = useThrottled(frameIndex, UPDATE_INTERVAL_MS);
+  // Narrates from the store as it is now, at the throttled position.
+  const text = useStore((s) => (tooFast ? "" : code.narrate(s, index)));
   if (tooFast) return { text: "Pause or slow down to follow each step.", muted: true };
-  if (module === "pathfinding") {
-    return { text: narratePath(pathTimeline, Math.min(index, pathTimeline.length - 1), pathAlgorithm), muted: false };
-  }
-  return { text: narrate(timeline, Math.min(index, timeline.length - 1), lines), muted: false };
+  return { text, muted: false };
 };
 
 const CodeLines = ({ lines, line }: { lines: string[]; line: number | null }) => (
@@ -114,8 +100,8 @@ export const NowCard = ({ className }: { className?: string }) => {
 };
 
 const ModuleLegend = () => {
-  const module = useStore((s) => s.module);
-  return module === "pathfinding" ? <PathLegend stacked /> : <Legend stacked className="gap-1.5" />;
+  const { Legend } = useModuleUI();
+  return <Legend stacked />;
 };
 
 /**

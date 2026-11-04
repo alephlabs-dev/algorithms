@@ -2,6 +2,7 @@ import { ArrowLeftIcon, ChevronDownIcon } from "@radix-ui/react-icons";
 import * as Popover from "@radix-ui/react-popover";
 import { useState } from "react";
 import { modules } from "@/consts/modules";
+import { useModuleUI } from "@/modules";
 import { useStore } from "@/store";
 import { navigate } from "@/urlSync";
 import { cn } from "@/utils/cn";
@@ -55,7 +56,7 @@ const ModuleList = ({ onPick }: { onPick: () => void }) => {
   );
 };
 
-const useModuleTitle = () => useStore((s) => (s.module === "pathfinding" ? "Pathfinding" : "Sorting"));
+const useModuleTitle = () => useModuleUI().title;
 
 /** Desktop: the logo (back to the landing page) and the module, which opens the list of modules. */
 export const ModuleMenu = ({ className }: { className?: string }) => {

@@ -1,130 +1,10 @@
 import { Cross2Icon } from "@radix-ui/react-icons";
-import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { MUD_COST } from "@/pathfinding";
-import { useStore, type Module, type Theme } from "@/store";
+import { moduleUIs } from "@/modules";
+import type { TourStep } from "@/modules/types";
+import { useStore } from "@/store";
 import { Button } from "./ui/button";
-
-type Context = { theme: Theme; wide: boolean; phone: boolean };
-
-type Step = {
-  /** Matches `data-tour="…"` on the element to light up (the first visible one). */
-  anchor: string;
-  /** Where to point instead on phones, when the anchor lives in a sheet there. */
-  phoneAnchor?: string;
-  title: string;
-  text: (context: Context) => ReactNode;
-};
-
-const colorNames: Record<Theme, { comparing: string; done: string }> = {
-  dark: { comparing: "Purple", done: "green" },
-  light: { comparing: "Orange", done: "teal" },
-};
-
-/** A dot in the bar's color, so the words match what's on screen. */
-const Swatch = ({ className }: { className: string }) => (
-  <span aria-hidden className={`mr-1 inline-block h-2.5 w-2.5 rounded-full align-[-1px] ${className}`} />
-);
-
-const sortingSteps: Step[] = [
-  {
-    anchor: "picker",
-    title: "Pick an algorithm",
-    text: () => "Nine of them, grouped by how well they cope with bigger arrays.",
-  },
-  {
-    anchor: "bars",
-    title: "The array",
-    text: ({ theme }) => (
-      <>
-        Each bar is a number. <Swatch className="bg-secondary" />
-        {colorNames[theme].comparing} bars are being compared; <Swatch className="bg-primary" />
-        {colorNames[theme].done} ones are already in their final place.
-      </>
-    ),
-  },
-  {
-    anchor: "play",
-    title: "Play it",
-    text: ({ wide }) =>
-      `Watch it sort, or go one step at a time with the buttons on either side.${wide ? " On a keyboard: Space, ← and →." : ""}`,
-  },
-  {
-    anchor: "narration",
-    title: "Follow each step",
-    text: ({ wide }) =>
-      wide
-        ? "The code it's running, with the current line lit up, and what just happened in plain words."
-        : "What just happened, in plain words. Tap it to see the code.",
-  },
-  {
-    anchor: "speed",
-    title: "Set the pace",
-    text: () => "1× is tuned to the size of the array. Go slower to read along, or faster to see the big picture.",
-  },
-  {
-    anchor: "settings",
-    title: "Change the array",
-    text: () => "How many items, how they start out (random, reversed, nearly sorted…), and bars or numbers.",
-  },
-  {
-    anchor: "race",
-    title: "Race them",
-    text: () => "Run up to four algorithms on the same array, side by side, and see which one does the least work.",
-  },
-];
-
-const pathSteps: Step[] = [
-  {
-    anchor: "picker",
-    title: "Pick a search",
-    text: () => "Five ways to get from start to target. Some find the shortest path, some just find one.",
-  },
-  {
-    anchor: "bars",
-    title: "The grid",
-    text: () => (
-      <>
-        Get from the <Swatch className="bg-primary" />
-        start to the <Swatch className="ml-1 bg-background ring-2 ring-foreground" />
-        target. Drag across the grid to draw walls, and drag either one to move it.
-      </>
-    ),
-  },
-  {
-    anchor: "tools",
-    phoneAnchor: "settings",
-    title: "Walls, mud and layouts",
-    text: ({ phone }) =>
-      `${phone ? "In settings: switch" : "Switch"} the brush to mud: it can be crossed, but each step on it costs ${MUD_COST}. Or start from a maze, random walls or rough terrain.`,
-  },
-  {
-    anchor: "play",
-    title: "Play it",
-    text: ({ wide }) =>
-      `Watch the search spread, or go one step at a time with the buttons on either side.${wide ? " On a keyboard: Space, ← and →." : ""}`,
-  },
-  {
-    anchor: "narration",
-    title: "Follow the search",
-    text: ({ theme, wide }) => (
-      <>
-        <Swatch className="bg-secondary" />
-        {colorNames[theme].comparing} cells are waiting to be explored, faded ones are done, and the{" "}
-        <Swatch className="bg-primary" />
-        {colorNames[theme].done} line is the path.{" "}
-        {wide ? "Here: the code it's running and what just happened." : "Tap here to see the code it's running."}
-      </>
-    ),
-  },
-  {
-    anchor: "settings",
-    title: "Change the grid",
-    text: () => "A smaller grid to read along, or a bigger one to see how each search spreads.",
-  },
-];
-
-const stepsFor: Record<Module, Step[]> = { sorting: sortingSteps, pathfinding: pathSteps };
 
 const PAD = 8; // space between the element and the edge of the light
 const GAP = 14; // space between the light and the bubble
@@ -192,7 +72,7 @@ const usePlacement = (anchor: string) => {
   return { holeRef, bubbleRef };
 };
 
-const TourDialog = ({ steps }: { steps: Step[] }) => {
+const TourDialog = ({ steps }: { steps: TourStep[] }) => {
   const closeTour = useStore((s) => s.closeTour);
   const theme = useStore((s) => s.theme);
   const wide = useMediaQuery("(min-width: 1280px)");
@@ -298,5 +178,5 @@ export const Tour = () => {
   const isOpen = useStore((s) => s.isTourOpen);
   const module = useStore((s) => s.module);
   // Keyed by module, so going Back to the other module mid-tour starts its own tour from the top.
-  return isOpen ? <TourDialog key={module} steps={stepsFor[module]} /> : null;
+  return isOpen ? <TourDialog key={module} steps={moduleUIs[module].tour} /> : null;
 };

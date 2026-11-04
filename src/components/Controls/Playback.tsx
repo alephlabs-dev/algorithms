@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { selectLastIndex, useStore } from "@/store";
-import { PATH_STEP_WEIGHT, STEP_WEIGHT, stepDelay } from "@/utils/speed";
+import { engines } from "@/modules/engine";
+import { stepDelay } from "@/utils/speed";
 
 // Cap so a slow frame (tab in background, big seek) can't jump half the run at once.
 const MAX_STEPS_PER_FRAME = 200;
@@ -25,12 +26,8 @@ export const Playback = () => {
 
       // Each step costs its share of a beat (see STEP_WEIGHT). Races tick once per
       // operation or cell examined, the same for every lane, so they stay uniform.
-      const costOf = (index: number) => {
-        if (state.view === "race") return delay;
-        if (state.module === "pathfinding")
-          return delay * PATH_STEP_WEIGHT[state.pathTimeline.stepAt(index)?.type ?? "done"];
-        return delay * STEP_WEIGHT[state.timeline.kindAt(index) ?? "finish"];
-      };
+      const costOf = (index: number) =>
+        state.view === "race" ? delay : delay * engines[state.module].stepWeight(state, index);
 
       let steps = 0;
       while (steps < MAX_STEPS_PER_FRAME && state.frameIndex + steps < lastIndex) {

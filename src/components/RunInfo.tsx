@@ -22,7 +22,7 @@ export const Legend = ({ className, stacked }: { className?: string; stacked?: b
       aria-label="Legend"
       className={cn(
         "flex text-xs text-foreground md:text-sm",
-        stacked ? "flex-col gap-2" : "flex-wrap items-center gap-x-4 gap-y-1",
+        stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
         className
       )}
     >

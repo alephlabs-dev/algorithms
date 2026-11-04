@@ -14,6 +14,7 @@ import {
   type PathAlgorithm,
   type Preset,
 } from "./pathfinding";
+import { engines, type ModuleId } from "./modules/engine";
 import { readLocation } from "./urlState";
 import { generateItems } from "./utils/generateItems";
 import { newSeed, seededRandom } from "./utils/random";
@@ -22,7 +23,7 @@ import type { Algorithm, DisplayMode, InputOrder } from "./types";
 
 export type View = "single" | "race";
 /** Which visualizer is on stage. */
-export type Module = "sorting" | "pathfinding";
+export type Module = ModuleId;
 /** What dragging on the grid paints. */
 export type Brush = "wall" | "mud";
 export type Theme = "dark" | "light";
@@ -138,18 +139,10 @@ export type StoreState = {
 
 export const selectFrame = (state: StoreState) => state.timeline.frameAt(state.frameIndex);
 export const selectPathFrame = (state: StoreState) => state.pathTimeline.frameAt(state.frameIndex);
-export const selectLastIndex = (state: StoreState) => {
-  if (state.module === "pathfinding") {
-    return state.view === "race"
-      ? Math.max(0, ...state.pathRaceTimelines.map((t) => t.totalVisits))
-      : state.pathTimeline.length - 1;
-  }
-  return state.view === "race" ? Math.max(0, ...state.raceTimelines.map((t) => t.totalOps)) : state.timeline.length - 1;
-};
+export const selectLastIndex = (state: StoreState) => engines[state.module].lastIndex(state, state.view);
 
 /** How fast 1× is depends on what's playing. */
-const paceOf = (module: Module, view: View): Pace =>
-  module === "pathfinding" ? (view === "race" ? "pathRace" : "pathfinding") : view;
+const paceOf = (module: Module, view: View): Pace => engines[module].pace(view);
 
 export const MOBILE_QUERY = "(max-width: 768px)";
 
