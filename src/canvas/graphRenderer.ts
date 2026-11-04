@@ -17,6 +17,7 @@ export type GraphRenderInput = {
 };
 
 const POP_FROM = 0.7; // a node that changes state grows from this scale
+const MAX_STRETCH = 1.5; // how far a layout may stretch to fill a stage of another shape
 
 const mix = (a: RGB, b: RGB, t: number): RGB => [
   a[0] + (b[0] - a[0]) * t,
@@ -178,8 +179,11 @@ export class GraphRenderer {
     const pad = radius * 1.6;
     const availW = Math.max(1, this.width - 2 * pad);
     const availH = Math.max(1, this.height - 2 * pad);
-    const width = Math.min(availW, availH * aspect);
-    const height = width / aspect;
+    const fitted = Math.min(availW, availH * aspect);
+    // Use the room the layout's shape leaves over, stretching up to half again either way:
+    // node places are shares of the layout, and stretching never makes edges cross.
+    const width = Math.min(availW, fitted * MAX_STRETCH);
+    const height = Math.min(availH, (fitted / aspect) * MAX_STRETCH);
     return { left: (this.width - width) / 2, top: (this.height - height) / 2, width, height, radius };
   }
 
@@ -273,9 +277,19 @@ export class GraphRenderer {
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       graph.edges.forEach((edge, e) => {
-        const x = (at[edge.a][0] + at[edge.b][0]) / 2;
-        const y = (at[edge.a][1] + at[edge.b][1]) / 2;
+        const [ax, ay] = at[edge.a];
+        const [bx, by] = at[edge.b];
         const pill = size * 0.95;
+        let x = (ax + bx) / 2;
+        let y = (ay + by) / 2;
+        // On a short edge the label would cover the nodes: set it beside the edge instead, above or to the left.
+        const length = Math.hypot(bx - ax, by - ay);
+        if (length - 2 * r < pill * 2) {
+          let [nx, ny] = [-(by - ay) / length, (bx - ax) / length];
+          if (ny > 0 || (ny === 0 && nx > 0)) [nx, ny] = [-nx, -ny];
+          x += nx * pill * 1.1;
+          y += ny * pill * 1.1;
+        }
         ctx.fillStyle = css(p.background);
         ctx.beginPath();
         ctx.roundRect(x - pill * 0.7, y - pill * 0.62, pill * 1.4, pill * 1.24, pill * 0.4);

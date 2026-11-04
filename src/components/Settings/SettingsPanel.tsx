@@ -114,7 +114,7 @@ export const GraphSettings = () => (
       label="Layout"
       help="Drag a node to move it, tap two nodes to join or split them, double-tap a node to start there."
     >
-      <GraphPresetButtons className="-ml-3" />
+      <GraphPresetButtons />
     </Field>
   </div>
 );
@@ -129,7 +129,7 @@ export const PathSettings = () => (
       <BrushPicker />
     </Field>
     <Field label="Layout">
-      <PresetButtons className="-ml-3" />
+      <PresetButtons />
     </Field>
   </div>
 );

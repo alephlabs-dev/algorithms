@@ -61,6 +61,8 @@ export const MAX_RACERS = 4;
 
 export type StoreState = {
   isMobile: boolean;
+  /** The window is taller than wide: grids and graphs are laid out upright. */
+  isPortrait: boolean;
   module: Module;
   pathAlgorithm: PathAlgorithm;
   gridSize: GridSize;
@@ -126,6 +128,7 @@ export type StoreState = {
   isTourOpen: boolean;
 
   setIsMobile: (isMobile: boolean) => void;
+  setIsPortrait: (isPortrait: boolean) => void;
   setView: (view: View) => void;
   toggleRaceAlgorithm: (algorithm: Algorithm) => void;
   /** Switch to race view with `algorithm` among the racers. */
@@ -174,6 +177,10 @@ export const selectLastIndex = (state: StoreState) => engines[state.module].last
 const paceOf = (module: Module, view: View): Pace => engines[module].pace(view);
 
 export const MOBILE_QUERY = "(max-width: 768px)";
+export const PORTRAIT_QUERY = "(orientation: portrait)";
+
+/** Phones, and any window taller than wide, get upright grids and graphs that fit their stage. */
+const isNarrow = (s: { isMobile: boolean; isPortrait: boolean }) => s.isMobile || s.isPortrait;
 
 /** Race lanes are a quarter of the stage, so bigger grids get too small to follow. */
 export const raceMaxGridSize = (isMobile: boolean): GridSize => (isMobile ? "small" : "medium");
@@ -231,18 +238,18 @@ const pathRunsFor = (state: StoreState, grid: Grid) => ({
 });
 
 /** A fresh grid of the given size with a preset applied. */
-const gridFor = (size: GridSize, isMobile: boolean, preset: Preset) => {
-  const { rows, cols } = gridDimensions(size, isMobile);
+const gridFor = (size: GridSize, narrow: boolean, preset: Preset) => {
+  const { rows, cols } = gridDimensions(size, narrow);
   return applyPreset(emptyGrid(rows, cols), preset, seededRandom(newSeed()));
 };
 
 /** The grid a link describes, if it's valid for the size; otherwise a fresh maze. */
-const gridFromLink = (link: ReturnType<typeof readLocation>["path"], size: GridSize, isMobile: boolean) => {
-  const { rows, cols } = gridDimensions(size, isMobile);
+const gridFromLink = (link: ReturnType<typeof readLocation>["path"], size: GridSize, narrow: boolean) => {
+  const { rows, cols } = gridDimensions(size, narrow);
   const cells = link.cells ? decodeCells(link.cells, rows * cols) : null;
   const inside = (cell: number | undefined): cell is number => cell !== undefined && cell < rows * cols;
   if (!cells || !inside(link.start) || !inside(link.end) || link.start === link.end)
-    return gridFor(size, isMobile, "maze");
+    return gridFor(size, narrow, "maze");
   cells[link.start] = 0;
   cells[link.end] = 0;
   return { rows, cols, cells, start: link.start, end: link.end };
@@ -252,6 +259,8 @@ const gridFromLink = (link: ReturnType<typeof readLocation>["path"], size: GridS
 const initial = (() => {
   const url = readLocation(window.location.pathname, window.location.search);
   const isMobile = window.matchMedia(MOBILE_QUERY).matches;
+  const isPortrait = window.matchMedia(PORTRAIT_QUERY).matches;
+  const narrow = isNarrow({ isMobile, isPortrait });
   const displayMode = url.displayMode ?? "bars";
   const size = Math.min(url.size ?? (isMobile ? 20 : 40), maxSizeFor(displayMode, isMobile));
   const inputOrder = url.inputOrder ?? "random";
@@ -265,7 +274,7 @@ const initial = (() => {
   const module: Module = url.module;
   const pathAlgorithm = url.pathAlgorithm ?? "astar";
   const gridSize = fitGridSize(url.path.gridSize ?? (isMobile ? "small" : "medium"), module === "pathfinding" ? view : "single", isMobile);
-  const grid = gridFromLink(url.path, gridSize, isMobile);
+  const grid = gridFromLink(url.path, gridSize, narrow);
   const pathTimeline = pathTimelineFor(pathAlgorithm, grid);
   const pathRaceAlgorithms = url.path.racers ?? DEFAULT_PATH_RACERS;
   const pathRaceTimelines = pathRaceTimelinesFor(module === "pathfinding" ? view : "single", pathRaceAlgorithms, grid);
@@ -273,9 +282,10 @@ const initial = (() => {
   const graphSize = url.graph.size ?? "medium";
   const graphPreset = url.graph.preset ?? "random";
   const graph =
-    (url.graph.graph && decodeGraph(url.graph.graph)) || makeGraph(graphPreset, graphSize, isMobile, seededRandom(newSeed()));
+    (url.graph.graph && decodeGraph(url.graph.graph)) || makeGraph(graphPreset, graphSize, narrow, seededRandom(newSeed()));
   return {
     isMobile,
+    isPortrait,
     module,
     pathAlgorithm,
     gridSize,
@@ -308,6 +318,14 @@ const initial = (() => {
 
 export const useStore = create<StoreState>((set, get) => {
   /** Call after any change that creates a new run. */
+  /** After the screen changes shape: upright grids and graphs for narrow screens, wide ones otherwise. */
+  const reshape = (before: StoreState) => {
+    const state = get();
+    if (isNarrow(before) === isNarrow(state)) return;
+    state.setGridSize(state.gridSize);
+    if (state.graph.aspect !== graphAspect(isNarrow(state))) state.setGraphSize(state.graphSize);
+  };
+
   const applyAutoSpeed = () => {
     const state = get();
     set({ speed: speedFor(state.speedPreset, selectLastIndex(state), paceOf(state.module, state.view)) });
@@ -359,14 +377,16 @@ export const useStore = create<StoreState>((set, get) => {
     setIsMobile: (isMobile) => {
       const before = get();
       set({ isMobile });
-      // Phones and wide screens use differently shaped grids and graph layouts.
-      if (before.isMobile !== isMobile) {
-        get().setGridSize(before.gridSize);
-        if (before.graph.aspect !== graphAspect(isMobile)) get().setGraphSize(before.graphSize);
-      }
+      reshape(before);
       const { size, displayMode, setSize } = get();
       const maxSize = maxSizeFor(displayMode, isMobile);
       if (size > maxSize) setSize(maxSize);
+    },
+
+    setIsPortrait: (isPortrait) => {
+      const before = get();
+      set({ isPortrait });
+      reshape(before);
     },
 
     // Within the module on screen: sorting races on the array, pathfinding on the grid.
@@ -377,7 +397,7 @@ export const useStore = create<StoreState>((set, get) => {
       const before = get();
       const fitted = before.module === "pathfinding" ? fitGridSize(before.gridSize, view, before.isMobile) : before.gridSize;
       if (fitted !== before.gridSize) {
-        const grid = gridFor(fitted, before.isMobile, before.gridPreset);
+        const grid = gridFor(fitted, isNarrow(before), before.gridPreset);
         set({
           gridSize: fitted,
           grid,
@@ -536,7 +556,7 @@ export const useStore = create<StoreState>((set, get) => {
     setGridSize: (requested) => {
       set((state) => {
         const gridSize = state.module === "pathfinding" ? fitGridSize(requested, state.view, state.isMobile) : requested;
-        const grid = gridFor(gridSize, state.isMobile, state.gridPreset);
+        const grid = gridFor(gridSize, isNarrow(state), state.gridPreset);
         return { gridSize, gridId: state.gridId + 1, ...pathRunsFor(state, grid) };
       });
       applyAutoSpeed();
@@ -562,7 +582,7 @@ export const useStore = create<StoreState>((set, get) => {
 
     setGraphSize: (graphSize) => {
       set((state) => {
-        const graph = makeGraph(state.graphPreset, graphSize, state.isMobile, seededRandom(newSeed()));
+        const graph = makeGraph(state.graphPreset, graphSize, isNarrow(state), seededRandom(newSeed()));
         return { graphSize, ...graphRunFor(state, graph), graphId: state.graphId + 1 };
       });
       applyAutoSpeed();
@@ -570,7 +590,7 @@ export const useStore = create<StoreState>((set, get) => {
 
     applyGraphPreset: (graphPreset) => {
       set((state) => {
-        const graph = makeGraph(graphPreset, state.graphSize, state.isMobile, seededRandom(newSeed()));
+        const graph = makeGraph(graphPreset, state.graphSize, isNarrow(state), seededRandom(newSeed()));
         return { graphPreset, ...graphRunFor(state, graph), graphId: state.graphId + 1 };
       });
       applyAutoSpeed();

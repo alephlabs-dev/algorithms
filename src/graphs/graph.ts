@@ -6,14 +6,19 @@ export const graphSizes: GraphSize[] = ["small", "medium", "large"];
 export type GraphPreset = "random" | "tree" | "grid";
 export const graphPresets: GraphPreset[] = ["random", "tree", "grid"];
 
-/** Wide screens get landscape layouts; phones get taller ones that fit their stage. */
-export const graphAspect = (isMobile: boolean) => (isMobile ? 0.8 : 1.8);
+/** Wide screens get landscape layouts; narrow ones (phones, upright windows) get taller ones that fit their stage. */
+export const graphAspect = (narrow: boolean) => (narrow ? 0.9 : 1.8);
 
-const NODE_COUNT: Record<GraphSize, number> = { small: 7, medium: 11, large: 16 };
+// Phones show fewer nodes, so circles, weights and badges keep room to breathe.
+const NODE_COUNT: Record<GraphSize, { wide: number; phone: number }> = {
+  small: { wide: 7, phone: 6 },
+  medium: { wide: 11, phone: 9 },
+  large: { wide: 16, phone: 12 },
+};
 const GRID: Record<GraphSize, { wide: [number, number]; phone: [number, number] }> = {
-  small: { wide: [2, 4], phone: [4, 2] },
-  medium: { wide: [3, 5], phone: [5, 3] },
-  large: { wide: [4, 6], phone: [6, 4] },
+  small: { wide: [2, 4], phone: [3, 3] },
+  medium: { wide: [3, 5], phone: [4, 3] },
+  large: { wide: [4, 6], phone: [5, 4] },
 };
 
 const MARGIN = 0.07;
@@ -115,14 +120,15 @@ const randomGraph = (count: number, aspect: number, random: () => number): Graph
   return { ...sortedLeftToRight({ nodes, edges, aspect, start: 0 }), start: 0 };
 };
 
-/** A tree drawn top down: each node has one to three children, leaves spread evenly. */
+/** A tree drawn top down: each node has one to three children (two on narrow layouts), leaves spread evenly. */
 const treeGraph = (count: number, aspect: number, random: () => number): Graph => {
   const children: number[][] = [[]];
   const depth = [0];
   const queue = [0];
   while (children.length < count && queue.length) {
     const parent = queue.shift()!;
-    const kids = Math.min(count - children.length, 1 + Math.floor(random() * 3));
+    // Narrow (phone) layouts branch at most in two, so leaves don't run out of width.
+    const kids = Math.min(count - children.length, 1 + Math.floor(random() * (aspect < 1 ? 2 : 3)));
     for (let k = 0; k < kids; k++) {
       const node = children.length;
       children.push([]);
@@ -202,14 +208,15 @@ const gridGraph = (rows: number, cols: number, aspect: number, random: () => num
 };
 
 /** A new graph of the given kind and size. */
-export const makeGraph = (preset: GraphPreset, size: GraphSize, isMobile: boolean, random: () => number): Graph => {
-  const aspect = graphAspect(isMobile);
-  if (preset === "tree") return treeGraph(NODE_COUNT[size], aspect, random);
+export const makeGraph = (preset: GraphPreset, size: GraphSize, narrow: boolean, random: () => number): Graph => {
+  const aspect = graphAspect(narrow);
+  const count = NODE_COUNT[size][narrow ? "phone" : "wide"];
+  if (preset === "tree") return treeGraph(count, aspect, random);
   if (preset === "grid") {
-    const [rows, cols] = GRID[size][isMobile ? "phone" : "wide"];
+    const [rows, cols] = GRID[size][narrow ? "phone" : "wide"];
     return gridGraph(rows, cols, aspect, random);
   }
-  return randomGraph(NODE_COUNT[size], aspect, random);
+  return randomGraph(count, aspect, random);
 };
 
 // Editing: each returns a new graph (or the same one when nothing changes).

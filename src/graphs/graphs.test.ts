@@ -56,6 +56,18 @@ describe("graphs", () => {
     }
   });
 
+  it("keeps nodes apart: at least 1.4 node widths between centers, on any layout", () => {
+    for (const graph of graphs()) {
+      // In the layout's own proportions; renderers size nodes at about 5% of the shorter side.
+      const min = Math.min(
+        ...graph.nodes.flatMap((p, i) =>
+          graph.nodes.slice(i + 1).map((q) => Math.hypot((p.x - q.x) * graph.aspect, p.y - q.y)),
+        ),
+      );
+      expect(min).toBeGreaterThan(0.14);
+    }
+  });
+
   it("visits every node once, and BFS and Dijkstra end with the right distances", () => {
     for (const graph of graphs()) {
       for (const algorithm of algorithms) {

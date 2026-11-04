@@ -1,8 +1,7 @@
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
 import { DONE, nodeName, otherEnd, type GraphAlgorithm, type GraphTimeline } from "@/graphs";
 
-const IDLE =
-  "Press play to start. Drag a node to move it, tap two nodes to join or split them, double-tap one to start there.";
+const IDLE = "Press play to start. Drag nodes, tap two to join them, double-tap one to start there.";
 
 const ending: Record<GraphAlgorithm, string> = {
   bfs: "the green edges reach each node in the fewest edges.",

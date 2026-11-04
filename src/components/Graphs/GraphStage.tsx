@@ -157,32 +157,61 @@ export const GraphStage = () => {
   );
 };
 
-const STRIP_LABEL = { queue: "Queue · front first", stack: "Stack · bottom to top", priority: "Open · closest first" };
+const STRIP_NAME = { queue: "Queue", stack: "Stack", priority: "Open" };
+const STRIP_ORDER = { queue: "front first", stack: "bottom to top", priority: "closest first" };
 
 /**
  * The queue, stack or priority queue under the graph: the one thing that
- * makes BFS, DFS and Dijkstra different, shown as it changes.
+ * makes BFS, DFS and Dijkstra different, shown as it changes. When it's
+ * longer than the strip, it scrolls (the stack to its top) and fades at the cut.
  */
 const StructureStrip = () => {
+  const listRef = useRef<HTMLOListElement>(null);
+  const [overflows, setOverflows] = useState(false);
   const { pending, dist, structure } = useStore(
     useShallow((s) => {
       const frame = s.graphTimeline.frameAt(s.frameIndex);
       return { pending: frame.pending, dist: frame.dist, structure: s.graphTimeline.structure };
     }),
   );
+  const fromEnd = structure === "stack";
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    setOverflows(list.scrollWidth > list.clientWidth + 1);
+    list.scrollLeft = fromEnd ? list.scrollWidth : 0;
+  }, [pending, fromEnd]);
+
+  const fade = overflows
+    ? fromEnd
+      ? "[mask-image:linear-gradient(to_right,transparent,black_24px)]"
+      : "[mask-image:linear-gradient(to_left,transparent,black_24px)]"
+    : undefined;
+
   return (
     <div
       data-tour="structure"
-      aria-label={`${STRIP_LABEL[structure]}: ${pending.length ? pending.map(nodeName).join(", ") : "empty"}`}
-      className="flex min-h-11 items-center gap-3 overflow-x-auto rounded-2xl border border-edge bg-surface px-4 py-2"
+      aria-label={`${STRIP_NAME[structure]}, ${STRIP_ORDER[structure]}: ${pending.length ? pending.map(nodeName).join(", ") : "empty"}`}
+      className="flex min-h-11 items-center gap-3 rounded-2xl border border-edge bg-surface py-2 pl-4 pr-2"
     >
-      <span className="shrink-0 font-mono text-xs text-foreground/70">{STRIP_LABEL[structure]}</span>
-      <ol aria-hidden className="flex items-center gap-1.5">
+      <span className="shrink-0 font-mono text-xs text-foreground/70">
+        {STRIP_NAME[structure]}
+        <span className="hidden sm:inline"> · {STRIP_ORDER[structure]}</span>
+      </span>
+      <ol
+        ref={listRef}
+        aria-hidden
+        className={cn(
+          "flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          fade,
+        )}
+      >
         {pending.length === 0 && <li className="font-mono text-xs text-foreground/50">empty</li>}
         {pending.map((node) => (
           <li
             key={node}
-            className="flex h-7 shrink-0 items-center gap-1 rounded-full bg-secondary px-2.5 font-semibold text-background animate-in fade-in zoom-in-75 duration-200 motion-reduce:animate-none"
+            className="flex h-7 shrink-0 items-center gap-1 rounded-full bg-secondary px-2.5 text-sm font-semibold text-background animate-in fade-in zoom-in-75 duration-200 motion-reduce:animate-none"
           >
             {nodeName(node)}
             {structure === "priority" && <span className="font-mono text-xs font-normal">{dist[node]}</span>}

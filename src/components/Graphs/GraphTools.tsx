@@ -5,26 +5,14 @@ import type { GraphSize } from "@/graphs";
 import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";
+import { FactLine } from "../ui/fact-line";
+import { PresetButtons } from "../ui/preset-buttons";
 import { SegmentedControl } from "../ui/segmented";
 
 /** Ready-made layouts, one tap each. */
 export const GraphPresetButtons = ({ className }: { className?: string }) => {
-  const apply = useStore((s) => s.applyGraphPreset);
-  return (
-    <div role="group" aria-label="Layouts" className={cn("flex flex-wrap gap-1", className)}>
-      {graphPresetOptions.map((p) => (
-        <button
-          key={p.value}
-          type="button"
-          title={p.title}
-          onClick={() => apply(p.value)}
-          className="h-9 rounded-full px-3 text-sm text-foreground/80 transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
-        >
-          {p.label}
-        </button>
-      ))}
-    </div>
-  );
+  const { apply, current } = useStore(useShallow((s) => ({ apply: s.applyGraphPreset, current: s.graphPreset })));
+  return <PresetButtons presets={graphPresetOptions} current={current} onPick={apply} className={className} />;
 };
 
 /** Above the graph: the layouts, at hand since reshaping the graph is half the fun. */
@@ -101,9 +89,5 @@ export const GraphStatsInline = ({ className }: { className?: string }) => {
 export const GraphFacts = () => {
   const algorithm = useStore((s) => s.graphAlgorithm);
   const { structure, timeComplexity, weighted } = graphAlgorithms[algorithm];
-  return (
-    <p className="font-mono text-xs text-foreground/70">
-      {structure} · {weighted ? "uses weights" : "ignores weights"} · {timeComplexity}
-    </p>
-  );
+  return <FactLine facts={[structure, weighted ? "uses weights" : "ignores weights", timeComplexity]} />;
 };

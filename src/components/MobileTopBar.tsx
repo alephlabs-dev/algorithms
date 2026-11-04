@@ -83,7 +83,7 @@ const AlgorithmField = () => {
         aria-label="Algorithm"
         value={value}
         onChange={(event) => pick(event.target.value)}
-        className={cn(fieldClass, "appearance-none")}
+        className={cn(fieldClass, "appearance-none truncate")}
       >
         {algorithms.map((group, k) => {
           const options = group.items.map((item) => (
