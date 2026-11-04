@@ -43,15 +43,23 @@ export type StoreState = {
    */
   frameIndex: number;
   isPlaying: boolean;
+  /** The progress bar is being dragged: bars jump to place instead of animating. */
+  isScrubbing: boolean;
+  /** The keyboard shortcuts help is open. */
+  isHelpOpen: boolean;
 
   setIsMobile: (isMobile: boolean) => void;
   setView: (view: View) => void;
   toggleRaceAlgorithm: (algorithm: Algorithm) => void;
+  /** Switch to race view with `algorithm` among the racers. */
+  raceWith: (algorithm: Algorithm) => void;
   setDisplayMode: (displayMode: DisplayMode) => void;
   setActiveAlgorithm: (algorithm: Algorithm) => void;
   setSize: (size: number) => void;
   setInputOrder: (inputOrder: InputOrder) => void;
   setSpeed: (speed: number) => void;
+  setScrubbing: (isScrubbing: boolean) => void;
+  setHelpOpen: (isHelpOpen: boolean) => void;
   createNewArray: () => void;
 
   play: () => void;
@@ -139,6 +147,8 @@ export const useStore = create<StoreState>((set, get) => {
     arrayId: 0,
     frameIndex: 0,
     isPlaying: false,
+    isScrubbing: false,
+    isHelpOpen: false,
 
     // Shrinks the array if the screen got too small for it (e.g. rotating a tablet).
     setIsMobile: (isMobile) => {
@@ -161,6 +171,17 @@ export const useStore = create<StoreState>((set, get) => {
     },
 
     // Keeps between MIN_RACERS and MAX_RACERS lanes, in the sidebar's order.
+    raceWith: (algorithm) => {
+      const { raceAlgorithms, setView } = get();
+      if (!raceAlgorithms.includes(algorithm)) {
+        // Replace the last racer if the race is full; keep the sidebar order.
+        const kept = raceAlgorithms.length >= MAX_RACERS ? raceAlgorithms.slice(0, -1) : raceAlgorithms;
+        const order = Object.keys(sortAlgorithms) as Algorithm[];
+        set({ raceAlgorithms: order.filter((a) => a === algorithm || kept.includes(a)) });
+      }
+      setView("race");
+    },
+
     toggleRaceAlgorithm: (algorithm) => {
       set((state) => {
         const selected = state.raceAlgorithms.includes(algorithm);
@@ -217,6 +238,8 @@ export const useStore = create<StoreState>((set, get) => {
     },
 
     setSpeed: (speed) => set({ speed, speedIsAuto: false }),
+    setScrubbing: (isScrubbing) => set({ isScrubbing }),
+    setHelpOpen: (isHelpOpen) => set({ isHelpOpen }),
 
     createNewArray: () => get().setSize(get().size),
 

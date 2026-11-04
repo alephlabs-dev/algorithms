@@ -7,6 +7,7 @@ import { AlgorithmList } from "./AlgorithmList";
 import { Complexity } from "./Header";
 import { RACE_DESCRIPTION } from "./Race/RaceHeader";
 import { RacerChips } from "./Race/RacerPicker";
+import { ShareButton } from "./ShareButton";
 import { SettingsPanel } from "./Settings/SettingsPanel";
 import { Button } from "./ui/button";
 import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
@@ -35,11 +36,10 @@ const InfoButton = ({ label, children }: { label: string; children: ReactNode })
 /** Settings live in a sheet on phones; the button shows what's set. */
 const SettingsButton = () => {
   const summary = useSettingsSummary();
-  const isPlaying = useStore((s) => s.isPlaying);
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        <Button className="w-full justify-between font-normal" disabled={isPlaying}>
+        <Button className="w-full justify-between font-normal">
           <span className="flex items-center gap-2 font-semibold">
             <MixerHorizontalIcon /> Settings
           </span>
@@ -59,7 +59,6 @@ const SettingsButton = () => {
  */
 export const MobileTopBar = ({ className }: { className?: string }) => {
   const activeAlgorithm = useStore((s) => s.activeAlgorithm);
-  const isPlaying = useStore((s) => s.isPlaying);
   const { title, shortDescription, longDescription } = sortingAlgorithms[activeAlgorithm];
   const [picking, setPicking] = useState(false);
 
@@ -71,9 +70,8 @@ export const MobileTopBar = ({ className }: { className?: string }) => {
             <DrawerTrigger asChild>
               <button
                 type="button"
-                disabled={isPlaying}
                 aria-label={`${title}. Change algorithm`}
-                className="-ml-2 flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-sm px-2 text-left hover:bg-accent disabled:opacity-60 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+                className="-ml-2 flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-sm px-2 text-left hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <span className="truncate font-display text-xl font-semibold">{title}</span>
                 <ChevronDownIcon className="h-5 w-5 shrink-0 text-foreground/70" />
@@ -83,6 +81,7 @@ export const MobileTopBar = ({ className }: { className?: string }) => {
               <AlgorithmList onPick={() => setPicking(false)} />
             </Sheet>
           </Drawer>
+          <ShareButton iconOnly />
           <InfoButton label={title}>
             <p className="text-foreground/80">{longDescription}</p>
             <Complexity />
@@ -104,6 +103,7 @@ export const MobileRaceBar = ({ className }: { className?: string }) => (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-1">
         <h1 className="flex-1 font-display text-xl font-semibold">Race</h1>
+        <ShareButton iconOnly />
         <InfoButton label="Race">
           <p className="text-foreground/80">{RACE_DESCRIPTION}</p>
         </InfoButton>

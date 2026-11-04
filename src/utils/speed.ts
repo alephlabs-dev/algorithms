@@ -1,3 +1,5 @@
+import type { StepKind } from "@/algorithms";
+
 // The speed slider goes from 0 to 1 on an exponential scale: 1 step per second
 // at the left end, ~2000 at the right. That range is what lets the same slider
 // work for 10 items and for 400.
@@ -35,3 +37,19 @@ const TARGET_SECONDS = { single: 240, race: 30 } as const;
  */
 export const autoSpeed = (steps: number, view: keyof typeof TARGET_SECONDS) =>
   Math.max(DEFAULT_SPEED, speedForStepsPerSecond(steps / TARGET_SECONDS[view]));
+
+/**
+ * Share of a full step each kind of step takes during playback. Moves get the
+ * full beat, comparisons a shorter one, and steps that only move the
+ * pseudocode line pass instantly, so the rhythm reads "look, move" instead of
+ * an even tick with pauses where nothing happens.
+ */
+export const STEP_WEIGHT: Record<StepKind, number> = {
+  swap: 1,
+  move: 1,
+  finish: 1,
+  compare: 0.6,
+  highlight: 0.5,
+  done: 0.4,
+  line: 0,
+};

@@ -8,11 +8,10 @@ import { SectionLabel } from "./ui/section-label";
 
 /** The nine algorithms, grouped by how they scale. */
 export const AlgorithmList = ({ onPick }: { onPick?: (algorithm: Algorithm) => void }) => {
-  const { activeAlgorithm, setActiveAlgorithm, isPlaying } = useStore(
+  const { activeAlgorithm, setActiveAlgorithm } = useStore(
     useShallow((s) => ({
       activeAlgorithm: s.activeAlgorithm,
       setActiveAlgorithm: s.setActiveAlgorithm,
-      isPlaying: s.isPlaying,
     }))
   );
 
@@ -28,7 +27,6 @@ export const AlgorithmList = ({ onPick }: { onPick?: (algorithm: Algorithm) => v
             <ListItem
               key={algorithm}
               selected={algorithm === activeAlgorithm}
-              disabled={isPlaying}
               onClick={() => {
                 if (algorithm !== activeAlgorithm) setActiveAlgorithm(algorithm);
                 onPick?.(algorithm);

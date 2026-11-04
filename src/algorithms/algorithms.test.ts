@@ -123,6 +123,26 @@ describe.each(Object.entries(sortAlgorithms))("%s sort", (name, algorithm) => {
   });
 });
 
+describe("step kinds", () => {
+  it("labels every frame after the first, and tells line-only steps apart", () => {
+    const timeline = new Timeline(sortAlgorithms.heap, [5, 3, 8, 1, 9, 2]);
+    expect(timeline.kindAt(0)).toBeNull();
+    expect(timeline.kindAt(timeline.length - 1)).toBe("finish");
+    const kinds = new Set(Array.from({ length: timeline.length - 1 }, (_, k) => timeline.kindAt(k + 1)));
+    expect(kinds).toContain("compare");
+    expect(kinds).toContain("swap");
+    // Heap sort has steps that only move the pseudocode highlight.
+    expect(kinds).toContain("line");
+    for (let k = 1; k < timeline.length; k++) {
+      if (timeline.kindAt(k) !== "line") continue;
+      const [a, b] = [timeline.frameAt(k - 1), timeline.frameAt(k)];
+      expect(b.order).toEqual(a.order);
+      expect(b.active).toEqual(a.active);
+      expect(b.done).toEqual(a.done);
+    }
+  });
+});
+
 describe("operation clock", () => {
   it("maps operation counts to frames", () => {
     const timeline = new Timeline(sortAlgorithms.bubble, [3, 2, 1]);

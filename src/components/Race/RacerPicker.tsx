@@ -16,7 +16,6 @@ const useRacers = () =>
     useShallow((s) => ({
       selected: s.raceAlgorithms,
       toggle: s.toggleRaceAlgorithm,
-      isPlaying: s.isPlaying,
     }))
   );
 
@@ -30,7 +29,7 @@ const blockedReason = (selected: Algorithm[], algorithm: Algorithm) => {
 
 /** Sidebar list (desktop): the same grouped list as single view, with checkboxes. */
 export const RacerList = () => {
-  const { selected, toggle, isPlaying } = useRacers();
+  const { selected, toggle } = useRacers();
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-baseline justify-between px-3">
@@ -49,7 +48,7 @@ export const RacerList = () => {
                 key={algorithm}
                 checkbox
                 selected={selected.includes(algorithm)}
-                disabled={isPlaying || reason !== undefined}
+                disabled={reason !== undefined}
                 title={reason}
                 onClick={() => toggle(algorithm)}
               >
@@ -68,7 +67,7 @@ export const RacerList = () => {
 
 /** One scrollable row of chips (phones and tablets). */
 export const RacerChips = ({ className }: { className?: string }) => {
-  const { selected, toggle, isPlaying } = useRacers();
+  const { selected, toggle } = useRacers();
   return (
     <div
       role="group"
@@ -83,7 +82,7 @@ export const RacerChips = ({ className }: { className?: string }) => {
             key={algorithm}
             type="button"
             aria-pressed={isOn}
-            disabled={isPlaying || reason !== undefined}
+            disabled={reason !== undefined}
             title={reason}
             onClick={() => toggle(algorithm)}
             className={cn(

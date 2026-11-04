@@ -35,7 +35,6 @@ export const SettingsPanel = ({ layout }: { layout: Layout }) => {
       displayMode: s.displayMode,
       setDisplayMode: s.setDisplayMode,
       isMobile: s.isMobile,
-      isPlaying: s.isPlaying,
       isRace: s.view === "race",
     }))
   );
@@ -62,7 +61,6 @@ export const SettingsPanel = ({ layout }: { layout: Layout }) => {
           options={sizeOptions}
           value={s.size}
           onChange={(size) => size !== s.size && s.setSize(size)}
-          disabled={s.isPlaying}
           columns={layout === "drawer" && sizeOptions.length > 5 ? 3 : undefined}
           compact={layout === "sidebar"}
         />
@@ -77,7 +75,6 @@ export const SettingsPanel = ({ layout }: { layout: Layout }) => {
           }))}
           value={s.inputOrder}
           onChange={(order) => s.setInputOrder(order)}
-          disabled={s.isPlaying}
           columns={layout === "drawer" ? 2 : 3}
           compact={layout === "sidebar"}
         />
@@ -98,7 +95,6 @@ export const SettingsPanel = ({ layout }: { layout: Layout }) => {
             ]}
             value={s.displayMode}
             onChange={(mode) => mode !== s.displayMode && s.setDisplayMode(mode)}
-            disabled={s.isPlaying}
             compact={layout === "sidebar"}
           />
         </Field>

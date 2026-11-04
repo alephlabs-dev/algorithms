@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { useStore } from "@/store";
-import { stepDelay } from "@/utils/speed";
+import { selectLastIndex, useStore } from "@/store";
+import { STEP_WEIGHT, stepDelay } from "@/utils/speed";
 
 // Cap so a slow frame (tab in background, big seek) can't jump half the run at once.
 const MAX_STEPS_PER_FRAME = 200;
@@ -17,15 +17,26 @@ export const Playback = () => {
     let pending = 0; // ms accumulated towards the next step
 
     const loop = (now: number) => {
-      const { speed, advanceBy } = useStore.getState();
+      const state = useStore.getState();
       pending += now - last;
       last = now;
-      const delay = stepDelay(speed);
-      const steps = Math.floor(pending / delay);
-      if (steps > 0) {
-        pending = steps > MAX_STEPS_PER_FRAME ? 0 : pending - steps * delay;
-        advanceBy(Math.min(steps, MAX_STEPS_PER_FRAME));
+      const delay = stepDelay(state.speed);
+      const lastIndex = selectLastIndex(state);
+
+      // Each step costs its share of a beat (see STEP_WEIGHT). Races run on an
+      // operation clock where every tick is one operation, so they stay uniform.
+      const costOf = (index: number) =>
+        state.view === "race" ? delay : delay * STEP_WEIGHT[state.timeline.kindAt(index) ?? "finish"];
+
+      let steps = 0;
+      while (steps < MAX_STEPS_PER_FRAME && state.frameIndex + steps < lastIndex) {
+        const cost = costOf(state.frameIndex + steps + 1);
+        if (pending < cost) break;
+        pending -= cost;
+        steps++;
       }
+      if (steps === MAX_STEPS_PER_FRAME) pending = 0;
+      if (steps > 0) state.advanceBy(steps);
       request = requestAnimationFrame(loop);
     };
     request = requestAnimationFrame(loop);

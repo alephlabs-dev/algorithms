@@ -2,6 +2,7 @@ import { ChevronDownIcon, TimerIcon } from "@radix-ui/react-icons";
 import { useStore } from "@/store";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { cn } from "@/utils/cn";
+import { ShareButton } from "./ShareButton";
 import { Badge } from "./ui/badge";
 
 /** Best / average / worst time complexity for an algorithm. */
@@ -41,7 +42,10 @@ export const Header = ({ className }: { className?: string }) => {
     >
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <h1 className="font-display text-display font-semibold">{title}</h1>
-        <Complexity />
+        <div className="flex flex-wrap items-center gap-3">
+          <Complexity />
+          <ShareButton />
+        </div>
       </div>
       <p className="max-w-3xl text-foreground/80">{shortDescription}</p>
       <details className="group max-w-3xl">

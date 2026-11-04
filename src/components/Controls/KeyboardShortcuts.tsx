@@ -7,13 +7,15 @@ const isTextField = (el: Element | null) =>
   (el instanceof HTMLElement && el.isContentEditable);
 
 /**
- * Space: play/pause · ←/→: step · R: new array.
+ * Space: play/pause · ←/→: step · R: new array · ?: help.
  * Renders nothing, and reads the store on keypress so it never re-renders.
  */
 export const KeyboardShortcuts = () => {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
+      // While the help dialog is open only "?" (to close it) applies.
+      if (useStore.getState().isHelpOpen && event.key !== "?") return;
       // Events dispatched on document/window have no element target.
       const target = event.target instanceof Element ? event.target : null;
       if (isTextField(target)) return;
@@ -40,6 +42,10 @@ export const KeyboardShortcuts = () => {
           if (onSlider) return;
           event.preventDefault();
           state.stepForward();
+          break;
+        case "?":
+          event.preventDefault();
+          state.setHelpOpen(!state.isHelpOpen);
           break;
         case "r":
         case "R":

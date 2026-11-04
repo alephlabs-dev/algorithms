@@ -3,8 +3,8 @@ import { useStore, type View } from "@/store";
 import { SegmentedControl } from "./ui/segmented";
 
 export const ViewSwitch = ({ className }: { className?: string }) => {
-  const { view, setView, isPlaying } = useStore(
-    useShallow((s) => ({ view: s.view, setView: s.setView, isPlaying: s.isPlaying }))
+  const { view, setView } = useStore(
+    useShallow((s) => ({ view: s.view, setView: s.setView }))
   );
   return (
     <SegmentedControl<View>
@@ -15,7 +15,6 @@ export const ViewSwitch = ({ className }: { className?: string }) => {
       ]}
       value={view}
       onChange={(next) => next !== view && setView(next)}
-      disabled={isPlaying}
       compact
       className={className}
     />

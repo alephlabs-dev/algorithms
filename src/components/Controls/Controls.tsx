@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { selectLastIndex, useStore } from "@/store";
 import { KeyboardShortcuts } from "./KeyboardShortcuts";
 import { Playback } from "./Playback";
+import { ShortcutsHelp } from "./ShortcutsHelp";
 import { SpeedSlider } from "./SpeedSlider";
 import { StatusBar } from "./StatusBar";
 
@@ -97,11 +98,11 @@ export const Controls = () => {
             aria-keyshortcuts="R"
             title="New array (R)"
             aria-label="New array"
-            disabled={isPlaying}
           >
             <UpdateIcon />
             <span className="md:max-xl:sr-only">Reset</span>
           </Button>
+          <ShortcutsHelp />
         </div>
       </div>
     </div>

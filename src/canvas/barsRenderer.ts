@@ -47,7 +47,7 @@ const BAR_MAX_HEIGHT = 0.8; // leaves room above the tallest bar for lifts and a
 const LIFT = 0.06;
 // Highlighted items outside the focus fade a little; plain ones switch to the dim color.
 const DIMMED_ALPHA = 0.6;
-const WAVE_DURATION = 0.4;
+const WAVE_DURATION = 0.55;
 const MIN_HOP_DURATION = 0.08; // below this, moves are too quick for an arc to read
 
 const palette = {
@@ -281,7 +281,7 @@ export class BarsRenderer {
     const isBars = input.mode === "bars";
     const tile = this.tileSize();
     const liftPx = isBars ? height * LIFT : tile * 0.6;
-    const waveHeight = isBars ? height * 0.05 : tile * 0.4;
+    const waveHeight = isBars ? height * 0.08 : tile * 0.5;
     const radius = isBars ? Math.min(4, barWidth * 0.3) : Math.min(6, tile * 0.15);
 
     if (this.pivotLine.alpha.value > 0.01) {

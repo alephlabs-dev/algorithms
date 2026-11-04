@@ -22,6 +22,7 @@ export const ArrayCanvas = ({ frame, values, mode, celebrate, runId, label }: Pr
   const rendererRef = useRef<BarsRenderer | null>(null);
   const { width, height } = useElementSize(wrapperRef);
   const speed = useStore((s) => s.speed);
+  const isScrubbing = useStore((s) => s.isScrubbing);
 
   useEffect(() => {
     const renderer = new BarsRenderer(canvasRef.current!);
@@ -38,11 +39,11 @@ export const ArrayCanvas = ({ frame, values, mode, celebrate, runId, label }: Pr
       frame,
       values,
       mode,
-      moveDuration: moveDuration(speed),
+      moveDuration: isScrubbing ? 0 : moveDuration(speed),
       celebrate,
       runId,
     });
-  }, [frame, values, mode, speed, celebrate, runId]);
+  }, [frame, values, mode, speed, isScrubbing, celebrate, runId]);
 
   return (
     <div ref={wrapperRef} className="relative w-full flex-1 min-h-0">

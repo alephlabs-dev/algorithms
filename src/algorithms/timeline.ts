@@ -17,6 +17,12 @@ type State = {
 /** Marks the end of a run: clears highlights and marks every item done. */
 type FinishStep = { type: "finish" };
 
+/**
+ * What a step does, for pacing playback. "line" is a highlight step that only
+ * moves the pseudocode line, so nothing changes in the bars.
+ */
+export type StepKind = Step["type"] | "finish" | "line";
+
 // A full copy of the state is kept every CHECKPOINT_EVERY steps, so any frame can
 // be rebuilt by replaying at most that many steps. Playing forward costs one step.
 const CHECKPOINT_EVERY = 512;
@@ -189,6 +195,19 @@ export class Timeline {
       else hi = mid - 1;
     }
     return lo;
+  }
+
+  /** The kind of step that leads from frame `index - 1` to frame `index`. */
+  kindAt(index: number): StepKind | null {
+    if (index <= 0 || index >= this.length) return null;
+    const step = this.steps[index - 1];
+    if (step.type !== "highlight") return step.type;
+    const visible =
+      step.active !== undefined ||
+      step.temp !== undefined ||
+      step.focus !== undefined ||
+      step.pivot !== undefined;
+    return visible ? "highlight" : "line";
   }
 
   /** Values in array order for a frame. */

@@ -4,11 +4,12 @@ import { Slider } from "../ui/slider";
 
 // Kept separate from Controls because it re-renders on every frame.
 export const Progress = () => {
-  const { frameIndex, lastIndex, seek, isRace } = useStore(
+  const { frameIndex, lastIndex, seek, setScrubbing, isRace } = useStore(
     useShallow((s) => ({
       frameIndex: s.frameIndex,
       lastIndex: selectLastIndex(s),
       seek: s.seek,
+      setScrubbing: s.setScrubbing,
       isRace: s.view === "race",
     }))
   );
@@ -26,6 +27,9 @@ export const Progress = () => {
         max={lastIndex}
         step={1}
         onValueChange={([value]) => seek(value)}
+        // Dragging snaps bars into place; letting go turns animation back on.
+        onPointerDown={() => setScrubbing(true)}
+        onValueCommit={() => setScrubbing(false)}
       />
     </div>
   );

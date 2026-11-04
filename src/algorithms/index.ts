@@ -38,3 +38,4 @@ export const pseudocode: Record<Algorithm, string[]> = {
 
 export { Timeline, range } from "./timeline";
 export type { Frame, SortAlgorithm, Stats, Step } from "./types";
+export type { StepKind } from "./timeline";

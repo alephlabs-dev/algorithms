@@ -2,6 +2,7 @@ import { useShallow } from "zustand/react/shallow";
 import { selectFrame, selectLastIndex, useStore } from "@/store";
 import { PseudocodeCaption } from "../Pseudocode";
 import { ArrayCanvas } from "./ArrayCanvas";
+import { FinishSummary } from "./FinishSummary";
 
 export const AlgorithmVisualizer = () => {
   const { frame, values, frameIndex, lastIndex, arrayId, displayMode } = useStore(
@@ -27,7 +28,7 @@ export const AlgorithmVisualizer = () => {
   };
 
   return (
-    <div className="flex flex-col gap-1 border border-accent/50 lg:border-none lg:bg-accent rounded-sm overflow-hidden h-full min-w-0 p-1 md:p-2 lg:p-3 xl:p-8">
+    <div className="relative flex flex-col gap-1 border border-accent/50 lg:border-none lg:bg-accent rounded-sm overflow-hidden h-full min-w-0 p-1 md:p-2 lg:p-3 xl:p-8">
       {/* On wide screens the full pseudocode sits beside the bars instead. */}
       <PseudocodeCaption className="xl:hidden" />
       <ArrayCanvas
@@ -38,6 +39,8 @@ export const AlgorithmVisualizer = () => {
         runId={arrayId}
         label={`Array of ${values.length} items, step ${frameIndex} of ${lastIndex}. ${describe()}`}
       />
+      {/* Sits in the empty band above the bars (below the caption on narrow screens). */}
+      <FinishSummary className="absolute inset-x-2 top-11 flex justify-center xl:top-4" />
     </div>
   );
 };
