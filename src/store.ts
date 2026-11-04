@@ -28,11 +28,12 @@ export type Theme = "dark" | "light";
 
 const THEME_COLORS: Record<Theme, string> = { dark: "#0b0f0d", light: "#f2f5f9" };
 
-const TOUR_KEY = "tour-done";
+// Each module has its own tour, remembered separately (sorting keeps its original key).
+const TOUR_KEYS: Record<Module, string> = { sorting: "tour-done", pathfinding: "tour-done-pathfinding" };
 
-const tourDone = () => {
+export const tourDone = (module: Module) => {
   try {
-    return localStorage.getItem(TOUR_KEY) === "true";
+    return localStorage.getItem(TOUR_KEYS[module]) === "true";
   } catch {
     return false;
   }
@@ -124,15 +125,14 @@ export type StoreState = {
   seek: (frameIndex: number) => void;
 };
 
-export const selectFrame = (state: StoreState) =>
-  state.timeline.frameAt(state.frameIndex);
+export const selectFrame = (state: StoreState) => state.timeline.frameAt(state.frameIndex);
 export const selectPathFrame = (state: StoreState) => state.pathTimeline.frameAt(state.frameIndex);
 export const selectLastIndex = (state: StoreState) =>
   state.module === "pathfinding"
     ? state.pathTimeline.length - 1
     : state.view === "race"
-    ? Math.max(0, ...state.raceTimelines.map((t) => t.totalOps))
-    : state.timeline.length - 1;
+      ? Math.max(0, ...state.raceTimelines.map((t) => t.totalOps))
+      : state.timeline.length - 1;
 
 export const MOBILE_QUERY = "(max-width: 768px)";
 
@@ -140,8 +140,7 @@ export const MOBILE_QUERY = "(max-width: 768px)";
 const maxSizeFor = (displayMode: DisplayMode, isMobile: boolean) =>
   displayMode === "numbers" ? (isMobile ? 10 : 20) : isMobile ? MAX_MOBILE_SIZE : Infinity;
 
-const timelineFor = (algorithm: Algorithm, items: readonly number[]) =>
-  new Timeline(sortAlgorithms[algorithm], items);
+const timelineFor = (algorithm: Algorithm, items: readonly number[]) => new Timeline(sortAlgorithms[algorithm], items);
 
 const newRun = (algorithm: Algorithm, items: readonly number[]) => ({
   timeline: timelineFor(algorithm, items),
@@ -149,8 +148,7 @@ const newRun = (algorithm: Algorithm, items: readonly number[]) => ({
   isPlaying: false,
 });
 
-const itemsFor = (size: number, order: InputOrder, seed: number) =>
-  generateItems(size, order, seededRandom(seed));
+const itemsFor = (size: number, order: InputOrder, seed: number) => generateItems(size, order, seededRandom(seed));
 
 // In sidebar order, like any selection the user makes.
 const DEFAULT_RACERS: Algorithm[] = ["insertion", "bubble", "quick", "merge"];
@@ -171,7 +169,8 @@ const gridFromLink = (link: ReturnType<typeof readLocation>["path"], size: GridS
   const { rows, cols } = gridDimensions(size, isMobile);
   const cells = link.cells ? decodeCells(link.cells, rows * cols) : null;
   const inside = (cell: number | undefined): cell is number => cell !== undefined && cell < rows * cols;
-  if (!cells || !inside(link.start) || !inside(link.end) || link.start === link.end) return gridFor(size, isMobile, "maze");
+  if (!cells || !inside(link.start) || !inside(link.end) || link.start === link.end)
+    return gridFor(size, isMobile, "maze");
   cells[link.start] = 0;
   cells[link.end] = 0;
   return { rows, cols, cells, start: link.start, end: link.end };
@@ -244,18 +243,17 @@ export const useStore = create<StoreState>((set, get) => {
     isHelpOpen: false,
     theme: document.documentElement.dataset.theme === "light" ? "light" : "dark",
 
-    // The tour walks through sorting; a first visit straight to a pathfinding page skips it.
-    isTourOpen: !tourDone() && initial.view === "single" && initial.module === "sorting",
+    // A first visit opens the tour of the module it lands on (not the race view).
+    isTourOpen: !tourDone(initial.module) && initial.view === "single",
     openTour: () => {
-      // The tour walks through the single sorting view.
+      // Each tour walks through the single view of its module.
       if (get().view === "race") get().setView("single");
-      if (get().module === "pathfinding") get().setActiveAlgorithm(get().activeAlgorithm);
       get().pause();
       set({ isTourOpen: true, isHelpOpen: false });
     },
     closeTour: () => {
       try {
-        localStorage.setItem(TOUR_KEY, "true");
+        localStorage.setItem(TOUR_KEYS[get().module], "true");
       } catch {
         // Blocked storage: the tour may open again next visit.
       }
@@ -315,9 +313,7 @@ export const useStore = create<StoreState>((set, get) => {
         const count = state.raceAlgorithms.length;
         if ((selected && count <= MIN_RACERS) || (!selected && count >= MAX_RACERS)) return {};
         const order = Object.keys(sortAlgorithms) as Algorithm[];
-        const raceAlgorithms = order.filter((a) =>
-          a === algorithm ? !selected : state.raceAlgorithms.includes(a)
-        );
+        const raceAlgorithms = order.filter((a) => (a === algorithm ? !selected : state.raceAlgorithms.includes(a)));
         return {
           raceAlgorithms,
           frameIndex: 0,
@@ -383,6 +379,8 @@ export const useStore = create<StoreState>((set, get) => {
     // The grid stays the same so algorithms can be compared on it.
     setPathAlgorithm: (algorithm) => {
       set((state) => ({
+        // Coming over from sorting for the first time: show how the grid works.
+        ...(state.module === "sorting" && !tourDone("pathfinding") && { isTourOpen: true, isHelpOpen: false }),
         module: "pathfinding",
         view: "single",
         isHome: false,

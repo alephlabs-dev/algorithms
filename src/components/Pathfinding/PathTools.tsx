@@ -46,7 +46,12 @@ export const PresetButtons = ({ className }: { className?: string }) => {
 
 /** Above the grid: the brush and the layouts, always at hand since editing is the point. */
 export const PathTools = ({ className }: { className?: string }) => (
-  <div role="toolbar" aria-label="Grid tools" className={cn("flex flex-wrap items-center gap-x-3 gap-y-2", className)}>
+  <div
+    data-tour="tools"
+    role="toolbar"
+    aria-label="Grid tools"
+    className={cn("flex flex-wrap items-center gap-x-3 gap-y-2 self-start", className)}
+  >
     <BrushPicker className="w-44" />
     <PresetButtons />
   </div>
@@ -57,7 +62,10 @@ export const GridSizePicker = () => {
   return (
     <SegmentedControl<GridSize>
       label="Grid size"
-      options={(Object.keys(gridSizeLabels) as GridSize[]).map((size) => ({ value: size, label: gridSizeLabels[size] }))}
+      options={(Object.keys(gridSizeLabels) as GridSize[]).map((size) => ({
+        value: size,
+        label: gridSizeLabels[size],
+      }))}
       value={gridSize}
       onChange={(size) => size !== gridSize && setGridSize(size)}
     />
@@ -78,7 +86,7 @@ export const PathLegend = ({ className, stacked }: { className?: string; stacked
     className={cn(
       "flex text-xs text-foreground md:text-sm",
       stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
-      className
+      className,
     )}
   >
     <Swatch className="bg-primary ring-2 ring-background" label="Start" />

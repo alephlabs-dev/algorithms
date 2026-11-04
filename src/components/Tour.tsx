@@ -1,7 +1,8 @@
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { useStore, type Theme } from "@/store";
+import { MUD_COST } from "@/pathfinding";
+import { useStore, type Module, type Theme } from "@/store";
 import { Button } from "./ui/button";
 
 type Context = { theme: Theme; wide: boolean };
@@ -23,7 +24,7 @@ const Swatch = ({ className }: { className: string }) => (
   <span aria-hidden className={`mr-1 inline-block h-2.5 w-2.5 rounded-full align-[-1px] ${className}`} />
 );
 
-const steps: Step[] = [
+const sortingSteps: Step[] = [
   {
     anchor: "picker",
     title: "Pick an algorithm",
@@ -70,6 +71,57 @@ const steps: Step[] = [
     text: () => "Run up to four algorithms on the same array, side by side, and see which one does the least work.",
   },
 ];
+
+const pathSteps: Step[] = [
+  {
+    anchor: "picker",
+    title: "Pick a search",
+    text: () => "Five ways to get from start to target. Some find the shortest path, some just find one.",
+  },
+  {
+    anchor: "bars",
+    title: "The grid",
+    text: () => (
+      <>
+        Get from the <Swatch className="bg-primary" />
+        start to the <Swatch className="ml-1 bg-background ring-2 ring-foreground" />
+        target. Drag across the grid to draw walls, and drag either one to move it.
+      </>
+    ),
+  },
+  {
+    anchor: "tools",
+    title: "Walls, mud and layouts",
+    text: () =>
+      `Switch the brush to mud: it can be crossed, but each step on it costs ${MUD_COST}. Or start from a maze, random walls or rough terrain.`,
+  },
+  {
+    anchor: "play",
+    title: "Play it",
+    text: ({ wide }) =>
+      `Watch the search spread, or go one step at a time with the buttons on either side.${wide ? " On a keyboard: Space, ← and →." : ""}`,
+  },
+  {
+    anchor: "narration",
+    title: "Follow the search",
+    text: ({ theme, wide }) => (
+      <>
+        <Swatch className="bg-secondary" />
+        {colorNames[theme].comparing} cells are waiting to be explored, faded ones are done, and the{" "}
+        <Swatch className="bg-primary" />
+        {colorNames[theme].done} line is the path.{" "}
+        {wide ? "Here: the code it's running and what just happened." : "Tap here to see the code it's running."}
+      </>
+    ),
+  },
+  {
+    anchor: "settings",
+    title: "Change the grid",
+    text: () => "A smaller grid to read along, or a bigger one to see how each search spreads.",
+  },
+];
+
+const stepsFor: Record<Module, Step[]> = { sorting: sortingSteps, pathfinding: pathSteps };
 
 const PAD = 8; // space between the element and the edge of the light
 const GAP = 14; // space between the light and the bubble
@@ -137,7 +189,7 @@ const usePlacement = (anchor: string) => {
   return { holeRef, bubbleRef };
 };
 
-const TourDialog = () => {
+const TourDialog = ({ steps }: { steps: Step[] }) => {
   const closeTour = useStore((s) => s.closeTour);
   const theme = useStore((s) => s.theme);
   const wide = useMediaQuery("(min-width: 1280px)");
@@ -165,7 +217,7 @@ const TourDialog = () => {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [closeTour]);
+  }, [closeTour, steps.length]);
 
   return (
     <div className="fixed inset-0 z-50 animate-in fade-in duration-300 motion-reduce:animate-none">
@@ -193,18 +245,30 @@ const TourDialog = () => {
               {step.title}
             </h2>
           </div>
-          <Button variant="ghost" size="icon" className="-mr-2 -mt-2 h-9 w-9" onClick={closeTour} aria-label="Close tour">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="-mr-2 -mt-2 h-9 w-9"
+            onClick={closeTour}
+            aria-label="Close tour"
+          >
             <Cross2Icon />
           </Button>
         </div>
-        <p className="text-sm leading-relaxed text-foreground/80">{step.text({ theme, wide: step.anchor === "play" ? keyboard : wide })}</p>
+        <p className="text-sm leading-relaxed text-foreground/80">
+          {step.text({ theme, wide: step.anchor === "play" ? keyboard : wide })}
+        </p>
         <div className="flex items-center justify-between gap-2 pt-1">
           {/* Progress dots: where you are in the tour. */}
           <div aria-hidden className="flex gap-1.5">
             {steps.map((s, k) => (
               <span
                 key={s.anchor}
-                className={k === index ? "h-1.5 w-4 rounded-full bg-foreground transition-all" : "h-1.5 w-1.5 rounded-full bg-line transition-all"}
+                className={
+                  k === index
+                    ? "h-1.5 w-4 rounded-full bg-foreground transition-all"
+                    : "h-1.5 w-1.5 rounded-full bg-line transition-all"
+                }
               />
             ))}
           </div>
@@ -227,5 +291,7 @@ const TourDialog = () => {
 /** A short guided tour: dims the page, lights up one control at a time and explains it. */
 export const Tour = () => {
   const isOpen = useStore((s) => s.isTourOpen);
-  return isOpen ? <TourDialog /> : null;
+  const module = useStore((s) => s.module);
+  // Keyed by module, so going Back to the other module mid-tour starts its own tour from the top.
+  return isOpen ? <TourDialog key={module} steps={stepsFor[module]} /> : null;
 };
