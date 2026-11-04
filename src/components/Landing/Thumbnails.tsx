@@ -94,7 +94,7 @@ export const GraphThumb = ({ className }: { className?: string }) => {
   const H = W / graph.aspect;
   const at = (k: number) => [graph.nodes[k].x * W, graph.nodes[k].y * H];
   return (
-    <svg aria-hidden viewBox={`0 0 ${W} ${H}`} className={className}>
+    <svg aria-hidden viewBox={`-9 -9 ${W + 18} ${H + 18}`} className={className}>
       {graph.edges.map((e, k) => {
         const [ax, ay] = at(e.a);
         const [bx, by] = at(e.b);
@@ -130,27 +130,33 @@ export const GraphThumb = ({ className }: { className?: string }) => {
   );
 };
 
-// Ten circles a third of the way round, retracing a heart.
+// Circles on circles, most of the way round a heart.
 const epicycles = (() => {
-  const run = new FourierRun("epicycles", 10, "heart", null);
-  const at = Math.round(run.length * 0.62);
-  return { run, chain: run.frameAt(at).chain, at };
+  const run = new FourierRun("epicycles", 24, "heart", null);
+  const at = Math.round(run.length * 0.86);
+  const xs = run.target.map((p) => p.x);
+  const ys = run.target.map((p) => p.y);
+  const box = {
+    x: Math.min(...xs),
+    y: Math.min(...ys),
+    w: Math.max(...xs) - Math.min(...xs),
+    h: Math.max(...ys) - Math.min(...ys),
+  };
+  return { run, chain: run.frameAt(at).chain, at, box };
 })();
 
 export const FourierThumb = ({ className }: { className?: string }) => {
-  const { run, chain, at } = epicycles;
+  const { run, chain, at, box } = epicycles;
   const size = 100;
-  const unit = 42;
-  const point = (p: { x: number; y: number }) => `${size / 2 + p.x * unit},${size / 2 + p.y * unit}`;
+  const unit = (size - 16) / Math.max(box.w, box.h);
+  const ox = (size - box.w * unit) / 2 - box.x * unit;
+  const oy = (size - box.h * unit) / 2 - box.y * unit;
+  const px = (p: { x: number; y: number }) => [ox + p.x * unit, oy + p.y * unit];
+  const point = (p: { x: number; y: number }) => px(p).join(",");
+  const tip = px(chain[chain.length - 1]);
   return (
-    <svg aria-hidden viewBox={`0 0 ${size} ${size}`} className={className}>
-      <polyline
-        points={run.target.map(point).join(" ")}
-        fill="none"
-        stroke={mix("muted", 50)}
-        strokeWidth={1}
-        strokeDasharray="2 3"
-      />
+    <svg aria-hidden viewBox={`0 0 ${size} ${size}`} className={className} overflow="visible">
+      <polygon points={run.target.map(point).join(" ")} fill={mix("secondary", 14)} stroke="none" />
       <polyline
         points={run.tips
           .slice(0, at + 1)
@@ -158,27 +164,18 @@ export const FourierThumb = ({ className }: { className?: string }) => {
           .join(" ")}
         fill="none"
         stroke="var(--color-secondary)"
-        strokeWidth={2}
+        strokeWidth={2.6}
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      {run.terms.slice(0, 6).map((term, k) => (
-        <circle
-          key={k}
-          cx={size / 2 + chain[k].x * unit}
-          cy={size / 2 + chain[k].y * unit}
-          r={term.amp * unit}
-          fill="none"
-          stroke={mix("muted", 45)}
-          strokeWidth={0.6}
-        />
-      ))}
-      <polyline points={chain.map(point).join(" ")} fill="none" stroke={mix("foreground", 60)} strokeWidth={0.8} />
-      <circle
-        cx={size / 2 + chain[chain.length - 1].x * unit}
-        cy={size / 2 + chain[chain.length - 1].y * unit}
-        r={2.2}
-        fill="var(--color-primary)"
-      />
+      {run.terms.slice(0, 8).map((term, k) => {
+        const [cx, cy] = px(chain[k]);
+        return (
+          <circle key={k} cx={cx} cy={cy} r={term.amp * unit} fill="none" stroke={mix("muted", 55)} strokeWidth={0.7} />
+        );
+      })}
+      <polyline points={chain.map(point).join(" ")} fill="none" stroke={mix("foreground", 65)} strokeWidth={0.9} />
+      <circle cx={tip[0]} cy={tip[1]} r={2.6} fill="var(--color-primary)" />
     </svg>
   );
 };
@@ -201,13 +198,14 @@ const avlTree = (() => {
   const at = new Map(
     order.map((id, k) => [id, { x: 10 + (k + 0.5) * (180 / order.length), y: 12 + depth.get(id)! * 26 }]),
   );
-  return { frame, at };
+  const height = 24 + Math.max(0, frame.height) * 26;
+  return { frame, at, height };
 })();
 
 export const StructureThumb = ({ className }: { className?: string }) => {
-  const { frame, at } = avlTree;
+  const { frame, at, height } = avlTree;
   return (
-    <svg aria-hidden viewBox="0 0 200 90" className={className}>
+    <svg aria-hidden viewBox={`0 0 200 ${height}`} className={className}>
       {frame.nodes.flatMap((n) =>
         [n.left, n.right]
           .filter((c): c is number => c !== null)
