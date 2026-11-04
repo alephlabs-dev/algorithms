@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { pseudocode } from "@/algorithms";
+import { graphAlgorithms } from "@/consts/graphAlgorithms";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
+import { graphPseudocode, type GraphAlgorithm } from "@/graphs";
 import { MUD_COST, pathPseudocode, type PathAlgorithm } from "@/pathfinding";
 import { algorithmGroups } from "@/consts/algorithmGroups";
 import { PATH_RACE_DESCRIPTION, RACE_DESCRIPTION } from "@/consts/race";
@@ -315,6 +317,103 @@ const PathRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) =
   </>
 );
 
+const graphOrder = Object.keys(graphAlgorithms) as GraphAlgorithm[];
+
+/** The graph algorithms, linking to their pages. */
+const GraphIndex = ({ current, onNavigate }: { current?: GraphAlgorithm; onNavigate?: Props["onNavigate"] }) => (
+  <ul className="flex flex-wrap gap-x-6 gap-y-2">
+    {graphOrder.map((algorithm) => (
+      <li key={algorithm}>
+        {algorithm === current ? (
+          <span className="font-semibold">{graphAlgorithms[algorithm].title}</span>
+        ) : (
+          <PageLink to={{ kind: "graph", algorithm }} onNavigate={onNavigate}>
+            {graphAlgorithms[algorithm].title}
+          </PageLink>
+        )}
+      </li>
+    ))}
+  </ul>
+);
+
+const GraphsArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
+  <>
+    <header className="flex flex-col gap-3">
+      <h1 className="text-display font-semibold">Graph algorithms</h1>
+      <p className="text-lg text-foreground/80">
+        A graph is a set of nodes joined by edges: cities and roads, people and friendships, pages and links. Watch
+        three classic algorithms walk one, with the queue, the stack and every distance shown as they change.
+      </p>
+    </header>
+    <Section title="All graph algorithms">
+      <ul className="flex flex-col divide-y divide-edge">
+        {graphOrder.map((algorithm) => (
+          <li key={algorithm} className="flex flex-col gap-1 py-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+              <PageLink to={{ kind: "graph", algorithm }} onNavigate={onNavigate}>
+                {graphAlgorithms[algorithm].title}
+              </PageLink>
+              <span className="font-mono text-xs text-foreground/60">{graphAlgorithms[algorithm].structure}</span>
+            </div>
+            <p className="text-sm text-foreground/75">{graphAlgorithms[algorithm].shortDescription}</p>
+          </li>
+        ))}
+      </ul>
+    </Section>
+    <Section title="Make your own">
+      <p className="leading-relaxed text-foreground/80">
+        Drag nodes to move them, tap two nodes to join or split them, and double-tap a node to start from it. Or pick
+        a ready-made network, tree or grid.
+      </p>
+    </Section>
+  </>
+);
+
+const GraphArticle = ({ algorithm, onNavigate }: { algorithm: GraphAlgorithm; onNavigate?: Props["onNavigate"] }) => {
+  const { title, shortDescription, longDescription, structure, label, weighted, timeComplexity } =
+    graphAlgorithms[algorithm];
+  const rows: [string, string][] = [
+    ["Keeps the nodes to visit in", structure],
+    ["The number on each node", label === "distance" ? "Its distance from the start" : "When it was visited"],
+    ["Uses edge weights", weighted ? "Yes: the cheapest route, not the fewest edges" : "No: every edge counts the same"],
+    ["Time", timeComplexity],
+  ];
+  return (
+    <>
+      <header className="flex flex-col gap-3">
+        <h1 className="text-display font-semibold">{title}</h1>
+        <p className="text-lg text-foreground/80">{shortDescription}</p>
+      </header>
+      <Section title={`How ${title} works`}>
+        <p className="leading-relaxed text-foreground/80">{longDescription}</p>
+      </Section>
+      <Section title="At a glance">
+        <table className="w-full max-w-lg text-sm">
+          <tbody>
+            {rows.map(([name, value]) => (
+              <tr key={name} className="border-b border-edge last:border-0">
+                <th scope="row" className="py-2.5 pr-6 text-left align-top font-normal text-foreground/70">
+                  {name}
+                </th>
+                <td className="py-2.5">{value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Section>
+      <Section title="Pseudocode">
+        <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
+          {graphPseudocode[algorithm].join("\n")}
+        </pre>
+      </Section>
+      <Section title="Compare">
+        <p className="leading-relaxed text-foreground/80">Run another algorithm on the same graph:</p>
+        <GraphIndex current={algorithm} onNavigate={onNavigate} />
+      </Section>
+    </>
+  );
+};
+
 export const About = ({ route, onNavigate }: Props) => (
   <article id="about" className="mx-auto flex w-full max-w-3xl flex-col gap-12 px-4 pb-20 pt-16 text-foreground md:px-6">
     {route.kind === "sorting" && <SortingArticle onNavigate={onNavigate} />}
@@ -323,6 +422,8 @@ export const About = ({ route, onNavigate }: Props) => (
     {route.kind === "algorithm" && <AlgorithmArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
     {route.kind === "path" && <PathArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
     {route.kind === "pathRace" && <PathRaceArticle onNavigate={onNavigate} />}
+    {route.kind === "graphs" && <GraphsArticle onNavigate={onNavigate} />}
+    {route.kind === "graph" && <GraphArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
     <footer className="border-t border-edge pt-6 text-sm text-foreground/60">
       <PageLink
         to={{ kind: "home" }}

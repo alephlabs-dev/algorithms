@@ -1,3 +1,4 @@
+import type { GraphAlgorithm } from "./graphs/types";
 import type { PathAlgorithm } from "./pathfinding/types";
 import type { Algorithm } from "./types";
 
@@ -26,6 +27,13 @@ export const pathSlugs: Record<PathAlgorithm, string> = {
   greedy: "greedy-best-first-search",
 };
 
+/** URL slug for each graph algorithm, e.g. /graphs/dijkstra. */
+export const graphSlugs: Record<GraphAlgorithm, string> = {
+  bfs: "breadth-first-search",
+  dfs: "depth-first-search",
+  dijkstra: "dijkstra",
+};
+
 /** Every page the site has. Settings (size, input, speed, seed…) stay in the query string. */
 export type Route =
   /** The landing page. */
@@ -33,15 +41,19 @@ export type Route =
   /** A module's own page: its visualizer with the default algorithm, and an index of the module. */
   | { kind: "sorting" }
   | { kind: "pathfinding" }
+  | { kind: "graphs" }
   | { kind: "algorithm"; algorithm: Algorithm }
   | { kind: "race" }
   | { kind: "path"; algorithm: PathAlgorithm }
-  | { kind: "pathRace" };
+  | { kind: "pathRace" }
+  | { kind: "graph"; algorithm: GraphAlgorithm };
 
 export const routePath = (route: Route): string => {
   if (route.kind === "home") return "/";
   if (route.kind === "sorting") return "/sorting";
   if (route.kind === "pathfinding") return "/pathfinding";
+  if (route.kind === "graphs") return "/graphs";
+  if (route.kind === "graph") return `/graphs/${graphSlugs[route.algorithm]}`;
   if (route.kind === "race") return "/sorting/race";
   if (route.kind === "pathRace") return "/pathfinding/race";
   if (route.kind === "path") return `/pathfinding/${pathSlugs[route.algorithm]}`;
@@ -54,6 +66,12 @@ export const routeFromPath = (pathname: string): Route | null => {
   if (path === "/") return { kind: "home" };
   if (path === "/sorting") return { kind: "sorting" };
   if (path === "/pathfinding") return { kind: "pathfinding" };
+  if (path === "/graphs") return { kind: "graphs" };
+  const graphMatch = /^\/graphs\/([a-z-]+)$/.exec(path);
+  if (graphMatch) {
+    const found = Object.entries(graphSlugs).find(([, slug]) => slug === graphMatch[1]);
+    return found ? { kind: "graph", algorithm: found[0] as GraphAlgorithm } : null;
+  }
   if (path === "/sorting/race") return { kind: "race" };
   if (path === "/pathfinding/race") return { kind: "pathRace" };
   const pathMatch = /^\/pathfinding\/([a-z-]+)$/.exec(path);
@@ -76,10 +94,13 @@ export const allRoutes: Route[] = [
   { kind: "pathfinding" },
   ...(Object.keys(pathSlugs) as PathAlgorithm[]).map((algorithm) => ({ kind: "path" as const, algorithm })),
   { kind: "pathRace" },
+  { kind: "graphs" },
+  ...(Object.keys(graphSlugs) as GraphAlgorithm[]).map((algorithm) => ({ kind: "graph" as const, algorithm })),
 ];
 
 /** Which module a page belongs to, if any (the landing page belongs to none). */
-export const moduleOf = (route: Route): "sorting" | "pathfinding" | null => {
+export const moduleOf = (route: Route): "sorting" | "pathfinding" | "graphs" | null => {
   if (route.kind === "home") return null;
+  if (route.kind === "graphs" || route.kind === "graph") return "graphs";
   return route.kind === "pathfinding" || route.kind === "path" || route.kind === "pathRace" ? "pathfinding" : "sorting";
 };

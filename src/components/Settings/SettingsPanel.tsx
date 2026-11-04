@@ -5,6 +5,7 @@ import { inputOrders } from "@/consts/inputOrders";
 import { MAX_MOBILE_SIZE, sizes } from "@/consts/sizesMap";
 import { useStore } from "@/store";
 import type { DisplayMode, InputOrder } from "@/types";
+import { GraphPresetButtons, GraphSizePicker } from "../Graphs/GraphTools";
 import { BrushPicker, GridSizePicker, PresetButtons } from "../Pathfinding/PathTools";
 import { ListItem } from "../ui/list-item";
 import { SegmentedControl } from "../ui/segmented";
@@ -103,6 +104,21 @@ const Field = ({ label, help, children }: { label: string; help?: string; childr
 
 // Each module's settings, stacked for the settings sheet and menu. Help is plain text since tooltips don't work on touch.
 
+/** Graphs' settings: how many nodes and what kind of layout "new layout" makes. */
+export const GraphSettings = () => (
+  <div className="flex flex-col gap-6">
+    <Field label="Size" help="A new size starts a fresh layout of the same kind.">
+      <GraphSizePicker />
+    </Field>
+    <Field
+      label="Layout"
+      help="Drag a node to move it, tap two nodes to join or split them, double-tap a node to start there."
+    >
+      <GraphPresetButtons />
+    </Field>
+  </div>
+);
+
 /** Pathfinding's settings: grid size, brush and layouts. */
 export const PathSettings = () => (
   <div className="flex flex-col gap-6">
@@ -113,7 +129,7 @@ export const PathSettings = () => (
       <BrushPicker />
     </Field>
     <Field label="Layout">
-      <PresetButtons className="-ml-3" />
+      <PresetButtons />
     </Field>
   </div>
 );

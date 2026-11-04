@@ -11,7 +11,7 @@ import { TopBar } from "./components/TopBar";
 import { Tour } from "./components/Tour";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import { useModuleUI } from "./modules";
-import { MOBILE_QUERY, useStore } from "./store";
+import { MOBILE_QUERY, PORTRAIT_QUERY, useStore } from "./store";
 import { navigate, routeFor } from "./urlSync";
 
 /**
@@ -22,14 +22,22 @@ import { navigate, routeFor } from "./urlSync";
 function App() {
   const setIsMobile = useStore((s) => s.setIsMobile);
   const view = useStore((s) => s.view);
-  const { Stage, RaceStage, Tools, Legend } = useModuleUI();
+  const { Stage, race, Tools, Legend } = useModuleUI();
+  // Only modules with a race reach race view; the store keeps the others in single view.
+  const RaceStage = race?.Stage ?? Stage;
   const isLanding = useStore((s) => s.isLanding);
   const isMobile = useMediaQuery(MOBILE_QUERY);
+  const setIsPortrait = useStore((s) => s.setIsPortrait);
+  const isPortrait = useMediaQuery(PORTRAIT_QUERY);
   const route = useStore(useShallow(routeFor));
 
   useEffect(() => {
     setIsMobile(isMobile);
   }, [isMobile, setIsMobile]);
+
+  useEffect(() => {
+    setIsPortrait(isPortrait);
+  }, [isPortrait, setIsPortrait]);
 
   if (isLanding) return <Landing onNavigate={navigate} actions={<ThemeToggle />} />;
 

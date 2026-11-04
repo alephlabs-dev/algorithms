@@ -17,7 +17,6 @@ export const pathfindingUI: ModuleUI = {
   title: "Pathfinding",
 
   Stage: PathStage,
-  RaceStage: PathRaceLanes,
   // Editing the grid is the point, so the brush and layouts sit right above it.
   Tools: PathTools,
   Legend: PathLegend,
@@ -43,12 +42,13 @@ export const pathfindingUI: ModuleUI = {
   ],
   current: (s) => s.pathAlgorithm,
   pick: (id) => useStore.getState().setPathAlgorithm(id as PathAlgorithm),
-  racers: (s) => s.pathRaceAlgorithms,
-  toggleRacer: (id) => useStore.getState().togglePathRacer(id as PathAlgorithm),
 
   about: (s) => pathAlgorithms[s.pathAlgorithm],
   summary: (s) => pathTraits(s.pathAlgorithm),
   race: {
+    Stage: PathRaceLanes,
+    racers: (s) => s.pathRaceAlgorithms,
+    toggleRacer: (id) => useStore.getState().togglePathRacer(id as PathAlgorithm),
     tagline: "Same grid, same clock",
     description: PATH_RACE_DESCRIPTION,
     unit: { one: "cell", short: "cells" },

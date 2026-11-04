@@ -4,6 +4,7 @@ import { gridSizes, MUD_COST, type GridSize } from "@/pathfinding";
 import { raceMaxGridSize, selectPathFrame, useStore, type Brush } from "@/store";
 import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";
+import { PresetButtons as LayoutButtons } from "../ui/preset-buttons";
 import { SegmentedControl } from "../ui/segmented";
 
 /** What dragging paints. Shared by the tools row and the settings. */
@@ -26,22 +27,8 @@ export const BrushPicker = ({ className }: { className?: string }) => {
 
 /** Ready-made layouts, one tap each. */
 export const PresetButtons = ({ className }: { className?: string }) => {
-  const apply = useStore((s) => s.applyGridPreset);
-  return (
-    <div role="group" aria-label="Layouts" className={cn("flex flex-wrap gap-1", className)}>
-      {presets.map((p) => (
-        <button
-          key={p.value}
-          type="button"
-          title={p.title}
-          onClick={() => apply(p.value)}
-          className="h-9 rounded-full px-3 text-sm text-foreground/80 transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
-        >
-          {p.label}
-        </button>
-      ))}
-    </div>
-  );
+  const { apply, current } = useStore(useShallow((s) => ({ apply: s.applyGridPreset, current: s.gridPreset })));
+  return <LayoutButtons presets={presets} current={current} onPick={apply} className={className} />;
 };
 
 /** Above the grid: the brush and the layouts, always at hand since editing is the point. */

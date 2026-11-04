@@ -31,9 +31,8 @@ export type ModuleUI = {
   id: ModuleId;
   title: string;
 
-  /** The stage in single view, and the lanes in race view. */
+  /** The stage in single view. */
   Stage: ComponentType;
-  RaceStage: ComponentType;
   /** Tools that sit above the stage from tablet width up (on phones they live in the settings). */
   Tools?: ComponentType<WithClass>;
   /** What the colors on stage mean. */
@@ -54,14 +53,17 @@ export type ModuleUI = {
   /** The algorithm on stage, by id. */
   current: (s: StoreState) => string;
   pick: (id: string) => void;
-  racers: (s: StoreState) => string[];
-  toggleRacer: (id: string) => void;
 
   /** About the algorithm on stage, for the info popover. */
   about: (s: StoreState) => { title: string; shortDescription: string; longDescription: string };
   /** One line next to the picker, e.g. "O(n log n) avg · O(n²) worst". */
   summary: (s: StoreState) => string;
-  race: {
+  /** Racing several algorithms on the same input. Without it, the module has no race view. */
+  race?: {
+    /** The lanes. */
+    Stage: ComponentType;
+    racers: (s: StoreState) => string[];
+    toggleRacer: (id: string) => void;
     /** Next to the racers picker, e.g. "Same array, same clock". */
     tagline: string;
     description: string;

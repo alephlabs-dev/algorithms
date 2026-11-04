@@ -1,4 +1,5 @@
 import type { Route } from "@/routes";
+import { graphAlgorithms } from "./graphAlgorithms";
 import { pathAlgorithms } from "./pathAlgorithms";
 import { sortingAlgorithms } from "./sortingAlgorithms";
 
@@ -28,7 +29,13 @@ export const modules: ModuleInfo[] = [
     count: `${Object.keys(pathAlgorithms).length} searches`,
     route: { kind: "pathfinding" },
   },
-  { id: "graphs", title: "Graphs", summary: "Weighted graphs, minimum spanning trees, topological order." },
+  {
+    id: "graphs",
+    title: "Graphs",
+    summary: "Breadth-first, depth-first and Dijkstra on a graph you can reshape, with the queue and stack shown.",
+    count: `${Object.keys(graphAlgorithms).length} algorithms`,
+    route: { kind: "graphs" },
+  },
   { id: "structures", title: "Data structures", summary: "Binary search trees, AVL rotations, heaps and hash tables." },
   { id: "dp", title: "Dynamic programming", summary: "Edit distance, LCS and knapsack, one table cell at a time." },
   { id: "fourier", title: "Fourier series", summary: "Circles on circles that draw any shape." },

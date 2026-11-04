@@ -1,6 +1,8 @@
 import { sortAlgorithms } from "./algorithms";
 import { gridSizes, type GridSize } from "./pathfinding/grid";
 import { pathSearches } from "./pathfinding/searches";
+import { graphPresets, graphSizes, type GraphPreset, type GraphSize } from "./graphs/graph";
+import type { GraphAlgorithm } from "./graphs/types";
 import type { PathAlgorithm } from "./pathfinding/types";
 import { routeFromPath } from "./routes";
 import { displayModes } from "./consts/displayModes";
@@ -109,6 +111,35 @@ export const toPathSearch = (state: Required<PathUrlState> & { speed?: SpeedPres
     ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
   }).toString();
 
+/** A graph as a link carries it: the graph itself, plus the size and kind "new layout" makes. */
+export type GraphUrlState = {
+  /** Nodes, edges and start, packed (see encodeGraph). Validated by the store. */
+  graph?: string;
+  size?: GraphSize;
+  preset?: GraphPreset;
+};
+
+const readGraphParams = (params: URLSearchParams): GraphUrlState => {
+  const state: GraphUrlState = {};
+  const graph = params.get("graph");
+  if (graph && /^[A-Za-z0-9_-]+$/.test(graph)) state.graph = graph;
+  const size = params.get("nodes");
+  if (isOneOf(graphSizes, size)) state.size = size;
+  const preset = params.get("layout");
+  if (isOneOf(graphPresets, preset)) state.preset = preset;
+  return state;
+};
+
+/** The query string for a graph page: the graph, its size and kind, plus the speed if it isn't the default. */
+export const toGraphSearch = (state: Required<GraphUrlState> & { speed?: SpeedPreset }) =>
+  "?" +
+  new URLSearchParams({
+    graph: state.graph,
+    nodes: state.size,
+    layout: state.preset,
+    ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
+  }).toString();
+
 /** Settings from a full location: the page (path) wins over legacy query parameters. */
 export const readLocation = (
   pathname: string,
@@ -116,21 +147,36 @@ export const readLocation = (
 ): Partial<UrlState> & {
   isLanding: boolean;
   isModuleStart: boolean;
-  isPath: boolean;
+  module: "sorting" | "pathfinding" | "graphs";
   pathAlgorithm?: PathAlgorithm;
   path: PathUrlState;
+  graphAlgorithm?: GraphAlgorithm;
+  graph: GraphUrlState;
 } => {
   const state = readUrlState(search);
   const route = routeFromPath(pathname);
+  if (route?.kind === "graph" || route?.kind === "graphs") {
+    return {
+      ...state,
+      isLanding: false,
+      isModuleStart: route.kind === "graphs",
+      module: "graphs",
+      view: "single",
+      ...(route.kind === "graph" && { graphAlgorithm: route.algorithm }),
+      path: {},
+      graph: readGraphParams(new URLSearchParams(search)),
+    };
+  }
   if (route?.kind === "path" || route?.kind === "pathRace" || route?.kind === "pathfinding") {
     return {
       ...state,
       isLanding: false,
       isModuleStart: route.kind === "pathfinding",
-      isPath: true,
+      module: "pathfinding",
       view: route.kind === "pathRace" ? "race" : "single",
       ...(route.kind === "path" && { pathAlgorithm: route.algorithm }),
       path: readPathParams(new URLSearchParams(search)),
+      graph: {},
     };
   }
   if (route?.kind === "algorithm") {
@@ -142,7 +188,7 @@ export const readLocation = (
   // Old links put the algorithm in the query string of the home page (/?algo=quick): they open that algorithm.
   const legacy = state.algorithm !== undefined || state.view !== undefined;
   const isLanding = (route === null || route.kind === "home") && !legacy;
-  return { ...state, isLanding, isModuleStart: route?.kind === "sorting", isPath: false, path: {} };
+  return { ...state, isLanding, isModuleStart: route?.kind === "sorting", module: "sorting", path: {}, graph: {} };
 };
 
 /** The query string for the settings that aren't part of the path. */

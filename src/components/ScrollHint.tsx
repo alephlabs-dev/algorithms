@@ -1,5 +1,6 @@
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
+import { graphAlgorithms } from "@/consts/graphAlgorithms";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import type { Route } from "@/routes";
@@ -12,6 +13,10 @@ const labelFor = (route: Route) => {
       return "About sorting algorithms";
     case "pathfinding":
       return "About pathfinding algorithms";
+    case "graphs":
+      return "About graph algorithms";
+    case "graph":
+      return `How ${graphAlgorithms[route.algorithm].title} works`;
     case "race":
     case "pathRace":
       return "How the race works";

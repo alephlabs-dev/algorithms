@@ -112,7 +112,9 @@ export const Controls = ({ className }: { className?: string }) => {
       </div>
       <Progress className="hidden flex-1 px-2 md:flex" />
       <div className="hidden items-center gap-2 md:flex">
-        <SpeedControl />
+        {/* Upright tablets keep the phone's one-button speed, so the timeline and counters keep their room. */}
+        <SpeedCycleButton className="lg:hidden" />
+        <SpeedControl className="hidden lg:flex" />
         <SettingsMenu className="hidden lg:flex" />
         {newArray}
       </div>

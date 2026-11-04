@@ -1,12 +1,13 @@
+import { encodeGraph } from "@/graphs/graph";
 import { encodeCells } from "@/pathfinding/grid";
 import type { Route } from "@/routes";
 import type { StoreState, View } from "@/store";
 import type { Size } from "@/types";
-import { toPathSearch, toSearch } from "@/urlState";
-import { PATH_STEP_WEIGHT, STEP_WEIGHT, type Pace } from "@/utils/speed";
+import { toGraphSearch, toPathSearch, toSearch } from "@/urlState";
+import { GRAPH_STEP_WEIGHT, PATH_STEP_WEIGHT, STEP_WEIGHT, type Pace } from "@/utils/speed";
 
 /** The modules the app has. Each one declares its engine here and its interface in ./<id>.tsx. */
-export type ModuleId = "sorting" | "pathfinding";
+export type ModuleId = "sorting" | "pathfinding" | "graphs";
 
 /**
  * What playback needs from a module, without React: how long a run is and
@@ -65,5 +66,14 @@ export const engines: Record<ModuleId, ModuleEngine> = {
         racers: s.pathRaceAlgorithms,
         speed: s.speedPreset,
       }),
+  },
+  graphs: {
+    // No race yet: a single run.
+    lastIndex: (s) => s.graphTimeline.length - 1,
+    stepWeight: (s, index) => GRAPH_STEP_WEIGHT[s.graphTimeline.stepAt(index)?.type ?? "done"],
+    pace: () => "graphs",
+    route: (s) => (s.isModuleStart ? { kind: "graphs" } : { kind: "graph", algorithm: s.graphAlgorithm }),
+    search: (s) =>
+      toGraphSearch({ graph: encodeGraph(s.graph), size: s.graphSize, preset: s.graphPreset, speed: s.speedPreset }),
   },
 };

@@ -107,3 +107,58 @@ export const pathfindingTour: TourStep[] = [
     text: () => "A smaller grid to read along, or a bigger one to see how each search spreads.",
   },
 ];
+
+export const graphsTour: TourStep[] = [
+  {
+    anchor: "picker",
+    title: "Pick an algorithm",
+    text: () => "Three ways to walk a graph: in layers, as deep as it goes, or by cheapest distance.",
+  },
+  {
+    anchor: "bars",
+    title: "The graph",
+    text: () => (
+      <>
+        Circles are nodes, lines are edges; the one with the <Swatch className="ml-1 bg-background ring-2 ring-primary" />
+        ring is the start. Drag a node to move it, tap two nodes to join or split them, double-tap one to start there.
+      </>
+    ),
+  },
+  {
+    anchor: "tools",
+    phoneAnchor: "settings",
+    title: "Layouts",
+    text: ({ phone }) =>
+      `${phone ? "In settings: a" : "A"} scattered network, a tree or a grid. Each tap makes a new one.`,
+  },
+  {
+    anchor: "play",
+    title: "Play it",
+    text: ({ wide }) =>
+      `Watch it spread, or go one step at a time with the buttons on either side.${wide ? " On a keyboard: Space, ← and →." : ""}`,
+  },
+  {
+    anchor: "structure",
+    title: "What sets them apart",
+    text: () =>
+      "The nodes waiting their turn. Breadth-first takes from the front of a queue, depth-first from the top of a stack, Dijkstra whichever is closest.",
+  },
+  {
+    anchor: "narration",
+    title: "Follow each step",
+    text: ({ theme, wide }) => (
+      <>
+        <Swatch className="bg-secondary" />
+        {colorNames[theme].comparing} nodes are waiting, faded ones are visited, and the{" "}
+        <Swatch className="bg-primary" />
+        {colorNames[theme].done} edges are the tree it builds.{" "}
+        {wide ? "Here: the code it's running and what just happened." : "Tap here to see the code it's running."}
+      </>
+    ),
+  },
+  {
+    anchor: "settings",
+    title: "Change the graph",
+    text: () => "Fewer nodes to read along, or more to see the pattern.",
+  },
+];

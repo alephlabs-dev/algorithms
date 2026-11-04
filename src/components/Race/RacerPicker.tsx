@@ -1,3 +1,4 @@
+import { useShallow } from "zustand/react/shallow";
 import { useModuleUI } from "@/modules";
 import { MAX_RACERS, MIN_RACERS, useStore } from "@/store";
 import { ListItem } from "../ui/list-item";
@@ -13,8 +14,9 @@ const blockedReason = (selected: string[], id: string) => {
 
 /** The module's algorithms in its groups, with checkboxes: who races. */
 export const RacerList = ({ showHeader = true }: { showHeader?: boolean }) => {
-  const { algorithms, racers, toggleRacer } = useModuleUI();
-  const selected = useStore(racers);
+  const { algorithms, race } = useModuleUI();
+  const selected = useStore(useShallow((s) => race?.racers(s) ?? []));
+  const toggleRacer = (id: string) => race?.toggleRacer(id);
   return (
     <div className="flex flex-col gap-4">
       {/* Hidden where the surrounding sheet already has a "Racers" title. */}
