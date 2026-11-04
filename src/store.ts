@@ -16,7 +16,7 @@ import {
 import { readLocation } from "./urlState";
 import { generateItems } from "./utils/generateItems";
 import { newSeed, seededRandom } from "./utils/random";
-import { DEFAULT_PRESET, speedFor, type SpeedPreset } from "./utils/speed";
+import { DEFAULT_PRESET, speedFor, type Pace, type SpeedPreset } from "./utils/speed";
 import type { Algorithm, DisplayMode, InputOrder } from "./types";
 
 export type View = "single" | "race";
@@ -53,9 +53,13 @@ export type StoreState = {
   brush: Brush;
   /** The whole search on the current grid, precomputed. */
   pathTimeline: PathTimeline;
+  /** Searches racing on the grid, in the picker's order. */
+  pathRaceAlgorithms: PathAlgorithm[];
+  /** One timeline per racer, on the current grid. Empty outside race view. */
+  pathRaceTimelines: PathTimeline[];
   /** Bumped when the grid is replaced wholesale (size, preset), so cells don't animate between layouts. */
   gridId: number;
-  /** One algorithm with all the details, or several racing on the same array. */
+  /** One algorithm with all the details, or several racing on the same array or grid. */
   view: View;
   /** On the home page (/): the default algorithm shows, but the URL stays / until something is picked. */
   isHome: boolean;
@@ -79,7 +83,8 @@ export type StoreState = {
   timeline: Timeline;
   /**
    * Playback position. In single view it's a frame index; in race view it's a
-   * count of operations, so every lane runs on the same, fair clock.
+   * count of operations (sorting) or cells examined (pathfinding), so every
+   * lane runs on the same, fair clock.
    */
   frameIndex: number;
   isPlaying: boolean;
@@ -110,6 +115,9 @@ export type StoreState = {
   closeTour: () => void;
   createNewArray: () => void;
   setPathAlgorithm: (algorithm: PathAlgorithm) => void;
+  togglePathRacer: (algorithm: PathAlgorithm) => void;
+  /** Switch to the pathfinding race with `algorithm` among the racers. */
+  pathRaceWith: (algorithm: PathAlgorithm) => void;
   setGridSize: (size: GridSize) => void;
   setBrush: (brush: Brush) => void;
   /** Replaces the grid after an edit (painting, moving a marker); the search restarts. */
@@ -127,12 +135,18 @@ export type StoreState = {
 
 export const selectFrame = (state: StoreState) => state.timeline.frameAt(state.frameIndex);
 export const selectPathFrame = (state: StoreState) => state.pathTimeline.frameAt(state.frameIndex);
-export const selectLastIndex = (state: StoreState) =>
-  state.module === "pathfinding"
-    ? state.pathTimeline.length - 1
-    : state.view === "race"
-      ? Math.max(0, ...state.raceTimelines.map((t) => t.totalOps))
-      : state.timeline.length - 1;
+export const selectLastIndex = (state: StoreState) => {
+  if (state.module === "pathfinding") {
+    return state.view === "race"
+      ? Math.max(0, ...state.pathRaceTimelines.map((t) => t.totalVisits))
+      : state.pathTimeline.length - 1;
+  }
+  return state.view === "race" ? Math.max(0, ...state.raceTimelines.map((t) => t.totalOps)) : state.timeline.length - 1;
+};
+
+/** How fast 1× is depends on what's playing. */
+const paceOf = (module: Module, view: View): Pace =>
+  module === "pathfinding" ? (view === "race" ? "pathRace" : "pathfinding") : view;
 
 export const MOBILE_QUERY = "(max-width: 768px)";
 
@@ -157,6 +171,22 @@ const raceTimelinesFor = (view: View, algorithms: Algorithm[], items: readonly n
   view === "race" ? algorithms.map((a) => timelineFor(a, items)) : [];
 
 const pathTimelineFor = (algorithm: PathAlgorithm, grid: Grid) => new PathTimeline(pathSearches[algorithm], grid);
+
+// Two that guarantee a shortest path, one that aims for the target, one that doesn't: the classic comparison.
+const DEFAULT_PATH_RACERS: PathAlgorithm[] = ["bfs", "dijkstra", "astar", "greedy"];
+const pathOrder = Object.keys(pathSearches) as PathAlgorithm[];
+
+const pathRaceTimelinesFor = (view: View, algorithms: PathAlgorithm[], grid: Grid) =>
+  view === "race" ? algorithms.map((a) => pathTimelineFor(a, grid)) : [];
+
+/** Every search on a grid, after it changes: the single run and the racers. */
+const pathRunsFor = (state: StoreState, grid: Grid) => ({
+  grid,
+  pathTimeline: pathTimelineFor(state.pathAlgorithm, grid),
+  pathRaceTimelines: pathRaceTimelinesFor(state.view, state.pathRaceAlgorithms, grid),
+  frameIndex: 0,
+  isPlaying: false,
+});
 
 /** A fresh grid of the given size with a preset applied. */
 const gridFor = (size: GridSize, isMobile: boolean, preset: Preset) => {
@@ -190,17 +220,13 @@ const initial = (() => {
   const items = itemsFor(size, inputOrder, seed);
   const raceTimelines = raceTimelinesFor(view, raceAlgorithms, items);
   const timeline = timelineFor(activeAlgorithm, items);
-  const module: Module = url.pathAlgorithm ? "pathfinding" : "sorting";
+  const module: Module = url.isPath ? "pathfinding" : "sorting";
   const pathAlgorithm = url.pathAlgorithm ?? "astar";
   const gridSize = url.path.gridSize ?? (isMobile ? "small" : "medium");
   const grid = gridFromLink(url.path, gridSize, isMobile);
   const pathTimeline = pathTimelineFor(pathAlgorithm, grid);
-  const lastIndex =
-    module === "pathfinding"
-      ? pathTimeline.length - 1
-      : view === "race"
-        ? Math.max(...raceTimelines.map((t) => t.totalOps))
-        : timeline.length - 1;
+  const pathRaceAlgorithms = url.path.racers ?? DEFAULT_PATH_RACERS;
+  const pathRaceTimelines = pathRaceTimelinesFor(module === "pathfinding" ? view : "single", pathRaceAlgorithms, grid);
   return {
     isMobile,
     module,
@@ -210,6 +236,8 @@ const initial = (() => {
     gridPreset: "maze" as Preset,
     brush: "wall" as Brush,
     pathTimeline,
+    pathRaceAlgorithms,
+    pathRaceTimelines,
     isHome: url.isHome,
     view,
     raceAlgorithms,
@@ -219,7 +247,6 @@ const initial = (() => {
     displayMode,
     inputOrder,
     speedPreset: url.speed ?? DEFAULT_PRESET,
-    speed: speedFor(url.speed ?? DEFAULT_PRESET, lastIndex, module === "pathfinding" ? "pathfinding" : view),
     seed,
     timeline,
   };
@@ -229,12 +256,14 @@ export const useStore = create<StoreState>((set, get) => {
   /** Call after any change that creates a new run. */
   const applyAutoSpeed = () => {
     const state = get();
-    const pace = state.module === "pathfinding" ? "pathfinding" : state.view;
-    set({ speed: speedFor(state.speedPreset, selectLastIndex(state), pace) });
+    set({ speed: speedFor(state.speedPreset, selectLastIndex(state), paceOf(state.module, state.view)) });
   };
+
+  const start = { ...initial, frameIndex: 0 } as StoreState;
 
   return {
     ...initial,
+    speed: speedFor(initial.speedPreset, selectLastIndex(start), paceOf(initial.module, initial.view)),
     arrayId: 0,
     gridId: 0,
     frameIndex: 0,
@@ -282,22 +311,31 @@ export const useStore = create<StoreState>((set, get) => {
       if (size > maxSize) setSize(maxSize);
     },
 
+    // Within the module on screen: sorting races on the array, pathfinding on the grid.
     setView: (view) => {
       set((state) => ({
         view,
-        // Races are a sorting feature.
-        module: "sorting",
         isHome: false,
         frameIndex: 0,
         isPlaying: false,
-        raceTimelines: raceTimelinesFor(view, state.raceAlgorithms, state.timeline.values),
+        raceTimelines: raceTimelinesFor(
+          state.module === "sorting" ? view : "single",
+          state.raceAlgorithms,
+          state.timeline.values,
+        ),
+        pathRaceTimelines: pathRaceTimelinesFor(
+          state.module === "pathfinding" ? view : "single",
+          state.pathRaceAlgorithms,
+          state.grid,
+        ),
       }));
       applyAutoSpeed();
     },
 
     // Keeps between MIN_RACERS and MAX_RACERS lanes, in the sidebar's order.
     raceWith: (algorithm) => {
-      const { raceAlgorithms, setView } = get();
+      const { raceAlgorithms, setView, module, setActiveAlgorithm, activeAlgorithm } = get();
+      if (module !== "sorting") setActiveAlgorithm(activeAlgorithm);
       if (!raceAlgorithms.includes(algorithm)) {
         // Replace the last racer if the race is full; keep the sidebar order.
         const kept = raceAlgorithms.length >= MAX_RACERS ? raceAlgorithms.slice(0, -1) : raceAlgorithms;
@@ -324,6 +362,33 @@ export const useStore = create<StoreState>((set, get) => {
       applyAutoSpeed();
     },
 
+    togglePathRacer: (algorithm) => {
+      set((state) => {
+        const selected = state.pathRaceAlgorithms.includes(algorithm);
+        const count = state.pathRaceAlgorithms.length;
+        if ((selected && count <= MIN_RACERS) || (!selected && count >= MAX_RACERS)) return {};
+        const pathRaceAlgorithms = pathOrder.filter((a) =>
+          a === algorithm ? !selected : state.pathRaceAlgorithms.includes(a),
+        );
+        return {
+          pathRaceAlgorithms,
+          frameIndex: 0,
+          isPlaying: false,
+          pathRaceTimelines: pathRaceTimelinesFor(state.view, pathRaceAlgorithms, state.grid),
+        };
+      });
+      applyAutoSpeed();
+    },
+
+    pathRaceWith: (algorithm) => {
+      const { pathRaceAlgorithms, setView } = get();
+      if (!pathRaceAlgorithms.includes(algorithm)) {
+        const kept = pathRaceAlgorithms.length >= MAX_RACERS ? pathRaceAlgorithms.slice(0, -1) : pathRaceAlgorithms;
+        set({ pathRaceAlgorithms: pathOrder.filter((a) => a === algorithm || kept.includes(a)) });
+      }
+      setView("race");
+    },
+
     setDisplayMode: (displayMode) => {
       set({ displayMode });
       const { size, isMobile, setSize } = get();
@@ -336,6 +401,10 @@ export const useStore = create<StoreState>((set, get) => {
       set((state) => ({
         activeAlgorithm: algorithm,
         module: "sorting",
+        // Picking one algorithm leaves any race (raceWith goes back to one right after).
+        view: "single",
+        raceTimelines: [],
+        pathRaceTimelines: [],
         isHome: false,
         ...newRun(algorithm, state.timeline.values),
       }));
@@ -386,6 +455,7 @@ export const useStore = create<StoreState>((set, get) => {
         isHome: false,
         pathAlgorithm: algorithm,
         pathTimeline: pathTimelineFor(algorithm, state.grid),
+        pathRaceTimelines: [],
         frameIndex: 0,
         isPlaying: false,
       }));
@@ -395,14 +465,7 @@ export const useStore = create<StoreState>((set, get) => {
     setGridSize: (gridSize) => {
       set((state) => {
         const grid = gridFor(gridSize, state.isMobile, state.gridPreset);
-        return {
-          gridSize,
-          grid,
-          gridId: state.gridId + 1,
-          pathTimeline: pathTimelineFor(state.pathAlgorithm, grid),
-          frameIndex: 0,
-          isPlaying: false,
-        };
+        return { gridSize, gridId: state.gridId + 1, ...pathRunsFor(state, grid) };
       });
       applyAutoSpeed();
     },
@@ -410,26 +473,14 @@ export const useStore = create<StoreState>((set, get) => {
     setBrush: (brush) => set({ brush }),
 
     editGrid: (grid) => {
-      set((state) => ({
-        grid,
-        pathTimeline: pathTimelineFor(state.pathAlgorithm, grid),
-        frameIndex: 0,
-        isPlaying: false,
-      }));
+      set((state) => pathRunsFor(state, grid));
       applyAutoSpeed();
     },
 
     applyGridPreset: (gridPreset) => {
       set((state) => {
         const grid = applyPreset(state.grid, gridPreset, seededRandom(newSeed()));
-        return {
-          gridPreset,
-          grid,
-          gridId: state.gridId + 1,
-          pathTimeline: pathTimelineFor(state.pathAlgorithm, grid),
-          frameIndex: 0,
-          isPlaying: false,
-        };
+        return { gridPreset, gridId: state.gridId + 1, ...pathRunsFor(state, grid) };
       });
       applyAutoSpeed();
     },

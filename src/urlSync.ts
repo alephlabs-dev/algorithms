@@ -8,7 +8,8 @@ import { toPathSearch, toSearch } from "./urlState";
 /** The page the store is showing. */
 export const routeFor = (s: StoreState): Route => {
   if (s.isHome) return { kind: "home" };
-  if (s.module === "pathfinding") return { kind: "path", algorithm: s.pathAlgorithm };
+  if (s.module === "pathfinding")
+    return s.view === "race" ? { kind: "pathRace" } : { kind: "path", algorithm: s.pathAlgorithm };
   if (s.view === "race") return { kind: "race" };
   return { kind: "algorithm", algorithm: s.activeAlgorithm };
 };
@@ -20,6 +21,7 @@ const searchFor = (s: StoreState) =>
         cells: encodeCells(s.grid.cells),
         start: s.grid.start,
         end: s.grid.end,
+        racers: s.pathRaceAlgorithms,
         speed: s.speedPreset,
       })
     : toSearch({
@@ -47,23 +49,30 @@ const settingsChanged = (a: StoreState, b: StoreState) =>
   a.speedPreset !== b.speedPreset ||
   a.seed !== b.seed ||
   a.raceAlgorithms !== b.raceAlgorithms ||
+  a.pathRaceAlgorithms !== b.pathRaceAlgorithms ||
   a.grid !== b.grid;
 
 /** Switches the app to a page, as a link click would. The URL follows through the sync below. */
 export const navigate = (route: Route) => {
   const store = useStore.getState();
+  const inPath = store.module === "pathfinding";
   if (route.kind === "path") {
-    if (store.module !== "pathfinding" || store.pathAlgorithm !== route.algorithm)
+    if (!inPath || store.view !== "single" || store.pathAlgorithm !== route.algorithm)
       store.setPathAlgorithm(route.algorithm);
     return;
   }
-  if (route.kind === "race") {
-    if (store.view !== "race") store.setView("race");
+  if (route.kind === "pathRace") {
+    if (!inPath) store.setPathAlgorithm(store.pathAlgorithm);
+    if (useStore.getState().view !== "race") store.setView("race");
     return;
   }
-  if (store.view !== "single") store.setView("single");
+  if (route.kind === "race") {
+    if (inPath) store.setActiveAlgorithm(store.activeAlgorithm);
+    if (useStore.getState().view !== "race") store.setView("race");
+    return;
+  }
   const algorithm = route.kind === "algorithm" ? route.algorithm : store.activeAlgorithm;
-  if (store.module !== "sorting" || store.activeAlgorithm !== algorithm) store.setActiveAlgorithm(algorithm);
+  if (inPath || store.view !== "single" || store.activeAlgorithm !== algorithm) store.setActiveAlgorithm(algorithm);
   useStore.setState({ isHome: route.kind === "home" });
 };
 

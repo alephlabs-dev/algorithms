@@ -31,11 +31,13 @@ export type Route =
   | { kind: "home" }
   | { kind: "algorithm"; algorithm: Algorithm }
   | { kind: "race" }
-  | { kind: "path"; algorithm: PathAlgorithm };
+  | { kind: "path"; algorithm: PathAlgorithm }
+  | { kind: "pathRace" };
 
 export const routePath = (route: Route): string => {
   if (route.kind === "home") return "/";
   if (route.kind === "race") return "/sorting/race";
+  if (route.kind === "pathRace") return "/pathfinding/race";
   if (route.kind === "path") return `/pathfinding/${pathSlugs[route.algorithm]}`;
   return `/sorting/${algorithmSlugs[route.algorithm]}`;
 };
@@ -45,6 +47,7 @@ export const routeFromPath = (pathname: string): Route | null => {
   const path = pathname.replace(/\/+$/, "") || "/";
   if (path === "/") return { kind: "home" };
   if (path === "/sorting/race") return { kind: "race" };
+  if (path === "/pathfinding/race") return { kind: "pathRace" };
   const pathMatch = /^\/pathfinding\/([a-z-]+)$/.exec(path);
   if (pathMatch) {
     const found = Object.entries(pathSlugs).find(([, slug]) => slug === pathMatch[1]);
@@ -62,4 +65,5 @@ export const allRoutes: Route[] = [
   ...(Object.keys(algorithmSlugs) as Algorithm[]).map((algorithm) => ({ kind: "algorithm" as const, algorithm })),
   { kind: "race" },
   ...(Object.keys(pathSlugs) as PathAlgorithm[]).map((algorithm) => ({ kind: "path" as const, algorithm })),
+  { kind: "pathRace" },
 ];

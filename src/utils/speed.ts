@@ -32,13 +32,16 @@ export const speedForStepsPerSecond = (sps: number) =>
 // How long a run should take at most when the speed is picked automatically.
 // Small arrays stay at the default speed; only long runs get faster.
 // Searches are shorter and read best brisk; sorts can take minutes at 1×.
-const TARGET_SECONDS = { single: 240, race: 30, pathfinding: 20 } as const;
+const TARGET_SECONDS = { single: 240, race: 30, pathfinding: 20, pathRace: 20 } as const;
+
+/** Which of the paces above a run uses. */
+export type Pace = keyof typeof TARGET_SECONDS;
 
 /**
  * A speed that finishes `steps` steps within the target time for the view,
  * never slower than the default.
  */
-export const autoSpeed = (steps: number, view: keyof typeof TARGET_SECONDS) =>
+export const autoSpeed = (steps: number, view: Pace) =>
   Math.max(DEFAULT_SPEED, speedForStepsPerSecond(steps / TARGET_SECONDS[view]));
 
 // Each preset doubles the one before it, so every jump feels the same.
@@ -56,7 +59,7 @@ export const presetLabels = Object.fromEntries(
  * The speed for a preset on a run of `steps` steps: 1× is a comfortable pace for
  * that run (see autoSpeed) and the others are multiples of it.
  */
-export const speedFor = (preset: SpeedPreset, steps: number, view: keyof typeof TARGET_SECONDS) =>
+export const speedFor = (preset: SpeedPreset, steps: number, view: Pace) =>
   Math.min(1, Math.max(0, autoSpeed(steps, view) + Math.log2(multipliers[preset]) / DOUBLINGS));
 
 /**

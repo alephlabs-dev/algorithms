@@ -3,14 +3,16 @@ import { useShallow } from "zustand/react/shallow";
 import { GridRenderer } from "@/canvas/gridRenderer";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { useElementSize } from "@/hooks/useElementSize";
-import { EMPTY, MUD, WALL, withMarker, withTerrain, type Grid, type Terrain } from "@/pathfinding";
+import { EMPTY, MUD, WALL, withMarker, withTerrain, type Grid, type PathFrame, type Terrain } from "@/pathfinding";
 import { selectLastIndex, selectPathFrame, useStore } from "@/store";
 import { count } from "@/utils/count";
+import { describeFrame } from "@/utils/describePathFrame";
 import { moveDuration } from "@/utils/speed";
 import { cn } from "@/utils/cn";
 
 /** What a drag does, decided by where it starts. */
-type Drag = { kind: "paint"; terrain: Terrain; last: number } | { kind: "marker"; marker: "start" | "end"; last: number };
+type Drag =
+  { kind: "paint"; terrain: Terrain; last: number } | { kind: "marker"; marker: "start" | "end"; last: number };
 
 /** Cells on the straight line between two cells, so a fast drag doesn't leave gaps. */
 const cellsBetween = (grid: Grid, from: number, to: number) => {
@@ -27,26 +29,24 @@ const cellsBetween = (grid: Grid, from: number, to: number) => {
 };
 
 /**
- * The grid: drawn on canvas and edited by dragging. Starting a drag on an
- * empty cell paints the current brush, on a painted cell erases, and on the
- * start or target moves it. Any edit restarts the search.
+ * A grid drawn on canvas and edited by dragging. Starting a drag on an empty
+ * cell paints the current brush, on a painted cell erases, and on the start or
+ * target moves it. Edits go to the shared grid, so every search restarts.
  */
-export const PathStage = () => {
+export const GridCanvas = ({ frame, label }: { frame: PathFrame; label: string }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<GridRenderer | null>(null);
   const dragRef = useRef<Drag | null>(null);
   const { width, height } = useElementSize(wrapperRef);
-  const { grid, frame, gridId, speed, isScrubbing, theme, algorithm } = useStore(
+  const { grid, gridId, speed, isScrubbing, theme } = useStore(
     useShallow((s) => ({
       grid: s.grid,
-      frame: selectPathFrame(s),
       gridId: s.gridId,
       speed: s.speed,
       isScrubbing: s.isScrubbing,
       theme: s.theme,
-      algorithm: s.pathAlgorithm,
-    }))
+    })),
   );
 
   useEffect(() => {
@@ -65,7 +65,12 @@ export const PathStage = () => {
 
   useEffect(() => {
     // Colors follow the playback pace, like bar moves do.
-    rendererRef.current?.update({ grid, frame, gridId, fade: isScrubbing ? 0 : Math.min(0.25, moveDuration(speed) * 2) });
+    rendererRef.current?.update({
+      grid,
+      frame,
+      gridId,
+      fade: isScrubbing ? 0 : Math.min(0.25, moveDuration(speed) * 2),
+    });
   }, [grid, frame, gridId, speed, isScrubbing]);
 
   const cellFrom = (event: PointerEvent) => {
@@ -118,40 +123,50 @@ export const PathStage = () => {
     dragRef.current = null;
   };
 
-  const { title } = pathAlgorithms[algorithm];
-  const label = `${title} on a ${grid.rows} by ${grid.cols} grid. ${
-    frame.found === null ? `${count(frame.stats.visited, "cell")} looked at.` : frame.found ? `Path found, ${count(frame.stats.pathLength, "step")}.` : "No path."
-  } Drag to draw walls or move the start and target.`;
+  return (
+    <div ref={wrapperRef} className="relative min-h-0 w-full flex-1">
+      <canvas
+        ref={canvasRef}
+        role="img"
+        aria-label={`${label} Drag to draw walls or move the start and target.`}
+        className="absolute inset-0 h-full w-full touch-none select-none"
+        style={{ cursor: "crosshair" }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+      />
+    </div>
+  );
+};
 
+/** The single view: one search on the grid. */
+export const PathStage = () => {
+  const { grid, frame, algorithm } = useStore(
+    useShallow((s) => ({ grid: s.grid, frame: selectPathFrame(s), algorithm: s.pathAlgorithm })),
+  );
+  const { title } = pathAlgorithms[algorithm];
   return (
     <div data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col">
-      <div ref={wrapperRef} className="relative min-h-0 w-full flex-1">
-        <canvas
-          ref={canvasRef}
-          role="img"
-          aria-label={label}
-          className="absolute inset-0 h-full w-full touch-none select-none"
-          style={{ cursor: "crosshair" }}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={endDrag}
-          onPointerCancel={endDrag}
-        />
-      </div>
+      <GridCanvas frame={frame} label={`${title} on a ${grid.rows} by ${grid.cols} grid. ${describeFrame(frame)}`} />
       <PathFinishSummary className="pointer-events-none absolute inset-x-2 top-2 flex justify-center" />
     </div>
   );
 };
 
+const linkClass =
+  "rounded-full text-sm font-semibold underline decoration-line underline-offset-4 hover:decoration-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
+
 /** Over the grid when a search ends: what it took, and what to try next. */
 const PathFinishSummary = ({ className }: { className?: string }) => {
-  const { finished, frame, algorithm, setPathAlgorithm } = useStore(
+  const { finished, frame, algorithm, setPathAlgorithm, pathRaceWith } = useStore(
     useShallow((s) => ({
       finished: s.frameIndex > 0 && s.frameIndex === selectLastIndex(s),
       frame: selectPathFrame(s),
       algorithm: s.pathAlgorithm,
       setPathAlgorithm: s.setPathAlgorithm,
-    }))
+      pathRaceWith: s.pathRaceWith,
+    })),
   );
   // Point at the instructive comparison for each algorithm.
   const next = algorithm === "astar" ? "dijkstra" : "astar";
@@ -166,12 +181,11 @@ const PathFinishSummary = ({ className }: { className?: string }) => {
             {frame.found && `${count(frame.stats.pathLength, "step")} · cost ${frame.stats.pathCost} · `}
             {count(frame.stats.visited, "cell")} looked at
           </span>
-          <button
-            type="button"
-            onClick={() => setPathAlgorithm(next)}
-            className="rounded-full text-sm font-semibold underline decoration-line underline-offset-4 hover:decoration-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
-          >
+          <button type="button" onClick={() => setPathAlgorithm(next)} className={linkClass}>
             Try {pathAlgorithms[next].short}
+          </button>
+          <button type="button" onClick={() => pathRaceWith(algorithm)} className={linkClass}>
+            Race them
           </button>
         </div>
       )}

@@ -2,7 +2,7 @@ import { ChevronDownIcon, InfoCircledIcon, TimerIcon } from "@radix-ui/react-ico
 import * as Popover from "@radix-ui/react-popover";
 import { useState, type ComponentProps, type ReactNode } from "react";
 import { MAX_RACERS, useStore } from "@/store";
-import { RACE_DESCRIPTION } from "@/consts/race";
+import { PATH_RACE_DESCRIPTION, RACE_DESCRIPTION } from "@/consts/race";
 import { pathAlgorithms, pathTraits } from "@/consts/pathAlgorithms";
 import { useStageTitle } from "@/hooks/useStageTitle";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
@@ -81,7 +81,7 @@ const AlgorithmPicker = () => {
 };
 
 const RacersPicker = () => {
-  const count = useStore((s) => s.raceAlgorithms.length);
+  const count = useStore((s) => (s.module === "pathfinding" ? s.pathRaceAlgorithms : s.raceAlgorithms).length);
   return (
     <PickerPill
       label={
@@ -120,7 +120,7 @@ const AboutButton = () => {
   const pathAlgorithm = useStore((s) => (s.module === "pathfinding" ? s.pathAlgorithm : null));
   const sorting = useStore((s) => sortingAlgorithms[s.activeAlgorithm]);
   const { title, shortDescription, longDescription } = pathAlgorithm ? pathAlgorithms[pathAlgorithm] : sorting;
-  const isRace = view === "race" && !pathAlgorithm;
+  const isRace = view === "race";
   return (
     <Popover.Root>
       <Popover.Trigger asChild>
@@ -132,7 +132,7 @@ const AboutButton = () => {
         <Popover.Content align="start" sideOffset={8} className={cn(popoverClass, "w-[28rem] gap-4 p-6")}>
           <h2 className="text-xl font-semibold">{isRace ? "Race" : title}</h2>
           {isRace ? (
-            <p className="text-foreground/80">{RACE_DESCRIPTION}</p>
+            <p className="text-foreground/80">{pathAlgorithm ? PATH_RACE_DESCRIPTION : RACE_DESCRIPTION}</p>
           ) : (
             <>
               <p className="text-foreground/80">{shortDescription}</p>
@@ -159,8 +159,8 @@ const AboutButton = () => {
 /** One-line summary next to the picker: how the algorithm scales. */
 const Summary = () => {
   const summary = useStore((s) => {
+    if (s.view === "race") return s.module === "pathfinding" ? "Same grid, same clock" : "Same array, same clock";
     if (s.module === "pathfinding") return pathTraits(s.pathAlgorithm);
-    if (s.view === "race") return "Same array, same clock";
     const { average, worst } = sortingAlgorithms[s.activeAlgorithm].timeComplexity;
     return average === worst ? `${average} always` : `${average} avg · ${worst} worst`;
   });
@@ -170,15 +170,13 @@ const Summary = () => {
 /** Desktop: what's on stage (a pill to change it) on the left, the view and actions on the right. */
 export const TopBar = ({ className }: { className?: string }) => {
   const view = useStore((s) => s.view);
-  const isPath = useStore((s) => s.module === "pathfinding");
   return (
     <header className={cn("flex items-center gap-3", className)}>
       {view === "race" ? <RacersPicker /> : <AlgorithmPicker />}
       <AboutButton />
       <Summary />
       <div className="ml-auto flex items-center gap-2">
-        {/* Races are for sorting; pathfinding has a single view. */}
-        {!isPath && <ViewSwitch className="w-56" />}
+        <ViewSwitch className="w-56" />
         <ShareButton iconOnly />
         <ThemeToggle />
         <ShortcutsHelp />

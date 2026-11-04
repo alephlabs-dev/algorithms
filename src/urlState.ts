@@ -1,5 +1,6 @@
 import { sortAlgorithms } from "./algorithms";
 import { gridSizes, type GridSize } from "./pathfinding/grid";
+import { pathSearches } from "./pathfinding/searches";
 import type { PathAlgorithm } from "./pathfinding/types";
 import { routeFromPath } from "./routes";
 import { displayModes } from "./consts/displayModes";
@@ -75,6 +76,8 @@ export type PathUrlState = {
   cells?: string;
   start?: number;
   end?: number;
+  /** Who races on the grid, in the picker's order. */
+  racers?: PathAlgorithm[];
 };
 
 const readPathParams = (params: URLSearchParams): PathUrlState => {
@@ -87,6 +90,10 @@ const readPathParams = (params: URLSearchParams): PathUrlState => {
   const end = parseInt(params.get("to") ?? "", 36);
   if (Number.isInteger(start) && start >= 0) state.start = start;
   if (Number.isInteger(end) && end >= 0) state.end = end;
+  const algorithms = Object.keys(pathSearches) as PathAlgorithm[];
+  const racers = (params.get("race") ?? "").split(",");
+  const unique = algorithms.filter((a) => racers.includes(a));
+  if (unique.length >= MIN_RACERS && unique.length <= MAX_RACERS) state.racers = unique;
   return state;
 };
 
@@ -98,18 +105,26 @@ export const toPathSearch = (state: Required<PathUrlState> & { speed?: SpeedPres
     cells: state.cells,
     from: state.start.toString(36),
     to: state.end.toString(36),
+    race: state.racers.join(","),
     ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
   }).toString();
 
 /** Settings from a full location: the page (path) wins over legacy query parameters. */
 export const readLocation = (
   pathname: string,
-  search: string
-): Partial<UrlState> & { isHome: boolean; pathAlgorithm?: PathAlgorithm; path: PathUrlState } => {
+  search: string,
+): Partial<UrlState> & { isHome: boolean; isPath: boolean; pathAlgorithm?: PathAlgorithm; path: PathUrlState } => {
   const state = readUrlState(search);
   const route = routeFromPath(pathname);
-  if (route?.kind === "path") {
-    return { ...state, isHome: false, pathAlgorithm: route.algorithm, path: readPathParams(new URLSearchParams(search)) };
+  if (route?.kind === "path" || route?.kind === "pathRace") {
+    return {
+      ...state,
+      isHome: false,
+      isPath: true,
+      view: route.kind === "pathRace" ? "race" : "single",
+      ...(route.kind === "path" && { pathAlgorithm: route.algorithm }),
+      path: readPathParams(new URLSearchParams(search)),
+    };
   }
   if (route?.kind === "algorithm") {
     state.algorithm = route.algorithm;
@@ -119,7 +134,7 @@ export const readLocation = (
   }
   // The home page, unless an old ?algo=/?view= link picked something.
   const isHome = (route === null || route.kind === "home") && state.algorithm === undefined && state.view === undefined;
-  return { ...state, isHome, path: {} };
+  return { ...state, isHome, isPath: false, path: {} };
 };
 
 /** The query string for the settings that aren't part of the path. */

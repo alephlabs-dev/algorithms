@@ -9,7 +9,7 @@ import { useSettingsSummary } from "@/hooks/useSettingsSummary";
 import { MAX_RACERS, useStore } from "@/store";
 import type { Algorithm } from "@/types";
 import { cn } from "@/utils/cn";
-import { RACE_DESCRIPTION } from "@/consts/race";
+import { PATH_RACE_DESCRIPTION, RACE_DESCRIPTION } from "@/consts/race";
 import { Complexity, TourLink } from "./TopBar";
 import { RacerList } from "./Race/RacerPicker";
 import { ShareButton } from "./ShareButton";
@@ -123,22 +123,28 @@ const AlgorithmField = () => {
 
 /** Picking 2–4 racers doesn't fit a native select, so the same field opens a checklist. */
 const RacersField = () => {
-  const racers = useStore((s) => s.raceAlgorithms);
-  const names = racers.map((a) =>
-    sortingAlgorithms[a].title.replace(/ Sort$/, "").replace("Cocktail Shaker", "Cocktail"),
+  const names = useStore(
+    useShallow((s) =>
+      s.module === "pathfinding"
+        ? s.pathRaceAlgorithms.map((a) => pathAlgorithms[a].short)
+        : s.raceAlgorithms.map((a) =>
+            sortingAlgorithms[a].title.replace(/ Sort$/, "").replace("Cocktail Shaker", "Cocktail"),
+          ),
+    ),
   );
+
   return (
     <Drawer>
       <DrawerTrigger asChild>
         <button type="button" aria-label={`Racers: ${names.join(", ")}. Change`} className={cn(fieldClass, "relative")}>
           <span className="truncate">
-            {racers.length} racers{" "}
+            {names.length} racers{" "}
             <span className="font-sans text-sm font-normal text-foreground/70">· {names.join(", ")}</span>
           </span>
           <FieldChevron />
         </button>
       </DrawerTrigger>
-      <Sheet title={`Racers ${racers.length}/${MAX_RACERS}`}>
+      <Sheet title={`Racers ${names.length}/${MAX_RACERS}`}>
         <RacerList showHeader={false} />
       </Sheet>
     </Drawer>
@@ -146,21 +152,13 @@ const RacersField = () => {
 };
 
 /** The view switch and share link, above the picker. */
-const ViewRow = () => {
-  const isPath = useStore((s) => s.module === "pathfinding");
-  return (
-    <div className="flex items-center gap-2">
-      {/* Races are for sorting; pathfinding names its family instead. */}
-      {isPath ? (
-        <span className="flex-1 pl-2 text-sm font-semibold text-foreground/70">Pathfinding</span>
-      ) : (
-        <ViewSwitch className="flex-1" />
-      )}
-      <ShareButton iconOnly />
-      <ThemeToggle />
-    </div>
-  );
-};
+const ViewRow = () => (
+  <div className="flex items-center gap-2">
+    <ViewSwitch className="flex-1" />
+    <ShareButton iconOnly />
+    <ThemeToggle />
+  </div>
+);
 
 /** Phones and tablets: the view, then the algorithm as a field (tap to change), (i) and settings. */
 export const MobileTopBar = ({ className }: { className?: string }) => {
@@ -194,18 +192,21 @@ export const MobileTopBar = ({ className }: { className?: string }) => {
 };
 
 /** Race view on phones and tablets: the racers as a field, then settings. */
-export const MobileRaceBar = ({ className }: { className?: string }) => (
-  <div className={cn("flex flex-col gap-3", className)}>
-    <ViewRow />
-    <div className="flex items-center gap-1">
-      <RacersField />
-      <InfoButton label="Race">
-        <p className="text-foreground/80">{RACE_DESCRIPTION}</p>
-        <DrawerClose asChild>
-          <TourLink />
-        </DrawerClose>
-      </InfoButton>
-      <SettingsButton />
+export const MobileRaceBar = ({ className }: { className?: string }) => {
+  const isPath = useStore((s) => s.module === "pathfinding");
+  return (
+    <div className={cn("flex flex-col gap-3", className)}>
+      <ViewRow />
+      <div className="flex items-center gap-1">
+        <RacersField />
+        <InfoButton label="Race">
+          <p className="text-foreground/80">{isPath ? PATH_RACE_DESCRIPTION : RACE_DESCRIPTION}</p>
+          <DrawerClose asChild>
+            <TourLink />
+          </DrawerClose>
+        </InfoButton>
+        <SettingsButton />
+      </div>
     </div>
-  </div>
-);
+  );
+};

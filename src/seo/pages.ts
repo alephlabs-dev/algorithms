@@ -34,6 +34,15 @@ export const pageMeta = (route: Route): PageMeta => {
       description: `Race up to four sorting algorithms on the same array. ${RACE_DESCRIPTION}`.slice(0, 160),
     };
   }
+  if (route.kind === "pathRace") {
+    return {
+      path,
+      url,
+      title: "Pathfinding Race: BFS vs Dijkstra vs A* Side by Side · Aleph Labs",
+      description:
+        "Race BFS, DFS, Dijkstra, A* and Greedy Best-First Search on the same grid. See which looks at the fewest cells, and which finds the cheapest path.",
+    };
+  }
   if (route.kind === "path") {
     const { title, short } = pathAlgorithms[route.algorithm];
     const name = title.includes(short) ? title : `${title} (${short})`;
@@ -73,12 +82,12 @@ export const structuredData = (route: Route): object[] => {
     ];
   }
   const name =
-    route.kind === "race"
+    route.kind === "race" || route.kind === "pathRace"
       ? "Race"
       : route.kind === "path"
         ? pathAlgorithms[route.algorithm].title
         : sortingAlgorithms[route.algorithm].title;
-  const section = route.kind === "path" ? "Pathfinding" : "Sorting";
+  const section = route.kind === "path" || route.kind === "pathRace" ? "Pathfinding" : "Sorting";
   return [
     {
       "@context": "https://schema.org",
