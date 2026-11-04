@@ -12,26 +12,13 @@ export type Theme = "dark" | "light";
 
 const THEME_COLORS: Record<Theme, string> = { dark: "#0b0f0d", light: "#f2f5f9" };
 
-/** First-visit tips, in the order they can appear (see components/Hints). */
-export const HINTS = ["play", "narration", "speed", "picker"] as const;
-export type HintId = (typeof HINTS)[number];
+const TOUR_KEY = "tour-done";
 
-const HINTS_KEY = "seen-hints";
-
-const readSeenHints = (): HintId[] => {
+const tourDone = () => {
   try {
-    const saved: unknown = JSON.parse(localStorage.getItem(HINTS_KEY) ?? "[]");
-    return Array.isArray(saved) ? HINTS.filter((id) => saved.includes(id)) : [];
+    return localStorage.getItem(TOUR_KEY) === "true";
   } catch {
-    return [];
-  }
-};
-
-const saveSeenHints = (seen: HintId[]) => {
-  try {
-    localStorage.setItem(HINTS_KEY, JSON.stringify(seen));
-  } catch {
-    // Blocked storage: tips may show again next visit, which is harmless.
+    return false;
   }
 };
 
@@ -72,8 +59,8 @@ export type StoreState = {
   isHelpOpen: boolean;
   /** Dark (default) or light; saved in this browser and applied by index.html before first paint. */
   theme: Theme;
-  /** Tips already shown and dismissed, or made moot by using the feature. */
-  seenHints: HintId[];
+  /** The guided tour is showing. Opens by itself on the first visit. */
+  isTourOpen: boolean;
 
   setIsMobile: (isMobile: boolean) => void;
   setView: (view: View) => void;
@@ -88,8 +75,9 @@ export type StoreState = {
   setScrubbing: (isScrubbing: boolean) => void;
   setHelpOpen: (isHelpOpen: boolean) => void;
   setTheme: (theme: Theme) => void;
-  dismissHint: (id: HintId) => void;
-  resetHints: () => void;
+  openTour: () => void;
+  /** Closes the tour (finished or skipped) and remembers it was seen. */
+  closeTour: () => void;
   createNewArray: () => void;
 
   play: () => void;
@@ -180,17 +168,20 @@ export const useStore = create<StoreState>((set, get) => {
     isHelpOpen: false,
     theme: document.documentElement.dataset.theme === "light" ? "light" : "dark",
 
-    seenHints: readSeenHints(),
-    dismissHint: (id) => {
-      const { seenHints } = get();
-      if (seenHints.includes(id)) return;
-      const next = [...seenHints, id];
-      saveSeenHints(next);
-      set({ seenHints: next });
+    isTourOpen: !tourDone() && initial.view === "single",
+    openTour: () => {
+      // The tour walks through the single view.
+      if (get().view === "race") get().setView("single");
+      get().pause();
+      set({ isTourOpen: true, isHelpOpen: false });
     },
-    resetHints: () => {
-      saveSeenHints([]);
-      set({ seenHints: [] });
+    closeTour: () => {
+      try {
+        localStorage.setItem(TOUR_KEY, "true");
+      } catch {
+        // Blocked storage: the tour may open again next visit.
+      }
+      set({ isTourOpen: false });
     },
 
     setTheme: (theme) => {
@@ -262,7 +253,6 @@ export const useStore = create<StoreState>((set, get) => {
 
     // Keeps the same array so algorithms can be compared on identical data.
     setActiveAlgorithm: (algorithm) => {
-      get().dismissHint("picker");
       set((state) => ({
         activeAlgorithm: algorithm,
         ...newRun(algorithm, state.timeline.values),
@@ -292,8 +282,6 @@ export const useStore = create<StoreState>((set, get) => {
 
     setSpeedPreset: (speedPreset) => {
       set({ speedPreset });
-      // Using the feature teaches it better than the tip.
-      get().dismissHint("speed");
       applyAutoSpeed();
     },
     setScrubbing: (isScrubbing) => set({ isScrubbing }),

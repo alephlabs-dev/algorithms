@@ -4,19 +4,20 @@ import { SegmentedControl } from "./ui/segmented";
 
 export const ViewSwitch = ({ className }: { className?: string }) => {
   const { view, setView } = useStore(
-    useShallow((s) => ({ view: s.view, setView: s.setView }))
+    useShallow((s) => ({ view: s.view, setView: s.setView })),
   );
   return (
-    <SegmentedControl<View>
-      label="View"
-      options={[
-        { value: "single", label: "Visualize" },
-        { value: "race", label: "Race" },
-      ]}
-      value={view}
-      onChange={(next) => next !== view && setView(next)}
-      compact
-      className={className}
-    />
+    <div data-tour="race" className={className}>
+      <SegmentedControl<View>
+        label="View"
+        options={[
+          { value: "single", label: "Visualize" },
+          { value: "race", label: "Race" },
+        ]}
+        value={view}
+        onChange={(next) => next !== view && setView(next)}
+        compact
+      />
+    </div>
   );
 };

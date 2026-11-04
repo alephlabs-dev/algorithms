@@ -28,7 +28,7 @@ export const AlgorithmVisualizer = () => {
 
   // Full bleed: the bars sit on the page itself, with no panel around them.
   return (
-    <div className="relative flex h-full min-h-0 min-w-0 flex-col">
+    <div data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col">
       <ArrayCanvas
         frame={frame}
         values={values}

@@ -60,7 +60,7 @@ export const Controls = ({ className }: { className?: string }) => {
   const playButton = (
     <Button
       variant="primary"
-      data-hint="play"
+      data-tour="play"
       className="h-16 w-16 shrink-0 px-0 md:h-14 md:w-14 [&_svg]:size-6 md:[&_svg]:size-5"
       onClick={isPlaying ? pause : play}
       aria-label={playLabel}

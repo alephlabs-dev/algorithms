@@ -133,6 +133,7 @@ export const SettingsMenu = ({ className }: { className?: string }) => {
   return (
     <Popover.Root>
       <Popover.Trigger
+        data-tour="settings"
         aria-label={`Settings: ${s.size} items, ${inputOrders[s.inputOrder].label}. Change`}
         className={cn(
           "flex h-11 shrink-0 items-center gap-2 rounded-full border border-edge px-4 text-sm text-foreground transition-colors hover:bg-accent data-[state=open]:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",

@@ -1,6 +1,6 @@
 import { ChevronDownIcon, InfoCircledIcon, TimerIcon } from "@radix-ui/react-icons";
 import * as Popover from "@radix-ui/react-popover";
-import { useState, type ReactNode } from "react";
+import { useState, type ComponentProps, type ReactNode } from "react";
 import { MAX_RACERS, useStore } from "@/store";
 import { RACE_DESCRIPTION } from "@/consts/race";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
@@ -48,13 +48,13 @@ const PickerPill = ({
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   ariaLabel: string;
-  /** Lets a first-visit tip point at this pill. */
+  /** Lets the guided tour point at this pill. */
   hint?: string;
 }) => (
   <Popover.Root open={open} onOpenChange={onOpenChange}>
     <Popover.Trigger
       aria-label={ariaLabel}
-      data-hint={hint}
+      data-tour={hint}
       className="flex h-11 shrink-0 items-center gap-2 rounded-full border border-edge bg-surface pl-5 pr-4 text-lg font-semibold text-foreground transition-colors hover:bg-accent data-[state=open]:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
     >
       {label}
@@ -94,6 +94,24 @@ const RacersPicker = () => {
   );
 };
 
+/** Reopens the guided tour from the about popover and sheet. */
+export const TourLink = (props: ComponentProps<"button">) => {
+  const openTour = useStore((s) => s.openTour);
+  return (
+    <button
+      type="button"
+      {...props}
+      onClick={(event) => {
+        props.onClick?.(event);
+        openTour();
+      }}
+      className="self-start rounded-full text-sm font-semibold underline decoration-line underline-offset-4 hover:decoration-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+    >
+      Take the tour
+    </button>
+  );
+};
+
 /** The longer explanation, on demand, so the stage stays clear. */
 const AboutButton = () => {
   const view = useStore((s) => s.view);
@@ -118,6 +136,10 @@ const AboutButton = () => {
               <Complexity />
             </>
           )}
+          {/* Closing the popover first, so the tour has the page to itself. */}
+          <Popover.Close asChild>
+            <TourLink />
+          </Popover.Close>
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

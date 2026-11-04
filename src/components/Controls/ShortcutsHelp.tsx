@@ -14,7 +14,7 @@ const shortcuts: [keys: string[], action: string][] = [
 export const ShortcutsHelp = () => {
   const isOpen = useStore((s) => s.isHelpOpen);
   const setOpen = useStore((s) => s.setHelpOpen);
-  const resetHints = useStore((s) => s.resetHints);
+  const openTour = useStore((s) => s.openTour);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -60,8 +60,8 @@ export const ShortcutsHelp = () => {
           ))}
         </dl>
         <form method="dialog" className="mt-6 flex justify-between gap-2">
-          <Button variant="ghost" size="sm" onClick={resetHints} title="Show the first-visit tips again">
-            Show tips again
+          <Button variant="ghost" size="sm" onClick={openTour}>
+            Take the tour
           </Button>
           <Button size="sm">Close</Button>
         </form>

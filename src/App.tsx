@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import { AlgorithmVisualizer } from "./components/AlgorithmVisualizer";
 import { Controls } from "./components/Controls";
-import { Hints } from "./components/Hints";
 import { MobileRaceBar, MobileTopBar } from "./components/MobileTopBar";
 import { NowCard, StepCaption } from "./components/Pseudocode";
 import { RaceLanes } from "./components/Race/RaceLanes";
 import { Legend } from "./components/RunInfo";
 import { TopBar } from "./components/TopBar";
+import { Tour } from "./components/Tour";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import { MOBILE_QUERY, useStore } from "./store";
 
@@ -50,7 +50,7 @@ function App() {
         </>
       )}
       <Controls />
-      <Hints />
+      <Tour />
     </main>
   );
 }

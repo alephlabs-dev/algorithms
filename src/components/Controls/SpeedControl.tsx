@@ -16,7 +16,7 @@ const HELP = "1× is a comfortable pace for this array; it adapts to the array s
 export const SpeedControl = ({ className }: { className?: string }) => {
   const { preset, speed, setPreset } = useSpeed();
   return (
-    <div data-hint="speed" className={cn("flex items-center gap-3", className)} title={`${HELP} Now ${formatStepsPerSecond(speed)} steps per second.`}>
+    <div data-tour="speed" className={cn("flex items-center gap-3", className)} title={`${HELP} Now ${formatStepsPerSecond(speed)} steps per second.`}>
       <SegmentedControl<SpeedPreset>
         label="Speed"
         options={speedPresets.map((p) => ({ value: p, label: <span className="font-mono text-xs">{presetLabels[p]}</span>, title: `${presetLabels[p]} speed` }))}
@@ -35,7 +35,7 @@ export const SpeedCycleButton = ({ className }: { className?: string }) => {
   const next = speedPresets[(speedPresets.indexOf(preset) + 1) % speedPresets.length];
   return (
     <Button
-      data-hint="speed"
+      data-tour="speed"
       size="icon"
       className={cn("w-14 shrink-0 font-mono", className)}
       onClick={() => setPreset(next)}

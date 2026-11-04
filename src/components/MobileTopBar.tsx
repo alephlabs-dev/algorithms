@@ -8,13 +8,13 @@ import { MAX_RACERS, useStore } from "@/store";
 import type { Algorithm } from "@/types";
 import { cn } from "@/utils/cn";
 import { RACE_DESCRIPTION } from "@/consts/race";
-import { Complexity } from "./TopBar";
+import { Complexity, TourLink } from "./TopBar";
 import { RacerList } from "./Race/RacerPicker";
 import { ShareButton } from "./ShareButton";
 import { ThemeToggle } from "./ThemeToggle";
 import { SettingsPanel } from "./Settings/SettingsPanel";
 import { Button } from "./ui/button";
-import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
+import { Drawer, DrawerClose, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
 import { ViewSwitch } from "./ViewSwitch";
 
 /** Bottom sheet with a title and scrollable content. */
@@ -44,7 +44,7 @@ const SettingsButton = () => {
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        <Button size="icon" className="h-12 w-12 shrink-0" aria-label={`Settings: ${summary}`} title={summary}>
+        <Button data-tour="settings" size="icon" className="h-12 w-12 shrink-0" aria-label={`Settings: ${summary}`} title={summary}>
           <MixerHorizontalIcon />
         </Button>
       </DrawerTrigger>
@@ -75,7 +75,7 @@ const AlgorithmField = () => {
     useShallow((s) => ({ activeAlgorithm: s.activeAlgorithm, setActiveAlgorithm: s.setActiveAlgorithm }))
   );
   return (
-    <div data-hint="picker" className="relative min-w-0 flex-1">
+    <div data-tour="picker" className="relative min-w-0 flex-1">
       <select
         aria-label="Algorithm"
         value={activeAlgorithm}
@@ -142,6 +142,9 @@ export const MobileTopBar = ({ className }: { className?: string }) => {
           <p className="text-foreground/80">{shortDescription}</p>
           <p className="text-foreground/80">{longDescription}</p>
           <Complexity />
+          <DrawerClose asChild>
+            <TourLink />
+          </DrawerClose>
         </InfoButton>
         <SettingsButton />
       </div>
@@ -158,6 +161,9 @@ export const MobileRaceBar = ({ className }: { className?: string }) => (
       <RacersField />
       <InfoButton label="Race">
         <p className="text-foreground/80">{RACE_DESCRIPTION}</p>
+        <DrawerClose asChild>
+          <TourLink />
+        </DrawerClose>
       </InfoButton>
       <SettingsButton />
     </div>

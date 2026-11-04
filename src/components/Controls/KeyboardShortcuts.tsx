@@ -15,6 +15,8 @@ export const KeyboardShortcuts = () => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       // While the help dialog is open only "?" (to close it) applies.
+      // The tour handles its own keys (Esc, arrows) while it's open.
+      if (useStore.getState().isTourOpen) return;
       if (useStore.getState().isHelpOpen && event.key !== "?") return;
       // Events dispatched on document/window have no element target.
       const target = event.target instanceof Element ? event.target : null;
