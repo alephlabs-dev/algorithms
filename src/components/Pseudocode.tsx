@@ -79,7 +79,7 @@ export const PseudocodeCaption = ({ className }: { className?: string }) => {
       ? lines[line].trim()
       : atEnd && !atStart
         ? "Sorted!"
-        : "Press play or step through to start";
+        : "Press play to start";
 
   return (
     <Drawer>

@@ -1,12 +1,15 @@
-import { InfoCircledIcon, MixerHorizontalIcon } from "@radix-ui/react-icons";
+import { ChevronDownIcon, InfoCircledIcon, MixerHorizontalIcon } from "@radix-ui/react-icons";
 import type { ReactNode } from "react";
+import { useShallow } from "zustand/react/shallow";
+import { algorithmGroups } from "@/consts/algorithmGroups";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { useSettingsSummary } from "@/hooks/useSettingsSummary";
-import { useStore } from "@/store";
-import { AlgorithmChips } from "./AlgorithmList";
+import { MAX_RACERS, useStore } from "@/store";
+import type { Algorithm } from "@/types";
+import { cn } from "@/utils/cn";
 import { Complexity } from "./Header";
 import { RACE_DESCRIPTION } from "./Race/RaceHeader";
-import { RacerChips } from "./Race/RacerPicker";
+import { RacerList } from "./Race/RacerPicker";
 import { ShareButton } from "./ShareButton";
 import { SettingsPanel } from "./Settings/SettingsPanel";
 import { Button } from "./ui/button";
@@ -53,9 +56,72 @@ const SettingsButton = () => {
   );
 };
 
+// Shared look for the two field-style pickers: they read as "tap to change".
+const fieldClass =
+  "flex h-12 w-full min-w-0 items-center rounded-sm border-2 border-line bg-background pl-3 pr-10 text-left font-display text-lg font-semibold text-foreground transition-colors hover:border-foreground/60 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
+
+const FieldChevron = () => (
+  <ChevronDownIcon
+    aria-hidden
+    className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground/70"
+  />
+);
+
 /**
- * Phones and tablets: the algorithm's name with share and (i), every algorithm
- * as a chip one tap away, then one button for the settings.
+ * A native select styled as a field, so phones open their own picker (the
+ * iOS wheel, the Android list), grouped by family like the desktop sidebar.
+ */
+const AlgorithmField = () => {
+  const { activeAlgorithm, setActiveAlgorithm } = useStore(
+    useShallow((s) => ({ activeAlgorithm: s.activeAlgorithm, setActiveAlgorithm: s.setActiveAlgorithm }))
+  );
+  return (
+    <div className="relative min-w-0 flex-1">
+      <select
+        aria-label="Algorithm"
+        value={activeAlgorithm}
+        onChange={(event) => setActiveAlgorithm(event.target.value as Algorithm)}
+        className={cn(fieldClass, "appearance-none")}
+      >
+        {algorithmGroups.map((group) => (
+          <optgroup key={group.label} label={`${group.label} · ${group.hint}`}>
+            {group.algorithms.map((algorithm) => (
+              <option key={algorithm} value={algorithm}>
+                {sortingAlgorithms[algorithm].title}
+              </option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+      <FieldChevron />
+    </div>
+  );
+};
+
+/** Picking 2–4 racers doesn't fit a native select, so the same field opens a checklist. */
+const RacersField = () => {
+  const racers = useStore((s) => s.raceAlgorithms);
+  const names = racers.map((a) => sortingAlgorithms[a].title.replace(/ Sort$/, "").replace("Cocktail Shaker", "Cocktail"));
+  return (
+    <Drawer>
+      <DrawerTrigger asChild>
+        <button type="button" aria-label={`Racers: ${names.join(", ")}. Change`} className={cn(fieldClass, "relative")}>
+          <span className="truncate">
+            {racers.length} racers <span className="font-sans text-sm font-normal text-foreground/70">· {names.join(", ")}</span>
+          </span>
+          <FieldChevron />
+        </button>
+      </DrawerTrigger>
+      <Sheet title={`Racers ${racers.length}/${MAX_RACERS}`}>
+        <RacerList showHeader={false} />
+      </Sheet>
+    </Drawer>
+  );
+};
+
+/**
+ * Phones and tablets: the algorithm as a field (tap to change), share and (i),
+ * then one button for the settings.
  */
 export const MobileTopBar = ({ className }: { className?: string }) => {
   const activeAlgorithm = useStore((s) => s.activeAlgorithm);
@@ -64,8 +130,9 @@ export const MobileTopBar = ({ className }: { className?: string }) => {
   return (
     <div className={className}>
       <div className="flex flex-col gap-3">
+        <h1 className="sr-only">{title}</h1>
         <div className="flex items-center gap-1">
-          <h1 className="min-w-0 flex-1 truncate font-display text-xl font-semibold">{title}</h1>
+          <AlgorithmField />
           <ShareButton iconOnly />
           <InfoButton label={title}>
             <p className="text-foreground/80">{shortDescription}</p>
@@ -73,25 +140,24 @@ export const MobileTopBar = ({ className }: { className?: string }) => {
             <Complexity />
           </InfoButton>
         </div>
-        <AlgorithmChips />
         <SettingsButton />
       </div>
     </div>
   );
 };
 
-/** Race view on phones and tablets: title, racer chips, settings. */
+/** Race view on phones and tablets: the racers as a field, then settings. */
 export const MobileRaceBar = ({ className }: { className?: string }) => (
   <div className={className}>
     <div className="flex flex-col gap-3">
+      <h1 className="sr-only">Race</h1>
       <div className="flex items-center gap-1">
-        <h1 className="flex-1 font-display text-xl font-semibold">Race</h1>
+        <RacersField />
         <ShareButton iconOnly />
         <InfoButton label="Race">
           <p className="text-foreground/80">{RACE_DESCRIPTION}</p>
         </InfoButton>
       </div>
-      <RacerChips />
       <SettingsButton />
     </div>
   </div>
