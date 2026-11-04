@@ -251,15 +251,29 @@ export class FourierRenderer {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    if (index < 1) return;
-    ctx.strokeStyle = css(p.trace);
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    for (let i = 0; i <= index; i++) {
-      const [px, py] = at(run.tips[i]);
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
+    if (index >= 1) {
+      ctx.strokeStyle = css(p.trace);
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      for (let i = 0; i <= index; i++) {
+        const [px, py] = at(run.tips[i]);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
     }
-    ctx.stroke();
+
+    // A constellation's stars sit on top: a bright point with a soft halo.
+    for (const star of run.stars) {
+      const [sx, sy] = at(star);
+      ctx.fillStyle = css(p.ink, 0.18);
+      ctx.beginPath();
+      ctx.arc(sx, sy, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = css(p.ink);
+      ctx.beginPath();
+      ctx.arc(sx, sy, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 }

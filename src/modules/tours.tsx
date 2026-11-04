@@ -199,6 +199,7 @@ export const fourierTour: TourStep[] = [
   {
     anchor: "settings",
     title: "Change it",
-    text: () => "Circles, and for drawings which shape: a heart, a star, a figure eight, a square, or your own.",
+    text: () =>
+      "Circles, and for drawings which one: shapes, constellations like the Southern Cross or Orion, a cat, the ℵ… or your own.",
   },
 ];

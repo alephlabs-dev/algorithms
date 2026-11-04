@@ -5,7 +5,7 @@ import { inputOrders } from "@/consts/inputOrders";
 import { MAX_MOBILE_SIZE, sizes } from "@/consts/sizesMap";
 import { useStore } from "@/store";
 import type { DisplayMode, InputOrder } from "@/types";
-import { CirclesPicker, ShapeButtons } from "../Fourier/FourierTools";
+import { CirclesPicker, ShapeGrid } from "../Fourier/FourierTools";
 import { GraphPresetButtons, GraphSizePicker } from "../Graphs/GraphTools";
 import { BrushPicker, GridSizePicker, PresetButtons } from "../Pathfinding/PathTools";
 import { ListItem } from "../ui/list-item";
@@ -114,8 +114,8 @@ export const FourierSettings = () => {
         <CirclesPicker />
       </Field>
       {!wave && (
-        <Field label="Drawing" help="Draw ✎ lets you draw your own shape on the stage, in one stroke.">
-          <ShapeButtons />
+        <Field label="Drawing" help="“Draw your own” turns the stage into a canvas: draw a shape in one stroke.">
+          <ShapeGrid />
         </Field>
       )}
     </div>

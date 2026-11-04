@@ -56,12 +56,44 @@ export const fourierSeries: Record<FourierAlgorithm, SeriesDetails> = {
   },
 };
 
-export const shapeOptions: { value: FourierShape; label: string; title: string }[] = [
-  { value: "heart", label: "Heart", title: "A smooth curve: few circles do" },
-  { value: "star", label: "Star", title: "Sharp points need more circles" },
-  { value: "infinity", label: "Infinity", title: "A figure eight that crosses itself" },
-  { value: "square", label: "Square", title: "Corners: watch the circles round them off" },
-  { value: "custom", label: "Draw ✎", title: "Draw your own shape in one stroke" },
+export type ShapeOption = { value: FourierShape; label: string; title: string };
+
+/** The drawings to pick from, in groups. */
+export const shapeGroups: { label: string; shapes: ShapeOption[] }[] = [
+  {
+    label: "Shapes",
+    shapes: [
+      { value: "heart", label: "Heart", title: "A smooth curve: few circles do" },
+      { value: "star", label: "Star", title: "Sharp points need more circles" },
+      { value: "infinity", label: "Infinity", title: "A figure eight that crosses itself" },
+      { value: "square", label: "Square", title: "Corners: watch the circles round them off" },
+    ],
+  },
+  {
+    label: "Sky",
+    shapes: [
+      { value: "crux", label: "Southern Cross", title: "Crux: four bright stars, the southern sky's compass" },
+      { value: "orion", label: "Orion", title: "The hunter, with his belt of three stars" },
+      { value: "dipper", label: "Big Dipper", title: "The saucepan in the Great Bear" },
+      { value: "cassiopeia", label: "Cassiopeia", title: "The W of the queen" },
+    ],
+  },
+  {
+    label: "Drawings",
+    shapes: [
+      { value: "aleph", label: "Aleph", title: "ℵ, as in Aleph Labs" },
+      { value: "butterfly", label: "Butterfly", title: "Temple Fay's butterfly curve" },
+      { value: "fish", label: "Fish", title: "The fish curve" },
+      { value: "cat", label: "Cat", title: "A cat's head, ears and all" },
+      { value: "note", label: "Note", title: "A musical note" },
+      { value: "bolt", label: "Lightning", title: "A lightning bolt: all corners" },
+    ],
+  },
+];
+
+export const shapeOptions: ShapeOption[] = [
+  ...shapeGroups.flatMap((g) => g.shapes),
+  { value: "custom", label: "Draw your own", title: "Draw your own shape in one stroke" },
 ];
 
 export const shapeLabel = (shape: FourierShape) =>

@@ -1,5 +1,5 @@
 import { chainAt, dft, waveAt, waveTerms, type Wave } from "./series";
-import { shapePoints } from "./shapes";
+import { shapeData } from "./shapes";
 import type { FourierAlgorithm, FourierShape, Point, Term } from "./types";
 
 const last = <T>(list: T[]) => list[list.length - 1];
@@ -36,6 +36,8 @@ export class FourierRun {
   readonly terms: Term[];
   /** The drawing being rebuilt (drawings only), normalized. */
   readonly target: Point[];
+  /** A constellation's stars, in the same terms as `target`, to draw over it. */
+  readonly stars: Point[];
   /** The tip at every frame. */
   readonly tips: Point[];
   /** How far the circles' path is from the goal, as a share of its size, over a whole turn. */
@@ -52,8 +54,11 @@ export class FourierRun {
     if (isWave(algorithm)) {
       this.terms = waveTerms(algorithm, circles);
       this.target = [];
+      this.stars = [];
     } else {
-      this.target = shapePoints(shape, custom);
+      const { points, stars } = shapeData(shape, custom);
+      this.target = points;
+      this.stars = stars;
       this.terms = dft(this.target).slice(0, circles);
     }
     this.tips = Array.from({ length: this.length }, (_, i) => {

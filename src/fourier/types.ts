@@ -14,4 +14,19 @@ export type Term = { freq: number; amp: number; phase: number };
 /** A point in the plane; for drawings, a share of the drawing's size around its middle (−1 to 1). */
 export type Point = { x: number; y: number };
 
-export type FourierShape = "heart" | "star" | "infinity" | "square" | "custom";
+export type FourierShape =
+  | "heart"
+  | "star"
+  | "infinity"
+  | "square"
+  | "crux"
+  | "orion"
+  | "dipper"
+  | "cassiopeia"
+  | "aleph"
+  | "butterfly"
+  | "fish"
+  | "cat"
+  | "note"
+  | "bolt"
+  | "custom";

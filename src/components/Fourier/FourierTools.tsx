@@ -1,12 +1,17 @@
 import { useShallow } from "zustand/react/shallow";
-import { fourierSeries, shapeOptions } from "@/consts/fourierSeries";
-import { circleOptions, isWave } from "@/fourier";
+import { ChevronDownIcon } from "@radix-ui/react-icons";
+import * as Popover from "@radix-ui/react-popover";
+import { useState } from "react";
+import { fourierSeries, shapeGroups, shapeLabel, shapeOptions, type ShapeOption } from "@/consts/fourierSeries";
+import { circleOptions, isWave, type FourierShape } from "@/fourier";
 import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";
 import { FactLine } from "../ui/fact-line";
-import { PresetButtons } from "../ui/preset-buttons";
+import { popoverClass } from "../ui/popover";
+import { SectionLabel } from "../ui/section-label";
 import { SegmentedControl } from "../ui/segmented";
+import { ShapeThumb } from "./ShapeThumb";
 
 /** How many circles add up the series: the one control that shows the series converging. */
 export const CirclesPicker = ({ className }: { className?: string }) => {
@@ -34,11 +39,67 @@ export const CirclesPicker = ({ className }: { className?: string }) => {
   );
 };
 
-/** The drawings to rebuild, and drawing your own. */
-export const ShapeButtons = ({ className }: { className?: string }) => {
+const tileClass =
+  "flex min-w-0 flex-col items-center gap-1.5 rounded-2xl border px-1 py-2.5 text-[11px] transition-colors sm:px-2 sm:text-xs focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
+
+/** Every drawing as a tile with its miniature, in groups, then drawing your own. */
+export const ShapeGrid = ({ onPick, columns = "grid-cols-4" }: { onPick?: () => void; columns?: string }) => {
   const { shape, setShape } = useStore(useShallow((s) => ({ shape: s.fourierShape, setShape: s.setFourierShape })));
+  const pick = (value: FourierShape) => {
+    setShape(value);
+    onPick?.();
+  };
+  const tile = (option: ShapeOption) => (
+    <button
+      key={option.value}
+      type="button"
+      title={option.title}
+      aria-pressed={option.value === shape}
+      onClick={() => pick(option.value)}
+      className={cn(
+        tileClass,
+        option.value === shape
+          ? "border-foreground/60 bg-accent font-semibold text-foreground"
+          : "border-edge text-foreground/80 hover:bg-accent hover:text-foreground",
+      )}
+    >
+      <ShapeThumb shape={option.value} />
+      <span className="text-center leading-tight">{option.label}</span>
+    </button>
+  );
   return (
-    <PresetButtons label="Drawings" presets={shapeOptions} current={shape} onPick={setShape} className={className} />
+    <div className="flex flex-col gap-4">
+      {shapeGroups.map((group) => (
+        <div key={group.label} className="flex flex-col gap-2">
+          <SectionLabel>{group.label}</SectionLabel>
+          <div className={cn("grid gap-2", columns)}>{group.shapes.map(tile)}</div>
+        </div>
+      ))}
+      {tile(shapeOptions[shapeOptions.length - 1])}
+    </div>
+  );
+};
+
+/** Wide screens: a button showing the drawing on stage, opening the grid of drawings. */
+export const DrawingPicker = () => {
+  const [open, setOpen] = useState(false);
+  const shape = useStore((s) => s.fourierShape);
+  return (
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Trigger
+        aria-label={`Drawing: ${shapeLabel(shape)}. Change`}
+        className="flex h-10 items-center gap-2 rounded-full border border-line/70 pl-2 pr-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent data-[state=open]:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+      >
+        <ShapeThumb shape={shape} className="h-7 w-7" />
+        {shapeLabel(shape)}
+        <ChevronDownIcon className="h-4 w-4 text-foreground/60" />
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content align="start" sideOffset={8} className={cn(popoverClass, "w-[26rem] p-4")}>
+          <ShapeGrid onPick={() => setOpen(false)} />
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   );
 };
 
@@ -56,7 +117,7 @@ export const FourierTools = ({ className }: { className?: string }) => {
         <span className="text-sm text-foreground/70">Circles</span>
         <CirclesPicker className="w-72" />
       </div>
-      {!wave && <ShapeButtons />}
+      {!wave && <DrawingPicker />}
     </div>
   );
 };

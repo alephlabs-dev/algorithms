@@ -72,7 +72,7 @@ export const pageMeta = (route: Route): PageMeta => {
       url,
       title: "Fourier Series Visualizer: Waves and Drawings from Circles · Aleph Labs",
       description:
-        "Build a square, sawtooth or triangle wave from turning circles, or watch circles on circles retrace any drawing, even your own. See how the fit improves as you add circles.",
+        "Build a square, sawtooth or triangle wave from turning circles, or watch circles on circles retrace constellations, drawings or your own. See the fit improve with every circle.",
     };
   }
   if (route.kind === "series") {

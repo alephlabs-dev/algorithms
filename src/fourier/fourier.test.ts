@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { circleOptions, decodePath, dft, encodePath, FourierRun, shapePoints, waveAt, waveTerms } from ".";
+import { shapeOptions } from "@/consts/fourierSeries";
+import { circleOptions, decodePath, dft, encodePath, FourierRun, shapePoints, strokeWalk, waveAt, waveTerms } from ".";
 
 describe("fourier", () => {
   it("rebuilds each wave better with more circles, and nearly exactly with many", () => {
@@ -20,12 +21,51 @@ describe("fourier", () => {
 
   it("gives a drawing back exactly from all its circles, and roughly from a few", () => {
     for (const shape of ["heart", "star", "infinity", "square"] as const) {
-      expect(new FourierRun("epicycles", 256, shape, null).error).toBeLessThan(1e-9);
       expect(new FourierRun("epicycles", 25, shape, null).error).toBeLessThan(0.05);
       expect(new FourierRun("epicycles", 3, shape, null).error).toBeGreaterThan(
         new FourierRun("epicycles", 25, shape, null).error,
       );
     }
+  });
+
+  it("traces every ready-made drawing, exactly with all its circles", () => {
+    for (const { value } of shapeOptions.filter((o) => o.value !== "custom")) {
+      const all = new FourierRun("epicycles", 256, value, null);
+      expect(all.error).toBeLessThan(1e-9);
+      expect(all.target.every((p) => Math.hypot(p.x, p.y) <= 1 + 1e-9)).toBe(true);
+      expect(new FourierRun("epicycles", 100, value, null).error).toBeLessThan(0.03);
+    }
+    // Constellations keep their stars, moved with the drawing: in Orion every star is on a line, so on the path.
+    expect(new FourierRun("epicycles", 50, "crux", null).stars).toHaveLength(5);
+    const orion = new FourierRun("epicycles", 50, "orion", null);
+    for (const star of orion.stars) {
+      const nearest = Math.min(...orion.target.map((p) => Math.hypot(p.x - star.x, p.y - star.y)));
+      expect(nearest).toBeLessThan(0.03);
+    }
+  });
+
+  it("walks a line drawing there and back, ending where it began", () => {
+    const points = [
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 2, y: 0 },
+      { x: 1, y: 1 },
+    ];
+    const walk = strokeWalk(points, [
+      [0, 1],
+      [1, 2],
+      [1, 3],
+    ]);
+    expect(walk[0]).toEqual(walk[walk.length - 1]);
+    // Each stroke twice, so 2 × 3 steps.
+    expect(walk).toHaveLength(7);
+    // A stroke the start can't reach is an error, not a silently missing piece.
+    expect(() =>
+      strokeWalk(points, [
+        [0, 1],
+        [2, 3],
+      ]),
+    ).toThrow();
   });
 
   it("sorts circles biggest first, and the drawing ends where it started", () => {

@@ -155,7 +155,10 @@ export type FourierUrlState = {
   path?: string;
 };
 
-const fourierShapes: FourierShape[] = ["heart", "star", "infinity", "square", "custom"];
+const fourierShapes: FourierShape[] = [
+  ...(["heart", "star", "infinity", "square", "crux", "orion", "dipper", "cassiopeia"] as const),
+  ...(["aleph", "butterfly", "fish", "cat", "note", "bolt", "custom"] as const),
+];
 
 const readFourierParams = (params: URLSearchParams): FourierUrlState => {
   const state: FourierUrlState = {};
