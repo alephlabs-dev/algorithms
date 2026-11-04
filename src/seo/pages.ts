@@ -1,4 +1,5 @@
 import { fourierSeries } from "@/consts/fourierSeries";
+import { structures } from "@/consts/structures";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
@@ -64,6 +65,33 @@ export const pageMeta = (route: Route): PageMeta => {
       url,
       title: `${name} on a Graph, Visualized · Aleph Labs`,
       description: `See how ${title} walks a graph: drag nodes, join them, pick the start, then follow its ${structure.toLowerCase()} step by step with the pseudocode.`,
+    };
+  }
+  if (route.kind === "structures") {
+    return {
+      path,
+      url,
+      title: "Data Structure Visualizer: Binary Search and AVL Trees · Aleph Labs",
+      description:
+        "Insert, search and delete in a binary search tree or an AVL tree and watch every comparison and rotation, step by step with the pseudocode.",
+    };
+  }
+  if (route.kind === "structure") {
+    const { title, shortDescription } = structures[route.algorithm];
+    return {
+      path,
+      url,
+      title: `${title} Visualized: Insert, Search, Delete · Aleph Labs`,
+      description: shortDescription.slice(0, 200),
+    };
+  }
+  if (route.kind === "structureRace") {
+    return {
+      path,
+      url,
+      title: "BST vs AVL Tree: Why Balancing Matters · Aleph Labs",
+      description:
+        "The same values into a plain binary search tree and an AVL tree, side by side. Sorted input turns the BST into a list; the AVL tree rotates to stay short.",
     };
   }
   if (route.kind === "fourier") {
@@ -152,10 +180,16 @@ export const structuredData = (route: Route): object[] => {
     ];
   }
   const module = moduleOf(route) ?? "sorting";
-  const sectionNames = { sorting: "Sorting", pathfinding: "Pathfinding", graphs: "Graphs", fourier: "Fourier series" };
+  const sectionNames = {
+    sorting: "Sorting",
+    pathfinding: "Pathfinding",
+    graphs: "Graphs",
+    fourier: "Fourier series",
+    structures: "Data structures",
+  };
   const section = { name: sectionNames[module], url: `${SITE_URL}/${module}` };
   const name =
-    route.kind === "race" || route.kind === "pathRace" || route.kind === "graphRace"
+    route.kind === "race" || route.kind === "pathRace" || route.kind === "graphRace" || route.kind === "structureRace"
       ? "Race"
       : route.kind === "path"
         ? pathAlgorithms[route.algorithm].title
@@ -163,6 +197,8 @@ export const structuredData = (route: Route): object[] => {
           ? `${graphAlgorithms[route.algorithm].title} on a graph`
           : route.kind === "series"
             ? fourierSeries[route.algorithm].title
+            : route.kind === "structure"
+              ? structures[route.algorithm].title
         : route.kind === "algorithm"
           ? sortingAlgorithms[route.algorithm].title
           : null;

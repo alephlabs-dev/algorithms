@@ -2,6 +2,8 @@ import { sortAlgorithms } from "./algorithms";
 import { gridSizes, type GridSize } from "./pathfinding/grid";
 import { pathSearches } from "./pathfinding/searches";
 import type { FourierAlgorithm, FourierShape } from "./fourier/types";
+import { structurePresets, structureSizes, type StructurePreset, type StructureSize } from "./structures/presets";
+import type { StructureAlgorithm } from "./structures/types";
 import { graphPresets, graphSizes, type GraphPreset, type GraphSize } from "./graphs/graph";
 import type { GraphAlgorithm } from "./graphs/types";
 import type { PathAlgorithm } from "./pathfinding/types";
@@ -181,6 +183,29 @@ export const toFourierSearch = (state: { circles: number; shape?: FourierShape; 
     ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
   }).toString();
 
+/** A data structure's run as a link carries it: the operations so far, and what "new values" makes. */
+export type StructureUrlState = { ops?: string; size?: StructureSize; preset?: StructurePreset };
+
+const readStructureParams = (params: URLSearchParams): StructureUrlState => {
+  const state: StructureUrlState = {};
+  const ops = params.get("ops");
+  if (ops && /^[isd0-9.]+$/.test(ops)) state.ops = ops;
+  const size = params.get("values");
+  if (isOneOf(structureSizes, size)) state.size = size;
+  const preset = params.get("order");
+  if (isOneOf(structurePresets, preset)) state.preset = preset;
+  return state;
+};
+
+export const toStructureSearch = (state: Required<StructureUrlState> & { speed?: SpeedPreset }) =>
+  "?" +
+  new URLSearchParams({
+    ops: state.ops,
+    values: state.size,
+    order: state.preset,
+    ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
+  }).toString();
+
 /** Settings from a full location: the page (path) wins over legacy query parameters. */
 export const readLocation = (
   pathname: string,
@@ -188,16 +213,32 @@ export const readLocation = (
 ): Partial<UrlState> & {
   isLanding: boolean;
   isModuleStart: boolean;
-  module: "sorting" | "pathfinding" | "graphs" | "fourier";
+  module: "sorting" | "pathfinding" | "graphs" | "fourier" | "structures";
   pathAlgorithm?: PathAlgorithm;
   path: PathUrlState;
   graphAlgorithm?: GraphAlgorithm;
   graph: GraphUrlState;
   fourierAlgorithm?: FourierAlgorithm;
   fourier: FourierUrlState;
+  structureAlgorithm?: StructureAlgorithm;
+  structure: StructureUrlState;
 } => {
   const state = readUrlState(search);
   const route = routeFromPath(pathname);
+  if (route?.kind === "structures" || route?.kind === "structure" || route?.kind === "structureRace") {
+    return {
+      ...state,
+      isLanding: false,
+      isModuleStart: route.kind === "structures",
+      module: "structures",
+      view: route.kind === "structureRace" ? "race" : "single",
+      ...(route.kind === "structure" && { structureAlgorithm: route.algorithm }),
+      path: {},
+      graph: {},
+      fourier: {},
+      structure: readStructureParams(new URLSearchParams(search)),
+    };
+  }
   if (route?.kind === "fourier" || route?.kind === "series") {
     return {
       ...state,
@@ -209,6 +250,7 @@ export const readLocation = (
       path: {},
       graph: {},
       fourier: readFourierParams(new URLSearchParams(search)),
+      structure: {},
     };
   }
   if (route?.kind === "graph" || route?.kind === "graphs" || route?.kind === "graphRace") {
@@ -222,6 +264,7 @@ export const readLocation = (
       path: {},
       graph: readGraphParams(new URLSearchParams(search)),
       fourier: {},
+      structure: {},
     };
   }
   if (route?.kind === "path" || route?.kind === "pathRace" || route?.kind === "pathfinding") {
@@ -235,6 +278,7 @@ export const readLocation = (
       path: readPathParams(new URLSearchParams(search)),
       graph: {},
       fourier: {},
+      structure: {},
     };
   }
   if (route?.kind === "algorithm") {
@@ -246,7 +290,7 @@ export const readLocation = (
   // Old links put the algorithm in the query string of the home page (/?algo=quick): they open that algorithm.
   const legacy = state.algorithm !== undefined || state.view !== undefined;
   const isLanding = (route === null || route.kind === "home") && !legacy;
-  return { ...state, isLanding, isModuleStart: route?.kind === "sorting", module: "sorting", path: {}, graph: {}, fourier: {} };
+  return { ...state, isLanding, isModuleStart: route?.kind === "sorting", module: "sorting", path: {}, graph: {}, fourier: {}, structure: {} };
 };
 
 /** The query string for the settings that aren't part of the path. */

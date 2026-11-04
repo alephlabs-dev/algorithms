@@ -6,6 +6,7 @@ import { MAX_MOBILE_SIZE, sizes } from "@/consts/sizesMap";
 import { useStore } from "@/store";
 import type { DisplayMode, InputOrder } from "@/types";
 import { CirclesPicker, ShapeGrid } from "../Fourier/FourierTools";
+import { StructurePresetButtons, StructureSizePicker } from "../Structures/StructureTools";
 import { GraphPresetButtons, GraphSizePicker } from "../Graphs/GraphTools";
 import { BrushPicker, GridSizePicker, PresetButtons } from "../Pathfinding/PathTools";
 import { ListItem } from "../ui/list-item";
@@ -104,6 +105,18 @@ const Field = ({ label, help, children }: { label: string; help?: string; childr
 );
 
 // Each module's settings, stacked for the settings sheet and menu. Help is plain text since tooltips don't work on touch.
+
+/** Data structures' settings: how many values the tree starts with, in which order. */
+export const StructureSettings = () => (
+  <div className="flex flex-col gap-6">
+    <Field label="Starting values" help="Ascending values show why balancing matters: a plain BST turns into a list.">
+      <StructurePresetButtons />
+    </Field>
+    <Field label="How many" help="A new size starts a fresh tree. Insert, search and delete with the bar under the tree.">
+      <StructureSizePicker />
+    </Field>
+  </div>
+);
 
 /** Fourier's settings: how many circles, and for epicycles which drawing. */
 export const FourierSettings = () => {

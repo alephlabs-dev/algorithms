@@ -1,5 +1,6 @@
 import type { Route } from "@/routes";
 import { fourierSeries } from "./fourierSeries";
+import { structures } from "./structures";
 import { graphAlgorithms } from "./graphAlgorithms";
 import { pathAlgorithms } from "./pathAlgorithms";
 import { sortingAlgorithms } from "./sortingAlgorithms";
@@ -44,6 +45,12 @@ export const modules: ModuleInfo[] = [
     count: `${Object.keys(fourierSeries).length} series`,
     route: { kind: "fourier" },
   },
-  { id: "structures", title: "Data structures", summary: "Binary search trees, AVL rotations, heaps and hash tables." },
+  {
+    id: "structures",
+    title: "Data structures",
+    summary: "Binary search trees and self-balancing AVL trees you insert into, search and delete from.",
+    count: `${Object.keys(structures).length} trees`,
+    route: { kind: "structures" },
+  },
   { id: "dp", title: "Dynamic programming", summary: "Edit distance, LCS and knapsack, one table cell at a time." },
 ];

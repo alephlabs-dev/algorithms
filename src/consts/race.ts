@@ -1,6 +1,9 @@
 export const RACE_DESCRIPTION =
   "Same array, same clock. Each tick is one operation (a comparison, a swap or a write), so the lanes show how much work each algorithm really does.";
 
+export const STRUCTURE_RACE_DESCRIPTION =
+  "The same values, in the same order, into a plain binary search tree and an AVL tree. Each tick, both take one step. Feed them ascending values to see why balancing exists.";
+
 export const GRAPH_RACE_DESCRIPTION =
   "Same graph, same clock. Each tick, every algorithm takes one step, so the first to finish is the one with the least to do. Prim and Kruskal always end with trees of the same weight, by different routes.";
 

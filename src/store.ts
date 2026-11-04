@@ -36,6 +36,16 @@ import {
   type Point,
 } from "./fourier";
 import { engines, type ModuleId } from "./modules/engine";
+import {
+  decodeOperations,
+  presetOperations,
+  TreeRecorder,
+  type Operation,
+  type StructureAlgorithm,
+  type StructurePreset,
+  type StructureSize,
+} from "./structures";
+import { MAX_OPERATIONS } from "./structures/link";
 import { readLocation } from "./urlState";
 import { generateItems } from "./utils/generateItems";
 import { newSeed, seededRandom } from "./utils/random";
@@ -57,6 +67,7 @@ const TOUR_KEYS: Record<Module, string> = {
   pathfinding: "tour-done-pathfinding",
   graphs: "tour-done-graphs",
   fourier: "tour-done-fourier",
+  structures: "tour-done-structures",
 };
 
 export const tourDone = (module: Module) => {
@@ -102,6 +113,18 @@ export type StoreState = {
   fourierPath: Point[] | null;
   /** The whole run, precomputed: where the circles are at every degree. */
   fourierRun: FourierRun;
+  structureAlgorithm: StructureAlgorithm;
+  /** What "new values" makes, and how many. */
+  structurePreset: StructurePreset;
+  structureSize: StructureSize;
+  /** Every operation so far, starting with the preset's inserts. */
+  structureOps: Operation[];
+  /** All of them, recorded frame by frame. */
+  structureRun: TreeRecorder;
+  /** Race view: BST and AVL on the same operations. */
+  structureRaceRuns: TreeRecorder[];
+  /** Bumped when the values are replaced wholesale, so nodes don't glide between unrelated trees. */
+  structureId: number;
   /** Bumped when the graph is replaced wholesale, so nodes don't glide between layouts. */
   graphId: number;
   /** Searches racing on the grid, in the picker's order. */
@@ -180,6 +203,11 @@ export type StoreState = {
   /** A ready-made drawing, or "custom" to draw one (which clears the last hand-drawn one). */
   setFourierShape: (shape: FourierShape) => void;
   setFourierPath: (path: Point[]) => void;
+  setStructureAlgorithm: (algorithm: StructureAlgorithm) => void;
+  applyStructurePreset: (preset: StructurePreset) => void;
+  setStructureSize: (size: StructureSize) => void;
+  /** Does one more operation and plays it. */
+  runOperation: (op: Operation) => void;
   togglePathRacer: (algorithm: PathAlgorithm) => void;
   /** Switch to the pathfinding race with `algorithm` among the racers. */
   pathRaceWith: (algorithm: PathAlgorithm) => void;
@@ -256,6 +284,21 @@ const graphOrder: GraphAlgorithm[] = ["bfs", "dfs", "dijkstra", "prim", "kruskal
 const graphRaceTimelinesFor = (view: View, algorithms: GraphAlgorithm[], graph: Graph) =>
   view === "race" ? algorithms.map((a) => graphTimelineFor(a, graph)) : [];
 
+// The race is the point of AVL: the same operations, with and without balancing.
+const STRUCTURE_RACERS: StructureAlgorithm[] = ["bst", "avl"];
+
+const structureRaceRunsFor = (view: View, ops: Operation[]) =>
+  view === "race" ? STRUCTURE_RACERS.map((a) => new TreeRecorder(a, ops)) : [];
+
+/** The runs after the operations change: the single one and, in a race, both racers. */
+const structureRunsFor = (state: StoreState, ops: Operation[]) => ({
+  structureOps: ops,
+  structureRun: new TreeRecorder(state.structureAlgorithm, ops),
+  structureRaceRuns: structureRaceRunsFor(state.module === "structures" ? state.view : "single", ops),
+  frameIndex: 0,
+  isPlaying: false,
+});
+
 /** A circle count that fits the series: one of its options, the default if the asked-for one isn't. */
 const fitCircles = (algorithm: FourierAlgorithm, circles: number | undefined) => {
   const kind = isWave(algorithm) ? "wave" : "drawing";
@@ -328,6 +371,12 @@ const initial = (() => {
   const pathTimeline = pathTimelineFor(pathAlgorithm, grid);
   const pathRaceAlgorithms = url.path.racers ?? DEFAULT_PATH_RACERS;
   const pathRaceTimelines = pathRaceTimelinesFor(module === "pathfinding" ? view : "single", pathRaceAlgorithms, grid);
+  const structureAlgorithm = url.structureAlgorithm ?? "avl";
+  const structurePreset = url.structure.preset ?? "example";
+  const structureSize = url.structure.size ?? (isMobile ? "small" : "medium");
+  const structureOps =
+    (url.structure.ops && decodeOperations(url.structure.ops)) ||
+    presetOperations(structurePreset, structureSize, seededRandom(newSeed()));
   const fourierAlgorithm = url.fourierAlgorithm ?? "square";
   const fourierShape = url.fourier.shape ?? "heart";
   const fourierPath = url.fourier.path ? decodePath(url.fourier.path) : null;
@@ -359,6 +408,12 @@ const initial = (() => {
     fourierShape,
     fourierPath,
     fourierRun: new FourierRun(fourierAlgorithm, fourierCircles, fourierShape, fourierPath),
+    structureAlgorithm,
+    structurePreset,
+    structureSize,
+    structureOps,
+    structureRun: new TreeRecorder(structureAlgorithm, structureOps),
+    structureRaceRuns: structureRaceRunsFor(module === "structures" ? view : "single", structureOps),
     graphRaceAlgorithms: url.graph.racers ?? DEFAULT_GRAPH_RACERS,
     graphRaceTimelines: graphRaceTimelinesFor(
       module === "graphs" ? view : "single",
@@ -403,6 +458,7 @@ export const useStore = create<StoreState>((set, get) => {
     arrayId: 0,
     gridId: 0,
     graphId: 0,
+    structureId: 0,
     frameIndex: 0,
     isPlaying: false,
     isScrubbing: false,
@@ -498,6 +554,7 @@ export const useStore = create<StoreState>((set, get) => {
           state.graphRaceAlgorithms,
           state.graph,
         ),
+        structureRaceRuns: structureRaceRunsFor(state.module === "structures" ? view : "single", state.structureOps),
       }));
       applyAutoSpeed();
     },
@@ -614,6 +671,7 @@ export const useStore = create<StoreState>((set, get) => {
       // In pathfinding, "new" means another layout of the same kind (a clear grid becomes a maze).
       if (module === "pathfinding") applyGridPreset(gridPreset === "clear" ? "maze" : gridPreset);
       else if (module === "graphs") applyGraphPreset(graphPreset);
+      else if (module === "structures") get().applyStructurePreset(get().structurePreset);
       else if (module === "fourier") {
         // "New" adds circles, wrapping back to the fewest: the quickest way to see the series converge.
         const { fourierAlgorithm, fourierCircles, setFourierCircles } = get();
@@ -686,6 +744,50 @@ export const useStore = create<StoreState>((set, get) => {
 
     editGraph: (graph) => {
       set((state) => graphRunFor(state, graph));
+      applyAutoSpeed();
+    },
+
+    setStructureAlgorithm: (algorithm) => {
+      set((state) => ({
+        module: "structures",
+        view: "single",
+        isModuleStart: false,
+        structureAlgorithm: algorithm,
+        structureRun: new TreeRecorder(algorithm, state.structureOps),
+        raceTimelines: [],
+        pathRaceTimelines: [],
+        graphRaceTimelines: [],
+        structureRaceRuns: [],
+        frameIndex: 0,
+        isPlaying: false,
+      }));
+      applyAutoSpeed();
+    },
+
+    applyStructurePreset: (structurePreset) => {
+      set((state) => {
+        const ops = presetOperations(structurePreset, state.structureSize, seededRandom(newSeed()));
+        return { structurePreset, ...structureRunsFor(state, ops), structureId: state.structureId + 1 };
+      });
+      applyAutoSpeed();
+    },
+
+    setStructureSize: (structureSize) => {
+      set((state) => {
+        const ops = presetOperations(state.structurePreset, structureSize, seededRandom(newSeed()));
+        return { structureSize, ...structureRunsFor(state, ops), structureId: state.structureId + 1 };
+      });
+      applyAutoSpeed();
+    },
+
+    runOperation: (op) => {
+      set((state) => {
+        const ops = [...state.structureOps, op].slice(-MAX_OPERATIONS);
+        const runs = structureRunsFor(state, ops);
+        // Play just the new operation; a race replays everything, so both trees start even.
+        const start = state.view === "race" ? 0 : runs.structureRun.opStarts[runs.structureRun.opStarts.length - 1];
+        return { ...runs, frameIndex: start, isPlaying: true };
+      });
       applyAutoSpeed();
     },
 

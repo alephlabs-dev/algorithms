@@ -203,3 +203,40 @@ export const fourierTour: TourStep[] = [
       "Circles, and for drawings which one: shapes, constellations like the Southern Cross or Orion, a cat, the ℵ… or your own.",
   },
 ];
+
+export const structuresTour: TourStep[] = [
+  {
+    anchor: "picker",
+    title: "Pick a tree",
+    text: () => "A plain binary search tree, or an AVL tree that rebalances itself as it goes.",
+  },
+  {
+    anchor: "bars",
+    title: "The tree",
+    text: () => "Smaller values to the left, bigger to the right, at every node. Press play to watch it built one insert at a time.",
+  },
+  {
+    anchor: "structure",
+    title: "Operate on it",
+    text: () => "Type a value, then insert, find or delete it. Each operation plays step by step: every comparison, and every rotation an AVL tree makes.",
+  },
+  {
+    anchor: "tools",
+    phoneAnchor: "settings",
+    title: "Starting values",
+    text: ({ phone }) =>
+      `${phone ? "In settings: try" : "Try"} ascending values: a plain BST turns into a long list, while an AVL tree keeps rotating to stay short.`,
+  },
+  {
+    anchor: "play",
+    title: "Play it",
+    text: ({ wide }) =>
+      `Watch it, or go one step at a time with the buttons on either side.${wide ? " On a keyboard: Space, ← and →." : ""}`,
+  },
+  {
+    anchor: "narration",
+    title: "Follow each step",
+    text: ({ wide }) =>
+      wide ? "The code it's running, and each step in plain words." : "Each step in plain words. Tap it to see the code.",
+  },
+];

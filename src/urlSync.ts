@@ -41,7 +41,14 @@ const applyRoute = (route: Route) => {
     return;
   }
   const inPath = store.module === "pathfinding";
-  if (route.kind === "series" || route.kind === "fourier") {
+  if (route.kind === "structure" || route.kind === "structures") {
+    const algorithm = route.kind === "structure" ? route.algorithm : store.structureAlgorithm;
+    if (store.module !== "structures" || store.view !== "single" || store.structureAlgorithm !== algorithm)
+      store.setStructureAlgorithm(algorithm);
+  } else if (route.kind === "structureRace") {
+    if (store.module !== "structures") store.setStructureAlgorithm(store.structureAlgorithm);
+    if (useStore.getState().view !== "race") store.setView("race");
+  } else if (route.kind === "series" || route.kind === "fourier") {
     const algorithm = route.kind === "series" ? route.algorithm : store.fourierAlgorithm;
     if (store.module !== "fourier" || store.fourierAlgorithm !== algorithm) store.setFourierAlgorithm(algorithm);
   } else if (route.kind === "graph" || route.kind === "graphs") {
@@ -68,7 +75,11 @@ const applyRoute = (route: Route) => {
   useStore.setState({
     isLanding: false,
     isModuleStart:
-      route.kind === "sorting" || route.kind === "pathfinding" || route.kind === "graphs" || route.kind === "fourier",
+      route.kind === "sorting" ||
+      route.kind === "pathfinding" ||
+      route.kind === "graphs" ||
+      route.kind === "fourier" ||
+      route.kind === "structures",
   });
 };
 
