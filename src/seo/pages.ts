@@ -1,3 +1,4 @@
+import { fourierSeries } from "@/consts/fourierSeries";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
@@ -65,6 +66,27 @@ export const pageMeta = (route: Route): PageMeta => {
       description: `See how ${title} walks a graph: drag nodes, join them, pick the start, then follow its ${structure.toLowerCase()} step by step with the pseudocode.`,
     };
   }
+  if (route.kind === "fourier") {
+    return {
+      path,
+      url,
+      title: "Fourier Series Visualizer: Waves and Drawings from Circles · Aleph Labs",
+      description:
+        "Build a square, sawtooth or triangle wave from turning circles, or watch circles on circles retrace constellations, drawings or your own. See the fit improve with every circle.",
+    };
+  }
+  if (route.kind === "series") {
+    const { title, shortDescription } = fourierSeries[route.algorithm];
+    return {
+      path,
+      url,
+      title:
+        route.algorithm === "epicycles"
+          ? "Fourier Epicycles: Draw Any Shape with Circles · Aleph Labs"
+          : `${title} Fourier Series, Visualized with Circles · Aleph Labs`,
+      description: shortDescription.slice(0, 200),
+    };
+  }
   if (route.kind === "graphRace") {
     return {
       path,
@@ -130,7 +152,7 @@ export const structuredData = (route: Route): object[] => {
     ];
   }
   const module = moduleOf(route) ?? "sorting";
-  const sectionNames = { sorting: "Sorting", pathfinding: "Pathfinding", graphs: "Graphs" };
+  const sectionNames = { sorting: "Sorting", pathfinding: "Pathfinding", graphs: "Graphs", fourier: "Fourier series" };
   const section = { name: sectionNames[module], url: `${SITE_URL}/${module}` };
   const name =
     route.kind === "race" || route.kind === "pathRace" || route.kind === "graphRace"
@@ -139,6 +161,8 @@ export const structuredData = (route: Route): object[] => {
         ? pathAlgorithms[route.algorithm].title
         : route.kind === "graph"
           ? `${graphAlgorithms[route.algorithm].title} on a graph`
+          : route.kind === "series"
+            ? fourierSeries[route.algorithm].title
         : route.kind === "algorithm"
           ? sortingAlgorithms[route.algorithm].title
           : null;

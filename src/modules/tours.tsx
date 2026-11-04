@@ -162,3 +162,44 @@ export const graphsTour: TourStep[] = [
     text: () => "Fewer nodes to read along, or more to see the pattern.",
   },
 ];
+
+export const fourierTour: TourStep[] = [
+  {
+    anchor: "picker",
+    title: "Pick a series",
+    text: () => "Three waves built from sines, or a drawing traced by circles on circles.",
+  },
+  {
+    anchor: "bars",
+    title: "The circles",
+    text: () =>
+      "Each circle turns at its own speed on the tip of the one before. The last tip draws: the wave on the right, or the shape.",
+  },
+  {
+    anchor: "tools",
+    phoneAnchor: "settings",
+    title: "How many circles",
+    text: ({ phone }) =>
+      `${phone ? "In settings: the" : "The"} whole lesson. With one circle you get a plain sine; add more and corners sharpen, until the shape comes back.`,
+  },
+  {
+    anchor: "play",
+    title: "Play it",
+    text: ({ wide }) =>
+      `Watch it turn, or go a degree at a time with the buttons on either side.${wide ? " On a keyboard: Space, ← and →." : ""}`,
+  },
+  {
+    anchor: "narration",
+    title: "Follow along",
+    text: ({ wide }) =>
+      wide
+        ? "The math it's running, and how close the circles are to the goal right now."
+        : "How close the circles are to the goal right now. Tap it to see the math.",
+  },
+  {
+    anchor: "settings",
+    title: "Change it",
+    text: () =>
+      "Circles, and for drawings which one: shapes, constellations like the Southern Cross or Orion, a cat, the ℵ… or your own.",
+  },
+];

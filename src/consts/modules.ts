@@ -1,4 +1,5 @@
 import type { Route } from "@/routes";
+import { fourierSeries } from "./fourierSeries";
 import { graphAlgorithms } from "./graphAlgorithms";
 import { pathAlgorithms } from "./pathAlgorithms";
 import { sortingAlgorithms } from "./sortingAlgorithms";
@@ -13,7 +14,7 @@ export type ModuleInfo = {
   route?: Route;
 };
 
-/** Every module, open ones first, in the order the landing page lists them. */
+/** Every module, open ones first (newest last), in the order the landing page lists them. */
 export const modules: ModuleInfo[] = [
   {
     id: "sorting",
@@ -36,7 +37,13 @@ export const modules: ModuleInfo[] = [
     count: `${Object.keys(graphAlgorithms).length} algorithms`,
     route: { kind: "graphs" },
   },
+  {
+    id: "fourier",
+    title: "Fourier series",
+    summary: "Square, sawtooth and triangle waves built from circles, and circles on circles that draw any shape.",
+    count: `${Object.keys(fourierSeries).length} series`,
+    route: { kind: "fourier" },
+  },
   { id: "structures", title: "Data structures", summary: "Binary search trees, AVL rotations, heaps and hash tables." },
   { id: "dp", title: "Dynamic programming", summary: "Edit distance, LCS and knapsack, one table cell at a time." },
-  { id: "fourier", title: "Fourier series", summary: "Circles on circles that draw any shape." },
 ];

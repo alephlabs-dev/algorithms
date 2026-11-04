@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { pseudocode } from "@/algorithms";
+import { fourierSeries } from "@/consts/fourierSeries";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
+import { fourierPseudocode, type FourierAlgorithm } from "@/fourier";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { graphPseudocode, type GraphAlgorithm } from "@/graphs";
 import { MUD_COST, pathPseudocode, type PathAlgorithm } from "@/pathfinding";
@@ -460,6 +462,81 @@ const GraphRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) 
   </>
 );
 
+const seriesOrder = Object.keys(fourierSeries) as FourierAlgorithm[];
+
+const FourierArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
+  <>
+    <header className="flex flex-col gap-3">
+      <h1 className="text-display font-semibold">Fourier series</h1>
+      <p className="text-lg text-foreground/80">
+        Any repeating wave, and any closed drawing, can be built from circles turning at whole-number speeds. Watch
+        them add up, and see how the fit improves with every circle you add.
+      </p>
+    </header>
+    <Section title="All series">
+      <ul className="flex flex-col divide-y divide-edge">
+        {seriesOrder.map((algorithm) => (
+          <li key={algorithm} className="flex flex-col gap-1 py-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+              <PageLink to={{ kind: "series", algorithm }} onNavigate={onNavigate}>
+                {fourierSeries[algorithm].title}
+              </PageLink>
+              <span className="font-mono text-xs text-foreground/60">{fourierSeries[algorithm].speeds}</span>
+            </div>
+            <p className="text-sm text-foreground/75">{fourierSeries[algorithm].shortDescription}</p>
+          </li>
+        ))}
+      </ul>
+    </Section>
+    <Section title="Why circles?">
+      <p className="leading-relaxed text-foreground/80">
+        A circle turning at a steady speed is the simplest repeating motion there is, and its height over time is a
+        sine. Joseph Fourier showed in 1807 that repeating signals can be written as sums of sines; stacking each one
+        as a circle on the tip of the last turns that sum into something you can watch. The same idea is behind JPEG
+        images, MP3 audio and how phones tell voices apart.
+      </p>
+    </Section>
+  </>
+);
+
+const SeriesArticle = ({ algorithm, onNavigate }: { algorithm: FourierAlgorithm; onNavigate?: Props["onNavigate"] }) => {
+  const { title, shortDescription, longDescription, formula } = fourierSeries[algorithm];
+  return (
+    <>
+      <header className="flex flex-col gap-3">
+        <h1 className="text-display font-semibold">{title}</h1>
+        <p className="text-lg text-foreground/80">{shortDescription}</p>
+      </header>
+      <Section title="How it works">
+        <p className="leading-relaxed text-foreground/80">{longDescription}</p>
+      </Section>
+      <Section title="The series">
+        <p className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[15px]">{formula}</p>
+      </Section>
+      <Section title="Pseudocode">
+        <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
+          {fourierPseudocode[algorithm].join("\n")}
+        </pre>
+      </Section>
+      <Section title="More series">
+        <ul className="flex flex-wrap gap-x-6 gap-y-2">
+          {seriesOrder.map((other) => (
+            <li key={other}>
+              {other === algorithm ? (
+                <span className="font-semibold">{fourierSeries[other].title}</span>
+              ) : (
+                <PageLink to={{ kind: "series", algorithm: other }} onNavigate={onNavigate}>
+                  {fourierSeries[other].title}
+                </PageLink>
+              )}
+            </li>
+          ))}
+        </ul>
+      </Section>
+    </>
+  );
+};
+
 export const About = ({ route, onNavigate }: Props) => (
   <article id="about" className="mx-auto flex w-full max-w-3xl flex-col gap-12 px-4 pb-20 pt-16 text-foreground md:px-6">
     {route.kind === "sorting" && <SortingArticle onNavigate={onNavigate} />}
@@ -471,6 +548,8 @@ export const About = ({ route, onNavigate }: Props) => (
     {route.kind === "graphs" && <GraphsArticle onNavigate={onNavigate} />}
     {route.kind === "graph" && <GraphArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
     {route.kind === "graphRace" && <GraphRaceArticle onNavigate={onNavigate} />}
+    {route.kind === "fourier" && <FourierArticle onNavigate={onNavigate} />}
+    {route.kind === "series" && <SeriesArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
     <footer className="border-t border-edge pt-6 text-sm text-foreground/60">
       <PageLink
         to={{ kind: "home" }}

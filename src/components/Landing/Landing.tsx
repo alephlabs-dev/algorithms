@@ -4,7 +4,7 @@ import type { Route } from "@/routes";
 import { cn } from "@/utils/cn";
 import { PageLink } from "../PageLink";
 import { HeroDemo } from "./HeroDemo";
-import { GraphThumb, PathThumb, SortingThumb } from "./Thumbnails";
+import { FourierThumb, GraphThumb, PathThumb, SortingThumb } from "./Thumbnails";
 
 type Props = {
   /** In the app, links switch pages without reloading; in prerendered HTML they're plain links. */
@@ -29,6 +29,7 @@ const thumbs: Record<string, ReactNode> = {
   sorting: <SortingThumb className="h-16 w-full" />,
   pathfinding: <PathThumb className="w-full" />,
   graphs: <GraphThumb className="h-20 w-full" />,
+  fourier: <FourierThumb className="h-24 w-full" />,
 };
 
 /**

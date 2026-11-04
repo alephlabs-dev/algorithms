@@ -46,6 +46,8 @@ export type ModuleUI = {
 
   /** The settings in a few words: for the dock's pill and the phone's settings button. */
   settingsSummary: (s: StoreState) => { main: string; detail: string; mono?: boolean; label: string };
+  /** How the timeline reads its position in single view, if not "step 12 / 340". */
+  progress?: (index: number, last: number) => string;
   /** "New array", "New layout": what the dock's regenerate button makes. */
   newRunLabel: string;
 
