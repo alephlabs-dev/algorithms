@@ -27,6 +27,7 @@ describe("speed", () => {
     const base = stepsPerSecond(speedFor("1x", steps, "single"));
     expect(stepsPerSecond(speedFor("2x", steps, "single"))).toBeCloseTo(base * 2);
     expect(stepsPerSecond(speedFor("0.5x", steps, "single"))).toBeCloseTo(base / 2);
-    expect(speedFor("max", steps, "single")).toBe(1);
+    expect(stepsPerSecond(speedFor("8x", steps, "single"))).toBeCloseTo(base * 8);
+    expect(stepsPerSecond(speedFor("0.25x", steps, "single"))).toBeCloseTo(base / 4);
   });
 });

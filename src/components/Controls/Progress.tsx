@@ -33,7 +33,7 @@ export const Progress = ({ className }: { className?: string }) => {
         onPointerDown={() => setScrubbing(true)}
         onValueCommit={() => setScrubbing(false)}
       />
-      <div className="flex items-baseline justify-between gap-3 font-mono text-xs text-foreground/70">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 font-mono text-xs text-foreground/70">
         <span aria-hidden className="whitespace-nowrap">
           {isRace ? "" : "step "}
           {format(frameIndex)} / {format(lastIndex)}

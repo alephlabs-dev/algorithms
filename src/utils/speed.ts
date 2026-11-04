@@ -38,28 +38,23 @@ const TARGET_SECONDS = { single: 240, race: 30 } as const;
 export const autoSpeed = (steps: number, view: keyof typeof TARGET_SECONDS) =>
   Math.max(DEFAULT_SPEED, speedForStepsPerSecond(steps / TARGET_SECONDS[view]));
 
-export const speedPresets = ["0.5x", "1x", "2x", "4x", "max"] as const;
+// Each preset doubles the one before it, so every jump feels the same.
+export const speedPresets = ["0.25x", "0.5x", "1x", "2x", "4x", "8x"] as const;
 export type SpeedPreset = (typeof speedPresets)[number];
 export const DEFAULT_PRESET: SpeedPreset = "1x";
 
-export const presetLabels: Record<SpeedPreset, string> = {
-  "0.5x": "0.5×",
-  "1x": "1×",
-  "2x": "2×",
-  "4x": "4×",
-  max: "Max",
-};
+const multipliers: Record<SpeedPreset, number> = { "0.25x": 0.25, "0.5x": 0.5, "1x": 1, "2x": 2, "4x": 4, "8x": 8 };
 
-const multipliers: Record<Exclude<SpeedPreset, "max">, number> = { "0.5x": 0.5, "1x": 1, "2x": 2, "4x": 4 };
+export const presetLabels = Object.fromEntries(
+  speedPresets.map((p) => [p, `${multipliers[p]}×`])
+) as Record<SpeedPreset, string>;
 
 /**
  * The speed for a preset on a run of `steps` steps: 1× is a comfortable pace for
- * that run (see autoSpeed), the others are multiples of it, and Max is the top speed.
+ * that run (see autoSpeed) and the others are multiples of it.
  */
 export const speedFor = (preset: SpeedPreset, steps: number, view: keyof typeof TARGET_SECONDS) =>
-  preset === "max"
-    ? 1
-    : Math.min(1, autoSpeed(steps, view) + Math.log2(multipliers[preset]) / DOUBLINGS);
+  Math.min(1, Math.max(0, autoSpeed(steps, view) + Math.log2(multipliers[preset]) / DOUBLINGS));
 
 /**
  * Share of a full step each kind of step takes during playback. Moves get the

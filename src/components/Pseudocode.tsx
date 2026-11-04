@@ -77,8 +77,8 @@ const Narration = ({ className }: { className?: string }) => {
 };
 
 /**
- * "Now": the code with the current line, the step in plain words and the
- * legend, as a floating card beside the bars. Wide screens.
+ * The code with the current line, the step in plain words and the legend,
+ * as a card beside the bars. Wide screens.
  */
 export const NowCard = ({ className }: { className?: string }) => {
   const { lines, line, tooFast } = usePseudocode();
@@ -88,7 +88,7 @@ export const NowCard = ({ className }: { className?: string }) => {
       className={cn("flex min-h-0 flex-col gap-4 overflow-y-auto rounded-3xl border border-edge bg-surface p-5", className)}
     >
       <SectionLabel className="flex items-center gap-2">
-        <CodeIcon className="h-4 w-4" /> Now
+        <CodeIcon className="h-4 w-4" /> Pseudocode
       </SectionLabel>
       <div className={cn("-mx-3 transition-opacity duration-300", { "opacity-40": tooFast })}>
         <CodeLines lines={lines} line={tooFast ? null : line} />

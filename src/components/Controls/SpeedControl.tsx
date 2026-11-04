@@ -19,11 +19,11 @@ export const SpeedControl = ({ className }: { className?: string }) => {
     <div className={cn("flex items-center gap-3", className)} title={`${HELP} Now ${formatStepsPerSecond(speed)} steps per second.`}>
       <SegmentedControl<SpeedPreset>
         label="Speed"
-        options={speedPresets.map((p) => ({ value: p, label: <span className="font-mono">{presetLabels[p]}</span>, title: `${presetLabels[p]} speed` }))}
+        options={speedPresets.map((p) => ({ value: p, label: <span className="font-mono text-xs">{presetLabels[p]}</span>, title: `${presetLabels[p]} speed` }))}
         value={preset}
         onChange={setPreset}
         compact
-        className="w-56"
+        className="w-64 xl:w-80"
       />
           </div>
   );
