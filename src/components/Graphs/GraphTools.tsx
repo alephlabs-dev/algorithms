@@ -49,10 +49,56 @@ const Swatch = ({ className, label }: { className: string; label: string }) => (
   </li>
 );
 
-/** What each color on the graph means. The waiting color is named after the algorithm's structure. */
+const Line = ({ className, label }: { className: string; label: string }) => (
+  <li className="flex items-center gap-2">
+    <span aria-hidden className={cn("h-1 w-4 shrink-0 rounded-full", className)} />
+    {label}
+  </li>
+);
+
+/** What each color on the graph means, in each algorithm's words. */
 export const GraphLegend = ({ className, stacked }: { className?: string; stacked?: boolean }) => {
-  const algorithm = useStore((s) => s.graphAlgorithm);
+  const { algorithm, isRace } = useStore(
+    useShallow((s) => ({ algorithm: s.graphAlgorithm, isRace: s.view === "race" })),
+  );
   const structure = graphAlgorithms[algorithm].structure.toLowerCase();
+  // Race lanes mix algorithms: words that fit them all.
+  const items = isRace ? (
+    <>
+      <Swatch className="bg-secondary" label="Waiting" />
+      <Swatch className="bg-secondary/45" label="Done" />
+      <Line className="bg-primary" label="In the tree" />
+      <Line
+        className="bg-[repeating-linear-gradient(90deg,var(--color-line)_0_4px,transparent_4px_7px)]"
+        label="Skipped"
+      />
+    </>
+  ) : algorithm === "kruskal" ? (
+    <>
+      <Swatch className="bg-secondary/45" label="In the tree" />
+      <Line className="bg-primary" label="Kept edge" />
+      <Line
+        className="bg-[repeating-linear-gradient(90deg,var(--color-line)_0_4px,transparent_4px_7px)]"
+        label="Skipped: would loop"
+      />
+    </>
+  ) : algorithm === "topo" ? (
+    <>
+      <Swatch className="bg-secondary" label="Ready" />
+      <Swatch className="bg-secondary/45" label="Placed" />
+      <Line className="bg-primary" label="Crossed out" />
+    </>
+  ) : (
+    <>
+      <Swatch className="bg-background ring-2 ring-primary" label="Start" />
+      <Swatch
+        className="bg-secondary"
+        label={algorithm === "dfs" ? "On the stack" : algorithm === "prim" ? "Could join" : `In the ${structure}`}
+      />
+      <Swatch className="bg-secondary/45" label={algorithm === "prim" ? "In the tree" : "Visited"} />
+      <Line className="bg-primary" label="Tree edge" />
+    </>
+  );
   return (
     <ul
       aria-label="Legend"
@@ -62,13 +108,7 @@ export const GraphLegend = ({ className, stacked }: { className?: string; stacke
         className,
       )}
     >
-      <Swatch className="bg-background ring-2 ring-primary" label="Start" />
-      <Swatch className="bg-secondary" label={algorithm === "dfs" ? "On the stack" : `In the ${structure}`} />
-      <Swatch className="bg-secondary/45" label="Visited" />
-      <li className="flex items-center gap-2">
-        <span aria-hidden className="h-1 w-4 shrink-0 rounded-full bg-primary" />
-        Tree edge
-      </li>
+      {items}
     </ul>
   );
 };

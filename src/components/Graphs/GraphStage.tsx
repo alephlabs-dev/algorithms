@@ -3,7 +3,15 @@ import { useShallow } from "zustand/react/shallow";
 import { GraphRenderer } from "@/canvas/graphRenderer";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
 import { useElementSize } from "@/hooks/useElementSize";
-import { nodeName, withEdgeToggled, withNodeAt, withStart, type GraphAlgorithm } from "@/graphs";
+import {
+  edgeName,
+  nodeName,
+  withEdgeToggled,
+  withNodeAt,
+  withStart,
+  type GraphAlgorithm,
+  type GraphFrame,
+} from "@/graphs";
 import { selectLastIndex, useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";
@@ -16,11 +24,11 @@ const DOUBLE_TAP_MS = 320;
 type Press = { node: number; x: number; y: number; dragging: boolean };
 
 /**
- * The graph, drawn on canvas and edited by hand: drag a node to move it, tap
+ * A graph drawn on canvas and edited by hand: drag a node to move it, tap
  * two nodes to join them (or split them if they're joined), double-tap a node
- * to start there. Any edit restarts the run.
+ * to start there. Edits go to the shared graph, so every run restarts.
  */
-export const GraphStage = () => {
+export const GraphCanvas = ({ frame, algorithm }: { frame: GraphFrame; algorithm: GraphAlgorithm }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<GraphRenderer | null>(null);
@@ -28,17 +36,17 @@ export const GraphStage = () => {
   const lastTapRef = useRef<{ node: number; time: number } | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const { width, height } = useElementSize(wrapperRef);
-  const { graph, frame, graphId, speed, isScrubbing, theme, algorithm } = useStore(
+  const { graph, graphId, speed, isScrubbing, theme } = useStore(
     useShallow((s) => ({
       graph: s.graph,
-      frame: s.graphTimeline.frameAt(s.frameIndex),
       graphId: s.graphId,
       speed: s.speed,
       isScrubbing: s.isScrubbing,
       theme: s.theme,
-      algorithm: s.graphAlgorithm,
     })),
   );
+  // Topological sort reads every graph as pointing from the lower letter to the higher.
+  const arrows = graph.directed === true || algorithm === "topo";
   const { weighted, label, title } = graphAlgorithms[algorithm];
 
   // A new layout drops whatever was picked on the old one.
@@ -70,9 +78,12 @@ export const GraphStage = () => {
       fade: isScrubbing ? 0 : Math.min(0.3, moveDuration(speed) * 2),
       weighted,
       label,
+      arrows,
+      // Kruskal and topological sort don't start anywhere.
+      showStart: algorithm !== "kruskal" && algorithm !== "topo",
       selected,
     });
-  }, [graph, frame, graphId, speed, isScrubbing, weighted, label, selected]);
+  }, [graph, frame, graphId, speed, isScrubbing, weighted, label, arrows, algorithm, selected]);
 
   const pointFrom = (event: PointerEvent) => {
     const rect = canvasRef.current!.getBoundingClientRect();
@@ -138,9 +149,8 @@ export const GraphStage = () => {
       : `${nodeName(selected)} picked: tap another node to join or split them.`;
 
   return (
-    <div data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col gap-2">
-      <div ref={wrapperRef} className="relative min-h-0 w-full flex-1">
-        <canvas
+    <div ref={wrapperRef} className="relative min-h-0 w-full flex-1">
+      <canvas
           ref={canvasRef}
           role="img"
           aria-label={`${title} on a graph of ${count(graph.nodes.length, "node")} and ${count(graph.edges.length, "edge")}, starting at ${nodeName(graph.start)}. ${status} ${hint}`}
@@ -150,15 +160,32 @@ export const GraphStage = () => {
           onPointerUp={onPointerUp}
           onPointerCancel={() => (pressRef.current = null)}
         />
-        <GraphFinishSummary className="pointer-events-none absolute inset-x-2 top-2 flex justify-center" />
-      </div>
+    </div>
+  );
+};
+
+/** The single view: one run on the graph, the structure it keeps, and a summary when it's done. */
+export const GraphStage = () => {
+  const { frame, algorithm } = useStore(
+    useShallow((s) => ({ frame: s.graphTimeline.frameAt(s.frameIndex), algorithm: s.graphAlgorithm }))
+  );
+  return (
+    <div data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col gap-2">
+      <GraphCanvas frame={frame} algorithm={algorithm} />
+      <GraphFinishSummary className="pointer-events-none absolute inset-x-2 top-2 flex justify-center" />
       <StructureStrip />
     </div>
   );
 };
 
-const STRIP_NAME = { queue: "Queue", stack: "Stack", priority: "Open" };
-const STRIP_ORDER = { queue: "front first", stack: "bottom to top", priority: "closest first" };
+const STRIP_NAME = { queue: "Queue", stack: "Stack", priority: "Open", ready: "Ready", edges: "Edges" };
+const STRIP_ORDER = {
+  queue: "front first",
+  stack: "bottom to top",
+  priority: "closest first",
+  ready: "nothing left coming in",
+  edges: "lightest first",
+};
 
 /**
  * The queue, stack or priority queue under the graph: the one thing that
@@ -168,12 +195,27 @@ const STRIP_ORDER = { queue: "front first", stack: "bottom to top", priority: "c
 const StructureStrip = () => {
   const listRef = useRef<HTMLOListElement>(null);
   const [overflows, setOverflows] = useState(false);
-  const { pending, dist, structure } = useStore(
+  const { pending, dist, edgeQueue, structure, graph } = useStore(
     useShallow((s) => {
       const frame = s.graphTimeline.frameAt(s.frameIndex);
-      return { pending: frame.pending, dist: frame.dist, structure: s.graphTimeline.structure };
+      return {
+        pending: frame.pending,
+        dist: frame.dist,
+        edgeQueue: frame.edgeQueue,
+        structure: s.graphTimeline.structure,
+        graph: s.graph,
+      };
     }),
   );
+  // Kruskal lines up edges; every other algorithm, nodes.
+  const items =
+    structure === "edges"
+      ? edgeQueue.map((e) => ({ key: `e${e}`, name: edgeName(graph, e), extra: String(graph.edges[e].w) }))
+      : pending.map((node) => ({
+          key: `n${node}`,
+          name: nodeName(node),
+          extra: structure === "priority" ? String(dist[node]) : null,
+        }));
   const fromEnd = structure === "stack";
 
   useEffect(() => {
@@ -181,7 +223,7 @@ const StructureStrip = () => {
     if (!list) return;
     setOverflows(list.scrollWidth > list.clientWidth + 1);
     list.scrollLeft = fromEnd ? list.scrollWidth : 0;
-  }, [pending, fromEnd]);
+  }, [pending, edgeQueue, fromEnd]);
 
   const fade = overflows
     ? fromEnd
@@ -192,7 +234,7 @@ const StructureStrip = () => {
   return (
     <div
       data-tour="structure"
-      aria-label={`${STRIP_NAME[structure]}, ${STRIP_ORDER[structure]}: ${pending.length ? pending.map(nodeName).join(", ") : "empty"}`}
+      aria-label={`${STRIP_NAME[structure]}, ${STRIP_ORDER[structure]}: ${items.length ? items.map((i) => i.name).join(", ") : "empty"}`}
       className="flex min-h-11 items-center gap-3 rounded-2xl border border-edge bg-surface py-2 pl-4 pr-2"
     >
       <span className="shrink-0 font-mono text-xs text-foreground/70">
@@ -207,14 +249,14 @@ const StructureStrip = () => {
           fade,
         )}
       >
-        {pending.length === 0 && <li className="font-mono text-xs text-foreground/50">empty</li>}
-        {pending.map((node) => (
+        {items.length === 0 && <li className="font-mono text-xs text-foreground/50">empty</li>}
+        {items.map((item) => (
           <li
-            key={node}
+            key={item.key}
             className="flex h-7 shrink-0 items-center gap-1 rounded-full bg-secondary px-2.5 text-sm font-semibold text-background animate-in fade-in zoom-in-75 duration-200 motion-reduce:animate-none"
           >
-            {nodeName(node)}
-            {structure === "priority" && <span className="font-mono text-xs font-normal">{dist[node]}</span>}
+            {item.name}
+            {item.extra !== null && <span className="font-mono text-xs font-normal">{item.extra}</span>}
           </li>
         ))}
       </ol>
@@ -223,7 +265,14 @@ const StructureStrip = () => {
 };
 
 /** Next to try after each one, for the most telling comparison. */
-const NEXT: Record<GraphAlgorithm, GraphAlgorithm> = { bfs: "dfs", dfs: "bfs", dijkstra: "bfs" };
+const NEXT: Record<GraphAlgorithm, GraphAlgorithm> = {
+  bfs: "dfs",
+  dfs: "bfs",
+  dijkstra: "prim",
+  prim: "kruskal",
+  kruskal: "prim",
+  topo: "dfs",
+};
 
 const linkClass =
   "rounded-full text-sm font-semibold underline decoration-line underline-offset-4 hover:decoration-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";

@@ -8,8 +8,12 @@ type GraphAlgorithmDetails = {
   longDescription: string;
   /** What it keeps the nodes to visit in, as the strip under the graph calls it. */
   structure: string;
-  /** What the number on each node means. */
-  label: "distance" | "order";
+  /**
+   * What the badge on each node says: its distance from the start, when it was
+   * visited, the cheapest edge that would add it to the tree, which group it's
+   * in, or how many edges still come into it (then where it was placed).
+   */
+  label: "distance" | "order" | "key" | "group" | "indegree";
   /** Uses edge weights (shows them on the edges). */
   weighted: boolean;
   timeComplexity: string;
@@ -52,5 +56,41 @@ export const graphAlgorithms: Record<GraphAlgorithm, GraphAlgorithmDetails> = {
     label: "distance",
     weighted: true,
     timeComplexity: "O((V + E) log V)",
+  },
+  prim: {
+    title: "Prim's Algorithm",
+    short: "Prim",
+    shortDescription:
+      "Grows one tree from the start, always adding the cheapest edge that reaches a new node. Ends with the lightest tree that joins them all.",
+    longDescription:
+      "Prim's algorithm builds a minimum spanning tree: the set of edges that connects every node with the smallest total weight. It starts from one node and keeps, for each node outside the tree, the cheapest edge that would bring it in (its key). Each round it adds the node with the smallest key, then looks along that node's edges to see if any outside node now has a cheaper way in. It's Dijkstra with one change: the key is the weight of a single edge, not the distance from the start. Spanning trees are how you'd lay the least cable between buildings. With a binary heap it runs in O((V + E) log V).",
+    structure: "Priority queue",
+    label: "key",
+    weighted: true,
+    timeComplexity: "O((V + E) log V)",
+  },
+  kruskal: {
+    title: "Kruskal's Algorithm",
+    short: "Kruskal",
+    shortDescription:
+      "Takes edges lightest first and keeps each one that joins two separate groups. Many small trees merge into one.",
+    longDescription:
+      "Kruskal's algorithm also builds a minimum spanning tree, but edge by edge instead of node by node. It sorts every edge by weight and goes through them, lightest first. Each node starts in a group of its own; an edge whose ends are in different groups goes in the tree and merges the two groups, and an edge whose ends are already in the same group is skipped, since it would close a loop. Keeping track of the groups is the job of a union-find structure. Prim and Kruskal always end with trees of the same total weight. Sorting dominates: O(E log E).",
+    structure: "Edges, lightest first",
+    label: "group",
+    weighted: true,
+    timeComplexity: "O(E log E)",
+  },
+  topo: {
+    title: "Topological Sort",
+    short: "Topo sort",
+    shortDescription:
+      "Puts the nodes of a directed graph in an order where every edge points forwards, like tasks after the tasks they depend on.",
+    longDescription:
+      "A topological sort orders the nodes of a directed graph so that every edge goes from an earlier node to a later one: courses after their prerequisites, build steps after the steps they need. Kahn's algorithm counts the edges coming into each node and starts with the nodes that have none. Each time it places a node, it crosses out the edges leading out of it; a node whose count drops to zero is ready to be placed. If nodes are left over at the end, the graph has a loop and no such order exists. On an undirected graph, edges here point from the earlier letter to the later one. It runs in O(V + E) time.",
+    structure: "Ready list",
+    label: "indegree",
+    weighted: false,
+    timeComplexity: "O(V + E)",
   },
 };

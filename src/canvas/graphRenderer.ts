@@ -1,4 +1,4 @@
-import { DONE, nodeName, PENDING, type Graph, type GraphFrame } from "@/graphs";
+import { DONE, EDGE_KEPT, EDGE_REJECTED, nodeName, PENDING, type Graph, type GraphFrame } from "@/graphs";
 import { hexToRgb, readColors, type CanvasColors, type RGB } from "./theme";
 
 export type GraphRenderInput = {
@@ -10,8 +10,12 @@ export type GraphRenderInput = {
   fade: number;
   /** Show the weight on each edge. */
   weighted: boolean;
-  /** What the badge by each node says: its distance, or when it was visited. */
-  label: "distance" | "order";
+  /** What the badge by each node says (see graphAlgorithms' `label`). */
+  label: "distance" | "order" | "key" | "group" | "indegree";
+  /** Draw edges as arrows: from `a` to `b` in a directed graph, else from the lower letter to the higher. */
+  arrows: boolean;
+  /** Mark the start node (algorithms that grow from a start). */
+  showStart: boolean;
   /** The node picked while editing (the first of two to join), if any. */
   selected: number | null;
 };
@@ -141,6 +145,7 @@ export class GraphRenderer {
       tentative: secondary,
       tree: hexToRgb(colors.primary),
       looking: hexToRgb(colors.outline),
+      rejected: mix(background, muted, 0.4),
       muted,
     };
   }
@@ -156,10 +161,34 @@ export class GraphRenderer {
     const { graph, frame } = this.input!;
     const p = this.palette;
     if (frame.edge === e) return [p.looking, 4];
+    if (frame.edgeStates[e] === EDGE_KEPT) return [p.tree, 4];
+    if (frame.edgeStates[e] === EDGE_REJECTED) return [p.rejected, 2];
     const { a, b } = graph.edges[e];
     const child = frame.parent[a] === e ? a : frame.parent[b] === e ? b : -1;
     if (child >= 0) return frame.states[child] === DONE ? [p.tree, 4] : [p.tentative, 3];
     return [p.idleEdge, 2];
+  }
+
+  /** The text on a node's badge, or null for none. */
+  private badge(k: number): string | null {
+    const { frame, label } = this.input!;
+    switch (label) {
+      case "distance":
+      case "key":
+        return Number.isFinite(frame.dist[k]) ? String(frame.dist[k]) : null;
+      case "order":
+        return frame.order[k] >= 0 ? String(frame.order[k] + 1) : null;
+      case "group": {
+        // A group only gets named once it has more than one node.
+        const group = frame.group[k];
+        let size = 0;
+        for (const g of frame.group) if (g === group) size++;
+        return size > 1 ? nodeName(group) : null;
+      }
+      case "indegree":
+        // Edges still coming in; once placed, its place in the order.
+        return frame.order[k] >= 0 ? `#${frame.order[k] + 1}` : String(frame.indegree[k]);
+    }
   }
 
   private snap() {
@@ -175,7 +204,8 @@ export class GraphRenderer {
 
   private layout(): Layout {
     const aspect = this.input?.graph.aspect ?? 1.8;
-    const radius = Math.max(12, Math.min(24, Math.min(this.width / aspect, this.height) * 0.05));
+    // Race lanes can be small: nodes shrink down to 10px, then the layout has to give.
+    const radius = Math.max(10, Math.min(24, Math.min(this.width / aspect, this.height) * 0.05));
     const pad = radius * 1.6;
     const availW = Math.max(1, this.width - 2 * pad);
     const availH = Math.max(1, this.height - 2 * pad);
@@ -259,16 +289,38 @@ export class GraphRenderer {
     const at = graph.nodes.map((node) => this.position(layout, node));
     ctx.lineCap = "round";
 
-    // Edges first, so nodes sit on top of them.
+    // Edges first, so nodes sit on top of them. Edges left out (a loop) are dashed.
     graph.edges.forEach((edge, e) => {
       const [ax, ay] = at[edge.a];
       const [bx, by] = at[edge.b];
-      ctx.strokeStyle = css(this.edgeRgb[e] ?? p.idleEdge);
-      ctx.lineWidth = this.edgeWidth[e] ?? 2;
+      const color = css(this.edgeRgb[e] ?? p.idleEdge);
+      const width = this.edgeWidth[e] ?? 2;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.setLineDash(frame.edgeStates[e] === EDGE_REJECTED && frame.edge !== e ? [5, 6] : []);
       ctx.beginPath();
       ctx.moveTo(ax, ay);
       ctx.lineTo(bx, by);
       ctx.stroke();
+      ctx.setLineDash([]);
+      if (input.arrows) {
+        // An arrowhead touching the node the edge points to.
+        const [from, to] = graph.directed ? [edge.a, edge.b] : [Math.min(edge.a, edge.b), Math.max(edge.a, edge.b)];
+        const [fx, fy] = at[from];
+        const [tx, ty] = at[to];
+        const length = Math.hypot(tx - fx, ty - fy) || 1;
+        const [ux, uy] = [(tx - fx) / length, (ty - fy) / length];
+        const tipX = tx - ux * (r + 3);
+        const tipY = ty - uy * (r + 3);
+        const size = Math.max(7, r * 0.5) + width;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(tipX, tipY);
+        ctx.lineTo(tipX - ux * size - uy * size * 0.55, tipY - uy * size + ux * size * 0.55);
+        ctx.lineTo(tipX - ux * size + uy * size * 0.55, tipY - uy * size - ux * size * 0.55);
+        ctx.closePath();
+        ctx.fill();
+      }
     });
 
     if (input.weighted) {
@@ -305,7 +357,7 @@ export class GraphRenderer {
       const radius = r * (this.scale[k] ?? 1);
       const fill = this.nodeRgb[k] ?? p.unseen;
       // The start wears a ring in the tree color; the node being visited, a bright outline.
-      if (k === graph.start) {
+      if (input.showStart && k === graph.start) {
         ctx.strokeStyle = css(p.tree);
         ctx.lineWidth = 2.5;
         ctx.beginPath();
@@ -347,14 +399,7 @@ export class GraphRenderer {
       ctx.fillText(nodeName(k), x, y + 1);
 
       // Distance or visit order, in a small badge above and to the right.
-      const value =
-        input.label === "distance"
-          ? Number.isFinite(frame.dist[k])
-            ? String(frame.dist[k])
-            : null
-          : frame.order[k] >= 0
-            ? String(frame.order[k] + 1)
-            : null;
+      const value = this.badge(k);
       if (value !== null) {
         const size = Math.max(10, Math.round(r * 0.58));
         ctx.font = `600 ${size}px "JetBrains Mono", ui-monospace, monospace`;

@@ -32,7 +32,7 @@ export const modules: ModuleInfo[] = [
   {
     id: "graphs",
     title: "Graphs",
-    summary: "Breadth-first, depth-first and Dijkstra on a graph you can reshape, with the queue and stack shown.",
+    summary: "BFS, DFS, Dijkstra, Prim, Kruskal and topological sort on a graph you can reshape.",
     count: `${Object.keys(graphAlgorithms).length} algorithms`,
     route: { kind: "graphs" },
   },

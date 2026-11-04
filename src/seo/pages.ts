@@ -49,19 +49,29 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "Graph Algorithm Visualizer: BFS, DFS and Dijkstra Step by Step · Aleph Labs",
+      title: "Graph Algorithm Visualizer: BFS, Dijkstra, Prim, Kruskal Step by Step · Aleph Labs",
       description:
-        "Watch breadth-first search, depth-first search and Dijkstra walk a graph you can reshape, with the queue, the stack and every distance shown as they change.",
+        "Watch BFS, DFS, Dijkstra, Prim, Kruskal and topological sort on a graph you can reshape, with the queue, the stack and every distance shown as they change.",
     };
   }
   if (route.kind === "graph") {
     const { title, short, structure } = graphAlgorithms[route.algorithm];
-    const name = title.includes(short) ? title : `${title} (${short})`;
+    // Acronyms people search for (BFS, DFS) go in brackets; other short names don't.
+    const name = /^[A-Z]{2,4}$/.test(short) ? `${title} (${short})` : title;
     return {
       path,
       url,
       title: `${name} on a Graph, Visualized · Aleph Labs`,
       description: `See how ${title} walks a graph: drag nodes, join them, pick the start, then follow its ${structure.toLowerCase()} step by step with the pseudocode.`,
+    };
+  }
+  if (route.kind === "graphRace") {
+    return {
+      path,
+      url,
+      title: "Graph Algorithm Race: Prim vs Kruskal, BFS vs DFS · Aleph Labs",
+      description:
+        "Race BFS, DFS, Dijkstra, Prim, Kruskal and topological sort on the same graph, one step per tick. See which has the least to do, and how Prim and Kruskal reach the same tree.",
     };
   }
   if (route.kind === "race") {
@@ -123,7 +133,7 @@ export const structuredData = (route: Route): object[] => {
   const sectionNames = { sorting: "Sorting", pathfinding: "Pathfinding", graphs: "Graphs" };
   const section = { name: sectionNames[module], url: `${SITE_URL}/${module}` };
   const name =
-    route.kind === "race" || route.kind === "pathRace"
+    route.kind === "race" || route.kind === "pathRace" || route.kind === "graphRace"
       ? "Race"
       : route.kind === "path"
         ? pathAlgorithms[route.algorithm].title

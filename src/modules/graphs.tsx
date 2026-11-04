@@ -1,8 +1,10 @@
 import { GraphStage } from "@/components/Graphs/GraphStage";
+import { GraphRaceLanes } from "@/components/Race/GraphRaceLanes";
 import { GraphFacts, GraphLegend, GraphStatsInline, GraphTools } from "@/components/Graphs/GraphTools";
 import { GraphSettings } from "@/components/Settings/SettingsPanel";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
 import { graphPresetLabel, graphSizeLabels } from "@/consts/graphLabels";
+import { GRAPH_RACE_DESCRIPTION } from "@/consts/race";
 import { graphPseudocode, type GraphAlgorithm } from "@/graphs";
 import { useStore } from "@/store";
 import { narrateGraph } from "@/utils/narrateGraph";
@@ -39,6 +41,15 @@ export const graphsUI: ModuleUI = {
   ],
   current: (s) => s.graphAlgorithm,
   pick: (id) => useStore.getState().setGraphAlgorithm(id as GraphAlgorithm),
+
+  race: {
+    Stage: GraphRaceLanes,
+    racers: (s) => s.graphRaceAlgorithms,
+    toggleRacer: (id) => useStore.getState().toggleGraphRacer(id as GraphAlgorithm),
+    tagline: "Same graph, same clock",
+    description: GRAPH_RACE_DESCRIPTION,
+    unit: { one: "step", short: "steps" },
+  },
 
   about: (s) => graphAlgorithms[s.graphAlgorithm],
   summary: (s) => {

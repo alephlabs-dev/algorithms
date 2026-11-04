@@ -68,12 +68,22 @@ export const engines: Record<ModuleId, ModuleEngine> = {
       }),
   },
   graphs: {
-    // No race yet: a single run.
-    lastIndex: (s) => s.graphTimeline.length - 1,
+    // Races tick one step per lane, so the clock runs until the longest run is over.
+    lastIndex: (s, view) =>
+      view === "race" ? Math.max(0, ...s.graphRaceTimelines.map((t) => t.length - 1)) : s.graphTimeline.length - 1,
     stepWeight: (s, index) => GRAPH_STEP_WEIGHT[s.graphTimeline.stepAt(index)?.type ?? "done"],
-    pace: () => "graphs",
-    route: (s) => (s.isModuleStart ? { kind: "graphs" } : { kind: "graph", algorithm: s.graphAlgorithm }),
+    pace: (view) => (view === "race" ? "graphRace" : "graphs"),
+    route: (s) => {
+      if (s.view === "race") return { kind: "graphRace" };
+      return s.isModuleStart ? { kind: "graphs" } : { kind: "graph", algorithm: s.graphAlgorithm };
+    },
     search: (s) =>
-      toGraphSearch({ graph: encodeGraph(s.graph), size: s.graphSize, preset: s.graphPreset, speed: s.speedPreset }),
+      toGraphSearch({
+        graph: encodeGraph(s.graph),
+        size: s.graphSize,
+        preset: s.graphPreset,
+        racers: s.graphRaceAlgorithms,
+        speed: s.speedPreset,
+      }),
   },
 };

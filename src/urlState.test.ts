@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { routePath } from "./routes";
+import type { GraphAlgorithm } from "./graphs/types";
 import type { PathAlgorithm } from "./pathfinding/types";
 import { readLocation, readUrlState, toGraphSearch, toPathSearch, toSearch, type UrlState } from "./urlState";
 
@@ -87,7 +88,12 @@ describe("url state", () => {
   });
 
   it("round-trips a graph page", () => {
-    const graph = { graph: "AQEC_-9", size: "large" as const, preset: "tree" as const };
+    const graph = {
+      graph: "AQEC_-9",
+      size: "large" as const,
+      preset: "tree" as const,
+      racers: ["dfs", "kruskal"] as GraphAlgorithm[],
+    };
     expect(readLocation(routePath({ kind: "graph", algorithm: "dfs" }), toGraphSearch(graph))).toMatchObject({
       module: "graphs",
       graphAlgorithm: "dfs",
