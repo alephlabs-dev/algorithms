@@ -1,3 +1,4 @@
+import { graphAlgorithms } from "@/consts/graphAlgorithms";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { RACE_DESCRIPTION } from "@/consts/race";
@@ -21,9 +22,9 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "Algorithm Visualizer: Sorting and Pathfinding Step by Step · Aleph Labs",
+      title: "Algorithm Visualizer: Sorting, Pathfinding and Graphs Step by Step · Aleph Labs",
       description:
-        "Watch Quick Sort, Merge Sort and seven more sort an array, and Dijkstra, A* and BFS search a maze, step by step with pseudocode and plain-language explanations.",
+        "Watch Quick Sort and Merge Sort sort an array, A* search a maze and Dijkstra walk a graph, step by step with pseudocode and plain-language explanations.",
     };
   }
   if (route.kind === "sorting") {
@@ -42,6 +43,25 @@ export const pageMeta = (route: Route): PageMeta => {
       title: "Pathfinding Visualizer: BFS, Dijkstra and A* Step by Step · Aleph Labs",
       description:
         "Draw walls and mud on a grid, then watch BFS, DFS, Dijkstra, A* and Greedy Best-First Search find a path, step by step with the pseudocode.",
+    };
+  }
+  if (route.kind === "graphs") {
+    return {
+      path,
+      url,
+      title: "Graph Algorithm Visualizer: BFS, DFS and Dijkstra Step by Step · Aleph Labs",
+      description:
+        "Watch breadth-first search, depth-first search and Dijkstra walk a graph you can reshape, with the queue, the stack and every distance shown as they change.",
+    };
+  }
+  if (route.kind === "graph") {
+    const { title, short, structure } = graphAlgorithms[route.algorithm];
+    const name = title.includes(short) ? title : `${title} (${short})`;
+    return {
+      path,
+      url,
+      title: `${name} on a Graph, Visualized · Aleph Labs`,
+      description: `See how ${title} walks a graph: drag nodes, join them, pick the start, then follow its ${structure.toLowerCase()} step by step with the pseudocode.`,
     };
   }
   if (route.kind === "race") {
@@ -99,13 +119,16 @@ export const structuredData = (route: Route): object[] => {
       },
     ];
   }
-  const module = moduleOf(route) === "pathfinding" ? "pathfinding" : "sorting";
-  const section = { name: module === "pathfinding" ? "Pathfinding" : "Sorting", url: `${SITE_URL}/${module}` };
+  const module = moduleOf(route) ?? "sorting";
+  const sectionNames = { sorting: "Sorting", pathfinding: "Pathfinding", graphs: "Graphs" };
+  const section = { name: sectionNames[module], url: `${SITE_URL}/${module}` };
   const name =
     route.kind === "race" || route.kind === "pathRace"
       ? "Race"
       : route.kind === "path"
         ? pathAlgorithms[route.algorithm].title
+        : route.kind === "graph"
+          ? `${graphAlgorithms[route.algorithm].title} on a graph`
         : route.kind === "algorithm"
           ? sortingAlgorithms[route.algorithm].title
           : null;

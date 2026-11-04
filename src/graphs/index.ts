@@ -1,0 +1,14 @@
+import { graphSearches } from "./searches";
+import { GraphTimeline, type Structure } from "./timeline";
+import type { Graph, GraphAlgorithm } from "./types";
+
+export * from "./types";
+export * from "./graph";
+export { graphPseudocode, graphSearches } from "./searches";
+export { GraphTimeline, type Structure } from "./timeline";
+
+/** What each algorithm keeps its nodes in. */
+export const graphStructure: Record<GraphAlgorithm, Structure> = { bfs: "queue", dfs: "stack", dijkstra: "priority" };
+
+export const graphTimelineFor = (algorithm: GraphAlgorithm, graph: Graph) =>
+  new GraphTimeline(graphSearches[algorithm], graph, graphStructure[algorithm]);

@@ -61,8 +61,8 @@ const AlgorithmPicker = () => {
 };
 
 const RacersPicker = () => {
-  const { racers } = useModuleUI();
-  const count = useStore((s) => racers(s).length);
+  const { race } = useModuleUI();
+  const count = useStore((s) => race?.racers(s).length ?? 0);
   return (
     <PickerPill
       label={
@@ -123,13 +123,14 @@ const AboutButton = () => {
 /** One line next to the picker: how the algorithm scales, or what the race measures. */
 const Summary = () => {
   const { summary, race } = useModuleUI();
-  const text = useStore((s) => (s.view === "race" ? race.tagline : summary(s)));
+  const text = useStore((s) => (s.view === "race" && race ? race.tagline : summary(s)));
   return <span className="hidden truncate font-mono text-xs text-foreground/60 xl:inline">{text}</span>;
 };
 
 /** Desktop: what's on stage (a pill to change it) on the left, the view and actions on the right. */
 export const TopBar = ({ className }: { className?: string }) => {
   const view = useStore((s) => s.view);
+  const hasRace = useModuleUI().race !== undefined;
   return (
     <header className={cn("flex items-center gap-3", className)}>
       <ModuleMenu />
@@ -140,7 +141,7 @@ export const TopBar = ({ className }: { className?: string }) => {
       <AboutButton />
       <Summary />
       <div className="ml-auto flex items-center gap-2">
-        <ViewSwitch className="w-56" />
+        {hasRace && <ViewSwitch className="w-56" />}
         <ShareButton iconOnly />
         <ThemeToggle />
         <ShortcutsHelp />

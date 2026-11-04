@@ -18,7 +18,7 @@ export const Progress = ({ className }: { className?: string }) => {
       isRace: s.view === "race",
     }))
   );
-  const unit = isRace ? race.unit.one : "step";
+  const unit = isRace && race ? race.unit.one : "step";
 
   return (
     <div className={cn("flex min-w-0 flex-col gap-2.5", className)}>
@@ -38,7 +38,7 @@ export const Progress = ({ className }: { className?: string }) => {
         <span aria-hidden className="whitespace-nowrap">
           {isRace ? "" : "step "}
           {format(frameIndex)} / {format(lastIndex)}
-          {isRace && ` ${race.unit.short}`}
+          {isRace && race && ` ${race.unit.short}`}
         </span>
         {!isRace && <Stats />}
       </div>

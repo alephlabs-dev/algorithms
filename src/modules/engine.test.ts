@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { makeGraph } from "@/graphs";
 import { applyPreset, emptyGrid } from "@/pathfinding";
 import { moduleOf, routeFromPath, routePath } from "@/routes";
 import type { StoreState } from "@/store";
@@ -24,6 +25,10 @@ const stateFor = (module: ModuleId, view: "single" | "race", isModuleStart: bool
     gridSize: "medium",
     grid: applyPreset(emptyGrid(17, 33), "maze", seededRandom(3)),
     pathRaceAlgorithms: ["bfs", "astar"],
+    graphAlgorithm: "dijkstra",
+    graphSize: "large",
+    graphPreset: "tree",
+    graph: makeGraph("tree", "large", false, seededRandom(5)),
   }) as unknown as StoreState;
 
 describe("module engines", () => {
@@ -37,7 +42,9 @@ describe("module engines", () => {
           expect(moduleOf(route)).toBe(module);
           expect(routeFromPath(path)).toEqual(route);
           const location = readLocation(path, engines[module].search(state));
-          expect(location.isPath).toBe(module === "pathfinding");
+          expect(location.module).toBe(module);
+          // Graphs have no race yet: their engine stays on single-view pages.
+          if (module === "graphs") expect(location.view).toBe("single");
           expect(location.speed).toBe("2x");
         }
       }

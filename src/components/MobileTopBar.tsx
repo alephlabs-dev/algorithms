@@ -107,11 +107,11 @@ const AlgorithmField = () => {
 
 /** Picking 2–4 racers doesn't fit a native select, so the same field opens a checklist. */
 const RacersField = () => {
-  const { algorithms, racers } = useModuleUI();
+  const { algorithms, race } = useModuleUI();
   const names = useStore(
     useShallow((s) => {
       const shortOf = new Map(algorithms.flatMap((g) => g.items).map((item) => [item.id, item.short]));
-      return racers(s).map((id) => shortOf.get(id) ?? id);
+      return (race?.racers(s) ?? []).map((id) => shortOf.get(id) ?? id);
     })
   );
 
@@ -134,14 +134,22 @@ const RacersField = () => {
 };
 
 /** The view switch and share link, above the picker. */
-const ViewRow = () => (
-  <div className="flex items-center gap-2">
-    <ModuleButton />
-    <ViewSwitch className="min-w-0 flex-1" />
-    <ShareButton iconOnly />
-    <ThemeToggle />
-  </div>
-);
+const ViewRow = () => {
+  const { race, title } = useModuleUI();
+  return (
+    <div className="flex items-center gap-2">
+      <ModuleButton />
+      {/* A module without a race names itself here instead. */}
+      {race ? (
+        <ViewSwitch className="min-w-0 flex-1" />
+      ) : (
+        <span className="flex-1 pl-1 text-[15px] font-semibold">{title}</span>
+      )}
+      <ShareButton iconOnly />
+      <ThemeToggle />
+    </div>
+  );
+};
 
 /** Phones and tablets: the view, then the algorithm as a field (tap to change), (i) and settings. */
 export const MobileTopBar = ({ className }: { className?: string }) => {

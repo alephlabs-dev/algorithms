@@ -23,7 +23,6 @@ export const sortingUI: ModuleUI = {
   title: "Sorting",
 
   Stage: AlgorithmVisualizer,
-  RaceStage: RaceLanes,
   Legend,
   Stats: StatsInline,
   Settings: SortingSettings,
@@ -44,8 +43,6 @@ export const sortingUI: ModuleUI = {
   })),
   current: (s) => s.activeAlgorithm,
   pick: (id) => useStore.getState().setActiveAlgorithm(id as Algorithm),
-  racers: (s) => s.raceAlgorithms,
-  toggleRacer: (id) => useStore.getState().toggleRaceAlgorithm(id as Algorithm),
 
   about: (s) => sortingAlgorithms[s.activeAlgorithm],
   summary: (s) => {
@@ -53,6 +50,9 @@ export const sortingUI: ModuleUI = {
     return average === worst ? `${average} always` : `${average} avg · ${worst} worst`;
   },
   race: {
+    Stage: RaceLanes,
+    racers: (s) => s.raceAlgorithms,
+    toggleRacer: (id) => useStore.getState().toggleRaceAlgorithm(id as Algorithm),
     tagline: "Same array, same clock",
     description: RACE_DESCRIPTION,
     unit: { one: "operation", short: "ops" },

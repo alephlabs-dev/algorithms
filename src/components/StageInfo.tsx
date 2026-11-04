@@ -8,7 +8,7 @@ export const StageInfo = ({ compact }: { compact?: boolean }) => {
   const { isRace, shortDescription, longDescription } = useStore(
     useShallow((s) => ({ isRace: s.view === "race", ...about(s) })),
   );
-  if (isRace) return <p className="text-foreground/80">{race.description}</p>;
+  if (isRace && race) return <p className="text-foreground/80">{race.description}</p>;
   return (
     <>
       <p className="text-foreground/80">{shortDescription}</p>

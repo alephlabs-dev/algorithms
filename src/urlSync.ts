@@ -37,22 +37,26 @@ const applyRoute = (route: Route) => {
     return;
   }
   const inPath = store.module === "pathfinding";
-  if (route.kind === "path" || route.kind === "pathfinding") {
+  if (route.kind === "graph" || route.kind === "graphs") {
+    const algorithm = route.kind === "graph" ? route.algorithm : store.graphAlgorithm;
+    if (store.module !== "graphs" || store.graphAlgorithm !== algorithm) store.setGraphAlgorithm(algorithm);
+  } else if (route.kind === "path" || route.kind === "pathfinding") {
     const algorithm = route.kind === "path" ? route.algorithm : store.pathAlgorithm;
     if (!inPath || store.view !== "single" || store.pathAlgorithm !== algorithm) store.setPathAlgorithm(algorithm);
   } else if (route.kind === "pathRace") {
     if (!inPath) store.setPathAlgorithm(store.pathAlgorithm);
     if (useStore.getState().view !== "race") store.setView("race");
   } else if (route.kind === "race") {
-    if (inPath) store.setActiveAlgorithm(store.activeAlgorithm);
+    if (store.module !== "sorting") store.setActiveAlgorithm(store.activeAlgorithm);
     if (useStore.getState().view !== "race") store.setView("race");
   } else {
     const algorithm = route.kind === "algorithm" ? route.algorithm : store.activeAlgorithm;
-    if (inPath || store.view !== "single" || store.activeAlgorithm !== algorithm) store.setActiveAlgorithm(algorithm);
+    if (store.module !== "sorting" || store.view !== "single" || store.activeAlgorithm !== algorithm)
+      store.setActiveAlgorithm(algorithm);
   }
   useStore.setState({
     isLanding: false,
-    isModuleStart: route.kind === "sorting" || route.kind === "pathfinding",
+    isModuleStart: route.kind === "sorting" || route.kind === "pathfinding" || route.kind === "graphs",
   });
 };
 

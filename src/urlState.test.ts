@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { routePath } from "./routes";
 import type { PathAlgorithm } from "./pathfinding/types";
-import { readLocation, readUrlState, toPathSearch, toSearch, type UrlState } from "./urlState";
+import { readLocation, readUrlState, toGraphSearch, toPathSearch, toSearch, type UrlState } from "./urlState";
 
 describe("url state", () => {
   const state: UrlState = {
@@ -21,8 +21,9 @@ describe("url state", () => {
       ...single,
       isLanding: false,
       isModuleStart: false,
-      isPath: false,
+      module: "sorting",
       path: {},
+      graph: {},
     });
     // The race page has no algorithm of its own (toEqual ignores undefined keys).
     expect(readLocation(routePath({ kind: "race" }), toSearch(state))).toEqual({
@@ -30,8 +31,9 @@ describe("url state", () => {
       algorithm: undefined,
       isLanding: false,
       isModuleStart: false,
-      isPath: false,
+      module: "sorting",
       path: {},
+      graph: {},
     });
   });
 
@@ -41,8 +43,8 @@ describe("url state", () => {
   });
 
   it("opens each module's own page at its start", () => {
-    expect(readLocation("/sorting", "")).toMatchObject({ isLanding: false, isModuleStart: true, isPath: false });
-    expect(readLocation("/pathfinding", "")).toMatchObject({ isLanding: false, isModuleStart: true, isPath: true });
+    expect(readLocation("/sorting", "")).toMatchObject({ isLanding: false, isModuleStart: true, module: "sorting" });
+    expect(readLocation("/pathfinding", "")).toMatchObject({ isLanding: false, isModuleStart: true, module: "pathfinding" });
     expect(readLocation("/pathfinding/dijkstra", "").isModuleStart).toBe(false);
   });
 
@@ -73,15 +75,25 @@ describe("url state", () => {
     };
     expect(readLocation(routePath({ kind: "path", algorithm: "astar" }), toPathSearch(grid))).toMatchObject({
       pathAlgorithm: "astar",
-      isPath: true,
+      module: "pathfinding",
       view: "single",
       path: grid,
     });
     expect(readLocation(routePath({ kind: "pathRace" }), toPathSearch(grid))).toMatchObject({
-      isPath: true,
+      module: "pathfinding",
       view: "race",
       path: grid,
     });
+  });
+
+  it("round-trips a graph page", () => {
+    const graph = { graph: "AQEC_-9", size: "large" as const, preset: "tree" as const };
+    expect(readLocation(routePath({ kind: "graph", algorithm: "dfs" }), toGraphSearch(graph))).toMatchObject({
+      module: "graphs",
+      graphAlgorithm: "dfs",
+      graph,
+    });
+    expect(readLocation("/graphs", "").isModuleStart).toBe(true);
   });
 
   it("keeps pathfinding racers valid and in order", () => {

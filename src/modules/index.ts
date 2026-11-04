@@ -1,6 +1,7 @@
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "@/store";
 import type { ModuleId } from "./engine";
+import { graphsUI } from "./graphs";
 import { pathfindingUI } from "./pathfinding";
 import { sortingUI } from "./sorting";
 import type { ModuleUI } from "./types";
@@ -9,6 +10,7 @@ import type { ModuleUI } from "./types";
 export const moduleUIs: Record<ModuleId, ModuleUI> = {
   sorting: sortingUI,
   pathfinding: pathfindingUI,
+  graphs: graphsUI,
 };
 
 /** The interface of the module on stage. */

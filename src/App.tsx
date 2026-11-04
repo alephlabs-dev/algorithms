@@ -22,7 +22,9 @@ import { navigate, routeFor } from "./urlSync";
 function App() {
   const setIsMobile = useStore((s) => s.setIsMobile);
   const view = useStore((s) => s.view);
-  const { Stage, RaceStage, Tools, Legend } = useModuleUI();
+  const { Stage, race, Tools, Legend } = useModuleUI();
+  // Only modules with a race reach race view; the store keeps the others in single view.
+  const RaceStage = race?.Stage ?? Stage;
   const isLanding = useStore((s) => s.isLanding);
   const isMobile = useMediaQuery(MOBILE_QUERY);
   const route = useStore(useShallow(routeFor));
