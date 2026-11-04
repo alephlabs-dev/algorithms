@@ -134,7 +134,6 @@ export const MobileTopBar = ({ className }: { className?: string }) => {
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
-      <h1 className="sr-only">{title}</h1>
       <ViewRow />
       <div className="flex items-center gap-1">
         <AlgorithmField />
@@ -155,7 +154,6 @@ export const MobileTopBar = ({ className }: { className?: string }) => {
 /** Race view on phones and tablets: the racers as a field, then settings. */
 export const MobileRaceBar = ({ className }: { className?: string }) => (
   <div className={cn("flex flex-col gap-3", className)}>
-    <h1 className="sr-only">Race</h1>
     <ViewRow />
     <div className="flex items-center gap-1">
       <RacersField />

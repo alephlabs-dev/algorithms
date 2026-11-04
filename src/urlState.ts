@@ -1,4 +1,5 @@
 import { sortAlgorithms } from "./algorithms";
+import { routeFromPath } from "./routes";
 import { displayModes } from "./consts/displayModes";
 import { inputOrders } from "./consts/inputOrders";
 import { sizes } from "./consts/sizesMap";
@@ -25,7 +26,11 @@ export type UrlState = {
 const isOneOf = <T extends string | number>(options: readonly T[], value: unknown): value is T =>
   options.includes(value as T);
 
-/** Reads whatever valid settings the URL has; anything missing or malformed is skipped. */
+/**
+ * Reads whatever valid settings the query string has; anything missing or
+ * malformed is skipped. `algo` and `view` now live in the path, but old links
+ * still carry them, so they're read here too.
+ */
 export const readUrlState = (search: string): Partial<UrlState> => {
   const params = new URLSearchParams(search);
   const state: Partial<UrlState> = {};
@@ -61,15 +66,29 @@ export const readUrlState = (search: string): Partial<UrlState> => {
   return state;
 };
 
-export const toSearch = (state: UrlState) =>
+/** Settings from a full location: the page (path) wins over legacy query parameters. */
+export const readLocation = (pathname: string, search: string): Partial<UrlState> & { isHome: boolean } => {
+  const state = readUrlState(search);
+  const route = routeFromPath(pathname);
+  if (route?.kind === "algorithm") {
+    state.algorithm = route.algorithm;
+    state.view = "single";
+  } else if (route?.kind === "race") {
+    state.view = "race";
+  }
+  // The home page, unless an old ?algo=/?view= link picked something.
+  const isHome = (route === null || route.kind === "home") && state.algorithm === undefined && state.view === undefined;
+  return { ...state, isHome };
+};
+
+/** The query string for the settings that aren't part of the path. */
+export const toSearch = (state: Omit<UrlState, "algorithm" | "view">) =>
   "?" +
   new URLSearchParams({
-    algo: state.algorithm,
     size: String(state.size),
     input: state.inputOrder,
     mode: state.displayMode,
     ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
     seed: state.seed.toString(36),
-    view: state.view,
     race: state.raceAlgorithms.join(","),
   }).toString();

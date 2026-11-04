@@ -161,7 +161,6 @@ export const TopBar = ({ className }: { className?: string }) => {
   const view = useStore((s) => s.view);
   return (
     <header className={cn("flex items-center gap-3", className)}>
-      <h1 className="sr-only">{view === "race" ? "Race" : "Sorting algorithms"}</h1>
       {view === "race" ? <RacersPicker /> : <AlgorithmPicker />}
       <AboutButton />
       <Summary />
