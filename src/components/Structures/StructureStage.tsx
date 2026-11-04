@@ -24,8 +24,14 @@ export const TreeCanvas = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<TreeRenderer | null>(null);
   const { width, height } = useElementSize(wrapperRef);
-  const { structureId, speed, isScrubbing, theme } = useStore(
-    useShallow((s) => ({ structureId: s.structureId, speed: s.speed, isScrubbing: s.isScrubbing, theme: s.theme })),
+  const { structureId, speed, isScrubbing, theme, ops } = useStore(
+    useShallow((s) => ({
+      structureId: s.structureId,
+      speed: s.speed,
+      isScrubbing: s.isScrubbing,
+      theme: s.theme,
+      ops: s.structureOps,
+    })),
   );
 
   useEffect(() => {
@@ -48,8 +54,10 @@ export const TreeCanvas = ({
       structureId,
       fade: isScrubbing ? 0 : Math.min(0.45, moveDuration(speed) * 1.6),
       showBalance: algorithm === "avl",
+      // Before the first step, the values waiting to go in (so the empty tree reads as "about to start").
+      waiting: frame.opIndex < 0 ? ops.filter((op) => op.kind === "insert").map((op) => op.value) : [],
     });
-  }, [frame, structureId, speed, isScrubbing, algorithm]);
+  }, [frame, structureId, speed, isScrubbing, algorithm, ops]);
 
   return (
     <div ref={wrapperRef} className="relative min-h-0 w-full flex-1">

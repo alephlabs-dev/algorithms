@@ -9,6 +9,8 @@ export type TreeRenderInput = {
   fade: number;
   /** Show each node's balance (AVL). */
   showBalance: boolean;
+  /** Values queued to be inserted, shown while the tree is still empty. */
+  waiting: number[];
 };
 
 const mix = (a: RGB, b: RGB, t: number): RGB => [
@@ -160,11 +162,14 @@ export class TreeRenderer {
     }
 
     if (frame.root === null) {
-      ctx.fillStyle = css(p.ring);
-      ctx.font = `500 15px "Instrument Sans", system-ui, sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("Empty tree: insert a value", width / 2, height / 2);
+      if (input.waiting.length) this.drawWaiting(input.waiting);
+      else {
+        ctx.fillStyle = css(p.ring);
+        ctx.font = `500 15px "Instrument Sans", system-ui, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Empty tree: insert a value", width / 2, height / 2);
+      }
       return busy;
     }
 
@@ -203,6 +208,40 @@ export class TreeRenderer {
 
     for (const node of frame.nodes) this.drawNode(node, highlighted(node.id), radius, showBalance, byId.size);
     return busy;
+  }
+
+  /** The values about to be inserted, as a queue of outlined nodes, the next one ringed. */
+  private drawWaiting(values: number[]) {
+    const { ctx, width, height } = this;
+    const p = this.palette;
+    const r = height < 260 ? 13 : 16;
+    const step = r * 2 + 10;
+    const perRow = Math.max(1, Math.min(values.length, Math.floor((width - 32) / step)));
+    const rows = Math.ceil(values.length / perRow);
+    const label = 30;
+    const top = Math.max(label + 20, (height - rows * step + 10 + label) / 2);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = css(p.ink, 0.75);
+    ctx.font = `500 15px "Instrument Sans", system-ui, sans-serif`;
+    const long = `Press play to insert ${values.length === 1 ? "1 value" : `${values.length} values`}, in this order`;
+    ctx.fillText(ctx.measureText(long).width < width - 32 ? long : "Press play to insert", width / 2, top - label);
+    values.forEach((value, k) => {
+      const row = Math.floor(k / perRow);
+      const inRow = Math.min(perRow, values.length - row * perRow);
+      const x = width / 2 + ((k % perRow) - (inRow - 1) / 2) * step;
+      const y = top + r + row * step;
+      ctx.fillStyle = css(p.node);
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = css(k === 0 ? p.focus : p.ring);
+      ctx.lineWidth = k === 0 ? 2.5 : 1.5;
+      ctx.stroke();
+      ctx.fillStyle = css(p.ink, k === 0 ? 1 : 0.7);
+      ctx.font = `600 13px "JetBrains Mono", ui-monospace, monospace`;
+      ctx.fillText(String(value), x, y + 1);
+    });
   }
 
   private drawNode(node: NodeView, fill: RGB, radius: number, showBalance: boolean, count: number) {
