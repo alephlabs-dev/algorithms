@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { Timeline, sortAlgorithms } from "./algorithms";
 import { MAX_MOBILE_SIZE } from "./consts/sizesMap";
-import { readUrlState } from "./urlState";
+import { readLocation } from "./urlState";
 import { generateItems } from "./utils/generateItems";
 import { newSeed, seededRandom } from "./utils/random";
 import { DEFAULT_PRESET, speedFor, type SpeedPreset } from "./utils/speed";
@@ -29,6 +29,8 @@ export type StoreState = {
   isMobile: boolean;
   /** One algorithm with all the details, or several racing on the same array. */
   view: View;
+  /** On the home page (/): the default algorithm shows, but the URL stays / until something is picked. */
+  isHome: boolean;
   raceAlgorithms: Algorithm[];
   /** One timeline per racer, on the same array as `timeline`. Empty outside race view. */
   raceTimelines: Timeline[];
@@ -122,7 +124,7 @@ const raceTimelinesFor = (view: View, algorithms: Algorithm[], items: readonly n
 
 // Start from the link's settings when there are any.
 const initial = (() => {
-  const url = readUrlState(window.location.search);
+  const url = readLocation(window.location.pathname, window.location.search);
   const isMobile = window.matchMedia(MOBILE_QUERY).matches;
   const displayMode = url.displayMode ?? "bars";
   const size = Math.min(url.size ?? (isMobile ? 20 : 40), maxSizeFor(displayMode, isMobile));
@@ -138,6 +140,7 @@ const initial = (() => {
     view === "race" ? Math.max(...raceTimelines.map((t) => t.totalOps)) : timeline.length - 1;
   return {
     isMobile,
+    isHome: url.isHome,
     view,
     raceAlgorithms,
     raceTimelines,
@@ -206,6 +209,7 @@ export const useStore = create<StoreState>((set, get) => {
     setView: (view) => {
       set((state) => ({
         view,
+        isHome: false,
         frameIndex: 0,
         isPlaying: false,
         raceTimelines: raceTimelinesFor(view, state.raceAlgorithms, state.timeline.values),
@@ -255,6 +259,7 @@ export const useStore = create<StoreState>((set, get) => {
     setActiveAlgorithm: (algorithm) => {
       set((state) => ({
         activeAlgorithm: algorithm,
+        isHome: false,
         ...newRun(algorithm, state.timeline.values),
       }));
       applyAutoSpeed();
