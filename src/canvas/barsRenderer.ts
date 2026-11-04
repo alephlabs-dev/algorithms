@@ -11,7 +11,7 @@ export type RenderInput = {
   mode: DisplayMode;
   /** Seconds a move should take. 0 snaps. */
   moveDuration: number;
-  /** The run just finished; plays the victory wave once. */
+  /** The run just finished; plays the verification sweep once. */
   celebrate: boolean;
   /** Changes when a new array is generated; bars are rebuilt instead of animated. */
   runId: number;
@@ -40,8 +40,6 @@ type ItemState = {
   /** 0 → 1 when a new array appears. */
   grow: Spring;
   growDelay: number;
-  /** When this item's victory hop starts (renderer clock, seconds). */
-  waveStart: number | null;
 };
 
 const MAX_AREA_WIDTH = 1200; // beyond this, bars for small arrays get uncomfortably wide
@@ -49,7 +47,9 @@ const BAR_MAX_HEIGHT = 0.8; // leaves room above the tallest bar for lifts and a
 const LIFT = 0.06;
 // Highlighted items outside the focus fade a little; plain ones switch to the dim color.
 const DIMMED_ALPHA = 0.6;
-const WAVE_DURATION = 0.55;
+// The finish: a line sweeps left to right, checking each bar and turning it
+// green as it passes. Same length for 10 bars or 400.
+const SWEEP_DURATION = 0.9;
 const MIN_HOP_DURATION = 0.08; // below this, moves are too quick for an arc to read
 const MIN_LABEL_WIDTH = 14; // narrower bars can't fit a value above them
 
@@ -100,6 +100,10 @@ export class BarsRenderer {
   private clock = 0;
   private lastTick = 0;
   private frameRequest = 0;
+  /** When the finishing sweep started (renderer clock), while it runs. */
+  private sweepStart: number | null = null;
+  /** Items that were already green when the sweep started; they stay green. */
+  private doneBeforeSweep = new Set<number>();
   private colors = readColors();
   private palette = paletteFor(this.colors);
 
@@ -152,11 +156,11 @@ export class BarsRenderer {
       });
 
       if (input.celebrate && !previous.celebrate && !reduce) {
-        const stagger = Math.min(0.025, 0.8 / order.length);
-        order.forEach((id, position) => {
-          this.items[id].waveStart = this.clock + position * stagger;
-        });
+        // Starts once the last moves (started just above) have landed.
+        this.sweepStart = this.clock + input.moveDuration;
+        this.doneBeforeSweep = new Set(previous.frame.done);
       }
+      if (!input.celebrate) this.sweepStart = null;
     }
 
     this.start();
@@ -182,7 +186,6 @@ export class BarsRenderer {
         color: this.palette.base.map(spring) as ItemState["color"],
         grow: spring(reduce ? 1 : 0),
         growDelay: reduce ? 0 : position * stagger,
-        waveStart: null,
       };
     });
   }
@@ -230,6 +233,16 @@ export class BarsRenderer {
       }
     };
 
+    // Where the finishing sweep is, in slots; bars to its right wait to turn green.
+    let sweep = Infinity;
+    if (this.sweepStart !== null) {
+      const t = (this.clock - this.sweepStart) / SWEEP_DURATION;
+      if (t < 1) {
+        sweep = Math.max(0, t) * this.items.length;
+        busy = true;
+      } else this.sweepStart = null;
+    }
+
     this.items.forEach((item, id) => {
       const progress =
         item.moveDuration > 0 ? clamp01((this.clock - item.moveStart) / item.moveDuration) : 1;
@@ -248,7 +261,7 @@ export class BarsRenderer {
         ? this.palette.active
         : temp.has(id)
           ? this.palette.temp
-          : done.has(id)
+          : done.has(id) && (item.x + 0.5 <= sweep || this.doneBeforeSweep.has(id))
             ? this.palette.done
             : dimmed
               ? this.palette.dim
@@ -260,11 +273,6 @@ export class BarsRenderer {
         busy = true;
       } else {
         follow(item.grow, 1, 0.12);
-      }
-
-      if (item.waveStart !== null) {
-        if (this.clock - item.waveStart < WAVE_DURATION) busy = true;
-        else item.waveStart = null;
       }
     });
 
@@ -278,6 +286,13 @@ export class BarsRenderer {
     follow(this.pivotLine.alpha, pivotVisible ? 1 : 0, fadeTime);
 
     return busy;
+  }
+
+  /** The finishing sweep's position in slots, or null when it isn't running. */
+  private sweepPosition() {
+    if (this.sweepStart === null) return null;
+    const t = (this.clock - this.sweepStart) / SWEEP_DURATION;
+    return t < 1 ? Math.max(0, t) * this.items.length : null;
   }
 
   private barHeight(value: number) {
@@ -309,7 +324,10 @@ export class BarsRenderer {
     const isBars = input.mode === "bars";
     const tile = this.tileSize();
     const liftPx = isBars ? height * LIFT : tile * 0.6;
-    const waveHeight = isBars ? height * 0.08 : tile * 0.5;
+    const sweep = this.sweepPosition();
+    // Bars hop a little as the line checks them, over a few slots behind it.
+    const popSlots = Math.max(1.5, this.items.length * 0.04);
+    const popHeight = isBars ? height * 0.03 : tile * 0.3;
     const radius = isBars ? Math.min(4, barWidth * 0.3) : Math.min(6, tile * 0.15);
 
     if (this.pivotLine.alpha.value > 0.01) {
@@ -343,12 +361,12 @@ export class BarsRenderer {
       const x = left;
       const w = Math.max(snap(left + barWidth) - left, 1 / dpr);
 
-      let wave = 0;
-      if (item.waveStart !== null) {
-        const t = (this.clock - item.waveStart) / WAVE_DURATION;
-        if (t > 0 && t < 1) wave = waveHeight * easeArc(t);
+      let pop = 0;
+      if (sweep !== null) {
+        const behind = sweep - (item.x + 0.5);
+        if (behind > 0 && behind < popSlots) pop = popHeight * easeArc(behind / popSlots);
       }
-      const offsetY = item.lift.value * liftPx + item.arc + wave;
+      const offsetY = item.lift.value * liftPx + item.arc + pop;
 
       const value = input.values[id];
       const h = isBars ? this.barHeight(value) * item.grow.value : tile;
@@ -391,6 +409,21 @@ export class BarsRenderer {
       }
     }
     ctx.globalAlpha = 1;
+
+    if (sweep !== null) {
+      // The checking line, with a soft fade so it reads as light, not a cursor.
+      const x = offsetX + sweep * slot;
+      const gradient = ctx.createLinearGradient(0, 0, 0, height);
+      gradient.addColorStop(0, "transparent");
+      gradient.addColorStop(0.25, colors.primary);
+      gradient.addColorStop(1, colors.primary);
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(Math.round(x) + 0.5, 0);
+      ctx.lineTo(Math.round(x) + 0.5, height);
+      ctx.stroke();
+    }
 
     if (input.annotate && isBars && barWidth >= MIN_LABEL_WIDTH) this.drawLabels(slot, offsetX, gap, barWidth, liftPx);
   }
