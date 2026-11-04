@@ -2,10 +2,13 @@ import { CodeIcon } from "@radix-ui/react-icons";
 import { useShallow } from "zustand/react/shallow";
 import { pseudocode } from "@/algorithms";
 import { useThrottled } from "@/hooks/useThrottled";
-import { selectFrame, useStore } from "@/store";
+import { pathPseudocode } from "@/pathfinding";
+import { selectFrame, selectPathFrame, useStore, type StoreState } from "@/store";
 import { cn } from "@/utils/cn";
 import { narrate } from "@/utils/narrate";
+import { narratePath } from "@/utils/narratePath";
 import { stepsPerSecond } from "@/utils/speed";
+import { PathLegend } from "./Pathfinding/PathTools";
 import { Legend } from "./RunInfo";
 import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
 import { SectionLabel } from "./ui/section-label";
@@ -16,12 +19,15 @@ const READABLE_STEPS_PER_SECOND = 6;
 // The highlighted line and the sentence change at most this often.
 const UPDATE_INTERVAL_MS = 250;
 
+// The code of whatever is on stage, sorting or pathfinding.
+const linesOf = (s: StoreState) => (s.module === "pathfinding" ? pathPseudocode[s.pathAlgorithm] : pseudocode[s.activeAlgorithm]);
+
 // Only re-renders when the line or the play state changes, not on every frame.
 const usePseudocode = () => {
   const state = useStore(
     useShallow((s) => ({
-      lines: pseudocode[s.activeAlgorithm],
-      line: selectFrame(s).line,
+      lines: linesOf(s),
+      line: s.module === "pathfinding" ? selectPathFrame(s).line : selectFrame(s).line,
       isPlaying: s.isPlaying,
       tooFast: s.isPlaying && stepsPerSecond(s.speed) > READABLE_STEPS_PER_SECOND,
     }))
@@ -32,16 +38,22 @@ const usePseudocode = () => {
 
 /** The current step in one plain sentence, e.g. "Compare 17 with the pivot 33: it's smaller." */
 const useNarration = () => {
-  const { timeline, frameIndex, lines, tooFast } = useStore(
+  const { module, timeline, pathTimeline, pathAlgorithm, frameIndex, lines, tooFast } = useStore(
     useShallow((s) => ({
+      module: s.module,
       timeline: s.timeline,
+      pathTimeline: s.pathTimeline,
+      pathAlgorithm: s.pathAlgorithm,
       frameIndex: s.frameIndex,
-      lines: pseudocode[s.activeAlgorithm],
+      lines: linesOf(s),
       tooFast: s.isPlaying && stepsPerSecond(s.speed) > READABLE_STEPS_PER_SECOND,
     }))
   );
   const index = useThrottled(frameIndex, UPDATE_INTERVAL_MS);
   if (tooFast) return { text: "Pause or slow down to follow each step.", muted: true };
+  if (module === "pathfinding") {
+    return { text: narratePath(pathTimeline, Math.min(index, pathTimeline.length - 1), pathAlgorithm), muted: false };
+  }
   return { text: narrate(timeline, Math.min(index, timeline.length - 1), lines), muted: false };
 };
 
@@ -96,9 +108,14 @@ export const NowCard = ({ className }: { className?: string }) => {
       </div>
       <Narration className="border-l-2 border-secondary pl-3" />
       <div className="h-px bg-edge" />
-      <Legend stacked className="gap-1.5" />
+      <ModuleLegend />
     </section>
   );
+};
+
+const ModuleLegend = () => {
+  const module = useStore((s) => s.module);
+  return module === "pathfinding" ? <PathLegend stacked /> : <Legend stacked className="gap-1.5" />;
 };
 
 /**

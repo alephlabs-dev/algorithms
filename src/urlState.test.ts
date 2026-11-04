@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { routePath } from "./routes";
-import { readLocation, readUrlState, toSearch, type UrlState } from "./urlState";
+import { readLocation, readUrlState, toPathSearch, toSearch, type UrlState } from "./urlState";
 
 describe("url state", () => {
   const state: UrlState = {
@@ -19,12 +19,14 @@ describe("url state", () => {
     expect(readLocation(routePath({ kind: "algorithm", algorithm: "heap" }), toSearch(single))).toEqual({
       ...single,
       isHome: false,
+      path: {},
     });
     // The race page has no algorithm of its own (toEqual ignores undefined keys).
     expect(readLocation(routePath({ kind: "race" }), toSearch(state))).toEqual({
       ...state,
       algorithm: undefined,
       isHome: false,
+      path: {},
     });
   });
 
@@ -48,5 +50,13 @@ describe("url state", () => {
 
   it("keeps the valid values when some are wrong", () => {
     expect(readUrlState("?algo=quick&size=abc")).toEqual({ algorithm: "quick" });
+  });
+
+  it("round-trips a pathfinding grid", () => {
+    const grid = { gridSize: "medium" as const, cells: "AbC-_9", start: 400, end: 12 };
+    expect(readLocation(routePath({ kind: "path", algorithm: "astar" }), toPathSearch(grid))).toMatchObject({
+      pathAlgorithm: "astar",
+      path: grid,
+    });
   });
 });

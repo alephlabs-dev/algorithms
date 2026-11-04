@@ -13,6 +13,8 @@ export type CanvasColors = {
   secondary: string;
   tertiary: string;
   dim: string;
+  edge: string;
+  mud: string;
 };
 
 const variables: Record<keyof CanvasColors, string> = {
@@ -25,6 +27,8 @@ const variables: Record<keyof CanvasColors, string> = {
   secondary: "--color-secondary",
   tertiary: "--color-tertiary",
   dim: "--color-dim",
+  edge: "--color-edge",
+  mud: "--color-mud",
 };
 
 /** The current theme's colors, as hex strings. */

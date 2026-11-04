@@ -2,7 +2,9 @@ import { ChevronDownIcon, InfoCircledIcon, MixerHorizontalIcon } from "@radix-ui
 import type { ReactNode } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { algorithmGroups } from "@/consts/algorithmGroups";
+import { pathAlgorithms, pathTraits } from "@/consts/pathAlgorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
+import type { PathAlgorithm } from "@/pathfinding";
 import { useSettingsSummary } from "@/hooks/useSettingsSummary";
 import { MAX_RACERS, useStore } from "@/store";
 import type { Algorithm } from "@/types";
@@ -44,7 +46,13 @@ const SettingsButton = () => {
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        <Button data-tour="settings" size="icon" className="h-12 w-12 shrink-0" aria-label={`Settings: ${summary}`} title={summary}>
+        <Button
+          data-tour="settings"
+          size="icon"
+          className="h-12 w-12 shrink-0"
+          aria-label={`Settings: ${summary}`}
+          title={summary}
+        >
           <MixerHorizontalIcon />
         </Button>
       </DrawerTrigger>
@@ -71,26 +79,42 @@ const FieldChevron = () => (
  * iOS wheel, the Android list), grouped by family like the desktop sidebar.
  */
 const AlgorithmField = () => {
-  const { activeAlgorithm, setActiveAlgorithm } = useStore(
-    useShallow((s) => ({ activeAlgorithm: s.activeAlgorithm, setActiveAlgorithm: s.setActiveAlgorithm }))
+  const { value, setActiveAlgorithm, setPathAlgorithm } = useStore(
+    useShallow((s) => ({
+      // Options are "sort:quick" or "path:astar", since both families share one picker.
+      value: s.module === "pathfinding" ? `path:${s.pathAlgorithm}` : `sort:${s.activeAlgorithm}`,
+      setActiveAlgorithm: s.setActiveAlgorithm,
+      setPathAlgorithm: s.setPathAlgorithm,
+    })),
   );
   return (
     <div data-tour="picker" className="relative min-w-0 flex-1">
       <select
         aria-label="Algorithm"
-        value={activeAlgorithm}
-        onChange={(event) => setActiveAlgorithm(event.target.value as Algorithm)}
+        value={value}
+        onChange={(event) => {
+          const [family, name] = event.target.value.split(":");
+          if (family === "path") setPathAlgorithm(name as PathAlgorithm);
+          else setActiveAlgorithm(name as Algorithm);
+        }}
         className={cn(fieldClass, "appearance-none")}
       >
         {algorithmGroups.map((group) => (
           <optgroup key={group.label} label={`${group.label} · ${group.hint}`}>
             {group.algorithms.map((algorithm) => (
-              <option key={algorithm} value={algorithm}>
+              <option key={algorithm} value={`sort:${algorithm}`}>
                 {sortingAlgorithms[algorithm].title}
               </option>
             ))}
           </optgroup>
         ))}
+        <optgroup label="Pathfinding">
+          {(Object.keys(pathAlgorithms) as PathAlgorithm[]).map((algorithm) => (
+            <option key={algorithm} value={`path:${algorithm}`}>
+              {pathAlgorithms[algorithm].title}
+            </option>
+          ))}
+        </optgroup>
       </select>
       <FieldChevron />
     </div>
@@ -100,13 +124,16 @@ const AlgorithmField = () => {
 /** Picking 2–4 racers doesn't fit a native select, so the same field opens a checklist. */
 const RacersField = () => {
   const racers = useStore((s) => s.raceAlgorithms);
-  const names = racers.map((a) => sortingAlgorithms[a].title.replace(/ Sort$/, "").replace("Cocktail Shaker", "Cocktail"));
+  const names = racers.map((a) =>
+    sortingAlgorithms[a].title.replace(/ Sort$/, "").replace("Cocktail Shaker", "Cocktail"),
+  );
   return (
     <Drawer>
       <DrawerTrigger asChild>
         <button type="button" aria-label={`Racers: ${names.join(", ")}. Change`} className={cn(fieldClass, "relative")}>
           <span className="truncate">
-            {racers.length} racers <span className="font-sans text-sm font-normal text-foreground/70">· {names.join(", ")}</span>
+            {racers.length} racers{" "}
+            <span className="font-sans text-sm font-normal text-foreground/70">· {names.join(", ")}</span>
           </span>
           <FieldChevron />
         </button>
@@ -119,18 +146,29 @@ const RacersField = () => {
 };
 
 /** The view switch and share link, above the picker. */
-const ViewRow = () => (
-  <div className="flex items-center gap-2">
-    <ViewSwitch className="flex-1" />
-    <ShareButton iconOnly />
-    <ThemeToggle />
-  </div>
-);
+const ViewRow = () => {
+  const isPath = useStore((s) => s.module === "pathfinding");
+  return (
+    <div className="flex items-center gap-2">
+      {/* Races are for sorting; pathfinding names its family instead. */}
+      {isPath ? (
+        <span className="flex-1 pl-2 text-sm font-semibold text-foreground/70">Pathfinding</span>
+      ) : (
+        <ViewSwitch className="flex-1" />
+      )}
+      <ShareButton iconOnly />
+      <ThemeToggle />
+    </div>
+  );
+};
 
 /** Phones and tablets: the view, then the algorithm as a field (tap to change), (i) and settings. */
 export const MobileTopBar = ({ className }: { className?: string }) => {
   const activeAlgorithm = useStore((s) => s.activeAlgorithm);
-  const { title, shortDescription, longDescription } = sortingAlgorithms[activeAlgorithm];
+  const pathAlgorithm = useStore((s) => (s.module === "pathfinding" ? s.pathAlgorithm : null));
+  const { title, shortDescription, longDescription } = pathAlgorithm
+    ? pathAlgorithms[pathAlgorithm]
+    : sortingAlgorithms[activeAlgorithm];
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
@@ -140,7 +178,11 @@ export const MobileTopBar = ({ className }: { className?: string }) => {
         <InfoButton label={title}>
           <p className="text-foreground/80">{shortDescription}</p>
           <p className="text-foreground/80">{longDescription}</p>
-          <Complexity />
+          {pathAlgorithm ? (
+            <p className="font-mono text-xs text-foreground/70">{pathTraits(pathAlgorithm)}</p>
+          ) : (
+            <Complexity />
+          )}
           <DrawerClose asChild>
             <TourLink />
           </DrawerClose>

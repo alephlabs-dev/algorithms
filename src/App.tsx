@@ -4,6 +4,8 @@ import { About } from "./components/About";
 import { AlgorithmVisualizer } from "./components/AlgorithmVisualizer";
 import { Controls } from "./components/Controls";
 import { MobileRaceBar, MobileTopBar } from "./components/MobileTopBar";
+import { PathStage } from "./components/Pathfinding/PathStage";
+import { PathLegend, PathTools } from "./components/Pathfinding/PathTools";
 import { NowCard, StepCaption } from "./components/Pseudocode";
 import { RaceLanes } from "./components/Race/RaceLanes";
 import { Legend } from "./components/RunInfo";
@@ -21,6 +23,7 @@ import { navigate, routeFor } from "./urlSync";
 function App() {
   const setIsMobile = useStore((s) => s.setIsMobile);
   const view = useStore((s) => s.view);
+  const isPath = useStore((s) => s.module === "pathfinding");
   const isMobile = useMediaQuery(MOBILE_QUERY);
   const route = useStore(useShallow(routeFor));
 
@@ -37,11 +40,17 @@ function App() {
             <MobileTopBar className="lg:hidden" />
             <div className="flex min-h-0 flex-1 gap-8">
               <div className="flex min-w-0 flex-1 flex-col gap-2 lg:px-4">
+                {/* Pathfinding is about editing the grid, so its tools sit right above it. */}
+                {isPath && <PathTools className="-ml-1" />}
                 <div className="flex min-h-10 items-center justify-between gap-4 xl:hidden">
                   <StepCaption className="-ml-3 flex-1" />
-                  <Legend className="hidden shrink-0 md:flex" />
+                  {isPath ? (
+                    <PathLegend className="hidden shrink-0 md:flex" />
+                  ) : (
+                    <Legend className="hidden shrink-0 md:flex" />
+                  )}
                 </div>
-                <AlgorithmVisualizer />
+                {isPath ? <PathStage /> : <AlgorithmVisualizer />}
               </div>
               {/* Never taller than the stage: the card scrolls inside if it has to. */}
               <NowCard className="hidden max-h-full w-80 shrink-0 self-start xl:flex" />

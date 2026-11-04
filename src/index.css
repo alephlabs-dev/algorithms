@@ -47,6 +47,8 @@
   --color-bar: #d9dfdb;
   --color-muted: #8fa39a;
   --color-outline: #ffffff;
+  /* Pathfinding: mud cells (cost more to cross). */
+  --color-mud: #6e5a3b;
   --shadow-dock: 0 20px 60px rgb(0 0 0 / 0.5);
 }
 
@@ -70,6 +72,7 @@
   --color-bar: #2c4166;
   --color-muted: #5b6f8f;
   --color-outline: #13294b;
+  --color-mud: #cdb88f;
   --shadow-dock: 0 12px 40px rgb(19 41 75 / 0.12);
 }
 

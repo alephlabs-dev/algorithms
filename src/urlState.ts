@@ -1,4 +1,6 @@
 import { sortAlgorithms } from "./algorithms";
+import { gridSizes, type GridSize } from "./pathfinding/grid";
+import type { PathAlgorithm } from "./pathfinding/types";
 import { routeFromPath } from "./routes";
 import { displayModes } from "./consts/displayModes";
 import { inputOrders } from "./consts/inputOrders";
@@ -66,10 +68,49 @@ export const readUrlState = (search: string): Partial<UrlState> => {
   return state;
 };
 
+/** A pathfinding grid as a link carries it. Cells are validated against the size by the store. */
+export type PathUrlState = {
+  gridSize?: GridSize;
+  /** Terrain, packed (see encodeCells). */
+  cells?: string;
+  start?: number;
+  end?: number;
+};
+
+const readPathParams = (params: URLSearchParams): PathUrlState => {
+  const state: PathUrlState = {};
+  const gridSize = params.get("grid");
+  if (isOneOf(gridSizes, gridSize)) state.gridSize = gridSize;
+  const cells = params.get("cells");
+  if (cells && /^[A-Za-z0-9_-]+$/.test(cells)) state.cells = cells;
+  const start = parseInt(params.get("from") ?? "", 36);
+  const end = parseInt(params.get("to") ?? "", 36);
+  if (Number.isInteger(start) && start >= 0) state.start = start;
+  if (Number.isInteger(end) && end >= 0) state.end = end;
+  return state;
+};
+
+/** The query string for a pathfinding page: the grid, plus the speed if it isn't the default. */
+export const toPathSearch = (state: Required<PathUrlState> & { speed?: SpeedPreset }) =>
+  "?" +
+  new URLSearchParams({
+    grid: state.gridSize,
+    cells: state.cells,
+    from: state.start.toString(36),
+    to: state.end.toString(36),
+    ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
+  }).toString();
+
 /** Settings from a full location: the page (path) wins over legacy query parameters. */
-export const readLocation = (pathname: string, search: string): Partial<UrlState> & { isHome: boolean } => {
+export const readLocation = (
+  pathname: string,
+  search: string
+): Partial<UrlState> & { isHome: boolean; pathAlgorithm?: PathAlgorithm; path: PathUrlState } => {
   const state = readUrlState(search);
   const route = routeFromPath(pathname);
+  if (route?.kind === "path") {
+    return { ...state, isHome: false, pathAlgorithm: route.algorithm, path: readPathParams(new URLSearchParams(search)) };
+  }
   if (route?.kind === "algorithm") {
     state.algorithm = route.algorithm;
     state.view = "single";
@@ -78,7 +119,7 @@ export const readLocation = (pathname: string, search: string): Partial<UrlState
   }
   // The home page, unless an old ?algo=/?view= link picked something.
   const isHome = (route === null || route.kind === "home") && state.algorithm === undefined && state.view === undefined;
-  return { ...state, isHome };
+  return { ...state, isHome, path: {} };
 };
 
 /** The query string for the settings that aren't part of the path. */
