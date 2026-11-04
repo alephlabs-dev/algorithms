@@ -9,7 +9,16 @@
       content="Watch nine sorting algorithms work step by step: play, pause, step through, read the pseudocode, and race them against each other on the same array."
     />
     <meta name="theme-color" content="#0b0f0d" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="dark light" />
+    <script>
+      // Apply the saved theme before first paint, so the page never flashes the other one.
+      try {
+        if (localStorage.getItem("theme") === "light") {
+          document.documentElement.dataset.theme = "light";
+          document.querySelector('meta[name="theme-color"]').content = "#f2f5f9";
+        }
+      } catch {}
+    </script>
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
 

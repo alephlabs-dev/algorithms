@@ -85,7 +85,7 @@ export const Controls = ({ className }: { className?: string }) => {
   return (
     <div
       className={cn(
-        "mx-auto flex w-full max-w-5xl flex-col gap-4 rounded-3xl border border-edge bg-surface p-4 shadow-[0_20px_60px_rgb(0_0_0/0.5)] md:flex-row md:items-center md:gap-3 md:px-4 md:py-3",
+        "mx-auto flex w-full max-w-5xl flex-col gap-4 rounded-3xl border border-edge bg-surface p-4 shadow-(--shadow-dock) md:flex-row md:items-center md:gap-3 md:px-4 md:py-3",
         className
       )}
     >

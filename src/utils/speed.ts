@@ -1,11 +1,12 @@
 import type { StepKind } from "@/algorithms";
 
 // Internally speed is a position from 0 to 1 on an exponential scale: 1 step
-// per second at 0, ~2000 at 1. That range covers 10 items and 400 alike. People
-// pick a preset relative to a pace chosen for the current run (see speedFor).
-const DOUBLINGS = 11;
+// per second at 0, ~8000 at 1. That range covers 10 items and 400 alike, even at
+// 16×. People pick a preset relative to a pace chosen for the current run (see speedFor).
+const DOUBLINGS = 13;
 
-export const DEFAULT_SPEED = 0.2;
+/** About 4.6 steps per second: the pace for small arrays at 1×. */
+export const DEFAULT_SPEED = 2.2 / DOUBLINGS;
 
 export const stepsPerSecond = (speed: number) => 2 ** (speed * DOUBLINGS);
 
@@ -39,11 +40,11 @@ export const autoSpeed = (steps: number, view: keyof typeof TARGET_SECONDS) =>
   Math.max(DEFAULT_SPEED, speedForStepsPerSecond(steps / TARGET_SECONDS[view]));
 
 // Each preset doubles the one before it, so every jump feels the same.
-export const speedPresets = ["0.25x", "0.5x", "1x", "2x", "4x", "8x"] as const;
+export const speedPresets = ["0.25x", "0.5x", "1x", "2x", "4x", "8x", "16x"] as const;
 export type SpeedPreset = (typeof speedPresets)[number];
 export const DEFAULT_PRESET: SpeedPreset = "1x";
 
-const multipliers: Record<SpeedPreset, number> = { "0.25x": 0.25, "0.5x": 0.5, "1x": 1, "2x": 2, "4x": 4, "8x": 8 };
+const multipliers: Record<SpeedPreset, number> = { "0.25x": 0.25, "0.5x": 0.5, "1x": 1, "2x": 2, "4x": 4, "8x": 8, "16x": 16 };
 
 export const presetLabels = Object.fromEntries(
   speedPresets.map((p) => [p, `${multipliers[p]}×`])

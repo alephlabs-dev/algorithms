@@ -9,6 +9,7 @@ import { AlgorithmList } from "./AlgorithmList";
 import { ShortcutsHelp } from "./Controls/ShortcutsHelp";
 import { RacerList } from "./Race/RacerPicker";
 import { ShareButton } from "./ShareButton";
+import { ThemeToggle } from "./ThemeToggle";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { popoverClass } from "./ui/popover";
@@ -141,6 +142,7 @@ export const TopBar = ({ className }: { className?: string }) => {
       <div className="ml-auto flex items-center gap-2">
         <ViewSwitch className="w-56" />
         <ShareButton iconOnly />
+        <ThemeToggle />
         <ShortcutsHelp />
       </div>
     </header>

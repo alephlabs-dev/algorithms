@@ -45,7 +45,7 @@ export const readUrlState = (search: string): Partial<UrlState> => {
   const speed = params.get("speed");
   if (isOneOf(speedPresets, speed)) state.speed = speed;
   // Links from before the presets were all multiples.
-  else if (speed === "max") state.speed = "8x";
+  else if (speed === "max") state.speed = "16x";
 
   const seed = parseInt(params.get("seed") ?? "", 36);
   if (Number.isInteger(seed) && seed >= 0 && seed < 2 ** 32) state.seed = seed;

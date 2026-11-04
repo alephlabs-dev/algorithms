@@ -24,7 +24,7 @@ function App() {
   }, [isMobile, setIsMobile]);
 
   return (
-    <main className="mx-auto flex h-dvh w-full max-w-[1600px] flex-col gap-4 bg-background p-4 text-foreground md:p-6 lg:gap-6 lg:px-8">
+    <main className="mx-auto flex h-dvh w-full max-w-[1600px] flex-col gap-4 p-4 text-foreground md:p-6 lg:gap-6 lg:px-8">
       <TopBar className="hidden lg:flex" />
       {view === "single" ? (
         <>

@@ -11,6 +11,7 @@ import { RACE_DESCRIPTION } from "@/consts/race";
 import { Complexity } from "./TopBar";
 import { RacerList } from "./Race/RacerPicker";
 import { ShareButton } from "./ShareButton";
+import { ThemeToggle } from "./ThemeToggle";
 import { SettingsPanel } from "./Settings/SettingsPanel";
 import { Button } from "./ui/button";
 import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
@@ -122,6 +123,7 @@ const ViewRow = () => (
   <div className="flex items-center gap-2">
     <ViewSwitch className="flex-1" />
     <ShareButton iconOnly />
+    <ThemeToggle />
   </div>
 );
 

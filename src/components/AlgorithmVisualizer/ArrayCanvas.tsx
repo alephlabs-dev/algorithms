@@ -32,6 +32,12 @@ export const ArrayCanvas = ({ frame, values, mode, celebrate, runId, label, anno
     return () => renderer.destroy();
   }, []);
 
+  // The canvas reads its colors from the theme's CSS variables.
+  const theme = useStore((s) => s.theme);
+  useEffect(() => {
+    rendererRef.current?.refreshColors();
+  }, [theme]);
+
   useEffect(() => {
     rendererRef.current?.resize(width, height, window.devicePixelRatio || 1);
   }, [width, height]);

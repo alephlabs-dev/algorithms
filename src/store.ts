@@ -8,6 +8,9 @@ import { DEFAULT_PRESET, speedFor, type SpeedPreset } from "./utils/speed";
 import type { Algorithm, DisplayMode, InputOrder } from "./types";
 
 export type View = "single" | "race";
+export type Theme = "dark" | "light";
+
+const THEME_COLORS: Record<Theme, string> = { dark: "#0b0f0d", light: "#f2f5f9" };
 
 export const MIN_RACERS = 2;
 export const MAX_RACERS = 4;
@@ -44,6 +47,8 @@ export type StoreState = {
   isScrubbing: boolean;
   /** The keyboard shortcuts help is open. */
   isHelpOpen: boolean;
+  /** Dark (default) or light; saved in this browser and applied by index.html before first paint. */
+  theme: Theme;
 
   setIsMobile: (isMobile: boolean) => void;
   setView: (view: View) => void;
@@ -57,6 +62,7 @@ export type StoreState = {
   setSpeedPreset: (preset: SpeedPreset) => void;
   setScrubbing: (isScrubbing: boolean) => void;
   setHelpOpen: (isHelpOpen: boolean) => void;
+  setTheme: (theme: Theme) => void;
   createNewArray: () => void;
 
   play: () => void;
@@ -145,6 +151,18 @@ export const useStore = create<StoreState>((set, get) => {
     isPlaying: false,
     isScrubbing: false,
     isHelpOpen: false,
+    theme: document.documentElement.dataset.theme === "light" ? "light" : "dark",
+
+    setTheme: (theme) => {
+      document.documentElement.dataset.theme = theme;
+      document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", THEME_COLORS[theme]);
+      try {
+        localStorage.setItem("theme", theme);
+      } catch {
+        // Private mode or blocked storage: the theme still applies for this visit.
+      }
+      set({ theme });
+    },
 
     // Shrinks the array if the screen got too small for it (e.g. rotating a tablet).
     setIsMobile: (isMobile) => {

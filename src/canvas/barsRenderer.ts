@@ -1,6 +1,6 @@
 import type { Frame } from "@/algorithms";
 import { smoothDamp } from "./smoothDamp";
-import { colors, hexToRgb, type RGB } from "./theme";
+import { hexToRgb, readColors, type CanvasColors, type RGB } from "./theme";
 
 export type DisplayMode = "bars" | "numbers";
 
@@ -53,13 +53,29 @@ const WAVE_DURATION = 0.55;
 const MIN_HOP_DURATION = 0.08; // below this, moves are too quick for an arc to read
 const MIN_LABEL_WIDTH = 14; // narrower bars can't fit a value above them
 
-const palette = {
+// Relative luminance (WCAG), 0 for black to 1 for white.
+const luminance = (rgb: RGB) => {
+  const [r, g, b] = rgb.map((c) => {
+    const v = c / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+
+/** The theme's darkest and lightest colors, for text drawn on top of bars. */
+const inkFor = (colors: CanvasColors) => {
+  const pair = [colors.background, colors.foreground];
+  const [dark, light] = luminance(hexToRgb(pair[0])) < luminance(hexToRgb(pair[1])) ? pair : [pair[1], pair[0]];
+  return { dark, light };
+};
+
+const paletteFor = (colors: CanvasColors) => ({
   base: hexToRgb(colors.bar),
   active: hexToRgb(colors.secondary),
   temp: hexToRgb(colors.tertiary),
   done: hexToRgb(colors.primary),
   dim: hexToRgb(colors.dim),
-};
+});
 
 const clamp01 = (p: number) => Math.min(Math.max(p, 0), 1);
 const easeArc = (p: number) => Math.sin(Math.PI * clamp01(p));
@@ -84,11 +100,20 @@ export class BarsRenderer {
   private clock = 0;
   private lastTick = 0;
   private frameRequest = 0;
+  private colors = readColors();
+  private palette = paletteFor(this.colors);
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext("2d")!;
     // Number tiles use a web font; draw again once it's ready instead of keeping the fallback.
     document.fonts?.ready.then(() => this.draw());
+  }
+
+  /** Picks up the theme's colors again; bars ease into them. */
+  refreshColors() {
+    this.colors = readColors();
+    this.palette = paletteFor(this.colors);
+    this.start();
   }
 
   destroy() {
@@ -154,7 +179,7 @@ export class BarsRenderer {
         arc: 0,
         lift: spring(0),
         alpha: spring(1),
-        color: palette.base.map(spring) as ItemState["color"],
+        color: this.palette.base.map(spring) as ItemState["color"],
         grow: spring(reduce ? 1 : 0),
         growDelay: reduce ? 0 : position * stagger,
         waveStart: null,
@@ -220,14 +245,14 @@ export class BarsRenderer {
       const highlighted = active.has(id) || temp.has(id);
       follow(item.alpha, dimmed && highlighted ? DIMMED_ALPHA : 1, fadeTime);
       const color: RGB = active.has(id)
-        ? palette.active
+        ? this.palette.active
         : temp.has(id)
-          ? palette.temp
+          ? this.palette.temp
           : done.has(id)
-            ? palette.done
+            ? this.palette.done
             : dimmed
-              ? palette.dim
-              : palette.base;
+              ? this.palette.dim
+              : this.palette.base;
       item.color.forEach((channel, c) => follow(channel, color[c], fadeTime));
 
       if (item.growDelay > 0) {
@@ -275,7 +300,7 @@ export class BarsRenderer {
   }
 
   private draw() {
-    const { ctx, dpr, width, height, input } = this;
+    const { ctx, dpr, width, height, input, colors } = this;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
     if (!input || this.items.length === 0 || width === 0 || height === 0) return;
@@ -291,7 +316,7 @@ export class BarsRenderer {
       const y = height - this.pivotLine.y.value;
       ctx.save();
       ctx.globalAlpha = 0.6 * this.pivotLine.alpha.value;
-      ctx.strokeStyle = "#ffffff";
+      ctx.strokeStyle = colors.outline;
       ctx.lineWidth = 1;
       ctx.setLineDash([4, 4]);
       ctx.beginPath();
@@ -306,6 +331,7 @@ export class BarsRenderer {
       .map((item, id) => ({ item, id }))
       .sort((a, b) => Number(a.item.arc > 0) - Number(b.item.arc > 0));
 
+    const ink = inkFor(colors);
     const font = `600 ${Math.max(10, Math.round(tile * 0.38))}px "JetBrains Mono Variable", ui-monospace, monospace`;
 
     // Thin bars are snapped to device pixels; otherwise their fractional edges
@@ -338,15 +364,17 @@ export class BarsRenderer {
 
       // A thin outline on compared items, so they don't depend on color alone.
       if (item.lift.value > 0.05 && w >= 4) {
-        ctx.strokeStyle = `rgb(255 255 255 / ${0.9 * item.lift.value})`;
+        ctx.globalAlpha = 0.9 * item.lift.value * item.alpha.value;
+        ctx.strokeStyle = colors.outline;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.roundRect(x + 0.75, y + 0.75, w - 1.5, h - 1.5, Math.max(0, radius - 0.75));
         ctx.stroke();
+        ctx.globalAlpha = item.alpha.value * (isBars ? 1 : item.grow.value);
       }
 
       if (id === input.frame.pivot) {
-        ctx.strokeStyle = "#ffffff";
+        ctx.strokeStyle = colors.outline;
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.roundRect(x - 3, y - 3, w + 6, h + 6, radius + 2);
@@ -354,8 +382,8 @@ export class BarsRenderer {
       }
 
       if (!isBars) {
-        // Every tile color is light, so dark text reads best on all of them (≥ 6:1).
-        ctx.fillStyle = colors.background;
+        // Dark digits on light tiles and light digits on dark ones, whatever the theme.
+        ctx.fillStyle = luminance([r, g, b]) > 0.4 ? ink.dark : ink.light;
         ctx.font = font;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -369,7 +397,7 @@ export class BarsRenderer {
 
   /** Values above the compared bars, and "pivot" above the pivot, like callouts on a figure. */
   private drawLabels(slot: number, offsetX: number, gap: number, barWidth: number, liftPx: number) {
-    const { ctx, height, input } = this;
+    const { ctx, height, input, colors } = this;
     if (!input) return;
     ctx.font = `600 12px "JetBrains Mono Variable", ui-monospace, monospace`;
     ctx.textAlign = "center";

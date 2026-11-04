@@ -43,6 +43,51 @@
   --color-line: #56695f;
   /* Bars outside the range being worked on: recede without turning grey. */
   --color-dim: #6c7d75;
+  /* Canvas only: plain bars, callout text and the outline on compared bars. */
+  --color-bar: #d9dfdb;
+  --color-muted: #8fa39a;
+  --color-outline: #ffffff;
+  --shadow-dock: 0 20px 60px rgb(0 0 0 / 0.5);
+}
+
+/*
+  Light theme, after the "Blueprint" direction: navy ink on paper with a faint
+  grid, orange for what's being compared, teal for what's in place.
+  Same token names, so every component follows without changes.
+*/
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-background: #f2f5f9;
+  --color-foreground: #13294b;
+  --color-surface: #ffffff;
+  --color-edge: #cfd8e5;
+  --color-accent: #e4eaf3;
+  --color-primary: #128a78;
+  --color-secondary: #e8590c;
+  --color-tertiary: #5b6cff;
+  --color-line: #8494ad;
+  --color-dim: #b9c4d4;
+  --color-bar: #2c4166;
+  --color-muted: #5b6f8f;
+  --color-outline: #13294b;
+  --shadow-dock: 0 12px 40px rgb(19 41 75 / 0.12);
+}
+
+:root {
+  color-scheme: dark;
+}
+
+/* The whole page, edge to edge, so wide screens have no differently colored sides. */
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+:root[data-theme="light"] body {
+  background-image:
+    linear-gradient(rgb(19 41 75 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(19 41 75 / 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 /*
