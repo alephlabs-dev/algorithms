@@ -30,6 +30,14 @@ const stateFor = (module: ModuleId, view: "single" | "race", isModuleStart: bool
     graphPreset: "tree",
     graph: makeGraph("tree", "large", false, seededRandom(5)),
     graphRaceAlgorithms: ["prim", "kruskal"],
+    fourierAlgorithm: "epicycles",
+    fourierCircles: 25,
+    fourierShape: "custom",
+    fourierPath: [
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 0, y: 1 },
+    ],
   }) as unknown as StoreState;
 
 describe("module engines", () => {
@@ -44,10 +52,33 @@ describe("module engines", () => {
           expect(routeFromPath(path)).toEqual(route);
           const location = readLocation(path, engines[module].search(state));
           expect(location.module).toBe(module);
-          expect(location.view ?? "single").toBe(view);
+          // Fourier has no race: its pages are single view whatever the store's view says.
+          expect(location.view ?? "single").toBe(module === "fourier" ? "single" : view);
           expect(location.speed).toBe("2x");
         }
       }
     });
   }
+
+  it("puts every setting a module shares in its link, so editing it changes the link", () => {
+    const changes: [ModuleId, Partial<StoreState>][] = [
+      ["sorting", { size: 80 }],
+      ["sorting", { inputOrder: "sorted" }],
+      ["sorting", { seed: 99 }],
+      ["sorting", { raceAlgorithms: ["quick", "merge"] }],
+      ["pathfinding", { grid: applyPreset(emptyGrid(17, 33), "walls", seededRandom(8)) }],
+      ["pathfinding", { pathRaceAlgorithms: ["dfs", "greedy"] }],
+      ["graphs", { graph: makeGraph("grid", "large", false, seededRandom(2)) }],
+      ["graphs", { graphPreset: "dag" }],
+      ["graphs", { graphRaceAlgorithms: ["bfs", "topo"] }],
+      ["fourier", { fourierCircles: 100 }],
+      ["fourier", { fourierShape: "star" }],
+      ["fourier", { fourierPath: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }] }],
+      ["fourier", { speedPreset: "4x" }],
+    ];
+    for (const [module, change] of changes) {
+      const state = stateFor(module, "single", false);
+      expect(engines[module].search({ ...state, ...change } as StoreState)).not.toBe(engines[module].search(state));
+    }
+  });
 });

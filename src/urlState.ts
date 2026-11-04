@@ -1,6 +1,7 @@
 import { sortAlgorithms } from "./algorithms";
 import { gridSizes, type GridSize } from "./pathfinding/grid";
 import { pathSearches } from "./pathfinding/searches";
+import type { FourierAlgorithm, FourierShape } from "./fourier/types";
 import { graphPresets, graphSizes, type GraphPreset, type GraphSize } from "./graphs/graph";
 import type { GraphAlgorithm } from "./graphs/types";
 import type { PathAlgorithm } from "./pathfinding/types";
@@ -147,6 +148,36 @@ export const toGraphSearch = (state: Required<GraphUrlState> & { speed?: SpeedPr
     ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
   }).toString();
 
+/** A Fourier run as a link carries it: how many circles, and which drawing (a hand-drawn one packed in `path`). */
+export type FourierUrlState = {
+  circles?: number;
+  shape?: FourierShape;
+  path?: string;
+};
+
+const fourierShapes: FourierShape[] = ["heart", "star", "infinity", "square", "custom"];
+
+const readFourierParams = (params: URLSearchParams): FourierUrlState => {
+  const state: FourierUrlState = {};
+  const circles = Number(params.get("circles"));
+  if (Number.isInteger(circles) && circles >= 1 && circles <= 256) state.circles = circles;
+  const shape = params.get("shape");
+  if (isOneOf(fourierShapes, shape)) state.shape = shape;
+  const path = params.get("path");
+  if (path && /^[A-Za-z0-9_-]+$/.test(path)) state.path = path;
+  return state;
+};
+
+/** The query string for a Fourier page: circles, the drawing (if any), and the speed if it isn't the default. */
+export const toFourierSearch = (state: { circles: number; shape?: FourierShape; path?: string; speed?: SpeedPreset }) =>
+  "?" +
+  new URLSearchParams({
+    circles: String(state.circles),
+    ...(state.shape && { shape: state.shape }),
+    ...(state.path && { path: state.path }),
+    ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
+  }).toString();
+
 /** Settings from a full location: the page (path) wins over legacy query parameters. */
 export const readLocation = (
   pathname: string,
@@ -154,14 +185,29 @@ export const readLocation = (
 ): Partial<UrlState> & {
   isLanding: boolean;
   isModuleStart: boolean;
-  module: "sorting" | "pathfinding" | "graphs";
+  module: "sorting" | "pathfinding" | "graphs" | "fourier";
   pathAlgorithm?: PathAlgorithm;
   path: PathUrlState;
   graphAlgorithm?: GraphAlgorithm;
   graph: GraphUrlState;
+  fourierAlgorithm?: FourierAlgorithm;
+  fourier: FourierUrlState;
 } => {
   const state = readUrlState(search);
   const route = routeFromPath(pathname);
+  if (route?.kind === "fourier" || route?.kind === "series") {
+    return {
+      ...state,
+      isLanding: false,
+      isModuleStart: route.kind === "fourier",
+      module: "fourier",
+      view: "single",
+      ...(route.kind === "series" && { fourierAlgorithm: route.algorithm }),
+      path: {},
+      graph: {},
+      fourier: readFourierParams(new URLSearchParams(search)),
+    };
+  }
   if (route?.kind === "graph" || route?.kind === "graphs" || route?.kind === "graphRace") {
     return {
       ...state,
@@ -172,6 +218,7 @@ export const readLocation = (
       ...(route.kind === "graph" && { graphAlgorithm: route.algorithm }),
       path: {},
       graph: readGraphParams(new URLSearchParams(search)),
+      fourier: {},
     };
   }
   if (route?.kind === "path" || route?.kind === "pathRace" || route?.kind === "pathfinding") {
@@ -184,6 +231,7 @@ export const readLocation = (
       ...(route.kind === "path" && { pathAlgorithm: route.algorithm }),
       path: readPathParams(new URLSearchParams(search)),
       graph: {},
+      fourier: {},
     };
   }
   if (route?.kind === "algorithm") {
@@ -195,7 +243,7 @@ export const readLocation = (
   // Old links put the algorithm in the query string of the home page (/?algo=quick): they open that algorithm.
   const legacy = state.algorithm !== undefined || state.view !== undefined;
   const isLanding = (route === null || route.kind === "home") && !legacy;
-  return { ...state, isLanding, isModuleStart: route?.kind === "sorting", module: "sorting", path: {}, graph: {} };
+  return { ...state, isLanding, isModuleStart: route?.kind === "sorting", module: "sorting", path: {}, graph: {}, fourier: {} };
 };
 
 /** The query string for the settings that aren't part of the path. */

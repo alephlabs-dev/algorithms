@@ -1,3 +1,4 @@
+import { FourierRun } from "@/fourier";
 import { graphTimelineFor, makeGraph } from "@/graphs";
 import { applyPreset, emptyGrid, FRONTIER, ON_PATH, pathSearches, PathTimeline, VISITED, WALL } from "@/pathfinding";
 import { cn } from "@/utils/cn";
@@ -124,6 +125,59 @@ export const GraphThumb = ({ className }: { className?: string }) => {
           />
         );
       })}
+    </svg>
+  );
+};
+
+// Ten circles a third of the way round, retracing a heart.
+const epicycles = (() => {
+  const run = new FourierRun("epicycles", 10, "heart", null);
+  const at = Math.round(run.length * 0.62);
+  return { run, chain: run.frameAt(at).chain, at };
+})();
+
+export const FourierThumb = ({ className }: { className?: string }) => {
+  const { run, chain, at } = epicycles;
+  const size = 100;
+  const unit = 42;
+  const point = (p: { x: number; y: number }) => `${size / 2 + p.x * unit},${size / 2 + p.y * unit}`;
+  return (
+    <svg aria-hidden viewBox={`0 0 ${size} ${size}`} className={className}>
+      <polyline
+        points={run.target.map(point).join(" ")}
+        fill="none"
+        stroke={mix("muted", 50)}
+        strokeWidth={1}
+        strokeDasharray="2 3"
+      />
+      <polyline
+        points={run.tips
+          .slice(0, at + 1)
+          .map(point)
+          .join(" ")}
+        fill="none"
+        stroke="var(--color-secondary)"
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+      {run.terms.slice(0, 6).map((term, k) => (
+        <circle
+          key={k}
+          cx={size / 2 + chain[k].x * unit}
+          cy={size / 2 + chain[k].y * unit}
+          r={term.amp * unit}
+          fill="none"
+          stroke={mix("muted", 45)}
+          strokeWidth={0.6}
+        />
+      ))}
+      <polyline points={chain.map(point).join(" ")} fill="none" stroke={mix("foreground", 60)} strokeWidth={0.8} />
+      <circle
+        cx={size / 2 + chain[chain.length - 1].x * unit}
+        cy={size / 2 + chain[chain.length - 1].y * unit}
+        r={2.2}
+        fill="var(--color-primary)"
+      />
     </svg>
   );
 };

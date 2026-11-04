@@ -8,7 +8,7 @@ const format = (n: number) => n.toLocaleString("en-US");
 
 /** The timeline with the position and the counters under it. Kept apart from the dock because it re-renders on every frame. */
 export const Progress = ({ className }: { className?: string }) => {
-  const { race, Stats } = useModuleUI();
+  const { race, Stats, progress } = useModuleUI();
   const { frameIndex, lastIndex, seek, setScrubbing, isRace } = useStore(
     useShallow((s) => ({
       frameIndex: s.frameIndex,
@@ -19,12 +19,14 @@ export const Progress = ({ className }: { className?: string }) => {
     }))
   );
   const unit = isRace && race ? race.unit.one : "step";
+  // A module can count its own way (Fourier counts degrees).
+  const custom = !isRace && progress ? progress(frameIndex, lastIndex) : null;
 
   return (
     <div className={cn("flex min-w-0 flex-col gap-2.5", className)}>
       <Slider
         aria-label="Progress"
-        aria-valuetext={`${unit} ${format(frameIndex)} of ${format(lastIndex)}`}
+        aria-valuetext={custom ?? `${unit} ${format(frameIndex)} of ${format(lastIndex)}`}
         value={[frameIndex]}
         min={0}
         max={lastIndex}
@@ -36,9 +38,13 @@ export const Progress = ({ className }: { className?: string }) => {
       />
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 font-mono text-xs text-foreground/70">
         <span aria-hidden className="whitespace-nowrap">
-          {isRace ? "" : "step "}
-          {format(frameIndex)} / {format(lastIndex)}
-          {isRace && race && ` ${race.unit.short}`}
+          {custom ?? (
+            <>
+              {isRace ? "" : "step "}
+              {format(frameIndex)} / {format(lastIndex)}
+              {isRace && race && ` ${race.unit.short}`}
+            </>
+          )}
         </span>
         {!isRace && <Stats />}
       </div>

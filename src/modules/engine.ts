@@ -1,13 +1,14 @@
+import { encodePath } from "@/fourier/shapes";
 import { encodeGraph } from "@/graphs/graph";
 import { encodeCells } from "@/pathfinding/grid";
 import type { Route } from "@/routes";
 import type { StoreState, View } from "@/store";
 import type { Size } from "@/types";
-import { toGraphSearch, toPathSearch, toSearch } from "@/urlState";
+import { toFourierSearch, toGraphSearch, toPathSearch, toSearch } from "@/urlState";
 import { GRAPH_STEP_WEIGHT, PATH_STEP_WEIGHT, STEP_WEIGHT, type Pace } from "@/utils/speed";
 
 /** The modules the app has. Each one declares its engine here and its interface in ./<id>.tsx. */
-export type ModuleId = "sorting" | "pathfinding" | "graphs";
+export type ModuleId = "sorting" | "pathfinding" | "graphs" | "fourier";
 
 /**
  * What playback needs from a module, without React: how long a run is and
@@ -83,6 +84,23 @@ export const engines: Record<ModuleId, ModuleEngine> = {
         size: s.graphSize,
         preset: s.graphPreset,
         racers: s.graphRaceAlgorithms,
+        speed: s.speedPreset,
+      }),
+  },
+  fourier: {
+    // A frame per degree; every frame gets the same beat, so circles turn at an even pace.
+    lastIndex: (s) => s.fourierRun.length - 1,
+    stepWeight: () => 1,
+    pace: () => "fourier",
+    route: (s) => (s.isModuleStart ? { kind: "fourier" } : { kind: "series", algorithm: s.fourierAlgorithm }),
+    search: (s) =>
+      toFourierSearch({
+        circles: s.fourierCircles,
+        // Only drawings have a shape; a hand-drawn one travels in the link.
+        ...(s.fourierAlgorithm === "epicycles" && { shape: s.fourierShape }),
+        ...(s.fourierAlgorithm === "epicycles" &&
+          s.fourierShape === "custom" &&
+          s.fourierPath && { path: encodePath(s.fourierPath) }),
         speed: s.speedPreset,
       }),
   },

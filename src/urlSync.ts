@@ -11,15 +11,19 @@ const searchFor = (s: StoreState) => (s.isLanding ? "" : engines[s.module].searc
 
 const pageChanged = (a: StoreState, b: StoreState) => routePath(routeFor(a)) !== routePath(routeFor(b));
 
-const settingsChanged = (a: StoreState, b: StoreState) =>
-  a.size !== b.size ||
-  a.inputOrder !== b.inputOrder ||
-  a.displayMode !== b.displayMode ||
-  a.speedPreset !== b.speedPreset ||
-  a.seed !== b.seed ||
-  a.raceAlgorithms !== b.raceAlgorithms ||
-  a.pathRaceAlgorithms !== b.pathRaceAlgorithms ||
-  a.grid !== b.grid;
+// Playback moves these every frame; nothing in them belongs in a link.
+const PLAYBACK: ReadonlySet<string> = new Set(["frameIndex", "isPlaying", "isScrubbing"]);
+
+/**
+ * Whether the link should change: something besides playback changed, and the
+ * module's query string comes out different. Whatever an engine puts in its
+ * link is followed, with no list here to keep up to date.
+ */
+const settingsChanged = (a: StoreState, b: StoreState) => {
+  const keys = Object.keys(a) as (keyof StoreState)[];
+  if (keys.every((key) => PLAYBACK.has(key) || a[key] === b[key])) return false;
+  return searchFor(a) !== searchFor(b);
+};
 
 // Set while applying a Back/Forward navigation, so it isn't pushed again.
 let fromHistory = false;
@@ -37,7 +41,10 @@ const applyRoute = (route: Route) => {
     return;
   }
   const inPath = store.module === "pathfinding";
-  if (route.kind === "graph" || route.kind === "graphs") {
+  if (route.kind === "series" || route.kind === "fourier") {
+    const algorithm = route.kind === "series" ? route.algorithm : store.fourierAlgorithm;
+    if (store.module !== "fourier" || store.fourierAlgorithm !== algorithm) store.setFourierAlgorithm(algorithm);
+  } else if (route.kind === "graph" || route.kind === "graphs") {
     const algorithm = route.kind === "graph" ? route.algorithm : store.graphAlgorithm;
     if (store.module !== "graphs" || store.view !== "single" || store.graphAlgorithm !== algorithm)
       store.setGraphAlgorithm(algorithm);
@@ -60,7 +67,8 @@ const applyRoute = (route: Route) => {
   }
   useStore.setState({
     isLanding: false,
-    isModuleStart: route.kind === "sorting" || route.kind === "pathfinding" || route.kind === "graphs",
+    isModuleStart:
+      route.kind === "sorting" || route.kind === "pathfinding" || route.kind === "graphs" || route.kind === "fourier",
   });
 };
 

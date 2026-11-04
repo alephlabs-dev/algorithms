@@ -1,0 +1,115 @@
+import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useShallow } from "zustand/react/shallow";
+import { FourierRenderer } from "@/canvas/fourierRenderer";
+import { fourierSeries } from "@/consts/fourierSeries";
+import { normalize, resample, type Point } from "@/fourier";
+import { useElementSize } from "@/hooks/useElementSize";
+import { useStore } from "@/store";
+import { count } from "@/utils/count";
+
+/** A stroke this short or small isn't a shape yet. */
+const MIN_POINTS = 12;
+const MIN_SIZE = 40;
+
+/**
+ * The circles at work: on the left of a wave they build, or in the middle of
+ * a drawing they retrace. Choosing to draw your own turns the stage into a
+ * canvas for one stroke, which closes itself.
+ */
+export const FourierStage = () => {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rendererRef = useRef<FourierRenderer | null>(null);
+  const strokeRef = useRef<Point[] | null>(null);
+  const [stroke, setStroke] = useState<Point[] | null>(null);
+  const { width, height } = useElementSize(wrapperRef);
+  const { run, frameIndex, theme, algorithm, drawing, circles } = useStore(
+    useShallow((s) => ({
+      run: s.fourierRun,
+      frameIndex: s.frameIndex,
+      theme: s.theme,
+      algorithm: s.fourierAlgorithm,
+      // Waiting for a shape: "Draw" picked, nothing drawn yet.
+      drawing: s.fourierAlgorithm === "epicycles" && s.fourierShape === "custom" && s.fourierPath === null,
+      circles: s.fourierCircles,
+    })),
+  );
+
+  useEffect(() => {
+    rendererRef.current = new FourierRenderer(canvasRef.current!);
+  }, []);
+
+  useEffect(() => {
+    rendererRef.current?.resize(width, height, window.devicePixelRatio || 1);
+  }, [width, height]);
+
+  useEffect(() => {
+    rendererRef.current?.refreshColors();
+  }, [theme]);
+
+  useEffect(() => {
+    rendererRef.current?.update({ run, frameIndex, stroke: drawing ? (stroke ?? []) : null });
+  }, [run, frameIndex, drawing, stroke]);
+
+  const pointFrom = (event: PointerEvent) => {
+    const rect = canvasRef.current!.getBoundingClientRect();
+    return { x: event.clientX - rect.left, y: event.clientY - rect.top };
+  };
+
+  const onPointerDown = (event: PointerEvent<HTMLCanvasElement>) => {
+    if (!drawing) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    strokeRef.current = [pointFrom(event)];
+    setStroke(strokeRef.current);
+  };
+
+  const onPointerMove = (event: PointerEvent<HTMLCanvasElement>) => {
+    const current = strokeRef.current;
+    if (!current) return;
+    const point = pointFrom(event);
+    const last = current[current.length - 1];
+    if (Math.hypot(point.x - last.x, point.y - last.y) < 3) return;
+    strokeRef.current = [...current, point];
+    setStroke(strokeRef.current);
+  };
+
+  const onPointerUp = () => {
+    const current = strokeRef.current;
+    strokeRef.current = null;
+    if (!current) return;
+    const xs = current.map((p) => p.x);
+    const ys = current.map((p) => p.y);
+    const size = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
+    setStroke(null);
+    if (current.length < MIN_POINTS || size < MIN_SIZE) return;
+    useStore.getState().setFourierPath(normalize(resample(current, 128)));
+  };
+
+  const { title } = fourierSeries[algorithm];
+  const label = drawing
+    ? "Drawing area: draw a closed shape in one stroke."
+    : `${title} built from ${count(circles, "circle")}. Off by ${(run.error * 100).toFixed(1)}% on average.`;
+
+  return (
+    <div data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col">
+      <div ref={wrapperRef} className="relative min-h-0 w-full flex-1">
+        <canvas
+          ref={canvasRef}
+          role="img"
+          aria-label={label}
+          className="absolute inset-0 h-full w-full touch-none select-none"
+          style={{ cursor: drawing ? "crosshair" : "default" }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+        />
+        {drawing && !stroke && (
+          <p className="pointer-events-none absolute inset-0 grid place-items-center p-6 text-center text-lg text-foreground/70">
+            Draw a shape here in one stroke. It closes itself.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};

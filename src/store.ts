@@ -25,6 +25,16 @@ import {
   type GraphSize,
   type GraphTimeline,
 } from "./graphs";
+import {
+  circleOptions,
+  decodePath,
+  defaultCircles,
+  FourierRun,
+  isWave,
+  type FourierAlgorithm,
+  type FourierShape,
+  type Point,
+} from "./fourier";
 import { engines, type ModuleId } from "./modules/engine";
 import { readLocation } from "./urlState";
 import { generateItems } from "./utils/generateItems";
@@ -46,6 +56,7 @@ const TOUR_KEYS: Record<Module, string> = {
   sorting: "tour-done",
   pathfinding: "tour-done-pathfinding",
   graphs: "tour-done-graphs",
+  fourier: "tour-done-fourier",
 };
 
 export const tourDone = (module: Module) => {
@@ -83,6 +94,14 @@ export type StoreState = {
   graphRaceAlgorithms: GraphAlgorithm[];
   /** One timeline per racer, on the current graph. Empty outside race view. */
   graphRaceTimelines: GraphTimeline[];
+  fourierAlgorithm: FourierAlgorithm;
+  /** How many circles add up the series. */
+  fourierCircles: number;
+  fourierShape: FourierShape;
+  /** The hand-drawn shape, when `fourierShape` is "custom"; null until it's drawn. */
+  fourierPath: Point[] | null;
+  /** The whole run, precomputed: where the circles are at every degree. */
+  fourierRun: FourierRun;
   /** Bumped when the graph is replaced wholesale, so nodes don't glide between layouts. */
   graphId: number;
   /** Searches racing on the grid, in the picker's order. */
@@ -156,6 +175,11 @@ export type StoreState = {
   /** Replaces the graph after an edit (moving a node, joining two); the run restarts. */
   editGraph: (graph: Graph) => void;
   toggleGraphRacer: (algorithm: GraphAlgorithm) => void;
+  setFourierAlgorithm: (algorithm: FourierAlgorithm) => void;
+  setFourierCircles: (circles: number) => void;
+  /** A ready-made drawing, or "custom" to draw one (which clears the last hand-drawn one). */
+  setFourierShape: (shape: FourierShape) => void;
+  setFourierPath: (path: Point[]) => void;
   togglePathRacer: (algorithm: PathAlgorithm) => void;
   /** Switch to the pathfinding race with `algorithm` among the racers. */
   pathRaceWith: (algorithm: PathAlgorithm) => void;
@@ -232,6 +256,12 @@ const graphOrder: GraphAlgorithm[] = ["bfs", "dfs", "dijkstra", "prim", "kruskal
 const graphRaceTimelinesFor = (view: View, algorithms: GraphAlgorithm[], graph: Graph) =>
   view === "race" ? algorithms.map((a) => graphTimelineFor(a, graph)) : [];
 
+/** A circle count that fits the series: one of its options, the default if the asked-for one isn't. */
+const fitCircles = (algorithm: FourierAlgorithm, circles: number | undefined) => {
+  const kind = isWave(algorithm) ? "wave" : "drawing";
+  return circles !== undefined && circleOptions[kind].includes(circles) ? circles : defaultCircles[kind];
+};
+
 /** Race lanes are a quarter of the stage: graphs there stay at a size that reads. */
 const fitGraphSize = (size: GraphSize, view: View, isMobile: boolean): GraphSize => {
   const cap: GraphSize = isMobile ? "small" : "medium";
@@ -298,6 +328,10 @@ const initial = (() => {
   const pathTimeline = pathTimelineFor(pathAlgorithm, grid);
   const pathRaceAlgorithms = url.path.racers ?? DEFAULT_PATH_RACERS;
   const pathRaceTimelines = pathRaceTimelinesFor(module === "pathfinding" ? view : "single", pathRaceAlgorithms, grid);
+  const fourierAlgorithm = url.fourierAlgorithm ?? "square";
+  const fourierShape = url.fourier.shape ?? "heart";
+  const fourierPath = url.fourier.path ? decodePath(url.fourier.path) : null;
+  const fourierCircles = fitCircles(fourierAlgorithm, url.fourier.circles);
   const graphAlgorithm = url.graphAlgorithm ?? "bfs";
   const graphSize = fitGraphSize(url.graph.size ?? "medium", module === "graphs" ? view : "single", isMobile);
   const graphPreset = url.graph.preset ?? "random";
@@ -320,6 +354,11 @@ const initial = (() => {
     graphPreset,
     graph,
     graphTimeline: graphTimelineFor(graphAlgorithm, graph),
+    fourierAlgorithm,
+    fourierCircles,
+    fourierShape,
+    fourierPath,
+    fourierRun: new FourierRun(fourierAlgorithm, fourierCircles, fourierShape, fourierPath),
     graphRaceAlgorithms: url.graph.racers ?? DEFAULT_GRAPH_RACERS,
     graphRaceTimelines: graphRaceTimelinesFor(
       module === "graphs" ? view : "single",
@@ -575,6 +614,12 @@ export const useStore = create<StoreState>((set, get) => {
       // In pathfinding, "new" means another layout of the same kind (a clear grid becomes a maze).
       if (module === "pathfinding") applyGridPreset(gridPreset === "clear" ? "maze" : gridPreset);
       else if (module === "graphs") applyGraphPreset(graphPreset);
+      else if (module === "fourier") {
+        // "New" adds circles, wrapping back to the fewest: the quickest way to see the series converge.
+        const { fourierAlgorithm, fourierCircles, setFourierCircles } = get();
+        const options = circleOptions[isWave(fourierAlgorithm) ? "wave" : "drawing"];
+        setFourierCircles(options[(options.indexOf(fourierCircles) + 1) % options.length]);
+      }
       else setSize(size);
     },
 
@@ -641,6 +686,61 @@ export const useStore = create<StoreState>((set, get) => {
 
     editGraph: (graph) => {
       set((state) => graphRunFor(state, graph));
+      applyAutoSpeed();
+    },
+
+    setFourierAlgorithm: (algorithm) => {
+      set((state) => {
+        const fourierCircles = fitCircles(algorithm, state.fourierCircles);
+        return {
+          module: "fourier",
+          view: "single",
+          isModuleStart: false,
+          fourierAlgorithm: algorithm,
+          fourierCircles,
+          fourierRun: new FourierRun(algorithm, fourierCircles, state.fourierShape, state.fourierPath),
+          raceTimelines: [],
+          pathRaceTimelines: [],
+          graphRaceTimelines: [],
+          frameIndex: 0,
+          isPlaying: false,
+        };
+      });
+      applyAutoSpeed();
+    },
+
+    setFourierCircles: (fourierCircles) => {
+      set((state) => ({
+        fourierCircles,
+        fourierRun: new FourierRun(state.fourierAlgorithm, fourierCircles, state.fourierShape, state.fourierPath),
+        frameIndex: 0,
+        isPlaying: false,
+      }));
+      applyAutoSpeed();
+    },
+
+    setFourierShape: (fourierShape) => {
+      set((state) => {
+        const fourierPath = fourierShape === "custom" ? null : state.fourierPath;
+        return {
+          fourierShape,
+          fourierPath,
+          fourierRun: new FourierRun(state.fourierAlgorithm, state.fourierCircles, fourierShape, fourierPath),
+          frameIndex: 0,
+          isPlaying: false,
+        };
+      });
+      applyAutoSpeed();
+    },
+
+    setFourierPath: (path) => {
+      set((state) => ({
+        fourierShape: "custom",
+        fourierPath: path,
+        fourierRun: new FourierRun(state.fourierAlgorithm, state.fourierCircles, "custom", path),
+        frameIndex: 0,
+        isPlaying: false,
+      }));
       applyAutoSpeed();
     },
 

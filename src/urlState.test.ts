@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { routePath } from "./routes";
 import type { GraphAlgorithm } from "./graphs/types";
 import type { PathAlgorithm } from "./pathfinding/types";
-import { readLocation, readUrlState, toGraphSearch, toPathSearch, toSearch, type UrlState } from "./urlState";
+import { readLocation, readUrlState, toFourierSearch, toGraphSearch, toPathSearch, toSearch, type UrlState } from "./urlState";
 
 describe("url state", () => {
   const state: UrlState = {
@@ -25,6 +25,7 @@ describe("url state", () => {
       module: "sorting",
       path: {},
       graph: {},
+      fourier: {},
     });
     // The race page has no algorithm of its own (toEqual ignores undefined keys).
     expect(readLocation(routePath({ kind: "race" }), toSearch(state))).toEqual({
@@ -35,6 +36,7 @@ describe("url state", () => {
       module: "sorting",
       path: {},
       graph: {},
+      fourier: {},
     });
   });
 
@@ -100,6 +102,17 @@ describe("url state", () => {
       graph,
     });
     expect(readLocation("/graphs", "").isModuleStart).toBe(true);
+  });
+
+  it("round-trips a Fourier page, with a hand-drawn shape", () => {
+    const search = toFourierSearch({ circles: 25, shape: "custom", path: "AbC-_", speed: "2x" });
+    expect(readLocation(routePath({ kind: "series", algorithm: "epicycles" }), search)).toMatchObject({
+      module: "fourier",
+      fourierAlgorithm: "epicycles",
+      speed: "2x",
+      fourier: { circles: 25, shape: "custom", path: "AbC-_" },
+    });
+    expect(readLocation("/fourier/square-wave", "?circles=999").fourier).toEqual({});
   });
 
   it("keeps pathfinding racers valid and in order", () => {
