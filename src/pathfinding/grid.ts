@@ -1,0 +1,171 @@
+import { EMPTY, MUD, MUD_COST, WALL, type Grid, type Terrain } from "./types";
+
+export type GridSize = "small" | "medium" | "large";
+
+/**
+ * Rows × columns per size: odd numbers, so mazes have walls all around. Wide
+ * screens get landscape grids; phones get taller ones that fit their stage.
+ */
+const dimensions: Record<GridSize, { wide: [number, number]; phone: [number, number] }> = {
+  small: { wide: [11, 21], phone: [13, 11] },
+  medium: { wide: [17, 33], phone: [19, 15] },
+  large: { wide: [25, 49], phone: [27, 21] },
+};
+
+export const gridSizes: GridSize[] = ["small", "medium", "large"];
+
+export const gridDimensions = (size: GridSize, isMobile: boolean) => {
+  const [rows, cols] = dimensions[size][isMobile ? "phone" : "wide"];
+  return { rows, cols };
+};
+
+export const cellOf = (grid: Pick<Grid, "cols">, row: number, col: number) => row * grid.cols + col;
+export const rowOf = (grid: Pick<Grid, "cols">, cell: number) => Math.floor(cell / grid.cols);
+export const colOf = (grid: Pick<Grid, "cols">, cell: number) => cell % grid.cols;
+
+/** Passable cells next to `cell`, in a fixed order: up, right, down, left. */
+export const neighbors = (grid: Grid, cell: number): number[] => {
+  const row = rowOf(grid, cell);
+  const col = colOf(grid, cell);
+  const out: number[] = [];
+  if (row > 0) out.push(cell - grid.cols);
+  if (col < grid.cols - 1) out.push(cell + 1);
+  if (row < grid.rows - 1) out.push(cell + grid.cols);
+  if (col > 0) out.push(cell - 1);
+  return out.filter((n) => grid.cells[n] !== WALL);
+};
+
+/** Cost of stepping onto `cell`. */
+export const stepCost = (grid: Grid, cell: number) => (grid.cells[cell] === MUD ? MUD_COST : 1);
+
+/** Steps between two cells ignoring walls (Manhattan distance): the A* and greedy heuristic. */
+export const manhattan = (grid: Grid, a: number, b: number) =>
+  Math.abs(rowOf(grid, a) - rowOf(grid, b)) + Math.abs(colOf(grid, a) - colOf(grid, b));
+
+/** An empty grid with start and end on the middle row, a few cells in from each side. */
+export const emptyGrid = (rows: number, cols: number): Grid => {
+  const mid = Math.floor(rows / 2);
+  const inset = Math.max(1, Math.floor(cols / 6));
+  return {
+    rows,
+    cols,
+    cells: new Uint8Array(rows * cols),
+    start: cellOf({ cols }, mid, inset),
+    end: cellOf({ cols }, mid, cols - 1 - inset),
+  };
+};
+
+export const withTerrain = (grid: Grid, cell: number, terrain: Terrain): Grid => {
+  if (cell === grid.start || cell === grid.end || grid.cells[cell] === terrain) return grid;
+  const cells = grid.cells.slice();
+  cells[cell] = terrain;
+  return { ...grid, cells };
+};
+
+/** Moves the start or end marker, clearing whatever terrain was under it. */
+export const withMarker = (grid: Grid, marker: "start" | "end", cell: number): Grid => {
+  if (cell === grid.start || cell === grid.end) return grid;
+  const cells = grid.cells.slice();
+  cells[cell] = EMPTY;
+  return { ...grid, cells, [marker]: cell };
+};
+
+export type Preset = "clear" | "maze" | "walls" | "terrain";
+
+/**
+ * A maze carved by randomized depth-first search: corridors on odd cells, so
+ * every open cell is reachable and there's exactly one way between two points.
+ */
+const carveMaze = (grid: Grid, random: () => number) => {
+  const { rows, cols } = grid;
+  const cells = new Uint8Array(rows * cols).fill(WALL);
+  const odd = (n: number) => (n % 2 === 0 ? Math.max(1, n - 1) : n);
+  const startRow = odd(Math.min(rowOf(grid, grid.start), rows - 2));
+  const startCol = odd(Math.min(colOf(grid, grid.start), cols - 2));
+  const stack: [number, number][] = [[startRow, startCol]];
+  cells[cellOf(grid, startRow, startCol)] = EMPTY;
+  while (stack.length) {
+    const [r, c] = stack[stack.length - 1];
+    const options = (
+      [
+        [r - 2, c],
+        [r, c + 2],
+        [r + 2, c],
+        [r, c - 2],
+      ] as [number, number][]
+    ).filter(([nr, nc]) => nr > 0 && nr < rows - 1 && nc > 0 && nc < cols - 1 && cells[cellOf(grid, nr, nc)] === WALL);
+    if (!options.length) {
+      stack.pop();
+      continue;
+    }
+    const [nr, nc] = options[Math.floor(random() * options.length)];
+    cells[cellOf(grid, (r + nr) / 2, (c + nc) / 2)] = EMPTY;
+    cells[cellOf(grid, nr, nc)] = EMPTY;
+    stack.push([nr, nc]);
+  }
+  // Open a few extra gaps so there's more than one route and searches differ.
+  for (let k = 0; k < (rows * cols) / 40; k++) {
+    const r = 1 + Math.floor(random() * (rows - 2));
+    const c = 1 + Math.floor(random() * (cols - 2));
+    if ((r + c) % 2 === 1) cells[cellOf(grid, r, c)] = EMPTY;
+  }
+  return cells;
+};
+
+/** Fills the grid with a ready-made layout, keeping start and end where they are (or nearby, for mazes). */
+export const applyPreset = (grid: Grid, preset: Preset, random: () => number): Grid => {
+  const { rows, cols } = grid;
+  let cells: Uint8Array;
+  if (preset === "clear") cells = new Uint8Array(rows * cols);
+  else if (preset === "maze") cells = carveMaze(grid, random);
+  else {
+    cells = new Uint8Array(rows * cols);
+    for (let i = 0; i < cells.length; i++) {
+      const roll = random();
+      if (preset === "walls") cells[i] = roll < 0.28 ? WALL : EMPTY;
+      // Terrain: mostly mud patches, a few walls, so costs matter more than obstacles.
+      else cells[i] = roll < 0.08 ? WALL : roll < 0.4 ? MUD : EMPTY;
+    }
+    if (preset === "terrain") smoothMud(cells, grid);
+  }
+  cells[grid.start] = EMPTY;
+  cells[grid.end] = EMPTY;
+  return { ...grid, cells };
+};
+
+/** Turns scattered mud into blobs: a cell becomes mud if most of its neighbours are. */
+const smoothMud = (cells: Uint8Array, grid: Grid) => {
+  const copy = cells.slice();
+  for (let i = 0; i < cells.length; i++) {
+    if (copy[i] === WALL) continue;
+    const around = [i - grid.cols, i + grid.cols, colOf(grid, i) > 0 ? i - 1 : -1, colOf(grid, i) < grid.cols - 1 ? i + 1 : -1];
+    const mud = around.filter((n) => n >= 0 && n < cells.length && copy[n] === MUD).length;
+    cells[i] = mud >= 2 ? MUD : mud === 0 ? EMPTY : copy[i];
+  }
+};
+
+// Sharing: terrain packs 4 cells per byte (2 bits each), then base64url.
+
+export const encodeCells = (cells: Uint8Array): string => {
+  const bytes = new Uint8Array(Math.ceil(cells.length / 4));
+  cells.forEach((t, i) => (bytes[i >> 2] |= t << ((i & 3) * 2)));
+  let binary = "";
+  bytes.forEach((b) => (binary += String.fromCharCode(b)));
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+};
+
+export const decodeCells = (text: string, count: number): Uint8Array | null => {
+  try {
+    const binary = atob(text.replace(/-/g, "+").replace(/_/g, "/"));
+    if (binary.length !== Math.ceil(count / 4)) return null;
+    const cells = new Uint8Array(count);
+    for (let i = 0; i < count; i++) {
+      const t = (binary.charCodeAt(i >> 2) >> ((i & 3) * 2)) & 3;
+      if (t > MUD) return null;
+      cells[i] = t;
+    }
+    return cells;
+  } catch {
+    return null;
+  }
+};

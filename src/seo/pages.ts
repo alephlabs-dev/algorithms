@@ -1,3 +1,4 @@
+import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { RACE_DESCRIPTION } from "@/consts/race";
 import { routePath, SITE_URL, type Route } from "@/routes";
@@ -20,9 +21,9 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "Sorting Algorithm Visualizer: 9 Algorithms Step by Step · Aleph Labs",
+      title: "Algorithm Visualizer: Sorting and Pathfinding Step by Step · Aleph Labs",
       description:
-        "Watch Quick Sort, Merge Sort, Heap Sort and six more sort an array step by step, with pseudocode, plain-language explanations and a race mode.",
+        "Watch Quick Sort, Merge Sort and seven more sort an array, and Dijkstra, A* and BFS search a maze, step by step with pseudocode and plain-language explanations.",
     };
   }
   if (route.kind === "race") {
@@ -31,6 +32,16 @@ export const pageMeta = (route: Route): PageMeta => {
       url,
       title: "Sorting Algorithm Race: Compare Algorithms Side by Side · Aleph Labs",
       description: `Race up to four sorting algorithms on the same array. ${RACE_DESCRIPTION}`.slice(0, 160),
+    };
+  }
+  if (route.kind === "path") {
+    const { title, short } = pathAlgorithms[route.algorithm];
+    const name = title.includes(short) ? title : `${title} (${short})`;
+    return {
+      path,
+      url,
+      title: `${name} Pathfinding Visualized · Aleph Labs`,
+      description: `See how ${title} finds a path: draw walls and mud on a grid, then watch it search step by step with the pseudocode and every step explained.`,
     };
   }
   const { title, timeComplexity } = sortingAlgorithms[route.algorithm];
@@ -51,7 +62,7 @@ export const structuredData = (route: Route): object[] => {
       {
         "@context": "https://schema.org",
         "@type": "WebApplication",
-        name: "Sorting Algorithm Visualizer",
+        name: "Algorithm Visualizer",
         url: meta.url,
         description: meta.description,
         applicationCategory: "EducationalApplication",
@@ -61,7 +72,13 @@ export const structuredData = (route: Route): object[] => {
       },
     ];
   }
-  const name = route.kind === "race" ? "Race" : sortingAlgorithms[route.algorithm].title;
+  const name =
+    route.kind === "race"
+      ? "Race"
+      : route.kind === "path"
+        ? pathAlgorithms[route.algorithm].title
+        : sortingAlgorithms[route.algorithm].title;
+  const section = route.kind === "path" ? "Pathfinding" : "Sorting";
   return [
     {
       "@context": "https://schema.org",
@@ -77,7 +94,7 @@ export const structuredData = (route: Route): object[] => {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Sorting", item: `${SITE_URL}/` },
+        { "@type": "ListItem", position: 1, name: section, item: `${SITE_URL}/` },
         { "@type": "ListItem", position: 2, name, item: meta.url },
       ],
     },

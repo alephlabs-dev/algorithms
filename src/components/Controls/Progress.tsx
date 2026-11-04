@@ -1,6 +1,7 @@
 import { useShallow } from "zustand/react/shallow";
 import { selectLastIndex, useStore } from "@/store";
 import { cn } from "@/utils/cn";
+import { PathStatsInline } from "../Pathfinding/PathTools";
 import { StatsInline } from "../RunInfo";
 import { Slider } from "../ui/slider";
 
@@ -8,13 +9,14 @@ const format = (n: number) => n.toLocaleString("en-US");
 
 /** The timeline with the position and the counters under it. Kept apart from the dock because it re-renders on every frame. */
 export const Progress = ({ className }: { className?: string }) => {
-  const { frameIndex, lastIndex, seek, setScrubbing, isRace } = useStore(
+  const { frameIndex, lastIndex, seek, setScrubbing, isRace, isPath } = useStore(
     useShallow((s) => ({
       frameIndex: s.frameIndex,
       lastIndex: selectLastIndex(s),
       seek: s.seek,
       setScrubbing: s.setScrubbing,
       isRace: s.view === "race",
+      isPath: s.module === "pathfinding",
     }))
   );
   const unit = isRace ? "operation" : "step";
@@ -39,7 +41,7 @@ export const Progress = ({ className }: { className?: string }) => {
           {format(frameIndex)} / {format(lastIndex)}
           {isRace && " ops"}
         </span>
-        {!isRace && <StatsInline />}
+        {isPath ? <PathStatsInline /> : !isRace && <StatsInline />}
       </div>
     </div>
   );

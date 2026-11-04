@@ -1,5 +1,7 @@
 import type { MouseEvent, ReactNode } from "react";
 import { pseudocode } from "@/algorithms";
+import { pathAlgorithms } from "@/consts/pathAlgorithms";
+import { MUD_COST, pathPseudocode, type PathAlgorithm } from "@/pathfinding";
 import { algorithmGroups } from "@/consts/algorithmGroups";
 import { RACE_DESCRIPTION } from "@/consts/race";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
@@ -138,16 +140,93 @@ const AlgorithmArticle = ({ algorithm, onNavigate }: { algorithm: Algorithm; onN
   );
 };
 
+const pathOrder = Object.keys(pathAlgorithms) as PathAlgorithm[];
+
+/** The pathfinding algorithms, linking to their pages. */
+const PathIndex = ({ current, onNavigate }: { current?: PathAlgorithm; onNavigate?: Props["onNavigate"] }) => (
+  <ul className="flex flex-wrap gap-x-6 gap-y-2">
+    {pathOrder.map((algorithm) => (
+      <li key={algorithm}>
+        {algorithm === current ? (
+          <span className="font-semibold">{pathAlgorithms[algorithm].title}</span>
+        ) : (
+          <PageLink to={{ kind: "path", algorithm }} onNavigate={onNavigate}>
+            {pathAlgorithms[algorithm].title}
+          </PageLink>
+        )}
+      </li>
+    ))}
+  </ul>
+);
+
+const PathTable = ({ algorithm }: { algorithm: PathAlgorithm }) => {
+  const { structure, shortest, weighted, timeComplexity } = pathAlgorithms[algorithm];
+  const rows: [string, string][] = [
+    [
+      "Shortest path",
+      shortest === "cost" ? "Yes, the cheapest" : shortest === "steps" ? "Yes, in steps (ignores cost)" : "Not guaranteed",
+    ],
+    ["Uses cell costs", weighted ? `Yes: goes around mud (×${MUD_COST}) when cheaper` : "No: every step counts the same"],
+    ["Keeps cells to explore in", structure],
+    ["Time", timeComplexity],
+  ];
+  return (
+    <table className="w-full max-w-lg text-sm">
+      <tbody>
+        {rows.map(([label, value]) => (
+          <tr key={label} className="border-b border-edge last:border-0">
+            <th scope="row" className="py-2.5 pr-6 text-left align-top font-normal text-foreground/70">
+              {label}
+            </th>
+            <td className="py-2.5">{value}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+};
+
+const PathArticle = ({ algorithm, onNavigate }: { algorithm: PathAlgorithm; onNavigate?: Props["onNavigate"] }) => {
+  const { title, shortDescription, longDescription } = pathAlgorithms[algorithm];
+  return (
+    <>
+      <header className="flex flex-col gap-3">
+        <h1 className="text-display font-semibold">{title}</h1>
+        <p className="text-lg text-foreground/80">{shortDescription}</p>
+      </header>
+      <Section title={`How ${title} works`}>
+        <p className="leading-relaxed text-foreground/80">{longDescription}</p>
+      </Section>
+      <Section title="At a glance">
+        <PathTable algorithm={algorithm} />
+      </Section>
+      <Section title="Pseudocode">
+        <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
+          {pathPseudocode[algorithm].join("\n")}
+        </pre>
+      </Section>
+      <Section title="Try it">
+        <p className="leading-relaxed text-foreground/80">
+          Drag on the grid above to draw walls, switch the brush to mud to make some cells cost {MUD_COST} steps, and
+          drag the green start or the target to move them. Then compare with another search on the same grid:
+        </p>
+        <PathIndex current={algorithm} onNavigate={onNavigate} />
+      </Section>
+    </>
+  );
+};
+
 const HomeArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
   <>
     <header className="flex flex-col gap-3">
-      <h1 className="text-display font-semibold">Sorting algorithm visualizer</h1>
+      <h1 className="text-display font-semibold">Algorithm visualizer</h1>
       <p className="text-lg text-foreground/80">
-        Watch nine sorting algorithms put an array in order, one step at a time. Each step is explained in plain words
-        next to the line of pseudocode it runs, and every run can be shared with a link.
+        Watch sorting algorithms put an array in order and pathfinding algorithms search a maze, one step at a time.
+        Each step is explained in plain words next to the line of pseudocode it runs, and every run can be shared with
+        a link.
       </p>
     </header>
-    <Section title="The algorithms">
+    <Section title="Sorting algorithms">
       <ul className="flex flex-col divide-y divide-edge">
         {(Object.keys(sortingAlgorithms) as Algorithm[]).map((algorithm) => {
           const { title, shortDescription, timeComplexity } = sortingAlgorithms[algorithm];
@@ -165,7 +244,23 @@ const HomeArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
         })}
       </ul>
     </Section>
-    <Section title="Race them">
+    <Section title="Pathfinding algorithms">
+      <p className="leading-relaxed text-foreground/80">
+        Draw walls and mud on a grid, then watch five classic searches look for the way from start to target: some
+        find the fewest steps, some the cheapest path, some just any path.
+      </p>
+      <ul className="flex flex-col divide-y divide-edge">
+        {pathOrder.map((algorithm) => (
+          <li key={algorithm} className="flex flex-col gap-1 py-4">
+            <PageLink to={{ kind: "path", algorithm }} onNavigate={onNavigate}>
+              {pathAlgorithms[algorithm].title}
+            </PageLink>
+            <p className="text-sm text-foreground/75">{pathAlgorithms[algorithm].shortDescription}</p>
+          </li>
+        ))}
+      </ul>
+    </Section>
+    <Section title="Race sorting algorithms">
       <p className="leading-relaxed text-foreground/80">
         {RACE_DESCRIPTION}{" "}
         <PageLink to={{ kind: "race" }} onNavigate={onNavigate}>
@@ -203,6 +298,7 @@ export const About = ({ route, onNavigate }: Props) => (
     {route.kind === "home" && <HomeArticle onNavigate={onNavigate} />}
     {route.kind === "race" && <RaceArticle onNavigate={onNavigate} />}
     {route.kind === "algorithm" && <AlgorithmArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
+    {route.kind === "path" && <PathArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
     <footer className="border-t border-edge pt-6 text-sm text-foreground/60">
       Made by Aleph Labs ·{" "}
       <a

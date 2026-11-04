@@ -1,6 +1,18 @@
 import { create } from "zustand";
 import { Timeline, sortAlgorithms } from "./algorithms";
 import { MAX_MOBILE_SIZE } from "./consts/sizesMap";
+import {
+  applyPreset,
+  decodeCells,
+  emptyGrid,
+  gridDimensions,
+  pathSearches,
+  PathTimeline,
+  type Grid,
+  type GridSize,
+  type PathAlgorithm,
+  type Preset,
+} from "./pathfinding";
 import { readLocation } from "./urlState";
 import { generateItems } from "./utils/generateItems";
 import { newSeed, seededRandom } from "./utils/random";
@@ -8,6 +20,10 @@ import { DEFAULT_PRESET, speedFor, type SpeedPreset } from "./utils/speed";
 import type { Algorithm, DisplayMode, InputOrder } from "./types";
 
 export type View = "single" | "race";
+/** Which visualizer is on stage. */
+export type Module = "sorting" | "pathfinding";
+/** What dragging on the grid paints. */
+export type Brush = "wall" | "mud";
 export type Theme = "dark" | "light";
 
 const THEME_COLORS: Record<Theme, string> = { dark: "#0b0f0d", light: "#f2f5f9" };
@@ -27,6 +43,17 @@ export const MAX_RACERS = 4;
 
 export type StoreState = {
   isMobile: boolean;
+  module: Module;
+  pathAlgorithm: PathAlgorithm;
+  gridSize: GridSize;
+  grid: Grid;
+  /** The last preset applied, so "new maze" (R) makes another of the same kind. */
+  gridPreset: Preset;
+  brush: Brush;
+  /** The whole search on the current grid, precomputed. */
+  pathTimeline: PathTimeline;
+  /** Bumped when the grid is replaced wholesale (size, preset), so cells don't animate between layouts. */
+  gridId: number;
   /** One algorithm with all the details, or several racing on the same array. */
   view: View;
   /** On the home page (/): the default algorithm shows, but the URL stays / until something is picked. */
@@ -81,6 +108,12 @@ export type StoreState = {
   /** Closes the tour (finished or skipped) and remembers it was seen. */
   closeTour: () => void;
   createNewArray: () => void;
+  setPathAlgorithm: (algorithm: PathAlgorithm) => void;
+  setGridSize: (size: GridSize) => void;
+  setBrush: (brush: Brush) => void;
+  /** Replaces the grid after an edit (painting, moving a marker); the search restarts. */
+  editGrid: (grid: Grid) => void;
+  applyGridPreset: (preset: Preset) => void;
 
   play: () => void;
   pause: () => void;
@@ -93,8 +126,11 @@ export type StoreState = {
 
 export const selectFrame = (state: StoreState) =>
   state.timeline.frameAt(state.frameIndex);
+export const selectPathFrame = (state: StoreState) => state.pathTimeline.frameAt(state.frameIndex);
 export const selectLastIndex = (state: StoreState) =>
-  state.view === "race"
+  state.module === "pathfinding"
+    ? state.pathTimeline.length - 1
+    : state.view === "race"
     ? Math.max(0, ...state.raceTimelines.map((t) => t.totalOps))
     : state.timeline.length - 1;
 
@@ -122,6 +158,25 @@ const DEFAULT_RACERS: Algorithm[] = ["insertion", "bubble", "quick", "merge"];
 const raceTimelinesFor = (view: View, algorithms: Algorithm[], items: readonly number[]) =>
   view === "race" ? algorithms.map((a) => timelineFor(a, items)) : [];
 
+const pathTimelineFor = (algorithm: PathAlgorithm, grid: Grid) => new PathTimeline(pathSearches[algorithm], grid);
+
+/** A fresh grid of the given size with a preset applied. */
+const gridFor = (size: GridSize, isMobile: boolean, preset: Preset) => {
+  const { rows, cols } = gridDimensions(size, isMobile);
+  return applyPreset(emptyGrid(rows, cols), preset, seededRandom(newSeed()));
+};
+
+/** The grid a link describes, if it's valid for the size; otherwise a fresh maze. */
+const gridFromLink = (link: ReturnType<typeof readLocation>["path"], size: GridSize, isMobile: boolean) => {
+  const { rows, cols } = gridDimensions(size, isMobile);
+  const cells = link.cells ? decodeCells(link.cells, rows * cols) : null;
+  const inside = (cell: number | undefined): cell is number => cell !== undefined && cell < rows * cols;
+  if (!cells || !inside(link.start) || !inside(link.end) || link.start === link.end) return gridFor(size, isMobile, "maze");
+  cells[link.start] = 0;
+  cells[link.end] = 0;
+  return { rows, cols, cells, start: link.start, end: link.end };
+};
+
 // Start from the link's settings when there are any.
 const initial = (() => {
   const url = readLocation(window.location.pathname, window.location.search);
@@ -136,10 +191,26 @@ const initial = (() => {
   const items = itemsFor(size, inputOrder, seed);
   const raceTimelines = raceTimelinesFor(view, raceAlgorithms, items);
   const timeline = timelineFor(activeAlgorithm, items);
+  const module: Module = url.pathAlgorithm ? "pathfinding" : "sorting";
+  const pathAlgorithm = url.pathAlgorithm ?? "astar";
+  const gridSize = url.path.gridSize ?? (isMobile ? "small" : "medium");
+  const grid = gridFromLink(url.path, gridSize, isMobile);
+  const pathTimeline = pathTimelineFor(pathAlgorithm, grid);
   const lastIndex =
-    view === "race" ? Math.max(...raceTimelines.map((t) => t.totalOps)) : timeline.length - 1;
+    module === "pathfinding"
+      ? pathTimeline.length - 1
+      : view === "race"
+        ? Math.max(...raceTimelines.map((t) => t.totalOps))
+        : timeline.length - 1;
   return {
     isMobile,
+    module,
+    pathAlgorithm,
+    gridSize,
+    grid,
+    gridPreset: "maze" as Preset,
+    brush: "wall" as Brush,
+    pathTimeline,
     isHome: url.isHome,
     view,
     raceAlgorithms,
@@ -149,7 +220,7 @@ const initial = (() => {
     displayMode,
     inputOrder,
     speedPreset: url.speed ?? DEFAULT_PRESET,
-    speed: speedFor(url.speed ?? DEFAULT_PRESET, lastIndex, view),
+    speed: speedFor(url.speed ?? DEFAULT_PRESET, lastIndex, module === "pathfinding" ? "pathfinding" : view),
     seed,
     timeline,
   };
@@ -159,22 +230,26 @@ export const useStore = create<StoreState>((set, get) => {
   /** Call after any change that creates a new run. */
   const applyAutoSpeed = () => {
     const state = get();
-    set({ speed: speedFor(state.speedPreset, selectLastIndex(state), state.view) });
+    const pace = state.module === "pathfinding" ? "pathfinding" : state.view;
+    set({ speed: speedFor(state.speedPreset, selectLastIndex(state), pace) });
   };
 
   return {
     ...initial,
     arrayId: 0,
+    gridId: 0,
     frameIndex: 0,
     isPlaying: false,
     isScrubbing: false,
     isHelpOpen: false,
     theme: document.documentElement.dataset.theme === "light" ? "light" : "dark",
 
-    isTourOpen: !tourDone() && initial.view === "single",
+    // The tour walks through sorting; a first visit straight to a pathfinding page skips it.
+    isTourOpen: !tourDone() && initial.view === "single" && initial.module === "sorting",
     openTour: () => {
-      // The tour walks through the single view.
+      // The tour walks through the single sorting view.
       if (get().view === "race") get().setView("single");
+      if (get().module === "pathfinding") get().setActiveAlgorithm(get().activeAlgorithm);
       get().pause();
       set({ isTourOpen: true, isHelpOpen: false });
     },
@@ -200,7 +275,10 @@ export const useStore = create<StoreState>((set, get) => {
 
     // Shrinks the array if the screen got too small for it (e.g. rotating a tablet).
     setIsMobile: (isMobile) => {
+      const before = get();
       set({ isMobile });
+      // Phones and wide screens use differently shaped grids.
+      if (before.isMobile !== isMobile) get().setGridSize(before.gridSize);
       const { size, displayMode, setSize } = get();
       const maxSize = maxSizeFor(displayMode, isMobile);
       if (size > maxSize) setSize(maxSize);
@@ -209,6 +287,8 @@ export const useStore = create<StoreState>((set, get) => {
     setView: (view) => {
       set((state) => ({
         view,
+        // Races are a sorting feature.
+        module: "sorting",
         isHome: false,
         frameIndex: 0,
         isPlaying: false,
@@ -259,6 +339,7 @@ export const useStore = create<StoreState>((set, get) => {
     setActiveAlgorithm: (algorithm) => {
       set((state) => ({
         activeAlgorithm: algorithm,
+        module: "sorting",
         isHome: false,
         ...newRun(algorithm, state.timeline.values),
       }));
@@ -292,7 +373,68 @@ export const useStore = create<StoreState>((set, get) => {
     setScrubbing: (isScrubbing) => set({ isScrubbing }),
     setHelpOpen: (isHelpOpen) => set({ isHelpOpen }),
 
-    createNewArray: () => get().setSize(get().size),
+    createNewArray: () => {
+      const { module, gridPreset, applyGridPreset, setSize, size } = get();
+      // In pathfinding, "new" means another layout of the same kind (a clear grid becomes a maze).
+      if (module === "pathfinding") applyGridPreset(gridPreset === "clear" ? "maze" : gridPreset);
+      else setSize(size);
+    },
+
+    // The grid stays the same so algorithms can be compared on it.
+    setPathAlgorithm: (algorithm) => {
+      set((state) => ({
+        module: "pathfinding",
+        view: "single",
+        isHome: false,
+        pathAlgorithm: algorithm,
+        pathTimeline: pathTimelineFor(algorithm, state.grid),
+        frameIndex: 0,
+        isPlaying: false,
+      }));
+      applyAutoSpeed();
+    },
+
+    setGridSize: (gridSize) => {
+      set((state) => {
+        const grid = gridFor(gridSize, state.isMobile, state.gridPreset);
+        return {
+          gridSize,
+          grid,
+          gridId: state.gridId + 1,
+          pathTimeline: pathTimelineFor(state.pathAlgorithm, grid),
+          frameIndex: 0,
+          isPlaying: false,
+        };
+      });
+      applyAutoSpeed();
+    },
+
+    setBrush: (brush) => set({ brush }),
+
+    editGrid: (grid) => {
+      set((state) => ({
+        grid,
+        pathTimeline: pathTimelineFor(state.pathAlgorithm, grid),
+        frameIndex: 0,
+        isPlaying: false,
+      }));
+      applyAutoSpeed();
+    },
+
+    applyGridPreset: (gridPreset) => {
+      set((state) => {
+        const grid = applyPreset(state.grid, gridPreset, seededRandom(newSeed()));
+        return {
+          gridPreset,
+          grid,
+          gridId: state.gridId + 1,
+          pathTimeline: pathTimelineFor(state.pathAlgorithm, grid),
+          frameIndex: 0,
+          isPlaying: false,
+        };
+      });
+      applyAutoSpeed();
+    },
 
     play: () =>
       set((state) => ({

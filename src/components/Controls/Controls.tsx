@@ -15,7 +15,7 @@ import { SpeedControl, SpeedCycleButton } from "./SpeedControl";
  * buttons around a large Play.
  */
 export const Controls = ({ className }: { className?: string }) => {
-  const { isPlaying, play, pause, stepForward, stepBackward, createNewArray, atStart, atEnd } = useStore(
+  const { isPlaying, play, pause, stepForward, stepBackward, createNewArray, atStart, atEnd, isPath } = useStore(
     useShallow((s) => ({
       isPlaying: s.isPlaying,
       play: s.play,
@@ -23,6 +23,7 @@ export const Controls = ({ className }: { className?: string }) => {
       stepForward: s.stepForward,
       stepBackward: s.stepBackward,
       createNewArray: s.createNewArray,
+      isPath: s.module === "pathfinding",
       // Booleans, so the dock only re-renders when they flip.
       atStart: s.frameIndex === 0,
       atEnd: s.frameIndex === selectLastIndex(s),
@@ -75,9 +76,9 @@ export const Controls = ({ className }: { className?: string }) => {
       size="icon"
       className="shrink-0"
       onClick={createNewArray}
-      aria-label="New array"
+      aria-label={isPath ? "New layout" : "New array"}
       aria-keyshortcuts="R"
-      title="New array (R)"
+      title={isPath ? "New layout of the same kind (R)" : "New array (R)"}
     >
       <UpdateIcon />
     </Button>

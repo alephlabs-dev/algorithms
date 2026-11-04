@@ -7,6 +7,8 @@ import { MAX_MOBILE_SIZE, sizes } from "@/consts/sizesMap";
 import { useStore } from "@/store";
 import type { DisplayMode, InputOrder } from "@/types";
 import { cn } from "@/utils/cn";
+import { gridSizeLabels, presetLabel } from "@/consts/pathLabels";
+import { BrushPicker, GridSizePicker, PresetButtons } from "../Pathfinding/PathTools";
 import { ListItem } from "../ui/list-item";
 import { popoverClass } from "../ui/popover";
 import { SegmentedControl } from "../ui/segmented";
@@ -24,6 +26,9 @@ const useSettings = () =>
       setDisplayMode: s.setDisplayMode,
       isMobile: s.isMobile,
       isRace: s.view === "race",
+      isPath: s.module === "pathfinding",
+      gridSize: s.gridSize,
+      gridPreset: s.gridPreset,
     }))
   );
 
@@ -104,8 +109,24 @@ const Field = ({ label, help, children }: { label: string; help?: string; childr
 );
 
 /** All settings stacked, for the settings sheet and menu. Help is plain text since tooltips don't work on touch. */
+/** Pathfinding's settings: grid size, brush and layouts. */
+const PathSettingsPanel = () => (
+  <div className="flex flex-col gap-6">
+    <Field label="Grid size" help="A new size starts a fresh layout of the same kind.">
+      <GridSizePicker />
+    </Field>
+    <Field label="Brush" help="Drag on the grid to paint; start on a painted cell to erase. Drag the start or target to move them.">
+      <BrushPicker />
+    </Field>
+    <Field label="Layout">
+      <PresetButtons className="-ml-3" />
+    </Field>
+  </div>
+);
+
 export const SettingsPanel = () => {
   const s = useSettings();
+  if (s.isPath) return <PathSettingsPanel />;
   return (
     <div className="flex flex-col gap-6">
       <Field label="Array size" help={sizeHelp(s.isMobile ? NUMBERS_LIMIT.mobile : NUMBERS_LIMIT.desktop)}>
@@ -134,16 +155,20 @@ export const SettingsMenu = ({ className }: { className?: string }) => {
     <Popover.Root>
       <Popover.Trigger
         data-tour="settings"
-        aria-label={`Settings: ${s.size} items, ${inputOrders[s.inputOrder].label}. Change`}
+        aria-label={
+          s.isPath
+            ? `Settings: ${gridSizeLabels[s.gridSize]} grid, ${presetLabel(s.gridPreset)}. Change`
+            : `Settings: ${s.size} items, ${inputOrders[s.inputOrder].label}. Change`
+        }
         className={cn(
           "flex h-11 shrink-0 items-center gap-2 rounded-full border border-edge px-4 text-sm text-foreground transition-colors hover:bg-accent data-[state=open]:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
           className
         )}
       >
         <MixerHorizontalIcon className="h-4 w-4 text-foreground/70" />
-        <span className="font-mono">{s.size}</span>
+        <span className={s.isPath ? undefined : "font-mono"}>{s.isPath ? gridSizeLabels[s.gridSize] : s.size}</span>
         <span className="text-foreground/40">·</span>
-        <span className="whitespace-nowrap">{inputOrders[s.inputOrder].label}</span>
+        <span className="whitespace-nowrap">{s.isPath ? presetLabel(s.gridPreset) : inputOrders[s.inputOrder].label}</span>
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content

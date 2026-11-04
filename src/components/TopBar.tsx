@@ -3,6 +3,8 @@ import * as Popover from "@radix-ui/react-popover";
 import { useState, type ComponentProps, type ReactNode } from "react";
 import { MAX_RACERS, useStore } from "@/store";
 import { RACE_DESCRIPTION } from "@/consts/race";
+import { pathAlgorithms, pathTraits } from "@/consts/pathAlgorithms";
+import { useStageTitle } from "@/hooks/useStageTitle";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { cn } from "@/utils/cn";
 import { AlgorithmList } from "./AlgorithmList";
@@ -69,7 +71,7 @@ const PickerPill = ({
 );
 
 const AlgorithmPicker = () => {
-  const title = useStore((s) => sortingAlgorithms[s.activeAlgorithm].title);
+  const title = useStageTitle();
   const [open, setOpen] = useState(false);
   return (
     <PickerPill label={title} ariaLabel={`Algorithm: ${title}. Change`} open={open} onOpenChange={setOpen} hint="picker">
@@ -115,8 +117,10 @@ export const TourLink = (props: ComponentProps<"button">) => {
 /** The longer explanation, on demand, so the stage stays clear. */
 const AboutButton = () => {
   const view = useStore((s) => s.view);
-  const { title, shortDescription, longDescription } = useStore((s) => sortingAlgorithms[s.activeAlgorithm]);
-  const isRace = view === "race";
+  const pathAlgorithm = useStore((s) => (s.module === "pathfinding" ? s.pathAlgorithm : null));
+  const sorting = useStore((s) => sortingAlgorithms[s.activeAlgorithm]);
+  const { title, shortDescription, longDescription } = pathAlgorithm ? pathAlgorithms[pathAlgorithm] : sorting;
+  const isRace = view === "race" && !pathAlgorithm;
   return (
     <Popover.Root>
       <Popover.Trigger asChild>
@@ -133,7 +137,13 @@ const AboutButton = () => {
             <>
               <p className="text-foreground/80">{shortDescription}</p>
               <p className="text-sm text-foreground/70">{longDescription}</p>
-              <Complexity />
+              {pathAlgorithm ? (
+                <p className="font-mono text-xs text-foreground/70">
+                  {pathTraits(pathAlgorithm)} · {pathAlgorithms[pathAlgorithm].timeComplexity}
+                </p>
+              ) : (
+                <Complexity />
+              )}
             </>
           )}
           {/* Closing the popover first, so the tour has the page to itself. */}
@@ -149,6 +159,7 @@ const AboutButton = () => {
 /** One-line summary next to the picker: how the algorithm scales. */
 const Summary = () => {
   const summary = useStore((s) => {
+    if (s.module === "pathfinding") return pathTraits(s.pathAlgorithm);
     if (s.view === "race") return "Same array, same clock";
     const { average, worst } = sortingAlgorithms[s.activeAlgorithm].timeComplexity;
     return average === worst ? `${average} always` : `${average} avg · ${worst} worst`;
@@ -159,13 +170,15 @@ const Summary = () => {
 /** Desktop: what's on stage (a pill to change it) on the left, the view and actions on the right. */
 export const TopBar = ({ className }: { className?: string }) => {
   const view = useStore((s) => s.view);
+  const isPath = useStore((s) => s.module === "pathfinding");
   return (
     <header className={cn("flex items-center gap-3", className)}>
       {view === "race" ? <RacersPicker /> : <AlgorithmPicker />}
       <AboutButton />
       <Summary />
       <div className="ml-auto flex items-center gap-2">
-        <ViewSwitch className="w-56" />
+        {/* Races are for sorting; pathfinding has a single view. */}
+        {!isPath && <ViewSwitch className="w-56" />}
         <ShareButton iconOnly />
         <ThemeToggle />
         <ShortcutsHelp />

@@ -1,4 +1,5 @@
 import type { StepKind } from "@/algorithms";
+import type { PathStepKind } from "@/pathfinding";
 
 // Internally speed is a position from 0 to 1 on an exponential scale: 1 step
 // per second at 0, ~8000 at 1. That range covers 10 items and 400 alike, even at
@@ -30,7 +31,8 @@ export const speedForStepsPerSecond = (sps: number) =>
 
 // How long a run should take at most when the speed is picked automatically.
 // Small arrays stay at the default speed; only long runs get faster.
-const TARGET_SECONDS = { single: 240, race: 30 } as const;
+// Searches are shorter and read best brisk; sorts can take minutes at 1×.
+const TARGET_SECONDS = { single: 240, race: 30, pathfinding: 20 } as const;
 
 /**
  * A speed that finishes `steps` steps within the target time for the view,
@@ -71,4 +73,15 @@ export const STEP_WEIGHT: Record<StepKind, number> = {
   highlight: 0.5,
   done: 0.4,
   line: 0,
+};
+
+/**
+ * The same idea for searches: each visit gets a beat, frontier updates follow
+ * quickly, and the final path traces fast so it reads as one stroke.
+ */
+export const PATH_STEP_WEIGHT: Record<PathStepKind, number> = {
+  visit: 1,
+  frontier: 0.4,
+  path: 0.3,
+  done: 1,
 };
