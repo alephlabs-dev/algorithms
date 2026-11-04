@@ -3,6 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { About } from "./components/About";
 import { AlgorithmVisualizer } from "./components/AlgorithmVisualizer";
 import { Controls } from "./components/Controls";
+import { Landing } from "./components/Landing/Landing";
 import { MobileRaceBar, MobileTopBar } from "./components/MobileTopBar";
 import { PathStage } from "./components/Pathfinding/PathStage";
 import { PathLegend, PathTools } from "./components/Pathfinding/PathTools";
@@ -11,6 +12,7 @@ import { PathRaceLanes } from "./components/Race/PathRaceLanes";
 import { RaceLanes } from "./components/Race/RaceLanes";
 import { Legend } from "./components/RunInfo";
 import { ScrollHint } from "./components/ScrollHint";
+import { ThemeToggle } from "./components/ThemeToggle";
 import { TopBar } from "./components/TopBar";
 import { Tour } from "./components/Tour";
 import { useMediaQuery } from "./hooks/useMediaQuery";
@@ -26,12 +28,15 @@ function App() {
   const setIsMobile = useStore((s) => s.setIsMobile);
   const view = useStore((s) => s.view);
   const isPath = useStore((s) => s.module === "pathfinding");
+  const isLanding = useStore((s) => s.isLanding);
   const isMobile = useMediaQuery(MOBILE_QUERY);
   const route = useStore(useShallow(routeFor));
 
   useEffect(() => {
     setIsMobile(isMobile);
   }, [isMobile, setIsMobile]);
+
+  if (isLanding) return <Landing onNavigate={navigate} actions={<ThemeToggle />} />;
 
   return (
     <>

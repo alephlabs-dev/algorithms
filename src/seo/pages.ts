@@ -1,7 +1,7 @@
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { RACE_DESCRIPTION } from "@/consts/race";
-import { routePath, SITE_URL, type Route } from "@/routes";
+import { moduleOf, routePath, SITE_URL, type Route } from "@/routes";
 
 export const SITE_NAME = "Aleph Labs Algorithms";
 
@@ -24,6 +24,24 @@ export const pageMeta = (route: Route): PageMeta => {
       title: "Algorithm Visualizer: Sorting and Pathfinding Step by Step · Aleph Labs",
       description:
         "Watch Quick Sort, Merge Sort and seven more sort an array, and Dijkstra, A* and BFS search a maze, step by step with pseudocode and plain-language explanations.",
+    };
+  }
+  if (route.kind === "sorting") {
+    return {
+      path,
+      url,
+      title: "Sorting Algorithm Visualizer: 9 Algorithms Step by Step · Aleph Labs",
+      description:
+        "Watch Bubble, Insertion, Quick, Merge, Heap, Radix Sort and more sort an array step by step, with the pseudocode lit up and every move explained.",
+    };
+  }
+  if (route.kind === "pathfinding") {
+    return {
+      path,
+      url,
+      title: "Pathfinding Visualizer: BFS, Dijkstra and A* Step by Step · Aleph Labs",
+      description:
+        "Draw walls and mud on a grid, then watch BFS, DFS, Dijkstra, A* and Greedy Best-First Search find a path, step by step with the pseudocode.",
     };
   }
   if (route.kind === "race") {
@@ -81,13 +99,18 @@ export const structuredData = (route: Route): object[] => {
       },
     ];
   }
+  const module = moduleOf(route) === "pathfinding" ? "pathfinding" : "sorting";
+  const section = { name: module === "pathfinding" ? "Pathfinding" : "Sorting", url: `${SITE_URL}/${module}` };
   const name =
     route.kind === "race" || route.kind === "pathRace"
       ? "Race"
       : route.kind === "path"
         ? pathAlgorithms[route.algorithm].title
-        : sortingAlgorithms[route.algorithm].title;
-  const section = route.kind === "path" || route.kind === "pathRace" ? "Pathfinding" : "Sorting";
+        : route.kind === "algorithm"
+          ? sortingAlgorithms[route.algorithm].title
+          : null;
+  // Home › module › page; a module's own page stops at the module.
+  const trail = [{ name: "Algorithms", url: `${SITE_URL}/` }, section, ...(name ? [{ name, url: meta.url }] : [])];
   return [
     {
       "@context": "https://schema.org",
@@ -102,10 +125,7 @@ export const structuredData = (route: Route): object[] => {
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: section, item: `${SITE_URL}/` },
-        { "@type": "ListItem", position: 2, name, item: meta.url },
-      ],
+      itemListElement: trail.map((step, k) => ({ "@type": "ListItem", position: k + 1, name: step.name, item: step.url })),
     },
   ];
 };

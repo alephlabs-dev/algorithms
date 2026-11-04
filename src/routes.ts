@@ -28,7 +28,11 @@ export const pathSlugs: Record<PathAlgorithm, string> = {
 
 /** Every page the site has. Settings (size, input, speed, seed…) stay in the query string. */
 export type Route =
+  /** The landing page. */
   | { kind: "home" }
+  /** A module's own page: its visualizer with the default algorithm, and an index of the module. */
+  | { kind: "sorting" }
+  | { kind: "pathfinding" }
   | { kind: "algorithm"; algorithm: Algorithm }
   | { kind: "race" }
   | { kind: "path"; algorithm: PathAlgorithm }
@@ -36,6 +40,8 @@ export type Route =
 
 export const routePath = (route: Route): string => {
   if (route.kind === "home") return "/";
+  if (route.kind === "sorting") return "/sorting";
+  if (route.kind === "pathfinding") return "/pathfinding";
   if (route.kind === "race") return "/sorting/race";
   if (route.kind === "pathRace") return "/pathfinding/race";
   if (route.kind === "path") return `/pathfinding/${pathSlugs[route.algorithm]}`;
@@ -46,6 +52,8 @@ export const routePath = (route: Route): string => {
 export const routeFromPath = (pathname: string): Route | null => {
   const path = pathname.replace(/\/+$/, "") || "/";
   if (path === "/") return { kind: "home" };
+  if (path === "/sorting") return { kind: "sorting" };
+  if (path === "/pathfinding") return { kind: "pathfinding" };
   if (path === "/sorting/race") return { kind: "race" };
   if (path === "/pathfinding/race") return { kind: "pathRace" };
   const pathMatch = /^\/pathfinding\/([a-z-]+)$/.exec(path);
@@ -62,8 +70,16 @@ export const routeFromPath = (pathname: string): Route | null => {
 /** All pages, for prerendering and the sitemap. */
 export const allRoutes: Route[] = [
   { kind: "home" },
+  { kind: "sorting" },
   ...(Object.keys(algorithmSlugs) as Algorithm[]).map((algorithm) => ({ kind: "algorithm" as const, algorithm })),
   { kind: "race" },
+  { kind: "pathfinding" },
   ...(Object.keys(pathSlugs) as PathAlgorithm[]).map((algorithm) => ({ kind: "path" as const, algorithm })),
   { kind: "pathRace" },
 ];
+
+/** Which module a page belongs to, if any (the landing page belongs to none). */
+export const moduleOf = (route: Route): "sorting" | "pathfinding" | null => {
+  if (route.kind === "home") return null;
+  return route.kind === "pathfinding" || route.kind === "path" || route.kind === "pathRace" ? "pathfinding" : "sorting";
+};

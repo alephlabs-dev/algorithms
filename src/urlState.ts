@@ -113,13 +113,20 @@ export const toPathSearch = (state: Required<PathUrlState> & { speed?: SpeedPres
 export const readLocation = (
   pathname: string,
   search: string,
-): Partial<UrlState> & { isHome: boolean; isPath: boolean; pathAlgorithm?: PathAlgorithm; path: PathUrlState } => {
+): Partial<UrlState> & {
+  isLanding: boolean;
+  isModuleStart: boolean;
+  isPath: boolean;
+  pathAlgorithm?: PathAlgorithm;
+  path: PathUrlState;
+} => {
   const state = readUrlState(search);
   const route = routeFromPath(pathname);
-  if (route?.kind === "path" || route?.kind === "pathRace") {
+  if (route?.kind === "path" || route?.kind === "pathRace" || route?.kind === "pathfinding") {
     return {
       ...state,
-      isHome: false,
+      isLanding: false,
+      isModuleStart: route.kind === "pathfinding",
       isPath: true,
       view: route.kind === "pathRace" ? "race" : "single",
       ...(route.kind === "path" && { pathAlgorithm: route.algorithm }),
@@ -132,9 +139,10 @@ export const readLocation = (
   } else if (route?.kind === "race") {
     state.view = "race";
   }
-  // The home page, unless an old ?algo=/?view= link picked something.
-  const isHome = (route === null || route.kind === "home") && state.algorithm === undefined && state.view === undefined;
-  return { ...state, isHome, isPath: false, path: {} };
+  // Old links put the algorithm in the query string of the home page (/?algo=quick): they open that algorithm.
+  const legacy = state.algorithm !== undefined || state.view !== undefined;
+  const isLanding = (route === null || route.kind === "home") && !legacy;
+  return { ...state, isLanding, isModuleStart: route?.kind === "sorting", isPath: false, path: {} };
 };
 
 /** The query string for the settings that aren't part of the path. */

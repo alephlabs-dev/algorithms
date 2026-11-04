@@ -10,6 +10,7 @@ import { cn } from "@/utils/cn";
 import { AlgorithmList } from "./AlgorithmList";
 import { ShortcutsHelp } from "./Controls/ShortcutsHelp";
 import { RacerList } from "./Race/RacerPicker";
+import { ModuleMenu } from "./ModuleSwitcher";
 import { ShareButton } from "./ShareButton";
 import { ThemeToggle } from "./ThemeToggle";
 import { Badge } from "./ui/badge";
@@ -172,6 +173,10 @@ export const TopBar = ({ className }: { className?: string }) => {
   const view = useStore((s) => s.view);
   return (
     <header className={cn("flex items-center gap-3", className)}>
+      <ModuleMenu />
+      <span aria-hidden className="text-line">
+        /
+      </span>
       {view === "race" ? <RacersPicker /> : <AlgorithmPicker />}
       <AboutButton />
       <Summary />

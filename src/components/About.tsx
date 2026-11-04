@@ -1,12 +1,13 @@
-import type { MouseEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { pseudocode } from "@/algorithms";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { MUD_COST, pathPseudocode, type PathAlgorithm } from "@/pathfinding";
 import { algorithmGroups } from "@/consts/algorithmGroups";
 import { PATH_RACE_DESCRIPTION, RACE_DESCRIPTION } from "@/consts/race";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
-import { routePath, type Route } from "@/routes";
+import type { Route } from "@/routes";
 import type { Algorithm } from "@/types";
+import { PageLink } from "./PageLink";
 
 /**
  * The page's written content, below the visualizer: what search engines index
@@ -19,32 +20,6 @@ type Props = {
   /** In the app, links switch pages without reloading; in static HTML they're plain links. */
   onNavigate?: (route: Route) => void;
 };
-
-const PageLink = ({
-  to,
-  onNavigate,
-  children,
-  className = "font-semibold underline decoration-line underline-offset-4 hover:decoration-foreground",
-}: {
-  to: Route;
-  onNavigate?: Props["onNavigate"];
-  children: ReactNode;
-  className?: string;
-}) => (
-  <a
-    href={routePath(to)}
-    className={className}
-    onClick={(event: MouseEvent) => {
-      // Let modified clicks open a new tab as usual.
-      if (!onNavigate || event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
-      event.preventDefault();
-      onNavigate(to);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }}
-  >
-    {children}
-  </a>
-);
 
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
   <section className="flex flex-col gap-4">
@@ -223,17 +198,16 @@ const PathArticle = ({ algorithm, onNavigate }: { algorithm: PathAlgorithm; onNa
   );
 };
 
-const HomeArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
+const SortingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
   <>
     <header className="flex flex-col gap-3">
-      <h1 className="text-display font-semibold">Algorithm visualizer</h1>
+      <h1 className="text-display font-semibold">Sorting algorithms</h1>
       <p className="text-lg text-foreground/80">
-        Watch sorting algorithms put an array in order and pathfinding algorithms search a maze, one step at a time.
-        Each step is explained in plain words next to the line of pseudocode it runs, and every run can be shared with
-        a link.
+        Watch nine sorting algorithms put an array in order, one comparison at a time. Each step is explained in plain
+        words next to the line of pseudocode it runs, and every run can be shared with a link.
       </p>
     </header>
-    <Section title="Sorting algorithms">
+    <Section title="All sorting algorithms">
       <ul className="flex flex-col divide-y divide-edge">
         {(Object.keys(sortingAlgorithms) as Algorithm[]).map((algorithm) => {
           const { title, shortDescription, timeComplexity } = sortingAlgorithms[algorithm];
@@ -251,11 +225,28 @@ const HomeArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
         })}
       </ul>
     </Section>
-    <Section title="Pathfinding algorithms">
+    <Section title="Race them">
       <p className="leading-relaxed text-foreground/80">
+        {RACE_DESCRIPTION}{" "}
+        <PageLink to={{ kind: "race" }} onNavigate={onNavigate}>
+          Start a race
+        </PageLink>
+        .
+      </p>
+    </Section>
+  </>
+);
+
+const PathfindingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
+  <>
+    <header className="flex flex-col gap-3">
+      <h1 className="text-display font-semibold">Pathfinding algorithms</h1>
+      <p className="text-lg text-foreground/80">
         Draw walls and mud on a grid, then watch five classic searches look for the way from start to target: some
         find the fewest steps, some the cheapest path, some just any path.
       </p>
+    </header>
+    <Section title="All pathfinding algorithms">
       <ul className="flex flex-col divide-y divide-edge">
         {pathOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
@@ -269,16 +260,9 @@ const HomeArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
     </Section>
     <Section title="Race them">
       <p className="leading-relaxed text-foreground/80">
-        {RACE_DESCRIPTION}{" "}
-        <PageLink to={{ kind: "race" }} onNavigate={onNavigate}>
-          Race sorting algorithms
-        </PageLink>
-        .
-      </p>
-      <p className="leading-relaxed text-foreground/80">
         {PATH_RACE_DESCRIPTION}{" "}
         <PageLink to={{ kind: "pathRace" }} onNavigate={onNavigate}>
-          Race pathfinding algorithms
+          Start a race
         </PageLink>
         .
       </p>
@@ -333,13 +317,21 @@ const PathRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) =
 
 export const About = ({ route, onNavigate }: Props) => (
   <article id="about" className="mx-auto flex w-full max-w-3xl flex-col gap-12 px-4 pb-20 pt-16 text-foreground md:px-6">
-    {route.kind === "home" && <HomeArticle onNavigate={onNavigate} />}
+    {route.kind === "sorting" && <SortingArticle onNavigate={onNavigate} />}
+    {route.kind === "pathfinding" && <PathfindingArticle onNavigate={onNavigate} />}
     {route.kind === "race" && <RaceArticle onNavigate={onNavigate} />}
     {route.kind === "algorithm" && <AlgorithmArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
     {route.kind === "path" && <PathArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
     {route.kind === "pathRace" && <PathRaceArticle onNavigate={onNavigate} />}
     <footer className="border-t border-edge pt-6 text-sm text-foreground/60">
-      Made by Aleph Labs ·{" "}
+      <PageLink
+        to={{ kind: "home" }}
+        onNavigate={onNavigate}
+        className="underline decoration-line underline-offset-4 hover:text-foreground"
+      >
+        All modules
+      </PageLink>{" "}
+      · Made by Aleph Labs ·{" "}
       <a
         href="https://github.com/alephlabs-dev/algorithms"
         className="underline decoration-line underline-offset-4 hover:text-foreground"

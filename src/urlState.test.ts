@@ -19,7 +19,8 @@ describe("url state", () => {
     const single = { ...state, view: "single" as const };
     expect(readLocation(routePath({ kind: "algorithm", algorithm: "heap" }), toSearch(single))).toEqual({
       ...single,
-      isHome: false,
+      isLanding: false,
+      isModuleStart: false,
       isPath: false,
       path: {},
     });
@@ -27,15 +28,22 @@ describe("url state", () => {
     expect(readLocation(routePath({ kind: "race" }), toSearch(state))).toEqual({
       ...state,
       algorithm: undefined,
-      isHome: false,
+      isLanding: false,
+      isModuleStart: false,
       isPath: false,
       path: {},
     });
   });
 
-  it("treats / as the home page unless an old link picked an algorithm", () => {
-    expect(readLocation("/", "").isHome).toBe(true);
-    expect(readLocation("/", "?algo=quick")).toMatchObject({ algorithm: "quick", isHome: false });
+  it("treats / as the landing page unless an old link picked an algorithm", () => {
+    expect(readLocation("/", "").isLanding).toBe(true);
+    expect(readLocation("/", "?algo=quick")).toMatchObject({ algorithm: "quick", isLanding: false });
+  });
+
+  it("opens each module's own page at its start", () => {
+    expect(readLocation("/sorting", "")).toMatchObject({ isLanding: false, isModuleStart: true, isPath: false });
+    expect(readLocation("/pathfinding", "")).toMatchObject({ isLanding: false, isModuleStart: true, isPath: true });
+    expect(readLocation("/pathfinding/dijkstra", "").isModuleStart).toBe(false);
   });
 
   it("lets the path win over legacy query parameters", () => {
