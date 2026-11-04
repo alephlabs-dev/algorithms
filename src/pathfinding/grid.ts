@@ -109,7 +109,49 @@ const carveMaze = (grid: Grid, random: () => number) => {
     const c = 1 + Math.floor(random() * (cols - 2));
     if ((r + c) % 2 === 1) cells[cellOf(grid, r, c)] = EMPTY;
   }
+  // Start and end may sit on cells the maze never opens (moved by hand, or on
+  // even rows and columns); open the shortest way from each into the maze.
+  const root = cellOf(grid, startRow, startCol);
+  for (const marker of [grid.start, grid.end]) {
+    cells[marker] = EMPTY;
+    joinTo(cells, grid, root, marker);
+  }
   return cells;
+};
+
+/** All four neighbors of a cell, walls included. */
+const around = (grid: Grid, cell: number) => neighbors({ ...grid, cells: new Uint8Array(grid.rows * grid.cols) }, cell);
+
+/** Opens the fewest walls needed so `from` is reachable from `root`. */
+const joinTo = (cells: Uint8Array, grid: Grid, root: number, from: number) => {
+  // The cells already connected to the root.
+  const reached = new Set([root]);
+  const queue = [root];
+  while (queue.length) {
+    for (const n of around(grid, queue.shift()!)) {
+      if (cells[n] !== WALL && !reached.has(n)) {
+        reached.add(n);
+        queue.push(n);
+      }
+    }
+  }
+  if (reached.has(from)) return;
+  // Walk out from `from`, through walls too, to the nearest connected cell; open the way back.
+  const parent = new Map<number, number>([[from, from]]);
+  const frontier = [from];
+  while (frontier.length) {
+    const cell = frontier.shift()!;
+    if (reached.has(cell)) {
+      for (let c = parent.get(cell)!; c !== from; c = parent.get(c)!) cells[c] = EMPTY;
+      return;
+    }
+    for (const n of around(grid, cell)) {
+      if (!parent.has(n)) {
+        parent.set(n, cell);
+        frontier.push(n);
+      }
+    }
+  }
 };
 
 /** Fills the grid with a ready-made layout, keeping start and end where they are (or nearby, for mazes). */

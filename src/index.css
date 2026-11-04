@@ -15,6 +15,19 @@
 }
 
 @theme {
+  /* A small nudge downwards, for the "more below" hint. */
+  --animate-nudge: nudge 2.4s ease-in-out infinite;
+  @keyframes nudge {
+    0%,
+    60%,
+    100% {
+      transform: translateY(0);
+    }
+    30% {
+      transform: translateY(3px);
+    }
+  }
+
   /*
     Type: Instrument Sans for everything that is words, mono for anything that
     is data (counts, steps, speed, sizes, pseudocode).

@@ -1,4 +1,4 @@
-import { ResetIcon } from "@radix-ui/react-icons";
+import { BarChartIcon, ResetIcon } from "@radix-ui/react-icons";
 import { useState, type ReactNode } from "react";
 import { cn } from "@/utils/cn";
 import { ordinal } from "@/utils/ordinal";
@@ -22,11 +22,12 @@ export const ResultsOverlay = ({ children, onReplay }: { children: ReactNode; on
 
   if (folded) {
     return (
+      // Floats over the lanes, so it needs a solid fill to read on any of them.
       <Button
-        className="absolute bottom-3 right-3 shadow-lg animate-in fade-in duration-200 motion-reduce:animate-none"
+        className="absolute bottom-3 right-3 border-edge bg-surface shadow-[var(--shadow-dock)] animate-in fade-in slide-in-from-bottom-2 duration-200 hover:bg-accent motion-reduce:animate-none"
         onClick={() => setFolded(false)}
       >
-        Show results
+        <BarChartIcon /> Show results
       </Button>
     );
   }

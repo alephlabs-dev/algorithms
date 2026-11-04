@@ -332,7 +332,7 @@ const PathRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) =
 );
 
 export const About = ({ route, onNavigate }: Props) => (
-  <article className="mx-auto flex w-full max-w-3xl flex-col gap-12 px-4 pb-20 pt-16 text-foreground md:px-6">
+  <article id="about" className="mx-auto flex w-full max-w-3xl flex-col gap-12 px-4 pb-20 pt-16 text-foreground md:px-6">
     {route.kind === "home" && <HomeArticle onNavigate={onNavigate} />}
     {route.kind === "race" && <RaceArticle onNavigate={onNavigate} />}
     {route.kind === "algorithm" && <AlgorithmArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
