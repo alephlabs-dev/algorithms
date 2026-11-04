@@ -24,7 +24,7 @@ export const ResultsOverlay = ({ children, onReplay }: { children: ReactNode; on
     return (
       // Floats over the lanes, so it needs a solid fill to read on any of them.
       <Button
-        className="absolute bottom-3 right-3 border-edge bg-surface shadow-[var(--shadow-dock)] animate-in fade-in slide-in-from-bottom-2 duration-200 hover:bg-accent motion-reduce:animate-none"
+        className="absolute bottom-3 right-3 z-10 border-edge bg-surface shadow-[var(--shadow-dock)] animate-in fade-in slide-in-from-bottom-2 duration-200 hover:bg-accent motion-reduce:animate-none"
         onClick={() => setFolded(false)}
       >
         <BarChartIcon /> Show results
@@ -33,7 +33,8 @@ export const ResultsOverlay = ({ children, onReplay }: { children: ReactNode; on
   }
 
   return (
-    <div className="absolute inset-0 grid place-items-center bg-background/60 p-4 backdrop-blur-[2px] animate-in fade-in duration-300 motion-reduce:animate-none">
+    // Over the lanes on wide screens; over the whole screen on phones, where the card is taller than the lanes.
+    <div className="fixed inset-0 z-40 grid place-items-center bg-background/60 p-4 backdrop-blur-[2px] animate-in fade-in duration-300 motion-reduce:animate-none md:absolute md:z-10">
       <section
         role="status"
         aria-label="Race results"

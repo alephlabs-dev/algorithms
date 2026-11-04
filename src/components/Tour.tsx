@@ -5,11 +5,13 @@ import { MUD_COST } from "@/pathfinding";
 import { useStore, type Module, type Theme } from "@/store";
 import { Button } from "./ui/button";
 
-type Context = { theme: Theme; wide: boolean };
+type Context = { theme: Theme; wide: boolean; phone: boolean };
 
 type Step = {
   /** Matches `data-tour="…"` on the element to light up (the first visible one). */
   anchor: string;
+  /** Where to point instead on phones, when the anchor lives in a sheet there. */
+  phoneAnchor?: string;
   title: string;
   text: (context: Context) => ReactNode;
 };
@@ -91,9 +93,10 @@ const pathSteps: Step[] = [
   },
   {
     anchor: "tools",
+    phoneAnchor: "settings",
     title: "Walls, mud and layouts",
-    text: () =>
-      `Switch the brush to mud: it can be crossed, but each step on it costs ${MUD_COST}. Or start from a maze, random walls or rough terrain.`,
+    text: ({ phone }) =>
+      `${phone ? "In settings: switch" : "Switch"} the brush to mud: it can be crossed, but each step on it costs ${MUD_COST}. Or start from a maze, random walls or rough terrain.`,
   },
   {
     anchor: "play",
@@ -195,9 +198,11 @@ const TourDialog = ({ steps }: { steps: Step[] }) => {
   const wide = useMediaQuery("(min-width: 1280px)");
   const keyboard = useMediaQuery("(min-width: 1024px)");
   const [index, setIndex] = useState(0);
+  // Below the md breakpoint, where the grid tools move into the settings sheet.
+  const phone = useMediaQuery("(max-width: 767px)");
   const step = steps[index];
   const isLast = index === steps.length - 1;
-  const { holeRef, bubbleRef } = usePlacement(step.anchor);
+  const { holeRef, bubbleRef } = usePlacement((phone && step.phoneAnchor) || step.anchor);
   const nextRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
 
@@ -256,7 +261,7 @@ const TourDialog = ({ steps }: { steps: Step[] }) => {
           </Button>
         </div>
         <p className="text-sm leading-relaxed text-foreground/80">
-          {step.text({ theme, wide: step.anchor === "play" ? keyboard : wide })}
+          {step.text({ theme, phone, wide: step.anchor === "play" ? keyboard : wide })}
         </p>
         <div className="flex items-center justify-between gap-2 pt-1">
           {/* Progress dots: where you are in the tour. */}
