@@ -14,7 +14,7 @@ export const ListItem = ({ selected, checkbox, className, children, ...props }: 
     type="button"
     aria-pressed={selected}
     className={cn(
-      "relative flex min-h-11 w-full items-center gap-3 rounded-sm px-3 text-left text-sm text-foreground transition-colors hover:bg-accent disabled:opacity-40 disabled:hover:bg-transparent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary lg:min-h-9",
+      "relative flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm text-foreground transition-colors hover:bg-accent disabled:opacity-40 disabled:hover:bg-transparent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary lg:min-h-9",
       // Single-select: a filled row with a bar on the left edge.
       !checkbox &&
         selected &&
@@ -27,7 +27,7 @@ export const ListItem = ({ selected, checkbox, className, children, ...props }: 
       <span
         aria-hidden
         className={cn(
-          "grid h-4 w-4 shrink-0 place-items-center rounded-xs border-2 border-line",
+          "grid h-4 w-4 shrink-0 place-items-center rounded-[5px] border-2 border-line",
           selected && "border-foreground bg-foreground text-background"
         )}
       >

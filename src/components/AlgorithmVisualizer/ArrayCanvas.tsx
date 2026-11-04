@@ -13,10 +13,12 @@ type Props = {
   /** Changes when a new array is generated. */
   runId: number;
   label: string;
+  /** Callouts on the bars (compared values, pivot). Off for small race lanes. */
+  annotate?: boolean;
 };
 
 /** A canvas that draws one frame and animates into the next. Fills its parent. */
-export const ArrayCanvas = ({ frame, values, mode, celebrate, runId, label }: Props) => {
+export const ArrayCanvas = ({ frame, values, mode, celebrate, runId, label, annotate = false }: Props) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<BarsRenderer | null>(null);
@@ -42,8 +44,9 @@ export const ArrayCanvas = ({ frame, values, mode, celebrate, runId, label }: Pr
       moveDuration: isScrubbing ? 0 : moveDuration(speed),
       celebrate,
       runId,
+      annotate,
     });
-  }, [frame, values, mode, speed, isScrubbing, celebrate, runId]);
+  }, [frame, values, mode, speed, isScrubbing, celebrate, runId, annotate]);
 
   return (
     <div ref={wrapperRef} className="relative w-full flex-1 min-h-0">

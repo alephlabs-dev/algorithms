@@ -1,4 +1,4 @@
-import { BarChartIcon, ChevronDownIcon } from "@radix-ui/react-icons";
+import { BarChartIcon, MixerHorizontalIcon } from "@radix-ui/react-icons";
 import * as Popover from "@radix-ui/react-popover";
 import type { ReactNode } from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -8,6 +8,7 @@ import { useStore } from "@/store";
 import type { DisplayMode, InputOrder } from "@/types";
 import { cn } from "@/utils/cn";
 import { ListItem } from "../ui/list-item";
+import { popoverClass } from "../ui/popover";
 import { SegmentedControl } from "../ui/segmented";
 
 const NUMBERS_LIMIT = { desktop: 20, mobile: 10 };
@@ -102,7 +103,7 @@ const Field = ({ label, help, children }: { label: string; help?: string; childr
   </div>
 );
 
-/** All settings stacked, for the phone settings sheet. Help is plain text since tooltips don't work on touch. */
+/** All settings stacked, for the settings sheet and menu. Help is plain text since tooltips don't work on touch. */
 export const SettingsPanel = () => {
   const s = useSettings();
   return (
@@ -123,50 +124,36 @@ export const SettingsPanel = () => {
   );
 };
 
-/** A toolbar button that shows the current value and opens its picker. */
-const Menu = ({ value, label, children }: { value: ReactNode; label: string; children: ReactNode }) => (
-  <Popover.Root>
-    <Popover.Trigger
-      aria-label={`${label}: change`}
-      className="flex h-9 items-center gap-1.5 rounded-sm px-3 text-sm text-foreground transition-colors hover:bg-background/60 data-[state=open]:bg-background/60 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
-    >
-      <span className="text-foreground/60">{label}</span>
-      <span className="font-semibold">{value}</span>
-      <ChevronDownIcon className="h-4 w-4 text-foreground/60" />
-    </Popover.Trigger>
-    <Popover.Portal>
-      <Popover.Content
-        align="start"
-        sideOffset={6}
-        className="z-50 flex w-80 flex-col gap-3 rounded-sm border border-line bg-background p-4 text-foreground shadow-xl animate-in fade-in zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 motion-reduce:animate-none"
-      >
-        {children}
-      </Popover.Content>
-    </Popover.Portal>
-  </Popover.Root>
-);
-
 /**
- * Desktop: the settings as a toolbar on top of the bars they change, so the
- * sidebar is only for picking algorithms.
+ * Desktop and tablet: one pill in the dock that reads like the settings
+ * ("40 · Random") and opens all of them.
  */
-export const SettingsToolbar = ({ className }: { className?: string }) => {
+export const SettingsMenu = ({ className }: { className?: string }) => {
   const s = useSettings();
   return (
-    <div role="toolbar" aria-label="Settings" className={cn("flex flex-wrap items-center gap-1", className)}>
-      <Menu label="Size" value={<span className="font-mono">{s.size}</span>}>
-        <SizePicker />
-        <p className="text-xs text-foreground/70">{sizeHelp(NUMBERS_LIMIT.desktop)}</p>
-      </Menu>
-      <Menu label="Input" value={inputOrders[s.inputOrder].label}>
-        <InputList />
-      </Menu>
-      {!s.isRace && (
-        <Menu label="Display" value={s.displayMode === "bars" ? "Bars" : "Numbers"}>
-          <DisplayPicker />
-          <p className="text-xs text-foreground/70">{displayHelp}</p>
-        </Menu>
-      )}
-    </div>
+    <Popover.Root>
+      <Popover.Trigger
+        aria-label={`Settings: ${s.size} items, ${inputOrders[s.inputOrder].label}. Change`}
+        className={cn(
+          "flex h-11 shrink-0 items-center gap-2 rounded-full border border-edge px-4 text-sm text-foreground transition-colors hover:bg-accent data-[state=open]:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
+          className
+        )}
+      >
+        <MixerHorizontalIcon className="h-4 w-4 text-foreground/70" />
+        <span className="font-mono">{s.size}</span>
+        <span className="text-foreground/40">·</span>
+        <span className="whitespace-nowrap">{inputOrders[s.inputOrder].label}</span>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          side="top"
+          align="end"
+          sideOffset={12}
+          className={cn(popoverClass, "max-h-[var(--radix-popover-content-available-height)] w-96 overflow-y-auto p-6")}
+        >
+          <SettingsPanel />
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   );
 };

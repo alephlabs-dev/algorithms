@@ -1,11 +1,13 @@
 import { useShallow } from "zustand/react/shallow";
 import { selectLastIndex, useStore } from "@/store";
+import { cn } from "@/utils/cn";
+import { StatsInline } from "../RunInfo";
 import { Slider } from "../ui/slider";
 
 const format = (n: number) => n.toLocaleString("en-US");
 
-// Kept separate from Controls because it re-renders on every frame.
-export const Progress = () => {
+/** The timeline with the position and the counters under it. Kept apart from the dock because it re-renders on every frame. */
+export const Progress = ({ className }: { className?: string }) => {
   const { frameIndex, lastIndex, seek, setScrubbing, isRace } = useStore(
     useShallow((s) => ({
       frameIndex: s.frameIndex,
@@ -18,7 +20,7 @@ export const Progress = () => {
   const unit = isRace ? "operation" : "step";
 
   return (
-    <div className="flex items-center gap-4">
+    <div className={cn("flex min-w-0 flex-col gap-2.5", className)}>
       <Slider
         aria-label="Progress"
         aria-valuetext={`${unit} ${format(frameIndex)} of ${format(lastIndex)}`}
@@ -31,10 +33,14 @@ export const Progress = () => {
         onPointerDown={() => setScrubbing(true)}
         onValueCommit={() => setScrubbing(false)}
       />
-      <span className="shrink-0 whitespace-nowrap font-mono text-xs text-foreground/80" aria-hidden>
-        {format(frameIndex)} / {format(lastIndex)}
-        {isRace && <span className="text-foreground/60"> ops</span>}
-      </span>
+      <div className="flex items-baseline justify-between gap-3 font-mono text-xs text-foreground/70">
+        <span aria-hidden className="whitespace-nowrap">
+          {isRace ? "" : "step "}
+          {format(frameIndex)} / {format(lastIndex)}
+          {isRace && " ops"}
+        </span>
+        {!isRace && <StatsInline />}
+      </div>
     </div>
   );
 };

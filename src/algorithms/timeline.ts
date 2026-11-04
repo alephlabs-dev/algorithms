@@ -15,7 +15,7 @@ type State = {
 };
 
 /** Marks the end of a run: clears highlights and marks every item done. */
-type FinishStep = { type: "finish" };
+export type FinishStep = { type: "finish" };
 
 /**
  * What a step does, for pacing playback. "line" is a highlight step that only
@@ -195,6 +195,12 @@ export class Timeline {
       else hi = mid - 1;
     }
     return lo;
+  }
+
+  /** The step that leads from frame `index - 1` to frame `index`. */
+  stepAt(index: number): Step | FinishStep | null {
+    if (index <= 0 || index >= this.length) return null;
+    return this.steps[index - 1];
   }
 
   /** The kind of step that leads from frame `index - 1` to frame `index`. */

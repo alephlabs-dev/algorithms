@@ -15,6 +15,8 @@ export type RenderInput = {
   celebrate: boolean;
   /** Changes when a new array is generated; bars are rebuilt instead of animated. */
   runId: number;
+  /** Label compared bars with their values and the pivot by name, when bars are wide enough. */
+  annotate?: boolean;
 };
 
 type Spring = { value: number; velocity: number };
@@ -49,9 +51,10 @@ const LIFT = 0.06;
 const DIMMED_ALPHA = 0.6;
 const WAVE_DURATION = 0.55;
 const MIN_HOP_DURATION = 0.08; // below this, moves are too quick for an arc to read
+const MIN_LABEL_WIDTH = 14; // narrower bars can't fit a value above them
 
 const palette = {
-  base: hexToRgb(colors.foreground),
+  base: hexToRgb(colors.bar),
   active: hexToRgb(colors.secondary),
   temp: hexToRgb(colors.tertiary),
   done: hexToRgb(colors.primary),
@@ -359,6 +362,33 @@ export class BarsRenderer {
         ctx.fillText(String(value), x + w / 2, y + tile / 2 + 1);
       }
     }
+    ctx.globalAlpha = 1;
+
+    if (input.annotate && isBars && barWidth >= MIN_LABEL_WIDTH) this.drawLabels(slot, offsetX, gap, barWidth, liftPx);
+  }
+
+  /** Values above the compared bars, and "pivot" above the pivot, like callouts on a figure. */
+  private drawLabels(slot: number, offsetX: number, gap: number, barWidth: number, liftPx: number) {
+    const { ctx, height, input } = this;
+    if (!input) return;
+    ctx.font = `600 12px "JetBrains Mono Variable", ui-monospace, monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    this.items.forEach((item, id) => {
+      const isPivot = id === input.frame.pivot;
+      const strength = isPivot ? Math.max(item.lift.value, this.pivotLine.alpha.value) : item.lift.value;
+      if (strength < 0.05) return;
+      const value = input.values[id];
+      const top = height - this.barHeight(value) * item.grow.value - item.lift.value * liftPx - item.arc;
+      const x = offsetX + item.x * slot + gap / 2 + barWidth / 2;
+      ctx.globalAlpha = strength * item.alpha.value;
+      ctx.fillStyle = isPivot ? colors.foreground : colors.secondary;
+      ctx.fillText(String(value), x, top - 8);
+      if (isPivot) {
+        ctx.fillStyle = colors.muted;
+        ctx.fillText("pivot", x, top - 24);
+      }
+    });
     ctx.globalAlpha = 1;
   }
 }

@@ -39,9 +39,9 @@ export const RaceResults = ({ algorithms, timelines, placeOf, onReplay }: Props)
       <section
         role="status"
         aria-label="Race results"
-        className="flex w-full max-w-md flex-col gap-4 rounded-sm border border-line bg-background p-4 shadow-xl"
+        className="flex w-full max-w-md flex-col gap-4 rounded-3xl border border-edge bg-surface p-6 shadow-2xl"
       >
-        <h2 className="font-display text-xl font-semibold">Results</h2>
+        <h2 className="text-xl font-semibold">Results</h2>
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-foreground/60">
@@ -58,7 +58,7 @@ export const RaceResults = ({ algorithms, timelines, placeOf, onReplay }: Props)
                 <tr key={algorithm} className="border-t border-line/60">
                   <td className="py-2">
                     <span
-                      className={cn("rounded-sm px-1.5 py-0.5 font-mono text-xs font-semibold", {
+                      className={cn("rounded-full px-2 py-0.5 font-mono text-xs font-semibold", {
                         "bg-primary text-background": place === 1,
                         "bg-foreground/15": place !== 1,
                       })}

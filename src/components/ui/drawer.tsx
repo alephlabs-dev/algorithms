@@ -29,12 +29,12 @@ const DrawerContent = ({
     <DrawerPrimitive.Overlay className="fixed inset-0 z-50 bg-black/80" />
     <DrawerPrimitive.Content
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border border-accent/50 bg-background",
+        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-3xl border border-edge bg-surface",
         className
       )}
       {...props}
     >
-      <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-accent" />
+      <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-line" />
       {children}
     </DrawerPrimitive.Content>
   </DrawerPrimitive.Portal>

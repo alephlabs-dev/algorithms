@@ -61,7 +61,12 @@ export const SegmentedControl = <T extends string | number>({
       ref={groupRef}
       role="radiogroup"
       aria-label={label}
-      className={cn("grid gap-0.5 overflow-hidden rounded-sm border-2 border-line bg-line", className)}
+      className={cn(
+        "grid gap-1 border border-edge bg-background/60 p-1",
+        // A single row reads as a pill; wrapped rows as a rounded block.
+        perRow < options.length ? "rounded-2xl" : "rounded-full",
+        className
+      )}
       style={{ gridTemplateColumns: `repeat(${perRow}, minmax(0, 1fr))` }}
     >
       {options.map((option, index) => {
@@ -80,9 +85,10 @@ export const SegmentedControl = <T extends string | number>({
             onKeyDown={onKeyDown}
             style={index === options.length - 1 && lastSpan > 1 ? { gridColumn: `span ${lastSpan}` } : undefined}
             className={cn(
-              "flex items-center justify-center gap-1.5 bg-background px-2 text-sm leading-tight text-foreground transition-colors hover:bg-accent disabled:opacity-40 disabled:hover:bg-background focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary [&_svg]:size-4",
-              compact ? "min-h-11 lg:min-h-9" : "min-h-11",
-              selected && "bg-accent font-semibold ring-1 ring-inset ring-foreground/70 hover:bg-accent"
+              "flex items-center justify-center gap-1.5 px-2 text-sm leading-tight text-foreground/80 transition-colors hover:bg-accent hover:text-foreground disabled:opacity-40 disabled:hover:bg-transparent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary [&_svg]:size-4",
+              compact ? "min-h-10 lg:min-h-9" : "min-h-10",
+              perRow < options.length ? "rounded-xl" : "rounded-full",
+              selected && "bg-foreground font-semibold text-background hover:bg-foreground hover:text-background"
             )}
           >
             {option.label}

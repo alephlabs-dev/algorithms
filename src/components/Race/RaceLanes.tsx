@@ -33,7 +33,7 @@ const RaceLane = ({ algorithm, timeline, clock, place, runId, className }: LaneP
     <section
       aria-label={title}
       className={cn(
-        "flex min-h-0 flex-col gap-1 rounded-sm bg-accent/40 p-2 md:p-3 ring-1 ring-transparent transition-shadow",
+        "flex min-h-0 flex-col gap-1 rounded-3xl border border-edge bg-surface p-3 md:p-4 ring-1 ring-transparent transition-shadow",
         { "ring-primary": finished && place === 1 },
         className
       )}
@@ -42,7 +42,7 @@ const RaceLane = ({ algorithm, timeline, clock, place, runId, className }: LaneP
         <h3 className="truncate font-semibold">{title}</h3>
         {finished && (
           <span
-            className={cn("rounded-sm px-1.5 py-0.5 font-mono text-xs font-semibold", {
+            className={cn("rounded-full px-2 py-0.5 font-mono text-xs font-semibold", {
               "bg-primary text-background": place === 1,
               "bg-foreground/15": place !== 1,
             })}

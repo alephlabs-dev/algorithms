@@ -6,14 +6,14 @@ import { cn } from "@/utils/cn";
 
 const buttonVariants = cva(
   // The focus ring uses the brand green so keyboard focus is visible on the dark background.
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-semibold transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         /** The one main action in a group (Play). Light fill, dark text. */
-        primary: "bg-foreground text-background hover:bg-foreground/90",
-        /** Everything else that's a button. */
-        secondary: "border-2 border-line bg-background text-foreground hover:bg-accent",
+        primary: "bg-foreground text-background hover:bg-foreground/90 active:scale-95 transition-[background-color,transform] motion-reduce:active:scale-100",
+        /** Everything else that's a button: an outlined pill. */
+        secondary: "border border-line/70 bg-transparent text-foreground hover:bg-accent",
         /** Low-emphasis actions inside surfaces. */
         ghost: "text-foreground hover:bg-accent",
       },

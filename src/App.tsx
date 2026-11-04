@@ -1,18 +1,19 @@
 import { useEffect } from "react";
 import { AlgorithmVisualizer } from "./components/AlgorithmVisualizer";
 import { Controls } from "./components/Controls";
-import { Header } from "./components/Header";
 import { MobileRaceBar, MobileTopBar } from "./components/MobileTopBar";
-import { CodeCard } from "./components/Pseudocode";
-import { StatsCard } from "./components/RunInfo";
-import { SettingsToolbar } from "./components/Settings/SettingsPanel";
-import { RaceHeader } from "./components/Race/RaceHeader";
+import { NowCard, StepCaption } from "./components/Pseudocode";
 import { RaceLanes } from "./components/Race/RaceLanes";
-import { Sidebar } from "./components/Sidebar";
-import { ViewSwitch } from "./components/ViewSwitch";
+import { Legend } from "./components/RunInfo";
+import { TopBar } from "./components/TopBar";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import { MOBILE_QUERY, useStore } from "./store";
 
+/**
+ * One stage, edge to edge: a slim bar on top that names what's playing, the
+ * bars in the middle with the "Now" card beside them on wide screens, and a
+ * floating dock at the bottom.
+ */
 function App() {
   const setIsMobile = useStore((s) => s.setIsMobile);
   const view = useStore((s) => s.view);
@@ -23,38 +24,32 @@ function App() {
   }, [isMobile, setIsMobile]);
 
   return (
-    <div className="flex h-dvh bg-background text-foreground">
-      <Sidebar />
-      {/* Below lg (phones, tablets) the sidebar's job moves into the top bar and sheets. */}
-      <main className="mx-auto flex h-full w-full max-w-[1440px] min-w-0 flex-col gap-4 p-4 md:p-6 lg:gap-6 lg:p-10">
-        <ViewSwitch className="lg:hidden" />
-        {view === "single" ? (
-          <>
-            <MobileTopBar className="lg:hidden" />
-            <Header className="hidden lg:flex" />
-            <div className="flex min-h-0 flex-1 gap-6">
-              <div className="min-w-0 flex-1">
-                <AlgorithmVisualizer />
+    <main className="mx-auto flex h-dvh w-full max-w-[1600px] flex-col gap-4 bg-background p-4 text-foreground md:p-6 lg:gap-6 lg:px-8">
+      <TopBar className="hidden lg:flex" />
+      {view === "single" ? (
+        <>
+          <MobileTopBar className="lg:hidden" />
+          <div className="flex min-h-0 flex-1 gap-8">
+            <div className="flex min-w-0 flex-1 flex-col gap-2 lg:px-4">
+              <div className="flex min-h-10 items-center justify-between gap-4 xl:hidden">
+                <StepCaption className="-ml-3 flex-1" />
+                <Legend className="hidden shrink-0 md:flex" />
               </div>
-              {/* Code and counters beside the bars; each card is as tall as its content. */}
-              {/* Never taller than the bars: the code card scrolls inside if it has to. */}
-              <div className="hidden max-h-full min-h-0 w-72 shrink-0 flex-col gap-4 self-start xl:flex">
-                <CodeCard />
-                <StatsCard />
-              </div>
+              <AlgorithmVisualizer />
             </div>
-          </>
-        ) : (
-          <>
-            <MobileRaceBar className="lg:hidden" />
-            <RaceHeader className="hidden lg:flex" />
-            <SettingsToolbar className="-my-2 -ml-3 hidden lg:flex" />
-            <RaceLanes />
-          </>
-        )}
-        <Controls />
-      </main>
-    </div>
+            {/* Never taller than the stage: the card scrolls inside if it has to. */}
+            <NowCard className="hidden max-h-full w-80 shrink-0 self-start xl:flex" />
+          </div>
+        </>
+      ) : (
+        <>
+          <MobileRaceBar className="lg:hidden" />
+          <Legend className="-mb-2 lg:-mt-2" />
+          <RaceLanes />
+        </>
+      )}
+      <Controls />
+    </main>
   );
 }
 

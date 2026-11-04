@@ -16,22 +16,16 @@ const HELP = "1× is a comfortable pace for this array; it adapts to the array s
 export const SpeedControl = ({ className }: { className?: string }) => {
   const { preset, speed, setPreset } = useSpeed();
   return (
-    <div className={cn("flex items-center gap-3", className)}>
-      <span className="text-sm font-semibold" title={HELP}>
-        Speed
-      </span>
+    <div className={cn("flex items-center gap-3", className)} title={`${HELP} Now ${formatStepsPerSecond(speed)} steps per second.`}>
       <SegmentedControl<SpeedPreset>
         label="Speed"
         options={speedPresets.map((p) => ({ value: p, label: <span className="font-mono">{presetLabels[p]}</span>, title: `${presetLabels[p]} speed` }))}
         value={preset}
         onChange={setPreset}
         compact
-        className="w-52 xl:w-64"
+        className="w-56"
       />
-      <span className="hidden w-16 font-mono text-xs text-foreground/60 2xl:inline" aria-hidden>
-        {formatStepsPerSecond(speed)}/s
-      </span>
-    </div>
+          </div>
   );
 };
 

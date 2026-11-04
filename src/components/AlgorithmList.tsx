@@ -6,7 +6,7 @@ import { ListItem } from "./ui/list-item";
 import { SectionLabel } from "./ui/section-label";
 
 /** The nine algorithms, grouped by how they scale. */
-export const AlgorithmList = () => {
+export const AlgorithmList = ({ onPick }: { onPick?: () => void }) => {
   const { activeAlgorithm, setActiveAlgorithm } = useStore(
     useShallow((s) => ({
       activeAlgorithm: s.activeAlgorithm,
@@ -26,7 +26,10 @@ export const AlgorithmList = () => {
             <ListItem
               key={algorithm}
               selected={algorithm === activeAlgorithm}
-              onClick={() => algorithm !== activeAlgorithm && setActiveAlgorithm(algorithm)}
+              onClick={() => {
+                if (algorithm !== activeAlgorithm) setActiveAlgorithm(algorithm);
+                onPick?.();
+              }}
             >
               {sortingAlgorithms[algorithm].title}
             </ListItem>

@@ -41,16 +41,16 @@ export const ShortcutsHelp = () => {
         ref={dialogRef}
         onClose={() => setOpen(false)}
         onClick={(event) => event.target === dialogRef.current && setOpen(false)}
-        className="m-auto w-full max-w-sm rounded-sm border border-line bg-background p-6 text-foreground shadow-xl backdrop:bg-black/60"
+        className="m-auto w-full max-w-sm rounded-3xl border border-edge bg-surface p-6 text-foreground shadow-xl backdrop:bg-black/60"
       >
-        <h2 className="mb-4 font-display text-xl font-semibold">Keyboard shortcuts</h2>
+        <h2 className="mb-4 text-xl font-semibold">Keyboard shortcuts</h2>
         <dl className="flex flex-col gap-3 text-sm">
           {shortcuts.map(([keys, action]) => (
             <div key={action} className="flex items-center justify-between gap-4">
               <dt className="text-foreground/80">{action}</dt>
               <dd className="flex gap-1">
                 {keys.map((key) => (
-                  <kbd key={key} className="min-w-7 rounded-sm border border-line px-1.5 py-0.5 text-center font-mono text-xs">
+                  <kbd key={key} className="min-w-7 rounded-md border border-line px-1.5 py-0.5 text-center font-mono text-xs">
                     {key}
                   </kbd>
                 ))}

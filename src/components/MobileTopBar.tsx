@@ -7,19 +7,20 @@ import { useSettingsSummary } from "@/hooks/useSettingsSummary";
 import { MAX_RACERS, useStore } from "@/store";
 import type { Algorithm } from "@/types";
 import { cn } from "@/utils/cn";
-import { Complexity } from "./Header";
-import { RACE_DESCRIPTION } from "./Race/RaceHeader";
+import { RACE_DESCRIPTION } from "@/consts/race";
+import { Complexity } from "./TopBar";
 import { RacerList } from "./Race/RacerPicker";
 import { ShareButton } from "./ShareButton";
 import { SettingsPanel } from "./Settings/SettingsPanel";
 import { Button } from "./ui/button";
 import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
+import { ViewSwitch } from "./ViewSwitch";
 
 /** Bottom sheet with a title and scrollable content. */
 const Sheet = ({ title, children }: { title: string; children: ReactNode }) => (
   <DrawerContent aria-describedby={undefined}>
     <div className="flex max-h-[85dvh] flex-col gap-4 overflow-y-auto p-6 pb-10 text-foreground">
-      <DrawerTitle className="font-display text-xl font-semibold">{title}</DrawerTitle>
+      <DrawerTitle className="text-xl font-semibold">{title}</DrawerTitle>
       {children}
     </div>
   </DrawerContent>
@@ -36,17 +37,14 @@ const InfoButton = ({ label, children }: { label: string; children: ReactNode })
   </Drawer>
 );
 
-/** Settings live in a sheet on phones; the button shows what's set. */
+/** Settings live in a sheet on phones and tablets; the button's name says what's set. */
 const SettingsButton = () => {
   const summary = useSettingsSummary();
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        <Button className="w-full justify-between font-normal">
-          <span className="flex items-center gap-2 font-semibold">
-            <MixerHorizontalIcon /> Settings
-          </span>
-          <span className="truncate font-mono text-xs text-foreground/70">{summary}</span>
+        <Button size="icon" className="h-12 w-12 shrink-0" aria-label={`Settings: ${summary}`} title={summary}>
+          <MixerHorizontalIcon />
         </Button>
       </DrawerTrigger>
       <Sheet title="Settings">
@@ -58,12 +56,12 @@ const SettingsButton = () => {
 
 // Shared look for the two field-style pickers: they read as "tap to change".
 const fieldClass =
-  "flex h-12 w-full min-w-0 items-center rounded-sm border-2 border-line bg-background pl-3 pr-10 text-left font-display text-lg font-semibold text-foreground transition-colors hover:border-foreground/60 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
+  "flex h-12 w-full min-w-0 items-center rounded-full border border-edge bg-surface pl-5 pr-10 text-left text-lg font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
 
 const FieldChevron = () => (
   <ChevronDownIcon
     aria-hidden
-    className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground/70"
+    className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground/70"
   />
 );
 
@@ -119,27 +117,30 @@ const RacersField = () => {
   );
 };
 
-/**
- * Phones and tablets: the algorithm as a field (tap to change), share and (i),
- * then one button for the settings.
- */
+/** The view switch and share link, above the picker. */
+const ViewRow = () => (
+  <div className="flex items-center gap-2">
+    <ViewSwitch className="flex-1" />
+    <ShareButton iconOnly />
+  </div>
+);
+
+/** Phones and tablets: the view, then the algorithm as a field (tap to change), (i) and settings. */
 export const MobileTopBar = ({ className }: { className?: string }) => {
   const activeAlgorithm = useStore((s) => s.activeAlgorithm);
   const { title, shortDescription, longDescription } = sortingAlgorithms[activeAlgorithm];
 
   return (
-    <div className={className}>
-      <div className="flex flex-col gap-3">
-        <h1 className="sr-only">{title}</h1>
-        <div className="flex items-center gap-1">
-          <AlgorithmField />
-          <ShareButton iconOnly />
-          <InfoButton label={title}>
-            <p className="text-foreground/80">{shortDescription}</p>
-            <p className="text-foreground/80">{longDescription}</p>
-            <Complexity />
-          </InfoButton>
-        </div>
+    <div className={cn("flex flex-col gap-3", className)}>
+      <h1 className="sr-only">{title}</h1>
+      <ViewRow />
+      <div className="flex items-center gap-1">
+        <AlgorithmField />
+        <InfoButton label={title}>
+          <p className="text-foreground/80">{shortDescription}</p>
+          <p className="text-foreground/80">{longDescription}</p>
+          <Complexity />
+        </InfoButton>
         <SettingsButton />
       </div>
     </div>
@@ -148,16 +149,14 @@ export const MobileTopBar = ({ className }: { className?: string }) => {
 
 /** Race view on phones and tablets: the racers as a field, then settings. */
 export const MobileRaceBar = ({ className }: { className?: string }) => (
-  <div className={className}>
-    <div className="flex flex-col gap-3">
-      <h1 className="sr-only">Race</h1>
-      <div className="flex items-center gap-1">
-        <RacersField />
-        <ShareButton iconOnly />
-        <InfoButton label="Race">
-          <p className="text-foreground/80">{RACE_DESCRIPTION}</p>
-        </InfoButton>
-      </div>
+  <div className={cn("flex flex-col gap-3", className)}>
+    <h1 className="sr-only">Race</h1>
+    <ViewRow />
+    <div className="flex items-center gap-1">
+      <RacersField />
+      <InfoButton label="Race">
+        <p className="text-foreground/80">{RACE_DESCRIPTION}</p>
+      </InfoButton>
       <SettingsButton />
     </div>
   </div>
