@@ -54,8 +54,7 @@ export const TreeCanvas = ({
       structureId,
       fade: isScrubbing ? 0 : Math.min(0.45, moveDuration(speed) * 1.6),
       showBalance: algorithm === "avl",
-      // Before the first step, the values waiting to go in (so the empty tree reads as "about to start").
-      waiting: frame.opIndex < 0 ? ops.filter((op) => op.kind === "insert").map((op) => op.value) : [],
+      ops,
     });
   }, [frame, structureId, speed, isScrubbing, algorithm, ops]);
 

@@ -1,4 +1,4 @@
-import type { NodeView, TreeFrame } from "@/structures";
+import type { NodeView, Operation, TreeFrame } from "@/structures";
 import { hexToRgb, readColors, type CanvasColors, type RGB } from "./theme";
 
 export type TreeRenderInput = {
@@ -9,8 +9,8 @@ export type TreeRenderInput = {
   fade: number;
   /** Show each node's balance (AVL). */
   showBalance: boolean;
-  /** Values queued to be inserted, shown while the tree is still empty. */
-  waiting: number[];
+  /** Every operation in the run; the frame's opIndex says which one is under way. */
+  ops: Operation[];
 };
 
 const mix = (a: RGB, b: RGB, t: number): RGB => [
@@ -22,6 +22,9 @@ const css = (c: RGB, alpha = 1) => `rgb(${c[0] | 0} ${c[1] | 0} ${c[2] | 0} / ${
 const luminance = (c: RGB) => (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255;
 
 type Place = { x: number; y: number; scale: number };
+
+/** Room kept along the top for the operations queue. */
+const QUEUE_HEIGHT = 52;
 
 /**
  * Draws a binary tree: nodes laid out by their order left to right and their
@@ -92,7 +95,7 @@ export class TreeRenderer {
   }
 
   /** Where every node goes: x by its place in sorted order, y by its depth. */
-  private layout(frame: TreeFrame) {
+  private layout(frame: TreeFrame, reserved: number) {
     const byId = new Map(frame.nodes.map((n) => [n.id, n]));
     const order: number[] = [];
     const depth = new Map<number, number>();
@@ -108,11 +111,11 @@ export class TreeRenderer {
     const levels = Math.max(1, frame.height + 1);
     const count = Math.max(1, order.length);
     const pad = 28;
-    const gap = Math.min(72, (this.height - 2 * pad) / Math.max(1, levels - 1 || 1));
+    const gap = Math.min(72, (this.height - 2 * pad - reserved) / Math.max(1, levels - 1 || 1));
     const column = (this.width - 2 * pad) / count;
     const radius = Math.max(11, Math.min(22, column * 0.42, gap * 0.36));
     const treeHeight = gap * (levels - 1);
-    const top = Math.max(pad, (this.height - treeHeight) / 2);
+    const top = Math.max(pad + reserved, (this.height + reserved - treeHeight) / 2);
     const target = new Map<number, { x: number; y: number }>();
     order.forEach((id, k) => target.set(id, { x: pad + (k + 0.5) * column, y: top + depth.get(id)! * gap }));
     return { byId, target, radius };
@@ -139,7 +142,9 @@ export class TreeRenderer {
     if (!input || width === 0 || height === 0) return false;
     const { frame, showBalance } = input;
     const p = this.palette;
-    const { byId, target, radius } = this.layout(frame);
+    // Once it's started, a strip along the top keeps the whole queue in view.
+    const showQueue = frame.opIndex >= 0 && input.ops.length > 1;
+    const { byId, target, radius } = this.layout(frame, showQueue ? QUEUE_HEIGHT : 0);
     const snap = this.reducedMotion.matches || input.fade === 0;
     const blend = snap ? 1 : 1 - Math.exp(-dt / Math.max(0.03, input.fade / 3));
     let busy = false;
@@ -161,8 +166,10 @@ export class TreeRenderer {
       } else busy = true;
     }
 
+    if (showQueue) this.drawQueue(input.ops, frame.opIndex);
+    const waiting = frame.opIndex < 0 ? input.ops.filter((op) => op.kind === "insert").map((op) => op.value) : [];
     if (frame.root === null) {
-      if (input.waiting.length) this.drawWaiting(input.waiting);
+      if (waiting.length) this.drawWaiting(waiting);
       else {
         ctx.fillStyle = css(p.ring);
         ctx.font = `500 15px "Instrument Sans", system-ui, sans-serif`;
@@ -207,7 +214,107 @@ export class TreeRenderer {
     }
 
     for (const node of frame.nodes) this.drawNode(node, highlighted(node.id), radius, showBalance, byId.size);
+    this.drawCarried(frame, radius);
     return busy;
+  }
+
+  /**
+   * The value an operation is carrying down: above the root as it starts, then
+   * beside each node it's compared with, leaning to the side it'll go next.
+   */
+  private drawCarried(frame: TreeFrame, radius: number) {
+    const event = frame.event;
+    let at: Place | undefined;
+    let value: number;
+    let lean: "left" | "right" | "here" = "here";
+    if (event.type === "start" && frame.root !== null) {
+      at = this.shown.get(frame.root);
+      value = event.op.value;
+    } else if (event.type === "compare") {
+      at = this.shown.get(event.node);
+      value = event.value;
+      lean = event.go;
+    } else return;
+    if (!at) return;
+    const { ctx } = this;
+    const p = this.palette;
+    const r = Math.max(10, radius * 0.72);
+    const dx = lean === "left" ? -1 : lean === "right" ? 1 : 0;
+    const x = at.x + dx * (radius + r * 0.6);
+    const y = at.y - radius - r - (dx ? 0 : 4);
+    ctx.fillStyle = css(p.focus);
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = css(p.background);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    const ink =
+      Math.abs(luminance(p.focus) - luminance(p.ink)) > Math.abs(luminance(p.focus) - luminance(p.background));
+    ctx.fillStyle = css(ink ? p.ink : p.background);
+    ctx.font = `600 ${Math.round(r * 0.9)}px "JetBrains Mono", ui-monospace, monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(String(value!), x, y + 1);
+  }
+
+  /** The operations in order, as a strip along the top: done ones faded, the current one ringed. */
+  private drawQueue(ops: Operation[], current: number) {
+    const { ctx, width } = this;
+    const p = this.palette;
+    const r = width > 700 ? 15 : 12;
+    const step = r * 2 + 8;
+    const fits = Math.max(1, Math.floor((width - 24) / step));
+    // Keep the current one in view, with one done op before it for context.
+    const first = Math.max(0, Math.min(current - 1, ops.length - fits));
+    const shown = ops.slice(first, first + fits);
+    const y = 8 + r;
+    const x0 = width / 2 - ((shown.length - 1) * step) / 2;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    shown.forEach((op, k) => {
+      const index = first + k;
+      const x = x0 + k * step;
+      const done = index < current;
+      const now = index === current;
+      ctx.globalAlpha = done ? 0.35 : 1;
+      ctx.fillStyle = css(now ? p.focus : p.node);
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = css(now ? p.focus : p.ring);
+      ctx.lineWidth = 1.5;
+      if (op.kind === "delete") ctx.setLineDash([3, 3]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      const ink = now
+        ? Math.abs(luminance(p.focus) - luminance(p.ink)) > Math.abs(luminance(p.focus) - luminance(p.background))
+        : true;
+      ctx.fillStyle = css(ink ? p.ink : p.background);
+      ctx.font = `600 ${r - 1}px "JetBrains Mono", ui-monospace, monospace`;
+      ctx.fillText(String(op.value), x, y + 1);
+      // Find and delete get a mark, so the strip reads as a list of operations, not just values.
+      if (op.kind !== "insert") {
+        ctx.fillStyle = css(p.ink);
+        ctx.beginPath();
+        ctx.arc(x + r * 0.75, y - r * 0.75, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = css(p.background);
+        ctx.font = `700 9px "JetBrains Mono", ui-monospace, monospace`;
+        ctx.fillText(op.kind === "search" ? "?" : "×", x + r * 0.75, y - r * 0.75 + 0.5);
+      }
+    });
+    ctx.globalAlpha = 1;
+    // Fades at the ends say there's more off the strip.
+    if (first > 0) this.queueMore(x0 - step * 0.75, y, "‹");
+    if (first + shown.length < ops.length) this.queueMore(x0 + shown.length * step - step * 0.25, y, "›");
+  }
+
+  private queueMore(x: number, y: number, mark: string) {
+    const { ctx } = this;
+    ctx.fillStyle = css(this.palette.ring);
+    ctx.font = `600 14px "Instrument Sans", system-ui, sans-serif`;
+    ctx.fillText(mark, x, y);
   }
 
   /** The values about to be inserted, as a queue of outlined nodes, the next one ringed. */
