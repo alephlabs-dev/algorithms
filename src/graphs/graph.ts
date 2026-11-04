@@ -3,8 +3,8 @@ import { MAX_NODES, type Graph, type GraphEdge, type GraphNode } from "./types";
 export type GraphSize = "small" | "medium" | "large";
 export const graphSizes: GraphSize[] = ["small", "medium", "large"];
 
-export type GraphPreset = "random" | "tree" | "grid";
-export const graphPresets: GraphPreset[] = ["random", "tree", "grid"];
+export type GraphPreset = "random" | "tree" | "grid" | "dag";
+export const graphPresets: GraphPreset[] = ["random", "tree", "grid", "dag"];
 
 /** Wide screens get landscape layouts; narrow ones (phones, upright windows) get taller ones that fit their stage. */
 export const graphAspect = (narrow: boolean) => (narrow ? 0.9 : 1.8);
@@ -26,16 +26,45 @@ const MARGIN = 0.07;
 /** "A", "B"… the name a node goes by on screen and in sentences. */
 export const nodeName = (node: number) => String.fromCharCode(65 + node);
 
+/** "A–B", or "A→B" on a directed graph. */
+export const edgeName = (graph: Graph, edge: number) =>
+  `${nodeName(graph.edges[edge].a)}${graph.directed ? "→" : "–"}${nodeName(graph.edges[edge].b)}`;
+
 /** The other end of an edge. */
 export const otherEnd = (edge: GraphEdge, node: number) => (edge.a === node ? edge.b : edge.a);
 
-/** A node's edges, in the order searches look at them: by the neighbour's letter. */
-export const neighbors = (graph: Graph, node: number): { edge: number; node: number }[] =>
+/**
+ * A node's edges, in the order searches look at them: by the neighbour's letter.
+ * In a directed graph, only the edges leading out of it (unless `bothWays`).
+ */
+export const neighbors = (graph: Graph, node: number, bothWays = false): { edge: number; node: number }[] =>
   graph.edges
     .map((e, edge) => ({ edge, e }))
-    .filter(({ e }) => e.a === node || e.b === node)
+    .filter(({ e }) => e.a === node || (e.b === node && (bothWays || !graph.directed)))
     .map(({ edge, e }) => ({ edge, node: otherEnd(e, node) }))
     .sort((p, q) => p.node - q.node);
+
+/**
+ * Edges as a topological sort reads them: as drawn in a directed graph, and
+ * from the lower letter to the higher in an undirected one (which can't loop).
+ */
+export const outEdges = (graph: Graph, node: number): { edge: number; node: number }[] =>
+  graph.edges
+    .map((e, edge) => ({
+      edge,
+      from: graph.directed ? e.a : Math.min(e.a, e.b),
+      to: graph.directed ? e.b : Math.max(e.a, e.b),
+    }))
+    .filter((e) => e.from === node)
+    .map(({ edge, to }) => ({ edge, node: to }))
+    .sort((p, q) => p.node - q.node);
+
+/** How many edges lead into each node, read the same way as `outEdges`. */
+export const indegrees = (graph: Graph): number[] => {
+  const counts = new Array(graph.nodes.length).fill(0);
+  for (const e of graph.edges) counts[graph.directed ? e.b : Math.max(e.a, e.b)]++;
+  return counts;
+};
 
 const randomWeight = (random: () => number) => 1 + Math.floor(random() * 9);
 
@@ -216,8 +245,16 @@ export const makeGraph = (preset: GraphPreset, size: GraphSize, narrow: boolean,
     const [rows, cols] = GRID[size][narrow ? "phone" : "wide"];
     return gridGraph(rows, cols, aspect, random);
   }
+  // A DAG: the same uncrossed network, every edge pointing rightwards, so there can't be a loop.
+  if (preset === "dag") return { ...orientedLeftToRight(randomGraph(count, aspect, random)), directed: true };
   return randomGraph(count, aspect, random);
 };
+
+/** Points each edge from its lower letter to its higher one (letters run left to right), which can never loop. */
+export const orientedLeftToRight = (graph: Graph): Graph => ({
+  ...graph,
+  edges: graph.edges.map((e) => (e.a < e.b ? e : { ...e, a: e.b, b: e.a })),
+});
 
 // Editing: each returns a new graph (or the same one when nothing changes).
 
@@ -233,7 +270,10 @@ export const withEdgeToggled = (graph: Graph, a: number, b: number): Graph => {
   if (a === b) return graph;
   const existing = graph.edges.findIndex((e) => (e.a === a && e.b === b) || (e.a === b && e.b === a));
   if (existing >= 0) return { ...graph, edges: graph.edges.filter((_, k) => k !== existing) };
-  return { ...graph, edges: [...graph.edges, { a: Math.min(a, b), b: Math.max(a, b), w: 1 + ((a * 7 + b * 13) % 9) }] };
+  const w = 1 + ((Math.min(a, b) * 7 + Math.max(a, b) * 13) % 9);
+  // A directed edge points the way it was drawn: from the first node tapped to the second.
+  const edge = graph.directed ? { a, b, w } : { a: Math.min(a, b), b: Math.max(a, b), w };
+  return { ...graph, edges: [...graph.edges, edge] };
 };
 
 export const withStart = (graph: Graph, node: number): Graph =>
@@ -248,7 +288,7 @@ const toBase64Url = (bytes: number[]) =>
     .replace(/=+$/, "");
 
 export const encodeGraph = (graph: Graph): string => {
-  const bytes = [1, Math.round(graph.aspect * 100), graph.nodes.length, graph.start];
+  const bytes = [2, Math.round(graph.aspect * 100), graph.nodes.length, graph.start, graph.directed ? 1 : 0];
   for (const n of graph.nodes) bytes.push(Math.round(n.x * 255), Math.round(n.y * 255));
   bytes.push(graph.edges.length);
   for (const e of graph.edges) bytes.push(e.a, e.b, e.w);
@@ -263,10 +303,12 @@ export const decodeGraph = (text: string): Graph | null => {
   } catch {
     return null;
   }
+  // Version 1 links (before directed graphs) have no flags byte.
   const [version, aspect100, count, start] = bytes;
-  if (version !== 1 || !count || count > MAX_NODES || start >= count || !aspect100) return null;
+  if ((version !== 1 && version !== 2) || !count || count > MAX_NODES || start >= count || !aspect100) return null;
+  const directed = version === 2 && bytes[4] === 1;
   const nodes: GraphNode[] = [];
-  let k = 4;
+  let k = version === 2 ? 5 : 4;
   for (let i = 0; i < count; i++, k += 2) {
     if (k + 1 >= bytes.length) return null;
     nodes.push({ x: bytes[k] / 255, y: bytes[k + 1] / 255 });
@@ -282,5 +324,5 @@ export const decodeGraph = (text: string): Graph | null => {
     seen.add(key);
     edges.push({ a, b, w });
   }
-  return { nodes, edges, aspect: aspect100 / 100, start };
+  return { nodes, edges, aspect: aspect100 / 100, start, ...(directed && { directed }) };
 };

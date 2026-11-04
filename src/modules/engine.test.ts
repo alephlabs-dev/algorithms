@@ -29,6 +29,7 @@ const stateFor = (module: ModuleId, view: "single" | "race", isModuleStart: bool
     graphSize: "large",
     graphPreset: "tree",
     graph: makeGraph("tree", "large", false, seededRandom(5)),
+    graphRaceAlgorithms: ["prim", "kruskal"],
   }) as unknown as StoreState;
 
 describe("module engines", () => {
@@ -43,8 +44,7 @@ describe("module engines", () => {
           expect(routeFromPath(path)).toEqual(route);
           const location = readLocation(path, engines[module].search(state));
           expect(location.module).toBe(module);
-          // Graphs have no race yet: their engine stays on single-view pages.
-          if (module === "graphs") expect(location.view).toBe("single");
+          expect(location.view ?? "single").toBe(view);
           expect(location.speed).toBe("2x");
         }
       }

@@ -112,7 +112,7 @@ export const graphsTour: TourStep[] = [
   {
     anchor: "picker",
     title: "Pick an algorithm",
-    text: () => "Three ways to walk a graph: in layers, as deep as it goes, or by cheapest distance.",
+    text: () => "Six algorithms: walk a graph, find the cheapest routes, build its lightest tree or put it in order.",
   },
   {
     anchor: "bars",
@@ -129,7 +129,7 @@ export const graphsTour: TourStep[] = [
     phoneAnchor: "settings",
     title: "Layouts",
     text: ({ phone }) =>
-      `${phone ? "In settings: a" : "A"} scattered network, a tree or a grid. Each tap makes a new one.`,
+      `${phone ? "In settings: a" : "A"} scattered network, a tree, a grid, or a DAG whose edges all point one way. Each tap makes a new one.`,
   },
   {
     anchor: "play",
@@ -141,7 +141,7 @@ export const graphsTour: TourStep[] = [
     anchor: "structure",
     title: "What sets them apart",
     text: () =>
-      "The nodes waiting their turn. Breadth-first takes from the front of a queue, depth-first from the top of a stack, Dijkstra whichever is closest.",
+      "What's waiting its turn. Breadth-first takes from the front of a queue, depth-first from the top of a stack, Dijkstra and Prim whichever is closest; Kruskal lines up edges instead.",
   },
   {
     anchor: "narration",

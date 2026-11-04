@@ -32,6 +32,9 @@ export const graphSlugs: Record<GraphAlgorithm, string> = {
   bfs: "breadth-first-search",
   dfs: "depth-first-search",
   dijkstra: "dijkstra",
+  prim: "prim",
+  kruskal: "kruskal",
+  topo: "topological-sort",
 };
 
 /** Every page the site has. Settings (size, input, speed, seed…) stay in the query string. */
@@ -46,7 +49,8 @@ export type Route =
   | { kind: "race" }
   | { kind: "path"; algorithm: PathAlgorithm }
   | { kind: "pathRace" }
-  | { kind: "graph"; algorithm: GraphAlgorithm };
+  | { kind: "graph"; algorithm: GraphAlgorithm }
+  | { kind: "graphRace" };
 
 export const routePath = (route: Route): string => {
   if (route.kind === "home") return "/";
@@ -54,6 +58,7 @@ export const routePath = (route: Route): string => {
   if (route.kind === "pathfinding") return "/pathfinding";
   if (route.kind === "graphs") return "/graphs";
   if (route.kind === "graph") return `/graphs/${graphSlugs[route.algorithm]}`;
+  if (route.kind === "graphRace") return "/graphs/race";
   if (route.kind === "race") return "/sorting/race";
   if (route.kind === "pathRace") return "/pathfinding/race";
   if (route.kind === "path") return `/pathfinding/${pathSlugs[route.algorithm]}`;
@@ -67,6 +72,7 @@ export const routeFromPath = (pathname: string): Route | null => {
   if (path === "/sorting") return { kind: "sorting" };
   if (path === "/pathfinding") return { kind: "pathfinding" };
   if (path === "/graphs") return { kind: "graphs" };
+  if (path === "/graphs/race") return { kind: "graphRace" };
   const graphMatch = /^\/graphs\/([a-z-]+)$/.exec(path);
   if (graphMatch) {
     const found = Object.entries(graphSlugs).find(([, slug]) => slug === graphMatch[1]);
@@ -96,11 +102,12 @@ export const allRoutes: Route[] = [
   { kind: "pathRace" },
   { kind: "graphs" },
   ...(Object.keys(graphSlugs) as GraphAlgorithm[]).map((algorithm) => ({ kind: "graph" as const, algorithm })),
+  { kind: "graphRace" },
 ];
 
 /** Which module a page belongs to, if any (the landing page belongs to none). */
 export const moduleOf = (route: Route): "sorting" | "pathfinding" | "graphs" | null => {
   if (route.kind === "home") return null;
-  if (route.kind === "graphs" || route.kind === "graph") return "graphs";
+  if (route.kind === "graphs" || route.kind === "graph" || route.kind === "graphRace") return "graphs";
   return route.kind === "pathfinding" || route.kind === "path" || route.kind === "pathRace" ? "pathfinding" : "sorting";
 };

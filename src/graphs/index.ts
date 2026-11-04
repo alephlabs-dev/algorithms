@@ -8,7 +8,14 @@ export { graphPseudocode, graphSearches } from "./searches";
 export { GraphTimeline, type Structure } from "./timeline";
 
 /** What each algorithm keeps its nodes in. */
-export const graphStructure: Record<GraphAlgorithm, Structure> = { bfs: "queue", dfs: "stack", dijkstra: "priority" };
+export const graphStructure: Record<GraphAlgorithm, Structure> = {
+  bfs: "queue",
+  dfs: "stack",
+  dijkstra: "priority",
+  prim: "priority",
+  kruskal: "edges",
+  topo: "ready",
+};
 
 export const graphTimelineFor = (algorithm: GraphAlgorithm, graph: Graph) =>
   new GraphTimeline(graphSearches[algorithm], graph, graphStructure[algorithm]);

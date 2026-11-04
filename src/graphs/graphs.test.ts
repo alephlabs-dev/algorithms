@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { seededRandom } from "@/utils/random";
 import {
   DONE,
+  EDGE_KEPT,
   decodeGraph,
   encodeGraph,
   graphPresets,
@@ -14,7 +15,7 @@ import {
   type GraphAlgorithm,
 } from ".";
 
-const algorithms: GraphAlgorithm[] = ["bfs", "dfs", "dijkstra"];
+const searches: GraphAlgorithm[] = ["bfs", "dfs", "dijkstra"];
 
 const graphs = (): Graph[] =>
   graphPresets.flatMap((preset) =>
@@ -22,6 +23,30 @@ const graphs = (): Graph[] =>
       [false, true].flatMap((phone) => [1, 2, 3].map((seed) => makeGraph(preset, size, phone, seededRandom(seed)))),
     ),
   );
+
+/** Reference: the weight of a minimum spanning tree, by trying edges lightest first with a plain search for loops. */
+const minimumSpanningWeight = (graph: Graph) => {
+  const kept: { a: number; b: number }[] = [];
+  let total = 0;
+  for (const e of [...graph.edges].sort((p, q) => p.w - q.w)) {
+    const seen = new Set([e.a]);
+    const queue = [e.a];
+    while (queue.length) {
+      const n = queue.shift()!;
+      for (const k of kept) {
+        const m = k.a === n ? k.b : k.b === n ? k.a : -1;
+        if (m >= 0 && !seen.has(m)) {
+          seen.add(m);
+          queue.push(m);
+        }
+      }
+    }
+    if (seen.has(e.b)) continue;
+    kept.push(e);
+    total += e.w;
+  }
+  return total;
+};
 
 /** Reference answers: hops (BFS) and cheapest total weight (Bellman-Ford) from the start. */
 const reference = (graph: Graph, weighted: boolean) => {
@@ -69,8 +94,8 @@ describe("graphs", () => {
   });
 
   it("visits every node once, and BFS and Dijkstra end with the right distances", () => {
-    for (const graph of graphs()) {
-      for (const algorithm of algorithms) {
+    for (const graph of graphs().filter((g) => !g.directed)) {
+      for (const algorithm of searches) {
         const end = graphTimelineFor(algorithm, graph).frameAt(Infinity);
         expect(end.done).toBe(true);
         expect([...end.states].every((s) => s === DONE)).toBe(true);
@@ -82,8 +107,8 @@ describe("graphs", () => {
   });
 
   it("builds a tree: every node but the start is reached by exactly one edge, from a node visited before it", () => {
-    for (const graph of graphs()) {
-      for (const algorithm of algorithms) {
+    for (const graph of graphs().filter((g) => !g.directed)) {
+      for (const algorithm of [...searches, "prim" as const]) {
         const end = graphTimelineFor(algorithm, graph).frameAt(Infinity);
         graph.nodes.forEach((_, node) => {
           if (node === graph.start) return expect(end.parent[node]).toBe(-1);
@@ -93,6 +118,50 @@ describe("graphs", () => {
         });
       }
     }
+  });
+
+  it("follows edges one way on a directed graph", () => {
+    for (const graph of graphs().filter((g) => g.directed)) {
+      const end = graphTimelineFor("bfs", graph).frameAt(Infinity);
+      // Every edge points rightwards, so nothing can reach the start, and only edges out are followed.
+      for (const e of graph.edges) {
+        if (end.parent[e.b] === graph.edges.indexOf(e)) expect(end.order[e.a]).toBeLessThan(end.order[e.b]);
+        expect(end.parent[e.a] === graph.edges.indexOf(e)).toBe(false);
+      }
+    }
+  });
+
+  it("Prim and Kruskal find spanning trees of the same, smallest weight", () => {
+    for (const graph of graphs()) {
+      const prim = graphTimelineFor("prim", graph).frameAt(Infinity);
+      const kruskal = graphTimelineFor("kruskal", graph).frameAt(Infinity);
+      const primEdges = [...prim.parent].filter((e) => e >= 0);
+      const kruskalEdges = [...kruskal.edgeStates.keys()].filter((e) => kruskal.edgeStates[e] === EDGE_KEPT);
+      expect(primEdges).toHaveLength(graph.nodes.length - 1);
+      expect(kruskalEdges).toHaveLength(graph.nodes.length - 1);
+      const weight = (edges: number[]) => edges.reduce((sum, e) => sum + graph.edges[e].w, 0);
+      expect(weight(primEdges)).toBe(weight(kruskalEdges));
+      // Every edge left out would have closed a loop: the tree is as light as it gets (cycle property).
+      expect(weight(kruskalEdges)).toBe(minimumSpanningWeight(graph));
+      expect(new Set(kruskal.group).size).toBe(1);
+      expect(kruskal.edgeQueue).toEqual([]);
+    }
+  });
+
+  it("places every node after everything that points to it, and notices a loop", () => {
+    for (const graph of graphs()) {
+      const end = graphTimelineFor("topo", graph).frameAt(Infinity);
+      expect([...end.states].every((s) => s === DONE)).toBe(true);
+      for (const e of graph.edges) {
+        const [from, to] = graph.directed ? [e.a, e.b] : [Math.min(e.a, e.b), Math.max(e.a, e.b)];
+        expect(end.order[from]).toBeLessThan(end.order[to]);
+      }
+    }
+    const dag = makeGraph("dag", "small", false, seededRandom(2));
+    const e = dag.edges[0];
+    const loop = { ...dag, edges: [...dag.edges.slice(1), { a: e.b, b: e.a, w: 1 }, ...dag.edges.slice(0, 1)] };
+    const end = graphTimelineFor("topo", loop).frameAt(Infinity);
+    expect([...end.states].some((s) => s !== DONE)).toBe(true);
   });
 
   it("keeps a queue for BFS and a stack for DFS", () => {
@@ -114,6 +183,7 @@ describe("graphs", () => {
   it("packs a graph into a link and back, and toggles edges", () => {
     const graph = makeGraph("random", "large", false, seededRandom(9));
     const back = decodeGraph(encodeGraph(graph))!;
+    expect(decodeGraph(encodeGraph(makeGraph("dag", "small", false, seededRandom(1))))!.directed).toBe(true);
     expect(back.edges).toEqual(graph.edges);
     expect(back.start).toBe(graph.start);
     back.nodes.forEach((n, k) => expect(Math.abs(n.x - graph.nodes[k].x)).toBeLessThan(0.003));

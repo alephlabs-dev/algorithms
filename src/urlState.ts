@@ -117,6 +117,8 @@ export type GraphUrlState = {
   graph?: string;
   size?: GraphSize;
   preset?: GraphPreset;
+  /** Who races on the graph, in the picker's order. */
+  racers?: GraphAlgorithm[];
 };
 
 const readGraphParams = (params: URLSearchParams): GraphUrlState => {
@@ -127,6 +129,10 @@ const readGraphParams = (params: URLSearchParams): GraphUrlState => {
   if (isOneOf(graphSizes, size)) state.size = size;
   const preset = params.get("layout");
   if (isOneOf(graphPresets, preset)) state.preset = preset;
+  const algorithms: GraphAlgorithm[] = ["bfs", "dfs", "dijkstra", "prim", "kruskal", "topo"];
+  const racers = (params.get("race") ?? "").split(",");
+  const unique = algorithms.filter((a) => racers.includes(a));
+  if (unique.length >= MIN_RACERS && unique.length <= MAX_RACERS) state.racers = unique;
   return state;
 };
 
@@ -137,6 +143,7 @@ export const toGraphSearch = (state: Required<GraphUrlState> & { speed?: SpeedPr
     graph: state.graph,
     nodes: state.size,
     layout: state.preset,
+    race: state.racers.join(","),
     ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
   }).toString();
 
@@ -155,13 +162,13 @@ export const readLocation = (
 } => {
   const state = readUrlState(search);
   const route = routeFromPath(pathname);
-  if (route?.kind === "graph" || route?.kind === "graphs") {
+  if (route?.kind === "graph" || route?.kind === "graphs" || route?.kind === "graphRace") {
     return {
       ...state,
       isLanding: false,
       isModuleStart: route.kind === "graphs",
       module: "graphs",
-      view: "single",
+      view: route.kind === "graphRace" ? "race" : "single",
       ...(route.kind === "graph" && { graphAlgorithm: route.algorithm }),
       path: {},
       graph: readGraphParams(new URLSearchParams(search)),

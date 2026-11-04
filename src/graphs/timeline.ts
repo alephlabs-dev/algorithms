@@ -1,7 +1,17 @@
-import { DONE, PENDING, type Graph, type GraphFrame, type GraphSearch, type GraphStep } from "./types";
+import { indegrees } from "./graph";
+import {
+  DONE,
+  EDGE_KEPT,
+  EDGE_REJECTED,
+  PENDING,
+  type Graph,
+  type GraphFrame,
+  type GraphSearch,
+  type GraphStep,
+} from "./types";
 
-/** How a search keeps the nodes it still has to visit. */
-export type Structure = "queue" | "stack" | "priority";
+/** How a search keeps what it still has to look at: nodes (a queue, stack, priority queue, ready list) or edges. */
+export type Structure = "queue" | "stack" | "priority" | "ready" | "edges";
 
 const copy = (f: GraphFrame): GraphFrame => ({
   ...f,
@@ -10,6 +20,10 @@ const copy = (f: GraphFrame): GraphFrame => ({
   order: f.order.slice(),
   parent: f.parent.slice(),
   pending: f.pending.slice(),
+  edgeStates: f.edgeStates.slice(),
+  edgeQueue: f.edgeQueue.slice(),
+  group: f.group.slice(),
+  indegree: f.indegree.slice(),
   stats: { ...f.stats },
 });
 
@@ -34,6 +48,10 @@ export class GraphTimeline {
       order: new Int16Array(n).fill(-1),
       parent: new Int16Array(n).fill(-1),
       pending: [],
+      edgeStates: new Uint8Array(graph.edges.length),
+      edgeQueue: [],
+      group: Int16Array.from(graph.nodes, (_, k) => k),
+      indegree: Int16Array.from(indegrees(graph)),
       current: null,
       edge: null,
       line: null,
@@ -81,6 +99,34 @@ export class GraphTimeline {
         f.pending = f.pending.filter((node) => node !== step.node);
         f.current = f.pending.length ? f.pending[f.pending.length - 1] : null;
         f.edge = null;
+        break;
+      case "sort":
+        f.edgeQueue = step.edges.slice();
+        break;
+      case "consider":
+        f.edgeQueue = f.edgeQueue.filter((edge) => edge !== step.edge);
+        f.edge = step.edge;
+        f.current = null;
+        f.stats.examined++;
+        break;
+      case "join": {
+        f.edgeStates[step.edge] = EDGE_KEPT;
+        f.group = f.group.map((g) => (g === step.from ? step.into : g));
+        // Nodes count as visited the first time an edge in the tree touches them.
+        const { a, b } = this.graph.edges[step.edge];
+        for (const node of [a, b]) {
+          if (f.states[node] === DONE) continue;
+          f.states[node] = DONE;
+          f.order[node] = f.stats.visited++;
+        }
+        break;
+      }
+      case "reject":
+        f.edgeStates[step.edge] = EDGE_REJECTED;
+        break;
+      case "lower":
+        f.indegree[step.node]--;
+        f.edgeStates[step.edge] = EDGE_KEPT;
         break;
       case "done":
         f.done = true;

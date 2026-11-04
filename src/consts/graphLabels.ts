@@ -5,6 +5,7 @@ export const graphPresetOptions: { value: GraphPreset; label: string; title: str
   { value: "random", label: "Network", title: "Scattered nodes joined by short edges, with a few loops" },
   { value: "tree", label: "Tree", title: "A tree: exactly one way between any two nodes" },
   { value: "grid", label: "Grid", title: "A lattice with some links missing" },
+  { value: "dag", label: "DAG", title: "A directed graph without loops: every edge points rightwards" },
 ];
 
 export const graphSizeLabels: Record<GraphSize, string> = {

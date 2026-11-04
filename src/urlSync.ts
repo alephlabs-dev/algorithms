@@ -39,7 +39,11 @@ const applyRoute = (route: Route) => {
   const inPath = store.module === "pathfinding";
   if (route.kind === "graph" || route.kind === "graphs") {
     const algorithm = route.kind === "graph" ? route.algorithm : store.graphAlgorithm;
-    if (store.module !== "graphs" || store.graphAlgorithm !== algorithm) store.setGraphAlgorithm(algorithm);
+    if (store.module !== "graphs" || store.view !== "single" || store.graphAlgorithm !== algorithm)
+      store.setGraphAlgorithm(algorithm);
+  } else if (route.kind === "graphRace") {
+    if (store.module !== "graphs") store.setGraphAlgorithm(store.graphAlgorithm);
+    if (useStore.getState().view !== "race") store.setView("race");
   } else if (route.kind === "path" || route.kind === "pathfinding") {
     const algorithm = route.kind === "path" ? route.algorithm : store.pathAlgorithm;
     if (!inPath || store.view !== "single" || store.pathAlgorithm !== algorithm) store.setPathAlgorithm(algorithm);

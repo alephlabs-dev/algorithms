@@ -19,6 +19,7 @@ const labelFor = (route: Route) => {
       return `How ${graphAlgorithms[route.algorithm].title} works`;
     case "race":
     case "pathRace":
+    case "graphRace":
       return "How the race works";
     case "path":
       return `How ${pathAlgorithms[route.algorithm].title} works`;

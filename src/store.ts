@@ -79,6 +79,10 @@ export type StoreState = {
   graph: Graph;
   /** The whole run on the current graph, precomputed. */
   graphTimeline: GraphTimeline;
+  /** Algorithms racing on the graph, in the picker's order. */
+  graphRaceAlgorithms: GraphAlgorithm[];
+  /** One timeline per racer, on the current graph. Empty outside race view. */
+  graphRaceTimelines: GraphTimeline[];
   /** Bumped when the graph is replaced wholesale, so nodes don't glide between layouts. */
   graphId: number;
   /** Searches racing on the grid, in the picker's order. */
@@ -151,6 +155,7 @@ export type StoreState = {
   applyGraphPreset: (preset: GraphPreset) => void;
   /** Replaces the graph after an edit (moving a node, joining two); the run restarts. */
   editGraph: (graph: Graph) => void;
+  toggleGraphRacer: (algorithm: GraphAlgorithm) => void;
   togglePathRacer: (algorithm: PathAlgorithm) => void;
   /** Switch to the pathfinding race with `algorithm` among the racers. */
   pathRaceWith: (algorithm: PathAlgorithm) => void;
@@ -220,10 +225,25 @@ const pathOrder = Object.keys(pathSearches) as PathAlgorithm[];
 const pathRaceTimelinesFor = (view: View, algorithms: PathAlgorithm[], grid: Grid) =>
   view === "race" ? algorithms.map((a) => pathTimelineFor(a, grid)) : [];
 
-/** The run on a graph, after it changes. */
+// Same goal, different order: breadth against depth, and two ways to the same lightest tree.
+const DEFAULT_GRAPH_RACERS: GraphAlgorithm[] = ["bfs", "dfs", "prim", "kruskal"];
+const graphOrder: GraphAlgorithm[] = ["bfs", "dfs", "dijkstra", "prim", "kruskal", "topo"];
+
+const graphRaceTimelinesFor = (view: View, algorithms: GraphAlgorithm[], graph: Graph) =>
+  view === "race" ? algorithms.map((a) => graphTimelineFor(a, graph)) : [];
+
+/** Race lanes are a quarter of the stage: graphs there stay at a size that reads. */
+const fitGraphSize = (size: GraphSize, view: View, isMobile: boolean): GraphSize => {
+  const cap: GraphSize = isMobile ? "small" : "medium";
+  const order: GraphSize[] = ["small", "medium", "large"];
+  return view === "race" && order.indexOf(size) > order.indexOf(cap) ? cap : size;
+};
+
+/** Every run on a graph, after it changes: the single run and the racers. */
 const graphRunFor = (state: StoreState, graph: Graph) => ({
   graph,
   graphTimeline: graphTimelineFor(state.graphAlgorithm, graph),
+  graphRaceTimelines: graphRaceTimelinesFor(state.view, state.graphRaceAlgorithms, graph),
   frameIndex: 0,
   isPlaying: false,
 });
@@ -279,7 +299,7 @@ const initial = (() => {
   const pathRaceAlgorithms = url.path.racers ?? DEFAULT_PATH_RACERS;
   const pathRaceTimelines = pathRaceTimelinesFor(module === "pathfinding" ? view : "single", pathRaceAlgorithms, grid);
   const graphAlgorithm = url.graphAlgorithm ?? "bfs";
-  const graphSize = url.graph.size ?? "medium";
+  const graphSize = fitGraphSize(url.graph.size ?? "medium", module === "graphs" ? view : "single", isMobile);
   const graphPreset = url.graph.preset ?? "random";
   const graph =
     (url.graph.graph && decodeGraph(url.graph.graph)) || makeGraph(graphPreset, graphSize, narrow, seededRandom(newSeed()));
@@ -300,8 +320,13 @@ const initial = (() => {
     graphPreset,
     graph,
     graphTimeline: graphTimelineFor(graphAlgorithm, graph),
-    // Graphs have no race yet: a race link opens their single view.
-    view: module === "graphs" ? ("single" as View) : view,
+    graphRaceAlgorithms: url.graph.racers ?? DEFAULT_GRAPH_RACERS,
+    graphRaceTimelines: graphRaceTimelinesFor(
+      module === "graphs" ? view : "single",
+      url.graph.racers ?? DEFAULT_GRAPH_RACERS,
+      graph
+    ),
+    view,
     isLanding: url.isLanding,
     isModuleStart: url.isModuleStart,
     raceAlgorithms,
@@ -391,10 +416,19 @@ export const useStore = create<StoreState>((set, get) => {
 
     // Within the module on screen: sorting races on the array, pathfinding on the grid.
     setView: (view) => {
-      // Graphs have no race yet.
-      if (view === "race" && get().module === "graphs") return;
-      // A big grid gets a fresh layout at the largest size a race shows well.
+      // A big grid or graph gets a fresh layout at the largest size a race shows well.
       const before = get();
+      const fittedGraph =
+        before.module === "graphs" ? fitGraphSize(before.graphSize, view, before.isMobile) : before.graphSize;
+      if (fittedGraph !== before.graphSize) {
+        const graph = makeGraph(before.graphPreset, fittedGraph, isNarrow(before), seededRandom(newSeed()));
+        set({
+          graphSize: fittedGraph,
+          graph,
+          graphId: before.graphId + 1,
+          graphTimeline: graphTimelineFor(before.graphAlgorithm, graph),
+        });
+      }
       const fitted = before.module === "pathfinding" ? fitGridSize(before.gridSize, view, before.isMobile) : before.gridSize;
       if (fitted !== before.gridSize) {
         const grid = gridFor(fitted, isNarrow(before), before.gridPreset);
@@ -419,6 +453,11 @@ export const useStore = create<StoreState>((set, get) => {
           state.module === "pathfinding" ? view : "single",
           state.pathRaceAlgorithms,
           state.grid,
+        ),
+        graphRaceTimelines: graphRaceTimelinesFor(
+          state.module === "graphs" ? view : "single",
+          state.graphRaceAlgorithms,
+          state.graph,
         ),
       }));
       applyAutoSpeed();
@@ -497,6 +536,7 @@ export const useStore = create<StoreState>((set, get) => {
         view: "single",
         raceTimelines: [],
         pathRaceTimelines: [],
+        graphRaceTimelines: [],
         isModuleStart: false,
         ...newRun(algorithm, state.timeline.values),
       }));
@@ -547,6 +587,7 @@ export const useStore = create<StoreState>((set, get) => {
         pathAlgorithm: algorithm,
         pathTimeline: pathTimelineFor(algorithm, state.grid),
         pathRaceTimelines: [],
+        graphRaceTimelines: [],
         frameIndex: 0,
         isPlaying: false,
       }));
@@ -574,14 +615,16 @@ export const useStore = create<StoreState>((set, get) => {
         graphTimeline: graphTimelineFor(algorithm, state.graph),
         raceTimelines: [],
         pathRaceTimelines: [],
+        graphRaceTimelines: [],
         frameIndex: 0,
         isPlaying: false,
       }));
       applyAutoSpeed();
     },
 
-    setGraphSize: (graphSize) => {
+    setGraphSize: (requested) => {
       set((state) => {
+        const graphSize = fitGraphSize(requested, state.view, state.isMobile);
         const graph = makeGraph(state.graphPreset, graphSize, isNarrow(state), seededRandom(newSeed()));
         return { graphSize, ...graphRunFor(state, graph), graphId: state.graphId + 1 };
       });
@@ -598,6 +641,24 @@ export const useStore = create<StoreState>((set, get) => {
 
     editGraph: (graph) => {
       set((state) => graphRunFor(state, graph));
+      applyAutoSpeed();
+    },
+
+    toggleGraphRacer: (algorithm) => {
+      set((state) => {
+        const selected = state.graphRaceAlgorithms.includes(algorithm);
+        const count = state.graphRaceAlgorithms.length;
+        if ((selected && count <= MIN_RACERS) || (!selected && count >= MAX_RACERS)) return {};
+        const graphRaceAlgorithms = graphOrder.filter((a) =>
+          a === algorithm ? !selected : state.graphRaceAlgorithms.includes(a)
+        );
+        return {
+          graphRaceAlgorithms,
+          frameIndex: 0,
+          isPlaying: false,
+          graphRaceTimelines: graphRaceTimelinesFor(state.view, graphRaceAlgorithms, state.graph),
+        };
+      });
       applyAutoSpeed();
     },
 
