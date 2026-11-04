@@ -1,3 +1,109 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import '@fontsource-variable/instrument-sans/wght.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+  @media (width >= --theme(--breakpoint-sm)) {
+    max-width: none;
+  }
+  @media (width >= 1400px) {
+    max-width: 1400px;
+  }
+}
+
+@theme {
+  /*
+    Type: Instrument Sans for everything that is words, mono for anything that
+    is data (counts, steps, speed, sizes, pseudocode).
+    Scale: 12 (xs) · 14 (sm) · 16 (base) · 20 (xl) · 32 (display). Weights: 400 and 600.
+    Spacing: 4 · 8 · 12 · 16 · 24 · 40 (Tailwind 1 · 2 · 3 · 4 · 6 · 10).
+    Shape: controls are pills (rounded-full), floating surfaces are rounded-3xl.
+  */
+  --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SF Mono", Menlo, monospace;
+  --text-display: 2rem;
+  --text-display--line-height: 1.15;
+
+  /* The stage is near black; color is kept for the data (bars and highlights). */
+  --color-background: #0b0f0d;
+  --color-foreground: #e9eeeb;
+  /* Floating surfaces (dock, cards, menus) and their hairline edge. */
+  --color-surface: #121915;
+  --color-edge: #2c3a33;
+  /* Hover and selected fills. */
+  --color-accent: #1f2b25;
+  --color-primary: #3ecf8e;
+  /* Light enough to read on the dark stage (6.6:1 on background). */
+  --color-secondary: #b07cff;
+  --color-tertiary: #ffd700;
+  /* Control borders and slider tracks: 3:1 or more on background and surface. */
+  --color-line: #56695f;
+  /* Bars outside the range being worked on: recede without turning grey. */
+  --color-dim: #6c7d75;
+  /* Canvas only: plain bars, callout text and the outline on compared bars. */
+  --color-bar: #d9dfdb;
+  --color-muted: #8fa39a;
+  --color-outline: #ffffff;
+  --shadow-dock: 0 20px 60px rgb(0 0 0 / 0.5);
+}
+
+/*
+  Light theme, after the "Blueprint" direction: navy ink on paper with a faint
+  grid, orange for what's being compared, teal for what's in place.
+  Same token names, so every component follows without changes.
+*/
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-background: #f2f5f9;
+  --color-foreground: #13294b;
+  --color-surface: #ffffff;
+  --color-edge: #cfd8e5;
+  --color-accent: #e4eaf3;
+  --color-primary: #128a78;
+  --color-secondary: #e8590c;
+  --color-tertiary: #5b6cff;
+  --color-line: #8494ad;
+  --color-dim: #b9c4d4;
+  --color-bar: #2c4166;
+  --color-muted: #5b6f8f;
+  --color-outline: #13294b;
+  --shadow-dock: 0 12px 40px rgb(19 41 75 / 0.12);
+}
+
+:root {
+  color-scheme: dark;
+}
+
+/* The whole page, edge to edge, so wide screens have no differently colored sides. */
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+:root[data-theme="light"] body {
+  background-image:
+    linear-gradient(rgb(19 41 75 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(19 41 75 / 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}

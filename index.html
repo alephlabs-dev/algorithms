@@ -2,9 +2,39 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" sizes="any" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sorting Algorithms App V2 - Ignacio Elias</title>
+    <title>Sorting Algorithms Visualizer · Ignacio Elias</title>
+    <meta
+      name="description"
+      content="Watch nine sorting algorithms work step by step: play, pause, step through, read the pseudocode, and race them against each other on the same array."
+    />
+    <meta name="theme-color" content="#0b0f0d" />
+    <meta name="color-scheme" content="dark light" />
+    <script>
+      // Apply the saved theme before first paint, so the page never flashes the other one.
+      try {
+        if (localStorage.getItem("theme") === "light") {
+          document.documentElement.dataset.theme = "light";
+          document.querySelector('meta[name="theme-color"]').content = "#f2f5f9";
+        }
+      } catch {}
+    </script>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Sorting Algorithms Visualizer" />
+    <meta
+      property="og:description"
+      content="Watch nine sorting algorithms work step by step, read the pseudocode, and race them against each other."
+    />
+    <meta property="og:url" content="https://sorting-algorithms-app-v2.vercel.app/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Sorting Algorithms Visualizer" />
+    <meta
+      name="twitter:description"
+      content="Watch nine sorting algorithms work step by step, read the pseudocode, and race them against each other."
+    />
   </head>
   <body>
     <div id="root"></div>

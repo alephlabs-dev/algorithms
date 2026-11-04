@@ -1,11 +1,14 @@
-import path from "path";
+import path from "node:path";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
+// vitest/config re-exports Vite's defineConfig with the `test` options typed.
+import { configDefaults, defineConfig } from "vitest/config";
 import { VitePluginUmami } from "./vite-plugin-umami";
 
 export default defineConfig({
   plugins: [
     react(),
+    tailwindcss(),
     VitePluginUmami({
       // Umami script injection
       umami: {
@@ -14,9 +17,13 @@ export default defineConfig({
       },
     }),
   ],
+  test: {
+    // Agent worktrees live under .claude/ and carry their own copy of the tests.
+    exclude: [...configDefaults.exclude, ".claude/**"],
+  },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(import.meta.dirname, "./src"),
     },
   },
 });

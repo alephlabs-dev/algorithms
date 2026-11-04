@@ -1,42 +1,57 @@
-import { AlgorithmVisualizer } from "./components/AlgorithmVisualizer";
-import { Header } from "./components/Header";
-import { Controls } from "./components/Controls";
-import { useStore } from "./store";
-import { MobileSettings } from "./components/MobileSettings";
-import { MobileAlgorithmSelector } from "./components/MobileAlgorithmSelector";
-import { useMediaQuery } from "usehooks-ts";
 import { useEffect } from "react";
-import { Sidebar } from "./components/Sidebar";
-import { Separator } from "./components/ui/separator";
-import { MobileHeader } from "./components/MobileHeader";
+import { AlgorithmVisualizer } from "./components/AlgorithmVisualizer";
+import { Controls } from "./components/Controls";
+import { MobileRaceBar, MobileTopBar } from "./components/MobileTopBar";
+import { NowCard, StepCaption } from "./components/Pseudocode";
+import { RaceLanes } from "./components/Race/RaceLanes";
+import { Legend } from "./components/RunInfo";
+import { TopBar } from "./components/TopBar";
+import { Tour } from "./components/Tour";
+import { useMediaQuery } from "./hooks/useMediaQuery";
+import { MOBILE_QUERY, useStore } from "./store";
 
+/**
+ * One stage, edge to edge: a slim bar on top that names what's playing, the
+ * bars in the middle with the "Now" card beside them on wide screens, and a
+ * floating dock at the bottom.
+ */
 function App() {
-  const { setIsMobile, setSize } = useStore();
-
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const setIsMobile = useStore((s) => s.setIsMobile);
+  const view = useStore((s) => s.view);
+  const isMobile = useMediaQuery(MOBILE_QUERY);
 
   useEffect(() => {
     setIsMobile(isMobile);
-    if (isMobile) {
-      setSize(20);
-    }
-  }, [isMobile, setIsMobile, setSize]);
+  }, [isMobile, setIsMobile]);
 
   return (
-    <div className="flex h-dvh bg-background text-foreground">
-      <Sidebar />
-      <main className="lg:container lg:max-w-7xl flex flex-col gap-4 lg:gap-10 p-8 lg:p-10 h-full w-full">
-        <MobileHeader />
-        <div className="hidden md:flex flex-col gap-10">
-          <Header />
-          <Separator />
-        </div>
-        <MobileSettings />
-        <AlgorithmVisualizer />
-        <MobileAlgorithmSelector />
-        <Controls />
-      </main>
-    </div>
+    <main className="mx-auto flex h-dvh w-full max-w-[1600px] flex-col gap-4 p-4 text-foreground md:p-6 lg:gap-6 lg:px-8">
+      <TopBar className="hidden lg:flex" />
+      {view === "single" ? (
+        <>
+          <MobileTopBar className="lg:hidden" />
+          <div className="flex min-h-0 flex-1 gap-8">
+            <div className="flex min-w-0 flex-1 flex-col gap-2 lg:px-4">
+              <div className="flex min-h-10 items-center justify-between gap-4 xl:hidden">
+                <StepCaption className="-ml-3 flex-1" />
+                <Legend className="hidden shrink-0 md:flex" />
+              </div>
+              <AlgorithmVisualizer />
+            </div>
+            {/* Never taller than the stage: the card scrolls inside if it has to. */}
+            <NowCard className="hidden max-h-full w-80 shrink-0 self-start xl:flex" />
+          </div>
+        </>
+      ) : (
+        <>
+          <MobileRaceBar className="lg:hidden" />
+          <Legend className="-mb-2 lg:-mt-2" />
+          <RaceLanes />
+        </>
+      )}
+      <Controls />
+      <Tour />
+    </main>
   );
 }
 

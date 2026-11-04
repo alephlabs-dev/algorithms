@@ -9,7 +9,13 @@ type AlgorithmDetails = {
     average: string;
     worst: string;
   };
+  /** What the yellow highlight means for this algorithm, if it uses it. */
+  tempLabel?: string;
+  /** The algorithm moves values by writing them rather than swapping (merge, radix). */
+  countsWrites?: boolean;
 };
+
+// Key order is the order shown in the UI; keep it in sync with `sortAlgorithms`.
 
 export const sortingAlgorithms: Record<Algorithm, AlgorithmDetails> = {
   selection: {
@@ -35,6 +41,7 @@ export const sortingAlgorithms: Record<Algorithm, AlgorithmDetails> = {
       average: "O(n²)",
       worst: "O(n²)",
     },
+    tempLabel: "Sorted section",
   },
   bubble: {
     title: "Bubble Sort",
@@ -48,6 +55,31 @@ export const sortingAlgorithms: Record<Algorithm, AlgorithmDetails> = {
       worst: "O(n²)",
     },
   },
+  cocktail: {
+    title: "Cocktail Shaker Sort",
+    shortDescription:
+      "A two-way Bubble Sort that also moves small values left, so it handles nearly sorted data well, but it's still O(n²) on average.",
+    longDescription:
+      "Cocktail Shaker Sort is a variation of Bubble Sort that sweeps through the list in both directions: a forward pass carries the largest value to the end, and a backward pass carries the smallest value to the front. This fixes Bubble Sort's weakness with small values stuck near the end (the “turtles”), and it stops as soon as a pass makes no swaps, giving a best case of O(n). Its average and worst cases remain O(n²), so it's mostly useful on small or nearly sorted arrays.",
+    timeComplexity: {
+      best: "O(n)",
+      average: "O(n²)",
+      worst: "O(n²)",
+    },
+  },
+  shell: {
+    title: "Shell Sort",
+    shortDescription:
+      "An Insertion Sort on items far apart first, then closer and closer, which moves values long distances early and is much faster in practice.",
+    longDescription:
+      "Shell Sort generalizes Insertion Sort by first sorting items that are a large gap apart, then shrinking the gap until it reaches 1, where it becomes a regular Insertion Sort on an almost sorted array. Moving values across long distances early saves a lot of work later. Its performance depends on the gap sequence: with the simple halving gaps used here it runs in roughly O(n^1.5) on average and O(n²) in the worst case, while using no extra memory.",
+    timeComplexity: {
+      best: "O(n log n)",
+      average: "O(n^1.5)",
+      worst: "O(n²)",
+    },
+    tempLabel: "Same gap group",
+  },
   quick: {
     title: "Quick Sort",
     shortDescription:
@@ -59,6 +91,7 @@ export const sortingAlgorithms: Record<Algorithm, AlgorithmDetails> = {
       average: "O(n log n)",
       worst: "O(n²)",
     },
+    tempLabel: "Smaller than pivot",
   },
   merge: {
     title: "Merge Sort",
@@ -71,5 +104,33 @@ export const sortingAlgorithms: Record<Algorithm, AlgorithmDetails> = {
       average: "O(n log n)",
       worst: "O(n log n)",
     },
+    tempLabel: "Merged",
+    countsWrites: true,
+  },
+  heap: {
+    title: "Heap Sort",
+    shortDescription:
+      "Builds a max-heap and repeatedly moves the largest value to the end, guaranteeing O(n log n) with no extra memory.",
+    longDescription:
+      "Heap Sort first rearranges the array into a max-heap, a tree stored in the array where every parent is larger than its children, so the largest value sits at the root. It then swaps the root with the last unsorted item, shrinks the heap by one, and sifts the new root down to restore the heap. This guarantees O(n log n) time in every case and sorts in place, though it isn't stable and tends to be slower than Quick Sort in practice.",
+    timeComplexity: {
+      best: "O(n log n)",
+      average: "O(n log n)",
+      worst: "O(n log n)",
+    },
+  },
+  radix: {
+    title: "Radix Sort",
+    shortDescription:
+      "Sorts numbers digit by digit without ever comparing two values, in time proportional to the number of digits.",
+    longDescription:
+      "Radix Sort (LSD) never compares values against each other. Instead, it groups the numbers by their last digit, then by the next one, and so on up to the most significant digit. Each pass is stable, so the order from earlier digits is preserved, and after the last pass the array is sorted. Its time is O(d·n), where d is the number of digits, which beats comparison sorts for integers with few digits, at the cost of extra memory for the buckets.",
+    timeComplexity: {
+      best: "O(d·n)",
+      average: "O(d·n)",
+      worst: "O(d·n)",
+    },
+    tempLabel: "Placed this pass",
+    countsWrites: true,
   },
 };

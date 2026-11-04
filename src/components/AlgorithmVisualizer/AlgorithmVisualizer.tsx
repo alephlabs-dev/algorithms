@@ -1,54 +1,45 @@
-import { useStore } from "@/store";
-import { Reorder } from "framer-motion";
-import { Item } from "./Item";
-import { cn } from "@/utils/cn";
-import { useRef, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
+import { selectFrame, selectLastIndex, useStore } from "@/store";
+import { ArrayCanvas } from "./ArrayCanvas";
+import { FinishSummary } from "./FinishSummary";
 
 export const AlgorithmVisualizer = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [itemMaxHeight, setItemMaxHeight] = useState(0);
+  const { frame, values, frameIndex, lastIndex, arrayId, displayMode } = useStore(
+    useShallow((s) => ({
+      frame: selectFrame(s),
+      values: s.timeline.values,
+      frameIndex: s.frameIndex,
+      lastIndex: selectLastIndex(s),
+      arrayId: s.arrayId,
+      displayMode: s.displayMode,
+    }))
+  );
+  const finished = frameIndex > 0 && frameIndex === lastIndex;
 
-  const {
-    items,
-    setItems,
-    activeItems,
-    doneItems,
-    tempItems,
-    arrayId,
-    displayMode,
-  } = useStore();
+  // The canvas is a picture to screen readers, so describe the current step in words.
+  const describe = () => {
+    if (finished) return "The array is sorted.";
+    if (frame.active.length === 2) {
+      const [a, b] = frame.active.map((id) => values[id]);
+      return `Comparing ${a} and ${b}.`;
+    }
+    return "";
+  };
 
-  const containerHeight = containerRef.current?.getBoundingClientRect().height;
-
-  if (containerHeight && containerHeight !== itemMaxHeight) {
-    setItemMaxHeight(containerHeight);
-  }
-
+  // Full bleed: the bars sit on the page itself, with no panel around them.
   return (
-    <div className="border border-accent/50 lg:border-none lg:bg-accent rounded flex items-center justify-center overflow-hidden h-full p-1 md:p-2 lg:p-3 xl:p-8">
-      <Reorder.Group
-        ref={containerRef}
-        axis="x"
-        values={items}
-        onReorder={setItems}
-        className={cn(
-          "w-full lg:max-w-4xl flex items-end justify-center md:gap-2 gap-1 lg:gap-3 h-full",
-          {
-            "items-center": displayMode === "numbers",
-          }
-        )}
-      >
-        {items.map((item) => (
-          <Item
-            key={`${arrayId}-${item}`}
-            itemMaxHeight={itemMaxHeight}
-            item={item}
-            isActive={activeItems.includes(item)}
-            isDone={doneItems.includes(item)}
-            isTemp={tempItems.includes(item)}
-          />
-        ))}
-      </Reorder.Group>
+    <div data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col">
+      <ArrayCanvas
+        frame={frame}
+        values={values}
+        mode={displayMode}
+        celebrate={finished}
+        runId={arrayId}
+        annotate
+        label={`Array of ${values.length} items, step ${frameIndex} of ${lastIndex}. ${describe()}`}
+      />
+      {/* In the empty band above the tallest bars (they reach 80% of the height). */}
+      <FinishSummary className="absolute inset-x-2 top-2 flex justify-center" />
     </div>
   );
 };
