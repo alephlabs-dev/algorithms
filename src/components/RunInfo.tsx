@@ -2,8 +2,8 @@ import { useShallow } from "zustand/react/shallow";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { selectFrame, selectLastIndex, useStore } from "@/store";
 import { cn } from "@/utils/cn";
+import { count } from "@/utils/count";
 
-const format = (n: number) => n.toLocaleString("en-US");
 
 const Swatch = ({ className, label }: { className: string; label: string }) => (
   <li className="flex items-center gap-2">
@@ -49,8 +49,8 @@ export const StatsInline = ({ className }: { className?: string }) => {
   const { stats, countsWrites } = useStats();
   return (
     <p className={cn("whitespace-nowrap font-mono text-xs text-foreground/80", className)}>
-      {format(stats.comparisons)} comparisons · {format(countsWrites ? stats.writes : stats.swaps)}{" "}
-      {countsWrites ? "writes" : "swaps"}
+      {count(stats.comparisons, "comparison")} ·{" "}
+      {countsWrites ? count(stats.writes, "write") : count(stats.swaps, "swap")}
     </p>
   );
 };

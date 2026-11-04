@@ -75,7 +75,7 @@ const AlgorithmField = () => {
     useShallow((s) => ({ activeAlgorithm: s.activeAlgorithm, setActiveAlgorithm: s.setActiveAlgorithm }))
   );
   return (
-    <div className="relative min-w-0 flex-1">
+    <div data-hint="picker" className="relative min-w-0 flex-1">
       <select
         aria-label="Algorithm"
         value={activeAlgorithm}

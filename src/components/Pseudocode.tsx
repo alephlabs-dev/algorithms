@@ -70,7 +70,7 @@ const CodeLines = ({ lines, line }: { lines: string[]; line: number | null }) =>
 const Narration = ({ className }: { className?: string }) => {
   const { text, muted } = useNarration();
   return (
-    <p aria-live="polite" className={cn("text-[15px] leading-snug", muted ? "text-foreground/60" : "text-foreground", className)}>
+    <p data-hint="narration" aria-live="polite" className={cn("text-[15px] leading-snug", muted ? "text-foreground/60" : "text-foreground", className)}>
       {text}
     </p>
   );
@@ -118,6 +118,7 @@ export const StepCaption = ({ className }: { className?: string }) => {
             className
           )}
           aria-label={`${text} Show pseudocode`}
+          data-hint="narration"
         >
           <CodeIcon className="h-4 w-4 shrink-0 text-secondary" />
           <span className="line-clamp-2">{text}</span>

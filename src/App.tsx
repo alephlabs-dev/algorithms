@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { AlgorithmVisualizer } from "./components/AlgorithmVisualizer";
 import { Controls } from "./components/Controls";
+import { Hints } from "./components/Hints";
 import { MobileRaceBar, MobileTopBar } from "./components/MobileTopBar";
 import { NowCard, StepCaption } from "./components/Pseudocode";
 import { RaceLanes } from "./components/Race/RaceLanes";
@@ -49,6 +50,7 @@ function App() {
         </>
       )}
       <Controls />
+      <Hints />
     </main>
   );
 }

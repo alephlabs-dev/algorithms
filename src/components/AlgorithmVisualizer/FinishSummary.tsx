@@ -3,8 +3,8 @@ import { useShallow } from "zustand/react/shallow";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { selectFrame, selectLastIndex, useStore } from "@/store";
 import { cn } from "@/utils/cn";
+import { count } from "@/utils/count";
 
-const format = (n: number) => n.toLocaleString("en-US");
 
 /** Shown over the bars when a run finishes: what it took, and a way to compare. */
 export const FinishSummary = ({ className }: { className?: string }) => {
@@ -29,8 +29,8 @@ export const FinishSummary = ({ className }: { className?: string }) => {
             <CheckCircledIcon className="h-4 w-4" /> Sorted
           </span>
           <span className="font-mono text-xs text-foreground/80">
-            {format(steps)} steps · {format(stats.comparisons)} comparisons ·{" "}
-            {countsWrites ? `${format(stats.writes)} writes` : `${format(stats.swaps)} swaps`}
+            {count(steps, "step")} · {count(stats.comparisons, "comparison")} ·{" "}
+            {countsWrites ? count(stats.writes, "write") : count(stats.swaps, "swap")}
           </span>
           <button
             type="button"

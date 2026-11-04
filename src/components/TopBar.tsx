@@ -41,16 +41,20 @@ const PickerPill = ({
   open,
   onOpenChange,
   ariaLabel,
+  hint,
 }: {
   label: ReactNode;
   children: ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   ariaLabel: string;
+  /** Lets a first-visit tip point at this pill. */
+  hint?: string;
 }) => (
   <Popover.Root open={open} onOpenChange={onOpenChange}>
     <Popover.Trigger
       aria-label={ariaLabel}
+      data-hint={hint}
       className="flex h-11 shrink-0 items-center gap-2 rounded-full border border-edge bg-surface pl-5 pr-4 text-lg font-semibold text-foreground transition-colors hover:bg-accent data-[state=open]:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
     >
       {label}
@@ -68,7 +72,7 @@ const AlgorithmPicker = () => {
   const title = useStore((s) => sortingAlgorithms[s.activeAlgorithm].title);
   const [open, setOpen] = useState(false);
   return (
-    <PickerPill label={title} ariaLabel={`Algorithm: ${title}. Change`} open={open} onOpenChange={setOpen}>
+    <PickerPill label={title} ariaLabel={`Algorithm: ${title}. Change`} open={open} onOpenChange={setOpen} hint="picker">
       <AlgorithmList onPick={() => setOpen(false)} />
     </PickerPill>
   );

@@ -12,6 +12,29 @@ export type Theme = "dark" | "light";
 
 const THEME_COLORS: Record<Theme, string> = { dark: "#0b0f0d", light: "#f2f5f9" };
 
+/** First-visit tips, in the order they can appear (see components/Hints). */
+export const HINTS = ["play", "narration", "speed", "picker"] as const;
+export type HintId = (typeof HINTS)[number];
+
+const HINTS_KEY = "seen-hints";
+
+const readSeenHints = (): HintId[] => {
+  try {
+    const saved: unknown = JSON.parse(localStorage.getItem(HINTS_KEY) ?? "[]");
+    return Array.isArray(saved) ? HINTS.filter((id) => saved.includes(id)) : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveSeenHints = (seen: HintId[]) => {
+  try {
+    localStorage.setItem(HINTS_KEY, JSON.stringify(seen));
+  } catch {
+    // Blocked storage: tips may show again next visit, which is harmless.
+  }
+};
+
 export const MIN_RACERS = 2;
 export const MAX_RACERS = 4;
 
@@ -49,6 +72,8 @@ export type StoreState = {
   isHelpOpen: boolean;
   /** Dark (default) or light; saved in this browser and applied by index.html before first paint. */
   theme: Theme;
+  /** Tips already shown and dismissed, or made moot by using the feature. */
+  seenHints: HintId[];
 
   setIsMobile: (isMobile: boolean) => void;
   setView: (view: View) => void;
@@ -63,6 +88,8 @@ export type StoreState = {
   setScrubbing: (isScrubbing: boolean) => void;
   setHelpOpen: (isHelpOpen: boolean) => void;
   setTheme: (theme: Theme) => void;
+  dismissHint: (id: HintId) => void;
+  resetHints: () => void;
   createNewArray: () => void;
 
   play: () => void;
@@ -153,6 +180,19 @@ export const useStore = create<StoreState>((set, get) => {
     isHelpOpen: false,
     theme: document.documentElement.dataset.theme === "light" ? "light" : "dark",
 
+    seenHints: readSeenHints(),
+    dismissHint: (id) => {
+      const { seenHints } = get();
+      if (seenHints.includes(id)) return;
+      const next = [...seenHints, id];
+      saveSeenHints(next);
+      set({ seenHints: next });
+    },
+    resetHints: () => {
+      saveSeenHints([]);
+      set({ seenHints: [] });
+    },
+
     setTheme: (theme) => {
       document.documentElement.dataset.theme = theme;
       document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", THEME_COLORS[theme]);
@@ -222,6 +262,7 @@ export const useStore = create<StoreState>((set, get) => {
 
     // Keeps the same array so algorithms can be compared on identical data.
     setActiveAlgorithm: (algorithm) => {
+      get().dismissHint("picker");
       set((state) => ({
         activeAlgorithm: algorithm,
         ...newRun(algorithm, state.timeline.values),
@@ -251,6 +292,8 @@ export const useStore = create<StoreState>((set, get) => {
 
     setSpeedPreset: (speedPreset) => {
       set({ speedPreset });
+      // Using the feature teaches it better than the tip.
+      get().dismissHint("speed");
       applyAutoSpeed();
     },
     setScrubbing: (isScrubbing) => set({ isScrubbing }),
