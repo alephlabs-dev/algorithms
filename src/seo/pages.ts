@@ -39,6 +39,36 @@ const sortingText = localized({
   },
 });
 
+const pathText = localized({
+  en: {
+    moduleTitle: "Pathfinding Visualizer: BFS, Dijkstra and A* Step by Step · Aleph Labs",
+    moduleDescription:
+      "Draw walls and mud on a grid, then watch BFS, DFS, Dijkstra, A* and Greedy Best-First Search find a path, step by step with the pseudocode.",
+    raceTitle: "Pathfinding Race: BFS vs Dijkstra vs A* Side by Side · Aleph Labs",
+    raceDescription:
+      "Race BFS, DFS, Dijkstra, A* and Greedy Best-First Search on the same grid. See which looks at the fewest cells, and which finds the cheapest path.",
+    name: (title: string, short: string) => (title.includes(short) ? title : `${title} (${short})`),
+    algorithmTitle: (name: string) => `${name} Pathfinding Visualized · Aleph Labs`,
+    algorithmDescription: (title: string) =>
+      `See how ${title} finds a path: draw walls and mud on a grid, then watch it search step by step with the pseudocode and every step explained.`,
+    section: "Pathfinding",
+  },
+  es: {
+    moduleTitle: "Visualizador de búsqueda de caminos: BFS, Dijkstra y A* paso a paso · Aleph Labs",
+    moduleDescription:
+      "Dibuja paredes y barro en una cuadrícula y mira cómo BFS, DFS, Dijkstra, A* y la búsqueda voraz encuentran un camino, paso a paso con el pseudocódigo.",
+    raceTitle: "Carrera de búsqueda de caminos: BFS, Dijkstra y A* lado a lado · Aleph Labs",
+    raceDescription:
+      "Haz competir a BFS, DFS, Dijkstra, A* y la búsqueda voraz en la misma cuadrícula. Mira cuál revisa menos celdas y cuál encuentra el camino más barato.",
+    // Only acronyms people search for (BFS, DFS) go in brackets.
+    name: (title, short) => (/^[A-Z]{2,4}$/.test(short) ? `${title} (${short})` : title),
+    algorithmTitle: (name) => `${name}: búsqueda de caminos visualizada · Aleph Labs`,
+    algorithmDescription: (title) =>
+      `Mira cómo ${title} encuentra un camino: dibuja paredes y barro en una cuadrícula y síguela paso a paso, con el pseudocódigo y cada paso explicado.`,
+    section: "Búsqueda de caminos",
+  },
+});
+
 const homeText = localized({
   en: {
     title: "Algorithm Visualizer: Sorting, Graphs, Data Structures, DP and More · Aleph Labs",
@@ -89,9 +119,8 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "Pathfinding Visualizer: BFS, Dijkstra and A* Step by Step · Aleph Labs",
-      description:
-        "Draw walls and mud on a grid, then watch BFS, DFS, Dijkstra, A* and Greedy Best-First Search find a path, step by step with the pseudocode.",
+      title: pathText.moduleTitle,
+      description: pathText.moduleDescription,
     };
   }
   if (route.kind === "graphs") {
@@ -183,9 +212,8 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "Pathfinding Race: BFS vs Dijkstra vs A* Side by Side · Aleph Labs",
-      description:
-        "Race BFS, DFS, Dijkstra, A* and Greedy Best-First Search on the same grid. See which looks at the fewest cells, and which finds the cheapest path.",
+      title: pathText.raceTitle,
+      description: pathText.raceDescription,
     };
   }
   if (route.kind === "dp") {
@@ -217,12 +245,11 @@ export const pageMeta = (route: Route): PageMeta => {
   }
   if (route.kind === "path") {
     const { title, short } = pathAlgorithms[route.algorithm];
-    const name = title.includes(short) ? title : `${title} (${short})`;
     return {
       path,
       url,
-      title: `${name} Pathfinding Visualized · Aleph Labs`,
-      description: `See how ${title} finds a path: draw walls and mud on a grid, then watch it search step by step with the pseudocode and every step explained.`,
+      title: pathText.algorithmTitle(pathText.name(title, short)),
+      description: pathText.algorithmDescription(title),
     };
   }
   const { title, timeComplexity } = sortingAlgorithms[route.algorithm];
@@ -256,7 +283,7 @@ export const structuredData = (route: Route): object[] => {
   const module = moduleOf(route) ?? "sorting";
   const sectionNames = {
     sorting: sortingText.section,
-    pathfinding: "Pathfinding",
+    pathfinding: pathText.section,
     graphs: "Graphs",
     fourier: "Fourier series",
     structures: "Data structures",
@@ -272,10 +299,9 @@ export const structuredData = (route: Route): object[] => {
   } as const;
   const section = { name: sectionNames[module], url: `${SITE_URL}${href(sectionRoutes[module])}` };
   const name =
-    route.kind === "race"
+    route.kind === "race" || route.kind === "pathRace"
       ? sortingText.race
-      : route.kind === "pathRace" ||
-    route.kind === "graphRace" ||
+      : route.kind === "graphRace" ||
     route.kind === "structureRace" ||
     route.kind === "dpRace"
       ? "Race"

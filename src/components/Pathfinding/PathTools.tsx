@@ -5,16 +5,59 @@ import { raceMaxGridSize, selectPathFrame, useStore, type Brush } from "@/store"
 import { cn } from "@/utils/cn";
 import { PresetButtons as LayoutButtons } from "../ui/preset-buttons";
 import { SegmentedControl } from "../ui/segmented";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    brush: "Brush",
+    wall: "Wall",
+    wallTitle: "Drag to draw walls (drag over a wall to erase)",
+    mud: (cost: number) => `Mud ×${cost}`,
+    mudTitle: (cost: number) => `Mud can be crossed but costs ${cost} steps`,
+    tools: "Grid tools",
+    gridSize: "Grid size",
+    tooBig: (size: string) => `${size}: too small to follow in a race`,
+    legend: "Legend",
+    start: "Start",
+    target: "Target",
+    toExplore: "To explore",
+    explored: "Explored",
+    path: "Path",
+    mudLegend: (cost: number) => `Mud (×${cost})`,
+    statsExplored: (n: number) => `${n} explored`,
+    statsPath: (n: number) => ` · path ${n}`,
+  },
+  es: {
+    brush: "Pincel",
+    wall: "Pared",
+    wallTitle: "Arrastra para dibujar paredes (arrastra sobre una pared para borrarla)",
+    mud: (cost) => `Barro ×${cost}`,
+    mudTitle: (cost) => `El barro se puede cruzar, pero cuesta ${cost} pasos`,
+    tools: "Herramientas de la cuadrícula",
+    gridSize: "Tamaño de la cuadrícula",
+    tooBig: (size) => `${size}: demasiado pequeña para seguirla en una carrera`,
+    legend: "Leyenda",
+    start: "Inicio",
+    target: "Destino",
+    toExplore: "Por explorar",
+    explored: "Explorada",
+    path: "Camino",
+    mudLegend: (cost) => `Barro (×${cost})`,
+    statsExplored: (n) => `${n} exploradas`,
+    statsPath: (n) => ` · camino ${n}`,
+  },
+});
+
 
 /** What dragging paints. Shared by the tools row and the settings. */
 export const BrushPicker = ({ className }: { className?: string }) => {
   const { brush, setBrush } = useStore(useShallow((s) => ({ brush: s.brush, setBrush: s.setBrush })));
   return (
     <SegmentedControl<Brush>
-      label="Brush"
+      label={text.brush}
       options={[
-        { value: "wall", label: "Wall", title: "Drag to draw walls (drag over a wall to erase)" },
-        { value: "mud", label: `Mud ×${MUD_COST}`, title: `Mud can be crossed but costs ${MUD_COST} steps` },
+        { value: "wall", label: text.wall, title: text.wallTitle },
+        { value: "mud", label: text.mud(MUD_COST), title: text.mudTitle(MUD_COST) },
       ]}
       value={brush}
       onChange={setBrush}
@@ -35,7 +78,7 @@ export const PathTools = ({ className }: { className?: string }) => (
   <div
     data-tour="tools"
     role="toolbar"
-    aria-label="Grid tools"
+    aria-label={text.tools}
     className={cn("flex flex-wrap items-center gap-x-3 gap-y-2 self-start", className)}
   >
     <BrushPicker className="w-44" />
@@ -54,12 +97,12 @@ export const GridSizePicker = () => {
   );
   return (
     <SegmentedControl<GridSize>
-      label="Grid size"
+      label={text.gridSize}
       options={(Object.keys(gridSizeLabels) as GridSize[]).map((size) => ({
         value: size,
         label: gridSizeLabels[size],
         disabled: gridSizes.indexOf(size) > cap,
-        title: gridSizes.indexOf(size) > cap ? `${gridSizeLabels[size]}: too small to follow in a race` : undefined,
+        title: gridSizes.indexOf(size) > cap ? text.tooBig(gridSizeLabels[size]) : undefined,
       }))}
       value={gridSize}
       onChange={(size) => size !== gridSize && setGridSize(size)}
@@ -77,19 +120,19 @@ const Swatch = ({ className, label }: { className: string; label: string }) => (
 /** What each color on the grid means. */
 export const PathLegend = ({ className, stacked }: { className?: string; stacked?: boolean }) => (
   <ul
-    aria-label="Legend"
+    aria-label={text.legend}
     className={cn(
       "flex text-xs text-foreground md:text-sm",
       stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
       className,
     )}
   >
-    <Swatch className="bg-primary ring-2 ring-background" label="Start" />
-    <Swatch className="bg-background ring-2 ring-foreground" label="Target" />
-    <Swatch className="bg-secondary" label="To explore" />
-    <Swatch className="bg-secondary/40" label="Explored" />
-    <Swatch className="bg-primary" label="Path" />
-    <Swatch className="bg-mud" label={`Mud (×${MUD_COST})`} />
+    <Swatch className="bg-primary ring-2 ring-background" label={text.start} />
+    <Swatch className="bg-background ring-2 ring-foreground" label={text.target} />
+    <Swatch className="bg-secondary" label={text.toExplore} />
+    <Swatch className="bg-secondary/40" label={text.explored} />
+    <Swatch className="bg-primary" label={text.path} />
+    <Swatch className="bg-mud" label={text.mudLegend(MUD_COST)} />
   </ul>
 );
 
@@ -98,8 +141,8 @@ export const PathStatsInline = ({ className }: { className?: string }) => {
   const stats = useStore((s) => selectPathFrame(s).stats);
   return (
     <p className={cn("whitespace-nowrap font-mono text-xs text-foreground/80", className)}>
-      {stats.visited} explored
-      {stats.pathLength > 0 && ` · path ${stats.pathLength}`}
+      {text.statsExplored(stats.visited)}
+      {stats.pathLength > 0 && text.statsPath(stats.pathLength)}
     </p>
   );
 };
