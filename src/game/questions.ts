@@ -3,6 +3,7 @@ import { KnapsackRun, type TableRun } from "@/dp";
 import type { HashFrame, StructureRun, TreeFrame } from "@/structures";
 import type { Algorithm } from "@/types";
 import { narrateDp } from "@/utils/narrateDp";
+import { quickQuestions, shellQuestions } from "./sortPartitions";
 
 /** An empty spot in a tree where a new value could go: under `parent`, on `side`. */
 export type Slot = {
@@ -47,7 +48,7 @@ const emptySlots = (frame: TreeFrame): Slot[] =>
     );
 
 /** Up to four numbers around `answer`, from `near` first, all different, in order. */
-const choicesAround = (answer: number, near: number[], min = 0, max = Infinity) => {
+export const choicesAround = (answer: number, near: number[], min = 0, max = Infinity) => {
   const picks = new Set<number>([answer]);
   for (const v of [...near, answer + 1, answer - 1, answer + 2, answer - 2, answer + 3])
     if (picks.size < 4 && v >= min && v <= max) picks.add(v);
@@ -225,6 +226,8 @@ const insertionQuestions = (run: Timeline): Question[] => {
 /** Each sorting algorithm's key-moment questions; one entry per algorithm. */
 const sortBuilders: Partial<Record<Algorithm, (run: Timeline) => Question[]>> = {
   insertion: insertionQuestions,
+  shell: shellQuestions,
+  quick: quickQuestions,
 };
 
 /** Sorting: each algorithm asks about its key moment. Algorithms without one yet ask nothing. */
