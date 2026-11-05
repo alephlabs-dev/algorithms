@@ -38,7 +38,7 @@ describe("renderHead in Spanish", () => {
   });
 
   it("keeps a page whose module isn't translated yet out of search", () => {
-    const html = renderHead(template, { kind: "structures" });
+    const html = renderHead(template, { kind: "dp" });
     expect(html).toContain('<meta name="robots" content="noindex" />');
     expect(html).not.toContain('rel="alternate"');
   });

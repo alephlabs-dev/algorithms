@@ -6,6 +6,37 @@ import { cn } from "@/utils/cn";
 import { ordinal } from "@/utils/ordinal";
 import { StructureCanvas } from "../Structures/StructureStage";
 import { PlaceBadge, ResultsOverlay } from "./RaceParts";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    finished: (place: string) => `, finished ${place}`,
+    height: (h: number) => `height ${h}`,
+    label: (title: string, h: number) => `${title}: height ${h}.`,
+    place: "Place",
+    tree: "Tree",
+    heightHeader: "Height",
+    comparisons: "Comparisons",
+    rotations: "Rotations",
+    balanced: (avl: number, bst: number) =>
+      `Balancing kept the AVL tree ${avl} tall; the plain BST grew to ${bst}, so every search there walks further.`,
+    same: "Same height: in this order the plain BST stayed bushy on its own. Try ascending values.",
+  },
+  es: {
+    finished: (place) => `, terminó ${place}`,
+    height: (h) => `altura ${h}`,
+    label: (title, h) => `${title}: altura ${h}.`,
+    place: "Lugar",
+    tree: "Árbol",
+    heightHeader: "Altura",
+    comparisons: "Comparaciones",
+    rotations: "Rotaciones",
+    balanced: (avl, bst) =>
+      `El balanceo dejó el árbol AVL con altura ${avl}; el BST simple llegó a ${bst}, así que cada búsqueda ahí recorre más.`,
+    same: "Misma altura: en este orden el BST simple quedó frondoso por sí solo. Prueba valores ascendentes.",
+  },
+});
+
 
 const format = (n: number) => n.toLocaleString("en-US");
 const last = (run: TreeRecorder) => run.frames[run.frames.length - 1];
@@ -17,7 +48,7 @@ const StructureRaceLane = ({ run, clock, place }: { run: TreeRecorder; clock: nu
   const { title } = structures[run.algorithm];
   return (
     <section
-      aria-label={`${title}${finished ? `, finished ${ordinal(place)}` : ""}`}
+      aria-label={`${title}${finished ? text.finished(ordinal(place)) : ""}`}
       className={cn(
         "flex min-h-0 min-w-0 flex-col gap-1 rounded-3xl border border-edge bg-surface p-2 ring-1 ring-transparent transition-shadow md:p-3",
         { "ring-primary": finished && place === 1 },
@@ -27,10 +58,10 @@ const StructureRaceLane = ({ run, clock, place }: { run: TreeRecorder; clock: nu
         <h3 className="truncate font-semibold">{title}</h3>
         {finished && <PlaceBadge place={place} />}
         <span className="ml-auto whitespace-nowrap font-mono text-foreground/70">
-          height {Math.max(0, frame.height)}
+          {text.height(Math.max(0, frame.height))}
         </span>
       </header>
-      <StructureCanvas frame={frame} algorithm={run.algorithm} label={`${title}: height ${Math.max(0, frame.height)}.`} />
+      <StructureCanvas frame={frame} algorithm={run.algorithm} label={text.label(title, Math.max(0, frame.height))} />
     </section>
   );
 };
@@ -61,11 +92,11 @@ export const StructureRaceLanes = () => {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-foreground/60">
-                <th className="pb-2 font-normal">Place</th>
-                <th className="pb-2 font-normal">Tree</th>
-                <th className="pb-2 text-right font-normal">Height</th>
-                <th className="pb-2 text-right font-normal">Comparisons</th>
-                <th className="hidden pb-2 text-right font-normal sm:table-cell">Rotations</th>
+                <th className="pb-2 font-normal">{text.place}</th>
+                <th className="pb-2 font-normal">{text.tree}</th>
+                <th className="pb-2 text-right font-normal">{text.heightHeader}</th>
+                <th className="pb-2 text-right font-normal">{text.comparisons}</th>
+                <th className="hidden pb-2 text-right font-normal sm:table-cell">{text.rotations}</th>
               </tr>
             </thead>
             <tbody>
@@ -87,8 +118,8 @@ export const StructureRaceLanes = () => {
           {bst && avl && (
             <p className="text-sm text-foreground/80">
               {last(bst).height > last(avl).height
-                ? `Balancing kept the AVL tree ${Math.max(0, last(avl).height)} tall; the plain BST grew to ${last(bst).height}, so every search there walks further.`
-                : "Same height: in this order the plain BST stayed bushy on its own. Try ascending values."}
+                ? text.balanced(Math.max(0, last(avl).height), last(bst).height)
+                : text.same}
             </p>
           )}
         </ResultsOverlay>

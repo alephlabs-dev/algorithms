@@ -226,6 +226,46 @@ const graphText = localized({
   },
 });
 
+const structureText = localized({
+  en: {
+    howItWorks: (title: string) =>
+      `How ${/^[AEIOU]/.test(title) ? "an" : "a"} ${title.replace(/ \(.*\)$/, "").toLowerCase().replace("avl", "AVL")} works`,
+    moduleTitle: "Data structures",
+    moduleIntro:
+      "Insert, search and delete, and watch each operation step by step: every comparison on the way down, every rotation a self-balancing tree makes to stay short, every swap in a heap and every slot a hash table probes.",
+    groups: { Trees: "Trees", Heaps: "Heaps", "Hash tables": "Hash tables" },
+    raceTrees: "Race the trees",
+    searchInsertDelete: "Search, insert, delete",
+    atAGlance: "At a glance",
+    compare: "Compare",
+    orRace: (race: Link) => <>Or {race("race the two search trees")} on the same values.</>,
+    raceTitle: "BST vs AVL tree",
+    raceIntro: "The same values into a plain binary search tree and an AVL tree, side by side, one step per tick.",
+    whyBalancing: "Why balancing matters",
+    raceTip:
+      "A binary search tree is only as fast as it is short. Values arriving in sorted order (timestamps, ids, a sorted list) all go to the same side, and the tree becomes a list. An AVL tree pays a few rotations per insert to keep its height near log₂ n, so searching a million values takes about 20 steps instead of a million.",
+    learnEach: "Learn each tree",
+  },
+  es: {
+    howItWorks: (named) => `Cómo funciona ${named}`,
+    moduleTitle: "Estructuras de datos",
+    moduleIntro:
+      "Inserta, busca y borra, y mira cada operación paso a paso: cada comparación en la bajada, cada rotación que hace un árbol autobalanceado para mantenerse bajo, cada intercambio en un montículo y cada casilla que sondea una tabla hash.",
+    groups: { Trees: "Árboles", Heaps: "Montículos", "Hash tables": "Tablas hash" },
+    raceTrees: "Haz competir a los árboles",
+    searchInsertDelete: "Buscar, insertar, borrar",
+    atAGlance: "De un vistazo",
+    compare: "Compara",
+    orRace: (race) => <>O {race("haz competir a los dos árboles de búsqueda")} con los mismos valores.</>,
+    raceTitle: "BST contra árbol AVL",
+    raceIntro: "Los mismos valores en un árbol binario de búsqueda simple y en un árbol AVL, lado a lado, un paso por tic.",
+    whyBalancing: "Por qué importa balancear",
+    raceTip:
+      "Un árbol binario de búsqueda es tan rápido como bajo. Los valores que llegan ordenados (marcas de tiempo, ids, una lista ordenada) van todos al mismo lado, y el árbol se vuelve una lista. Un árbol AVL paga unas pocas rotaciones por inserción para mantener su altura cerca de log₂ n, así que buscar entre un millón de valores toma unos 20 pasos en lugar de un millón.",
+    learnEach: "Aprende cada árbol",
+  },
+});
+
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
   <section className="flex flex-col gap-4">
     <h2 className="text-xl font-semibold">{title}</h2>
@@ -717,14 +757,11 @@ const StructureIndex = ({ current, onNavigate }: { current?: StructureAlgorithm;
 const StructuresArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
   <>
     <header className="flex flex-col gap-3">
-      <h1 className="text-display font-semibold">Data structures</h1>
-      <p className="text-lg text-foreground/80">
-        Insert, search and delete, and watch each operation step by step: every comparison on the way down, every
-        rotation a self-balancing tree makes to stay short, every swap in a heap and every slot a hash table probes.
-      </p>
+      <h1 className="text-display font-semibold">{structureText.moduleTitle}</h1>
+      <p className="text-lg text-foreground/80">{structureText.moduleIntro}</p>
     </header>
     {(["Trees", "Heaps", "Hash tables"] as const).map((group) => (
-      <Section key={group} title={group}>
+      <Section key={group} title={structureText.groups[group]}>
         <ul className="flex flex-col divide-y divide-edge">
           {structureOrder
             .filter((algorithm) => structures[algorithm].group === group)
@@ -742,11 +779,11 @@ const StructuresArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] })
         </ul>
       </Section>
     ))}
-    <Section title="Race the trees">
+    <Section title={structureText.raceTrees}>
       <p className="leading-relaxed text-foreground/80">
         {STRUCTURE_RACE_DESCRIPTION}{" "}
         <PageLink to={{ kind: "structureRace" }} onNavigate={onNavigate}>
-          Start a race
+          {text.startRace}
         </PageLink>
         .
       </p>
@@ -755,24 +792,22 @@ const StructuresArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] })
 );
 
 const StructureArticle = ({ algorithm, onNavigate }: { algorithm: StructureAlgorithm; onNavigate?: Props["onNavigate"] }) => {
-  const { title, shortDescription, longDescription, cost, shape, shapeLabel } = structures[algorithm];
+  const { title, named, shortDescription, longDescription, cost, shape, shapeLabel } = structures[algorithm];
   return (
     <>
       <header className="flex flex-col gap-3">
         <h1 className="text-display font-semibold">{title}</h1>
         <p className="text-lg text-foreground/80">{shortDescription}</p>
       </header>
-      <Section
-        title={`How ${/^[AEIOU]/.test(title) ? "an" : "a"} ${title.replace(/ \(.*\)$/, "").toLowerCase().replace("avl", "AVL")} works`}
-      >
+      <Section title={structureText.howItWorks(named)}>
         <p className="leading-relaxed text-foreground/80">{longDescription}</p>
       </Section>
-      <Section title="At a glance">
+      <Section title={structureText.atAGlance}>
         <table className="w-full max-w-lg text-sm">
           <tbody>
             {(
               [
-                ["Search, insert, delete", cost],
+                [structureText.searchInsertDelete, cost],
                 [shapeLabel, shape],
               ] as const
             ).map(([name, value]) => (
@@ -786,19 +821,19 @@ const StructureArticle = ({ algorithm, onNavigate }: { algorithm: StructureAlgor
           </tbody>
         </table>
       </Section>
-      <Section title="Pseudocode">
+      <Section title={text.pseudocode}>
         <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
           {structurePseudocode[algorithm].join("\n")}
         </pre>
       </Section>
-      <Section title="Compare">
+      <Section title={structureText.compare}>
         <StructureIndex current={algorithm} onNavigate={onNavigate} />
         <p className="text-foreground/80">
-          Or{" "}
-          <PageLink to={{ kind: "structureRace" }} onNavigate={onNavigate}>
-            race the two search trees
-          </PageLink>{" "}
-          on the same values.
+          {structureText.orRace((children) => (
+            <PageLink to={{ kind: "structureRace" }} onNavigate={onNavigate}>
+              {children}
+            </PageLink>
+          ))}
         </p>
       </Section>
     </>
@@ -808,20 +843,14 @@ const StructureArticle = ({ algorithm, onNavigate }: { algorithm: StructureAlgor
 const StructureRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
   <>
     <header className="flex flex-col gap-3">
-      <h1 className="text-display font-semibold">BST vs AVL tree</h1>
-      <p className="text-lg text-foreground/80">
-        The same values into a plain binary search tree and an AVL tree, side by side, one step per tick.
-      </p>
+      <h1 className="text-display font-semibold">{structureText.raceTitle}</h1>
+      <p className="text-lg text-foreground/80">{structureText.raceIntro}</p>
     </header>
-    <Section title="Why balancing matters">
+    <Section title={structureText.whyBalancing}>
       <p className="leading-relaxed text-foreground/80">{STRUCTURE_RACE_DESCRIPTION}</p>
-      <p className="leading-relaxed text-foreground/80">
-        A binary search tree is only as fast as it is short. Values arriving in sorted order (timestamps, ids, a sorted
-        list) all go to the same side, and the tree becomes a list. An AVL tree pays a few rotations per insert to keep
-        its height near log₂ n, so searching a million values takes about 20 steps instead of a million.
-      </p>
+      <p className="leading-relaxed text-foreground/80">{structureText.raceTip}</p>
     </Section>
-    <Section title="Learn each tree">
+    <Section title={structureText.learnEach}>
       <StructureIndex onNavigate={onNavigate} />
     </Section>
   </>

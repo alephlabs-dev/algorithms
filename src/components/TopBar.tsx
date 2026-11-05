@@ -169,8 +169,9 @@ export const TopBar = ({ className }: { className?: string }) => {
   const hasRace = useModuleUI().race !== undefined;
   return (
     <header className={cn("flex items-center gap-3", className)}>
-      <ModuleMenu />
-      <span aria-hidden className="text-line">
+      {/* Only the summary gives way when names run long (Spanish ones do). */}
+      <ModuleMenu className="shrink-0" />
+      <span aria-hidden className="shrink-0 text-line">
         /
       </span>
       {view === "race" ? <RacersPicker /> : <AlgorithmPicker />}

@@ -98,6 +98,29 @@ const graphText = localized({
   },
 });
 
+const structureText = localized({
+  en: {
+    moduleTitle: "Data Structure Visualizer: BST, AVL Tree, Heap, Hash Table · Aleph Labs",
+    moduleDescription:
+      "Insert, search and delete in a binary search tree, an AVL tree, a min-heap or a hash table, and watch every comparison, rotation, swap and probe, step by step with the pseudocode.",
+    algorithmTitle: (title: string) => `${title} Visualized: Insert, Search, Delete · Aleph Labs`,
+    raceTitle: "BST vs AVL Tree: Why Balancing Matters · Aleph Labs",
+    raceDescription:
+      "The same values into a plain binary search tree and an AVL tree, side by side. Sorted input turns the BST into a list; the AVL tree rotates to stay short.",
+    section: "Data structures",
+  },
+  es: {
+    moduleTitle: "Visualizador de estructuras de datos: BST, árbol AVL, montículo y tabla hash · Aleph Labs",
+    moduleDescription:
+      "Inserta, busca y borra en un árbol binario de búsqueda, un árbol AVL, un montículo mínimo o una tabla hash, y mira cada comparación, rotación, intercambio y sondeo paso a paso.",
+    algorithmTitle: (title) => `${title} paso a paso: insertar, buscar, borrar · Aleph Labs`,
+    raceTitle: "BST contra árbol AVL: por qué importa balancear · Aleph Labs",
+    raceDescription:
+      "Los mismos valores en un árbol binario de búsqueda simple y en un árbol AVL, lado a lado. Una entrada ordenada vuelve el BST una lista; el árbol AVL rota para mantenerse bajo.",
+    section: "Estructuras de datos",
+  },
+});
+
 const homeText = localized({
   en: {
     title: "Algorithm Visualizer: Sorting, Graphs, Data Structures, DP and More · Aleph Labs",
@@ -175,9 +198,8 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "Data Structure Visualizer: BST, AVL Tree, Heap, Hash Table · Aleph Labs",
-      description:
-        "Insert, search and delete in a binary search tree, an AVL tree, a min-heap or a hash table, and watch every comparison, rotation, swap and probe, step by step with the pseudocode.",
+      title: structureText.moduleTitle,
+      description: structureText.moduleDescription,
     };
   }
   if (route.kind === "structure") {
@@ -185,7 +207,7 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: `${title} Visualized: Insert, Search, Delete · Aleph Labs`,
+      title: structureText.algorithmTitle(title),
       description: shortDescription.slice(0, 200),
     };
   }
@@ -193,9 +215,8 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "BST vs AVL Tree: Why Balancing Matters · Aleph Labs",
-      description:
-        "The same values into a plain binary search tree and an AVL tree, side by side. Sorted input turns the BST into a list; the AVL tree rotates to stay short.",
+      title: structureText.raceTitle,
+      description: structureText.raceDescription,
     };
   }
   if (route.kind === "fourier") {
@@ -313,7 +334,7 @@ export const structuredData = (route: Route): object[] => {
     pathfinding: pathText.section,
     graphs: graphText.section,
     fourier: "Fourier series",
-    structures: "Data structures",
+    structures: structureText.section,
     dp: "Dynamic programming",
   };
   const sectionRoutes = {
@@ -326,11 +347,10 @@ export const structuredData = (route: Route): object[] => {
   } as const;
   const section = { name: sectionNames[module], url: `${SITE_URL}${href(sectionRoutes[module])}` };
   const name =
-    route.kind === "race" || route.kind === "pathRace" || route.kind === "graphRace"
+    route.kind === "race" || route.kind === "pathRace" || route.kind === "graphRace" || route.kind === "structureRace"
       ? sortingText.race
-      : route.kind === "structureRace" ||
-    route.kind === "dpRace"
-      ? "Race"
+      : route.kind === "dpRace"
+        ? "Race"
       : route.kind === "path"
         ? pathAlgorithms[route.algorithm].title
         : route.kind === "graph"

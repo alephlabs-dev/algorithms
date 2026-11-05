@@ -35,7 +35,7 @@ const text = localized({
     dp: "Sobre la programación dinámica",
     dpRace: "Lo que ahorra memorizar",
     dpProblem: (title) => `Cómo funciona: ${title}`,
-    structure: (title) => `Cómo funciona: ${title}`,
+    structure: (named) => `Cómo funciona ${named}`,
     structureRace: "Por qué importa balancear",
     series: (title) => `Cómo funciona: ${title}`,
     algorithm: (title) => `Cómo funciona ${title}`,
@@ -63,7 +63,7 @@ const labelFor = (route: Route) => {
     case "dpProblem":
       return text.dpProblem(dpProblems[route.algorithm].title);
     case "structure":
-      return text.structure(structures[route.algorithm].title);
+      return text.structure(structures[route.algorithm].named);
     case "structureRace":
       return text.structureRace;
     case "series":

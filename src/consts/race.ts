@@ -5,8 +5,10 @@ export const RACE_DESCRIPTION = localized({
   es: "Mismo arreglo, mismo reloj. Cada tic es una operación (una comparación, un intercambio o una escritura), así que los carriles muestran cuánto trabajo hace de verdad cada algoritmo.",
 });
 
-export const STRUCTURE_RACE_DESCRIPTION =
-  "The same values, in the same order, into a plain binary search tree and an AVL tree. Each tick, both take one step. Feed them ascending values to see why balancing exists.";
+export const STRUCTURE_RACE_DESCRIPTION = localized({
+  en: "The same values, in the same order, into a plain binary search tree and an AVL tree. Each tick, both take one step. Feed them ascending values to see why balancing exists.",
+  es: "Los mismos valores, en el mismo orden, en un árbol binario de búsqueda simple y en un árbol AVL. En cada tic, los dos dan un paso. Dales valores ascendentes para ver por qué existe el balanceo.",
+});
 
 export const GRAPH_RACE_DESCRIPTION = localized({
   en: "Same graph, same clock. Each tick, every algorithm takes one step, so the first to finish is the one with the least to do. Prim and Kruskal always end with trees of the same weight, by different routes.",

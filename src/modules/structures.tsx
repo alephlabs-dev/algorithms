@@ -10,17 +10,39 @@ import {
 import { STRUCTURE_RACE_DESCRIPTION } from "@/consts/race";
 import { structurePresetLabel, structures, structureSizeLabels } from "@/consts/structures";
 import { structurePseudocode, type StructureAlgorithm } from "@/structures";
+import { localized } from "@/i18n";
 import { useStore } from "@/store";
 import { narrateTree } from "@/utils/narrateTree";
 import { structuresTour } from "./tours";
 import type { ModuleUI } from "./types";
+
+const text = localized({
+  en: {
+    title: "Data structures",
+    summary: (n: string, detail: string) => `${n} values, ${detail}`,
+    newRun: "New values",
+    groups: { Trees: "Trees", Heaps: "Heaps", "Hash tables": "Hash tables" },
+    hints: { "O(height)": "O(height)", "min on top": "min on top", "O(1) average": "O(1) average" },
+    tagline: "Same values, with and without balancing",
+    unit: { one: "step", short: "steps" },
+  },
+  es: {
+    title: "Estructuras de datos",
+    summary: (n, detail) => `${n} valores, ${detail}`,
+    newRun: "Nuevos valores",
+    groups: { Trees: "Árboles", Heaps: "Montículos", "Hash tables": "Tablas hash" },
+    hints: { "O(height)": "O(altura)", "min on top": "mínimo arriba", "O(1) average": "O(1) en promedio" },
+    tagline: "Mismos valores, con y sin balanceo",
+    unit: { one: "paso", short: "pasos" },
+  },
+});
 
 const frameOf = (s: { structureRun: { frames: unknown[] }; frameIndex: number }) =>
   Math.min(s.frameIndex, s.structureRun.frames.length - 1);
 
 export const structuresUI: ModuleUI = {
   id: "structures",
-  title: "Data structures",
+  title: text.title,
 
   Stage: StructureStage,
   Tools: StructureTools,
@@ -35,10 +57,10 @@ export const structuresUI: ModuleUI = {
       main: structureSizeLabels[s.structureSize],
       detail,
       mono: true,
-      label: `${structureSizeLabels[s.structureSize]} values, ${detail}`,
+      label: text.summary(structureSizeLabels[s.structureSize], detail),
     };
   },
-  newRunLabel: "New values",
+  newRunLabel: text.newRun,
 
   algorithms: (
     [
@@ -46,11 +68,11 @@ export const structuresUI: ModuleUI = {
       ["Heaps", "min on top"],
       ["Hash tables", "O(1) average"],
     ] as const
-  ).map(([label, hint]) => ({
-    label,
-    hint,
+  ).map(([group, hint]) => ({
+    label: text.groups[group],
+    hint: text.hints[hint],
     items: (Object.keys(structures) as StructureAlgorithm[])
-      .filter((id) => structures[id].group === label)
+      .filter((id) => structures[id].group === group)
       .map((id) => ({ id, title: structures[id].title, short: structures[id].short })),
   })),
   current: (s) => s.structureAlgorithm,
@@ -61,9 +83,9 @@ export const structuresUI: ModuleUI = {
     // Always the same pair: the race is about what balancing buys.
     racers: () => ["bst", "avl"],
     toggleRacer: () => {},
-    tagline: "Same values, with and without balancing",
+    tagline: text.tagline,
     description: STRUCTURE_RACE_DESCRIPTION,
-    unit: { one: "step", short: "steps" },
+    unit: text.unit,
   },
 
   about: (s) => structures[s.structureAlgorithm],
