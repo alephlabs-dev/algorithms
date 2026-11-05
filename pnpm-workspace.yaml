@@ -3,5 +3,5 @@ allowBuilds:
 
 overrides:
   # minimatch <11.0.1 has a ReDoS advisory (GHSA-g3hv-75wg-m249). eslint, @eslint/config-array
-  # and @typescript-eslint/typescript-estree still ask for ^10. Remove once they move to 11 (#27).
+  # and @typescript-eslint/typescript-estree still ask for ^10. Remove once all three move to 11 (#32).
   "minimatch@<11.0.1": ^11.0.1
