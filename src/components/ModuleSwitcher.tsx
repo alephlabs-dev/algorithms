@@ -10,6 +10,7 @@ import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
 import { ListItem } from "./ui/list-item";
 import { popoverClass } from "./ui/popover";
 import { SectionLabel } from "./ui/section-label";
+import { AlephMark } from "./ui/aleph-mark";
 
 const logoClass =
   "grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary text-lg font-bold text-background transition-opacity hover:opacity-90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background";
@@ -71,7 +72,7 @@ export const ModuleMenu = ({ className }: { className?: string }) => {
         onClick={() => navigate({ kind: "home" })}
         className={logoClass}
       >
-        ℵ
+        <AlephMark />
       </button>
       <Popover.Root open={open} onOpenChange={setOpen}>
         <Popover.Trigger
@@ -98,7 +99,7 @@ export const ModuleButton = () => {
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger aria-label={`Module: ${title}. Change`} className={logoClass}>
-        ℵ
+        <AlephMark />
       </DrawerTrigger>
       <DrawerContent aria-describedby={undefined}>
         <div className="flex max-h-[85dvh] flex-col gap-4 overflow-y-auto p-6 pb-10 text-foreground">
