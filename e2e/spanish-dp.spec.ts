@@ -17,3 +17,17 @@ test('dynamic programming in Spanish fills the table and explains each step in S
   await expect(page.getByRole('form', { name: 'Palabras' }).getByRole('button', { name: 'Comparar' })).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('dynamic programming keeps Ñ and accents in the words you type', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('tour-done-dp', 'true'));
+  await page.goto('/es/dynamic-programming/edit-distance');
+
+  const words = page.getByRole('form', { name: 'Palabras' });
+  await words.getByPlaceholder('Primera palabra').fill('año');
+  await words.getByPlaceholder('Segunda palabra').fill('cañón');
+  await words.getByRole('button', { name: 'Comparar' }).click();
+
+  await expect(page).toHaveURL(/a=A%C3%91O/);
+  await expect(page).toHaveURL(/b=CA%C3%91%C3%93N/);
+  await expect(words.getByPlaceholder('Primera palabra')).toHaveValue('AÑO');
+});

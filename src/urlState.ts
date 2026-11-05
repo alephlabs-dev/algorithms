@@ -4,6 +4,7 @@ import { pathSearches } from "./pathfinding/searches";
 import type { FourierAlgorithm, FourierShape } from "./fourier/types";
 import { structurePresets, structureSizes, type StructurePreset, type StructureSize } from "./structures/presets";
 import type { StructureAlgorithm } from "./structures/types";
+import { isWord } from "./dp/presets";
 import type { DpAlgorithm } from "./dp/types";
 import { graphPresets, graphSizes, type GraphPreset, type GraphSize } from "./graphs/graph";
 import type { GraphAlgorithm } from "./graphs/types";
@@ -212,10 +213,10 @@ export type DpUrlState = { a?: string; b?: string; items?: string; capacity?: nu
 
 const readDpParams = (params: URLSearchParams): DpUrlState => {
   const state: DpUrlState = {};
-  const a = params.get("a")?.toUpperCase();
-  const b = params.get("b")?.toUpperCase();
-  if (a && /^[A-Z]{1,10}$/.test(a)) state.a = a;
-  if (b && /^[A-Z]{1,10}$/.test(b)) state.b = b;
+  const a = params.get("a")?.normalize("NFC").toUpperCase();
+  const b = params.get("b")?.normalize("NFC").toUpperCase();
+  if (a && isWord(a)) state.a = a;
+  if (b && isWord(b)) state.b = b;
   const items = params.get("items");
   if (items && /^[0-9x.]+$/.test(items)) state.items = items;
   const capacity = Number(params.get("cap"));

@@ -2,7 +2,16 @@ import { describe, expect, it } from "vitest";
 import { routePath } from "./routes";
 import type { GraphAlgorithm } from "./graphs/types";
 import type { PathAlgorithm } from "./pathfinding/types";
-import { readLocation, readUrlState, toFourierSearch, toGraphSearch, toPathSearch, toSearch, type UrlState } from "./urlState";
+import {
+  readLocation,
+  readUrlState,
+  toDpSearch,
+  toFourierSearch,
+  toGraphSearch,
+  toPathSearch,
+  toSearch,
+  type UrlState,
+} from "./urlState";
 
 describe("url state", () => {
   const state: UrlState = {
@@ -124,5 +133,12 @@ describe("url state", () => {
     expect(at("greedy,bfs,greedy")).toEqual(["bfs", "greedy"]);
     expect(at("astar")).toBeUndefined();
     expect(at("quick,merge")).toBeUndefined();
+  });
+
+  it("round-trips dynamic programming words with Ñ and accents through the link", () => {
+    const search = toDpSearch({ a: "AÑO", b: "CAÑÓN" });
+    expect(readLocation("/dynamic-programming/edit-distance", search).dp).toMatchObject({ a: "AÑO", b: "CAÑÓN" });
+    expect(readLocation("/dynamic-programming/edit-distance", "?a=a%C3%B1o").dp).toMatchObject({ a: "AÑO" });
+    expect(readLocation("/dynamic-programming/edit-distance", "?a=A1").dp.a).toBeUndefined();
   });
 });

@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import { seededRandom } from "@/utils/random";
 import {
   alignment,
+  cleanWord,
   decodeItems,
   DpRun,
   encodeItems,
   EXAMPLE_CAPACITY,
   EXAMPLE_ITEMS,
+  isWord,
   keptLetters,
   KnapsackRun,
   KnapsackWork,
@@ -125,5 +127,23 @@ describe("the race example", () => {
   it("is big enough for plain recursion to lose", () => {
     const [table, , recursion] = methods.map((m) => new KnapsackWork(m, RACE_ITEMS, RACE_CAPACITY));
     expect(recursion.length).toBeGreaterThan(2 * table.length);
+  });
+});
+
+describe("words", () => {
+  it("keep Ñ and accented letters, upper case, and drop anything that isn't a letter", () => {
+    expect(cleanWord("año")).toBe("AÑO");
+    expect(cleanWord("café!")).toBe("CAFÉ");
+    expect(cleanWord("pingüino 2")).toBe("PINGÜINO");
+    // An accent typed as its own mark joins its letter, and counts as one.
+    expect(cleanWord("café")).toBe("CAFÉ");
+    expect(cleanWord("murciélagos")).toBe("MURCIÉLAGO");
+    expect(isWord("AÑO")).toBe(true);
+    expect(isWord("A1")).toBe(false);
+    expect(isWord("")).toBe(false);
+  });
+
+  it("work out edit distance with them", () => {
+    expect(new DpRun("edit", "AÑO", "ANO").answer).toBe(1);
   });
 });
