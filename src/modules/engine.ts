@@ -7,7 +7,7 @@ import type { Size } from "@/types";
 import { encodeOperations } from "@/structures/link";
 import type { HashEvent, TreeEvent } from "@/structures/types";
 import { encodeItems } from "@/dp/presets";
-import { dpQuestions, questionsOf, structureQuestions, type Question } from "@/game";
+import { dpQuestions, questionsOf, SORT_GUESS_MAX_SIZE, sortQuestions, structureQuestions, type Question } from "@/game";
 import { toDpSearch, toFourierSearch, toGraphSearch, toPathSearch, toSearch, toStructureSearch } from "@/urlState";
 import type { DpEvent } from "@/dp/types";
 import { GRAPH_STEP_WEIGHT, PATH_STEP_WEIGHT, STEP_WEIGHT, type Pace } from "@/utils/speed";
@@ -32,6 +32,8 @@ export type ModuleEngine = {
   search: (s: StoreState) => string;
   /** Guess mode: the questions for the run on stage, in frame order. Without it, the module has no guess mode. */
   game?: (s: StoreState) => Question[];
+  /** Why guess mode can't play the run on stage, shown on its toggle; null when it can. */
+  gameUnavailable?: (s: StoreState) => string | null;
 };
 
 export const engines: Record<ModuleId, ModuleEngine> = {
@@ -54,6 +56,11 @@ export const engines: Record<ModuleId, ModuleEngine> = {
         seed: s.seed,
         raceAlgorithms: s.raceAlgorithms,
       }),
+    // Bigger arrays have bars too thin to follow and too many moments to stop at.
+    game: (s) =>
+      s.size <= SORT_GUESS_MAX_SIZE ? questionsOf(s.timeline, (run) => sortQuestions(run, s.activeAlgorithm)) : [],
+    gameUnavailable: (s) =>
+      s.size <= SORT_GUESS_MAX_SIZE ? null : "Guess works with 10 or 20 items",
   },
   pathfinding: {
     // Races run on cells examined, so every lane gets the same clock.

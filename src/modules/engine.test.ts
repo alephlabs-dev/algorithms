@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { sortAlgorithms } from "@/algorithms";
+import { Timeline } from "@/algorithms/timeline";
 import { makeGraph } from "@/graphs";
 import { applyPreset, emptyGrid } from "@/pathfinding";
 import { moduleOf, routeFromPath, routePath } from "@/routes";
 import type { StoreState } from "@/store";
 import { readLocation } from "@/urlState";
+import { generateItems } from "@/utils/generateItems";
 import { seededRandom } from "@/utils/random";
 import { engines, type ModuleId } from "./engine";
 
@@ -100,5 +103,21 @@ describe("module engines", () => {
       const state = stateFor(module, "single", false);
       expect(engines[module].search({ ...state, ...change } as StoreState)).not.toBe(engines[module].search(state));
     }
+  });
+
+  it("sorting has guess mode with 10 or 20 items, and none with more", () => {
+    const sortingWith = (size: number) =>
+      ({
+        ...stateFor("sorting", "single", false),
+        activeAlgorithm: "insertion",
+        size,
+        timeline: new Timeline(sortAlgorithms.insertion, generateItems(size, "random", seededRandom(4))),
+      }) as StoreState;
+    const game = engines.sorting.game;
+    expect(game).toBeDefined();
+    expect(game!(sortingWith(10)).length).toBeGreaterThan(0);
+    expect(game!(sortingWith(20)).length).toBeGreaterThan(0);
+    expect(game!(sortingWith(40))).toEqual([]);
+    expect(game!(sortingWith(400))).toEqual([]);
   });
 });

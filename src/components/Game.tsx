@@ -24,13 +24,17 @@ const useHasGame = () => useStore((s) => s.view === "single" && engines[s.module
  * where there's room, the target and "3/5" on phones.
  */
 export const GameToggle = ({ compact }: { compact?: boolean }) => {
-  const { on, toggle, score } = useStore(
-    useShallow((s) => ({ on: s.isGameOn, toggle: s.toggleGame, score: s.gameScore })),
+  const { isOn, toggle, score } = useStore(
+    useShallow((s) => ({ isOn: s.isGameOn, toggle: s.toggleGame, score: s.gameScore })),
   );
+  const unavailable = useStore((s) => engines[s.module].gameUnavailable?.(s) ?? null);
   const [seen, setSeen] = useState(seenBefore);
   if (!useHasGame()) return null;
+  // Can't play this run (too many items): looks off and says why. aria-disabled keeps the tooltip.
+  const on = isOn && unavailable === null;
   const tally = `${score.right}/${score.asked}`;
   const onClick = () => {
+    if (unavailable) return;
     toggle();
     if (seen) return;
     setSeen(true);
@@ -40,15 +44,18 @@ export const GameToggle = ({ compact }: { compact?: boolean }) => {
       // Private mode: it just says "new" again next time.
     }
   };
-  const label = on
-    ? `Guess mode on, ${score.right} right out of ${score.asked}: turn it off`
-    : "Guess mode: it stops to ask what comes next";
+  const label = unavailable
+    ? `Guess mode: ${unavailable}`
+    : on
+      ? `Guess mode on, ${score.right} right out of ${score.asked}: turn it off`
+      : "Guess mode: it stops to ask what comes next";
   return (
     <Button
       variant={on ? "primary" : "ghost"}
       size={compact && !on ? "icon" : "sm"}
       onClick={onClick}
       aria-pressed={on}
+      aria-disabled={unavailable !== null || undefined}
       aria-label={seen ? label : `New: ${label}`}
       title={label}
       data-tour="game"
@@ -57,6 +64,7 @@ export const GameToggle = ({ compact }: { compact?: boolean }) => {
         (!compact || on) && "gap-1.5 px-3.5",
         compact && on && "px-3",
         !on && !compact && "border border-line/70",
+        unavailable && "cursor-not-allowed opacity-50 hover:bg-transparent",
       )}
     >
       <TargetIcon />
@@ -90,7 +98,7 @@ const optionClass =
 export const GameLayer = () => {
   const { on, question, feedback, score, answer, reset } = useStore(
     useShallow((s) => ({
-      on: s.isGameOn && s.view === "single",
+      on: s.isGameOn && s.view === "single" && !engines[s.module].gameUnavailable?.(s),
       question: selectGameQuestion(s),
       feedback: s.gameFeedback,
       score: s.gameScore,

@@ -1,5 +1,7 @@
+import type { Timeline } from "@/algorithms/timeline";
 import { KnapsackRun, type TableRun } from "@/dp";
 import type { HashFrame, StructureRun, TreeFrame } from "@/structures";
+import type { Algorithm } from "@/types";
 import { narrateDp } from "@/utils/narrateDp";
 
 /** An empty spot in a tree where a new value could go: under `parent`, on `side`. */
@@ -186,3 +188,36 @@ export const dpQuestions = (run: TableRun): Question[] => {
   });
   return questions;
 };
+
+/** Insertion sort: how many places each picked-up value moves left. */
+const insertionQuestions = (run: Timeline): Question[] => {
+  // Each pass opens with a highlight of the sorted part plus the value it picks up.
+  const starts: number[] = [];
+  for (let at = 1; at < run.length; at++) if (run.stepAt(at)?.type === "highlight") starts.push(at);
+  return starts.map((at, k) => {
+    const step = run.stepAt(at);
+    const picked = (step?.type === "highlight" ? (step.temp?.length ?? 1) : 1) - 1;
+    const end = k + 1 < starts.length ? starts[k + 1] : run.length - 1;
+    let moves = 0;
+    for (let f = at + 1; f <= end; f++) if (run.stepAt(f)?.type === "swap") moves++;
+    const value = run.valuesAt(at)[picked];
+    return {
+      kind: "choice",
+      at,
+      run,
+      prompt: `${value} joins the sorted part. How many places does it move left?`,
+      options: choicesAround(moves, [], 0, picked),
+      answer: moves,
+      explain: (right) =>
+        `${right ? "Right" : `It's ${moves}`}: ${
+          moves === 0
+            ? `${value} is already at least as big as the value before it.`
+            : `${value} slides past ${moves} bigger value${moves === 1 ? "" : "s"}.`
+        }`,
+    };
+  });
+};
+
+/** Sorting: each algorithm asks about its key moment. Algorithms without one yet ask nothing. */
+export const sortQuestions = (run: Timeline, algorithm: Algorithm): Question[] =>
+  algorithm === "insertion" ? insertionQuestions(run) : [];
