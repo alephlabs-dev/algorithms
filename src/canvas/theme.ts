@@ -31,11 +31,22 @@ const variables: Record<keyof CanvasColors, string> = {
   mud: "--color-mud",
 };
 
-/** The current theme's colors, as hex strings. */
+// The build's CSS minifier rewrites colors in their shortest form ("gold" for #ffd700, #fff).
+// A canvas reads back any opaque color it's given as #rrggbb, so colors pass through one.
+let probe: CanvasRenderingContext2D | null | undefined;
+const toHex = (color: string) => {
+  probe ??= document.createElement("canvas").getContext("2d");
+  if (!probe) return color;
+  probe.fillStyle = "#000000";
+  probe.fillStyle = color;
+  return String(probe.fillStyle);
+};
+
+/** The current theme's colors, as #rrggbb strings. */
 export const readColors = (): CanvasColors => {
   const style = getComputedStyle(document.documentElement);
   return Object.fromEntries(
-    Object.entries(variables).map(([key, name]) => [key, style.getPropertyValue(name).trim()])
+    Object.entries(variables).map(([key, name]) => [key, toHex(style.getPropertyValue(name).trim())])
   ) as CanvasColors;
 };
 
