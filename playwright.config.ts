@@ -16,6 +16,9 @@ export default defineConfig({
     locale: 'es-AR',
     timezoneId: 'America/Argentina/Buenos_Aires',
     colorScheme: 'light',
+    // Canvas demos (hero, module previews) animate with requestAnimationFrame, which
+    // `animations: 'disabled'` doesn't stop. Reduced motion makes them render their last frame.
+    reducedMotion: 'reduce',
   },
   expect: {
     toHaveScreenshot: { maxDiffPixelRatio: 0.01, animations: 'disabled' },

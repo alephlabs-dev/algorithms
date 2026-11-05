@@ -16,6 +16,8 @@ ci: check test ## everything CI runs
 # ---- web module (appended by /project-kit) ----
 # Keep this tag equal to the installed @playwright/test version (pnpm exec playwright --version).
 PLAYWRIGHT_IMAGE := mcr.microsoft.com/playwright:v1.64.1-noble
+# The image has no corepack: install the pnpm pinned in package.json (packageManager).
+PNPM := $(shell node -p "require('./package.json').packageManager.split('+')[0]")
 
 .PHONY: e2e e2e-visual baselines
 
@@ -27,4 +29,4 @@ e2e-visual: ## full run including screenshot comparison (CI, Linux only)
 
 baselines: ## regenerate screenshot baselines inside Linux. Needs Docker. Human only.
 	docker run --rm --ipc=host -v "$(CURDIR)":/work -v /work/node_modules -w /work $(PLAYWRIGHT_IMAGE) \
-		sh -c "corepack enable && pnpm install --frozen-lockfile && pnpm exec playwright test --update-snapshots"
+		sh -c "npm install -g $(PNPM) && pnpm install --frozen-lockfile --store-dir /tmp/pnpm-store && pnpm exec playwright test --update-snapshots=all"
