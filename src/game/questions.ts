@@ -4,6 +4,7 @@ import type { HashFrame, StructureRun, TreeFrame } from "@/structures";
 import type { Algorithm } from "@/types";
 import { narrateDp } from "@/utils/narrateDp";
 import { quickQuestions, shellQuestions } from "./sortPartitions";
+import { bubbleQuestions, cocktailQuestions, selectionQuestions } from "./sortPasses";
 
 /** An empty spot in a tree where a new value could go: under `parent`, on `side`. */
 export type Slot = {
@@ -225,7 +226,10 @@ const insertionQuestions = (run: Timeline): Question[] => {
 
 /** Each sorting algorithm's key-moment questions; one entry per algorithm. */
 const sortBuilders: Partial<Record<Algorithm, (run: Timeline) => Question[]>> = {
+  selection: selectionQuestions,
   insertion: insertionQuestions,
+  bubble: bubbleQuestions,
+  cocktail: cocktailQuestions,
   shell: shellQuestions,
   quick: quickQuestions,
 };
