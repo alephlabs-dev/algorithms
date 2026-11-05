@@ -8,42 +8,76 @@ import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import type { Route } from "@/routes";
 import { cn } from "@/utils/cn";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    sorting: "About sorting algorithms",
+    pathfinding: "About pathfinding algorithms",
+    graphs: "About graph algorithms",
+    fourier: "About Fourier series",
+    structures: "About these data structures",
+    dp: "About dynamic programming",
+    dpRace: "What memoizing saves",
+    dpProblem: (title: string) => `How ${title.toLowerCase()} works`,
+    structure: (title: string) => `How the ${title} works`,
+    structureRace: "Why balancing matters",
+    series: (title: string) => `How the ${title} works`,
+    algorithm: (title: string) => `How ${title} works`,
+    race: "How the race works",
+  },
+  es: {
+    sorting: "Sobre los algoritmos de ordenamiento",
+    pathfinding: "Sobre los algoritmos de búsqueda de caminos",
+    graphs: "Sobre los algoritmos de grafos",
+    fourier: "Sobre las series de Fourier",
+    structures: "Sobre estas estructuras de datos",
+    dp: "Sobre la programación dinámica",
+    dpRace: "Lo que ahorra memorizar",
+    dpProblem: (title) => `Cómo funciona: ${title}`,
+    structure: (title) => `Cómo funciona: ${title}`,
+    structureRace: "Por qué importa balancear",
+    series: (title) => `Cómo funciona: ${title}`,
+    algorithm: (title) => `Cómo funciona ${title}`,
+    race: "Cómo funciona la carrera",
+  },
+});
 
 const labelFor = (route: Route) => {
   switch (route.kind) {
     case "home":
     case "sorting":
-      return "About sorting algorithms";
+      return text.sorting;
     case "pathfinding":
-      return "About pathfinding algorithms";
+      return text.pathfinding;
     case "graphs":
-      return "About graph algorithms";
+      return text.graphs;
     case "fourier":
-      return "About Fourier series";
+      return text.fourier;
     case "structures":
-      return "About these data structures";
+      return text.structures;
     case "dp":
-      return "About dynamic programming";
+      return text.dp;
     case "dpRace":
-      return "What memoizing saves";
+      return text.dpRace;
     case "dpProblem":
-      return `How ${dpProblems[route.algorithm].title.toLowerCase()} works`;
+      return text.dpProblem(dpProblems[route.algorithm].title);
     case "structure":
-      return `How the ${structures[route.algorithm].title} works`;
+      return text.structure(structures[route.algorithm].title);
     case "structureRace":
-      return "Why balancing matters";
+      return text.structureRace;
     case "series":
-      return `How the ${fourierSeries[route.algorithm].title} works`;
+      return text.series(fourierSeries[route.algorithm].title);
     case "graph":
-      return `How ${graphAlgorithms[route.algorithm].title} works`;
+      return text.algorithm(graphAlgorithms[route.algorithm].title);
     case "race":
     case "pathRace":
     case "graphRace":
-      return "How the race works";
+      return text.race;
     case "path":
-      return `How ${pathAlgorithms[route.algorithm].title} works`;
+      return text.algorithm(pathAlgorithms[route.algorithm].title);
     case "algorithm":
-      return `How ${sortingAlgorithms[route.algorithm].title} works`;
+      return text.algorithm(sortingAlgorithms[route.algorithm].title);
   }
 };
 

@@ -5,6 +5,37 @@ import { structures } from "./structures";
 import { graphAlgorithms } from "./graphAlgorithms";
 import { pathAlgorithms } from "./pathAlgorithms";
 import { sortingAlgorithms } from "./sortingAlgorithms";
+import { localized } from "@/i18n";
+
+// The landing page's summaries are translated with the landing page (#69).
+const text = localized({
+  en: {
+    sorting: "Sorting",
+    pathfinding: "Pathfinding",
+    graphs: "Graphs",
+    fourier: "Fourier series",
+    structures: "Data structures",
+    dp: "Dynamic programming",
+    algorithms: (n: number) => `${n} algorithms`,
+    searches: (n: number) => `${n} searches`,
+    series: (n: number) => `${n} series`,
+    structureCount: (n: number) => `${n} structures`,
+    problems: (n: number) => `${n} problems`,
+  },
+  es: {
+    sorting: "Ordenamiento",
+    pathfinding: "Búsqueda de caminos",
+    graphs: "Grafos",
+    fourier: "Series de Fourier",
+    structures: "Estructuras de datos",
+    dp: "Programación dinámica",
+    algorithms: (n) => `${n} algoritmos`,
+    searches: (n) => `${n} búsquedas`,
+    series: (n) => `${n} series`,
+    structureCount: (n) => `${n} estructuras`,
+    problems: (n) => `${n} problemas`,
+  },
+});
 
 export type ModuleInfo = {
   id: string;
@@ -20,44 +51,44 @@ export type ModuleInfo = {
 export const modules: ModuleInfo[] = [
   {
     id: "sorting",
-    title: "Sorting",
+    title: text.sorting,
     summary: "Selection, Insertion, Bubble, Cocktail, Shell, Quick, Merge, Heap and Radix Sort.",
-    count: `${Object.keys(sortingAlgorithms).length} algorithms`,
+    count: text.algorithms(Object.keys(sortingAlgorithms).length),
     route: { kind: "sorting" },
   },
   {
     id: "pathfinding",
-    title: "Pathfinding",
+    title: text.pathfinding,
     summary: "Breadth-first, depth-first, Dijkstra, A* and greedy search, on a grid you draw.",
-    count: `${Object.keys(pathAlgorithms).length} searches`,
+    count: text.searches(Object.keys(pathAlgorithms).length),
     route: { kind: "pathfinding" },
   },
   {
     id: "graphs",
-    title: "Graphs",
+    title: text.graphs,
     summary: "BFS, DFS, Dijkstra, Prim, Kruskal and topological sort on a graph you can reshape.",
-    count: `${Object.keys(graphAlgorithms).length} algorithms`,
+    count: text.algorithms(Object.keys(graphAlgorithms).length),
     route: { kind: "graphs" },
   },
   {
     id: "fourier",
-    title: "Fourier series",
+    title: text.fourier,
     summary: "Square, sawtooth and triangle waves built from circles, and circles on circles that draw any shape.",
-    count: `${Object.keys(fourierSeries).length} series`,
+    count: text.series(Object.keys(fourierSeries).length),
     route: { kind: "fourier" },
   },
   {
     id: "structures",
-    title: "Data structures",
+    title: text.structures,
     summary: "Search trees, AVL rotations, a min-heap and hash tables you insert into, search and delete from.",
-    count: `${Object.keys(structures).length} structures`,
+    count: text.structureCount(Object.keys(structures).length),
     route: { kind: "structures" },
   },
   {
     id: "dp",
-    title: "Dynamic programming",
+    title: text.dp,
     summary: "Edit distance, the longest common subsequence and the knapsack, one table cell at a time, and a race against plain recursion.",
-    count: `${Object.keys(dpProblems).length} problems`,
+    count: text.problems(Object.keys(dpProblems).length),
     route: { kind: "dp" },
   },
 ];

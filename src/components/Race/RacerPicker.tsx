@@ -3,12 +3,28 @@ import { useModuleUI } from "@/modules";
 import { MAX_RACERS, MIN_RACERS, useStore } from "@/store";
 import { ListItem } from "../ui/list-item";
 import { SectionLabel } from "../ui/section-label";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    atLeast: (min: number) => `At least ${min} racers`,
+    upToRemove: (max: number) => `Up to ${max} racers: remove one first`,
+    racers: "Racers",
+    upTo: (max: number) => `Up to ${max} racers. Remove one to add another.`,
+  },
+  es: {
+    atLeast: (min) => `Al menos ${min} competidores`,
+    upToRemove: (max) => `Hasta ${max} competidores: quita uno primero`,
+    racers: "Competidores",
+    upTo: (max) => `Hasta ${max} competidores. Quita uno para agregar otro.`,
+  },
+});
 
 /** Why a racer can't be toggled right now, if it can't. */
 const blockedReason = (selected: string[], id: string) => {
   const isOn = selected.includes(id);
-  if (isOn && selected.length <= MIN_RACERS) return `At least ${MIN_RACERS} racers`;
-  if (!isOn && selected.length >= MAX_RACERS) return `Up to ${MAX_RACERS} racers: remove one first`;
+  if (isOn && selected.length <= MIN_RACERS) return text.atLeast(MIN_RACERS);
+  if (!isOn && selected.length >= MAX_RACERS) return text.upToRemove(MAX_RACERS);
   return undefined;
 };
 
@@ -22,7 +38,7 @@ export const RacerList = ({ showHeader = true }: { showHeader?: boolean }) => {
       {/* Hidden where the surrounding sheet already has a "Racers" title. */}
       {showHeader && (
         <div className="flex items-baseline justify-between px-3">
-          <SectionLabel>Racers</SectionLabel>
+          <SectionLabel>{text.racers}</SectionLabel>
           <span className="font-mono text-xs text-foreground/60">
             {selected.length}/{MAX_RACERS}
           </span>
@@ -49,7 +65,7 @@ export const RacerList = ({ showHeader = true }: { showHeader?: boolean }) => {
         </div>
       ))}
       {selected.length >= MAX_RACERS && (
-        <p className="px-3 text-xs text-foreground/70">Up to {MAX_RACERS} racers. Remove one to add another.</p>
+        <p className="px-3 text-xs text-foreground/70">{text.upTo(MAX_RACERS)}</p>
       )}
     </div>
   );

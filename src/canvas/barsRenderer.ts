@@ -1,6 +1,9 @@
 import type { Frame } from "@/algorithms";
 import { smoothDamp } from "./smoothDamp";
 import { hexToRgb, readColors, type CanvasColors, type RGB } from "./theme";
+import { localized } from "@/i18n";
+
+const PIVOT = localized({ en: "pivot", es: "pivote" });
 
 export type DisplayMode = "bars" | "numbers";
 
@@ -465,9 +468,9 @@ export class BarsRenderer {
       ctx.fillText(String(value), x, top - 8);
       if (isPivot) {
         // Wider than its bar: kept inside the canvas when the pivot is at either end.
-        const half = ctx.measureText("pivot").width / 2;
+        const half = ctx.measureText(PIVOT).width / 2;
         ctx.fillStyle = colors.muted;
-        ctx.fillText("pivot", Math.min(Math.max(x, half), this.width - half), top - 24);
+        ctx.fillText(PIVOT, Math.min(Math.max(x, half), this.width - half), top - 24);
       }
     });
     ctx.globalAlpha = 1;

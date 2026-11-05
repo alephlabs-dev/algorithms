@@ -8,11 +8,38 @@ import { algorithmGroups } from "@/consts/algorithmGroups";
 import { inputOrders } from "@/consts/inputOrders";
 import { RACE_DESCRIPTION } from "@/consts/race";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
+import { localized } from "@/i18n";
 import { selectFrame, useStore } from "@/store";
 import type { Algorithm } from "@/types";
 import { narrate } from "@/utils/narrate";
 import { sortingTour } from "./tours";
 import type { ModuleUI } from "./types";
+
+const text = localized({
+  en: {
+    title: "Sorting",
+    bars: "bars",
+    numbers: "numbers",
+    items: (n: number) => `${n} items`,
+    newRun: "New array",
+    always: (o: string) => `${o} always`,
+    avgWorst: (avg: string, worst: string) => `${avg} avg · ${worst} worst`,
+    tagline: "Same array, same clock",
+    unit: { one: "operation", short: "ops" },
+  },
+  es: {
+    title: "Ordenamiento",
+    bars: "barras",
+    numbers: "números",
+    items: (n) => `${n} elementos`,
+    newRun: "Nuevo arreglo",
+    always: (o) => `${o} siempre`,
+    // "prom. · peor" runs past the top bar at 1280px; the info popover has the full table.
+    avgWorst: (avg, worst) => `${avg} · peor ${worst}`,
+    tagline: "Mismo arreglo, mismo reloj",
+    unit: { one: "operación", short: "ops" },
+  },
+});
 
 /** Short enough for a field listing four racers on a phone. */
 const shortName = (algorithm: Algorithm) =>
@@ -20,7 +47,7 @@ const shortName = (algorithm: Algorithm) =>
 
 export const sortingUI: ModuleUI = {
   id: "sorting",
-  title: "Sorting",
+  title: text.title,
 
   Stage: AlgorithmVisualizer,
   Legend,
@@ -31,10 +58,10 @@ export const sortingUI: ModuleUI = {
   settingsSummary: (s) => {
     const input = inputOrders[s.inputOrder].label;
     // Race lanes always draw bars, so the display mode only matters in single view.
-    const display = s.view === "race" ? "" : `, ${s.displayMode === "bars" ? "bars" : "numbers"}`;
-    return { main: String(s.size), detail: input, mono: true, label: `${s.size} items, ${input}${display}` };
+    const display = s.view === "race" ? "" : `, ${s.displayMode === "bars" ? text.bars : text.numbers}`;
+    return { main: String(s.size), detail: input, mono: true, label: `${text.items(s.size)}, ${input}${display}` };
   },
-  newRunLabel: "New array",
+  newRunLabel: text.newRun,
 
   algorithms: algorithmGroups.map((group) => ({
     label: group.label,
@@ -47,15 +74,15 @@ export const sortingUI: ModuleUI = {
   about: (s) => sortingAlgorithms[s.activeAlgorithm],
   summary: (s) => {
     const { average, worst } = sortingAlgorithms[s.activeAlgorithm].timeComplexity;
-    return average === worst ? `${average} always` : `${average} avg · ${worst} worst`;
+    return average === worst ? text.always(average) : text.avgWorst(average, worst);
   },
   race: {
     Stage: RaceLanes,
     racers: (s) => s.raceAlgorithms,
     toggleRacer: (id) => useStore.getState().toggleRaceAlgorithm(id as Algorithm),
-    tagline: "Same array, same clock",
+    tagline: text.tagline,
     description: RACE_DESCRIPTION,
-    unit: { one: "operation", short: "ops" },
+    unit: text.unit,
   },
 
   code: {

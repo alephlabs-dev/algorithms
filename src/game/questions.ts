@@ -1,9 +1,10 @@
 import type { Timeline } from "@/algorithms/timeline";
 import { KnapsackRun, type TableRun } from "@/dp";
 import type { HashFrame, StructureRun, TreeFrame } from "@/structures";
+import { localized } from "@/i18n";
 import type { Algorithm } from "@/types";
 import { narrateDp } from "@/utils/narrateDp";
-import { choicesAround } from "./choices";
+import { choicesAround, verdict } from "./choices";
 import { heapQuestions, mergeQuestions } from "./sortMergeHeap";
 import { quickQuestions, shellQuestions } from "./sortPartitions";
 import { bubbleQuestions, cocktailQuestions, selectionQuestions } from "./sortPasses";
@@ -46,6 +47,63 @@ export type Question =
 
 export type Answer = string | number | boolean;
 
+type Side = "left" | "right";
+
+const text = localized({
+  en: {
+    slot: (side: Side, value: number) => `${side} of ${value}`,
+    whereLands: (value: number) => `Where will ${value} land? Tap a spot.`,
+    goesTo: (side: Side, parent: number | undefined) => `It goes ${side} of ${parent}`,
+    inOrOut: (insert: boolean, value: number) => `${insert ? `${value} is in` : `${value} is out`}. Will the tree have to rotate?`,
+    rotates: (rotations: number): string => (rotations ? "It does" : "It doesn't"),
+    rotateWhy: (rotations: number) =>
+      rotations
+        ? `one side got two taller, so ${rotations === 1 ? "a rotation fixes it" : `${rotations} rotations fix it`}.`
+        : "every balance stays between −1 and +1.",
+    climb: (value: number) => `${value} is at the bottom. How many swaps up will it take?`,
+    takes: (swaps: number) => `It takes ${swaps}`,
+    climbWhy: (swaps: number): string =>
+      swaps ? `it climbs while it's smaller than its parent.` : `it's no smaller than its parent, so it stays.`,
+    slotOf: (value: number, size: number) => `Which slot will ${value} end up in? (${size} slots)`,
+    bucketOf: (value: number, size: number) => `Which bucket does ${value} go in? (${size} buckets)`,
+    walksOn: (lands: number) => `, taken, so it walks on to ${lands}`,
+    corner: "The corner: what's the answer?",
+    bestValue: (room: number) => `Best value with room ${room}?`,
+    cell: "What goes in this cell?",
+    slides: (value: number) => `${value} joins the sorted part. How many places does it move left?`,
+    slidesWhy: (value: number, moves: number) =>
+      moves === 0
+        ? `${value} is already at least as big as the value before it.`
+        : `${value} slides past ${moves} bigger value${moves === 1 ? "" : "s"}.`,
+  },
+  es: {
+    slot: (side, value) => `${side === "left" ? "izquierda" : "derecha"} de ${value}`,
+    whereLands: (value) => `¿Dónde caerá ${value}? Toca un lugar.`,
+    goesTo: (side, parent) => `Va a la ${side === "left" ? "izquierda" : "derecha"} de ${parent}`,
+    inOrOut: (insert, value) => `${value} ya ${insert ? "entró" : "salió"}. ¿Tendrá que rotar el árbol?`,
+    rotates: (rotations) => (rotations ? "Sí rota" : "No rota"),
+    rotateWhy: (rotations) =>
+      rotations
+        ? `un lado quedó dos niveles más alto, así que ${rotations === 1 ? "una rotación lo arregla" : `${rotations} rotaciones lo arreglan`}.`
+        : "todos los balances quedan entre −1 y +1.",
+    climb: (value) => `${value} está al fondo. ¿Cuántos intercambios hará para subir?`,
+    takes: (swaps) => `Hace ${swaps}`,
+    climbWhy: (swaps) =>
+      swaps ? "sube mientras sea menor que su padre." : "no es menor que su padre, así que se queda.",
+    slotOf: (value, size) => `¿En qué casilla terminará ${value}? (${size} casillas)`,
+    bucketOf: (value, size) => `¿En qué cubeta va ${value}? (${size} cubetas)`,
+    walksOn: (lands) => `, ocupada, así que sigue hasta ${lands}`,
+    corner: "La esquina: ¿cuál es la respuesta?",
+    bestValue: (room) => `¿Mejor valor con capacidad ${room}?`,
+    cell: "¿Qué va en esta celda?",
+    slides: (value) => `${value} entra en la parte ordenada. ¿Cuántos lugares se mueve a la izquierda?`,
+    slidesWhy: (value, moves) =>
+      moves === 0
+        ? `${value} ya es al menos tan grande como el valor anterior.`
+        : `${value} se desliza más allá de ${moves === 1 ? "1 valor mayor" : `${moves} valores mayores`}.`,
+  },
+});
+
 const slotKey = (parent: number, side: "left" | "right") => `${parent}${side[0]}`;
 
 /** Every empty child spot in a tree, left to right as they appear on screen. */
@@ -55,7 +113,7 @@ const emptySlots = (frame: TreeFrame): Slot[] =>
     .flatMap((n) =>
       (["left", "right"] as const)
         .filter((side) => n[side] === null)
-        .map((side) => ({ key: slotKey(n.id, side), parent: n.id, side, label: `${side} of ${n.value}` })),
+        .map((side) => ({ key: slotKey(n.id, side), parent: n.id, side, label: text.slot(side, n.value) })),
     );
 
 const valueIn = (frame: TreeFrame, id: number) => frame.nodes.find((n) => n.id === id)?.value;
@@ -87,10 +145,10 @@ export const structureQuestions = (run: StructureRun): Question[] => {
           at: start + 1,
           run,
           value: op.value,
-          prompt: `Where will ${op.value} land? Tap a spot.`,
+          prompt: text.whereLands(op.value),
           slots: emptySlots(before),
           answer: slotKey(place.parent, place.side),
-          explain: (right) => `${right ? "Right" : `It goes ${place.side} of ${parent}`}: ${path}.`,
+          explain: (right) => `${right ? verdict.right : text.goesTo(place.side, parent)}: ${path}.`,
         });
       }
       // AVL: once the value is in (or out), will it have to rotate?
@@ -102,13 +160,8 @@ export const structureQuestions = (run: StructureRun): Question[] => {
           at: start + changed + 1,
           run,
           answer: rotations > 0,
-          prompt: `${op.kind === "insert" ? `${op.value} is in` : `${op.value} is out`}. Will the tree have to rotate?`,
-          explain: (right) =>
-            `${right ? "Right" : rotations ? "It does" : "It doesn't"}: ${
-              rotations
-                ? `one side got two taller, so ${rotations === 1 ? "a rotation fixes it" : `${rotations} rotations fix it`}.`
-                : "every balance stays between −1 and +1."
-            }`,
+          prompt: text.inOrOut(op.kind === "insert", op.value),
+          explain: (right) => `${right ? verdict.right : text.rotates(rotations)}: ${text.rotateWhy(rotations)}`,
         });
       }
     }
@@ -123,13 +176,10 @@ export const structureQuestions = (run: StructureRun): Question[] => {
           kind: "choice",
           at: start + appended + 1,
           run,
-          prompt: `${op.value} is at the bottom. How many swaps up will it take?`,
+          prompt: text.climb(op.value),
           options: choicesAround(swaps, [0, 1, 2, levels], 0, levels),
           answer: swaps,
-          explain: (right) =>
-            `${right ? "Right" : `It takes ${swaps}`}: ${
-              swaps ? `it climbs while it's smaller than its parent.` : `it's no smaller than its parent, so it stays.`
-            }`,
+          explain: (right) => `${right ? verdict.right : text.takes(swaps)}: ${text.climbWhy(swaps)}`,
         });
       }
     }
@@ -145,14 +195,12 @@ export const structureQuestions = (run: StructureRun): Question[] => {
           kind: "choice",
           at: start + 1,
           run,
-          prompt: probing
-            ? `Which slot will ${op.value} end up in? (${size} slots)`
-            : `Which bucket does ${op.value} go in? (${size} buckets)`,
+          prompt: probing ? text.slotOf(op.value, size) : text.bucketOf(op.value, size),
           options: choicesAround(lands, [home, (home + 1) % size, (home + 2) % size, (lands + 1) % size], 0, size - 1),
           answer: lands,
           explain: (right) =>
-            `${right ? "Right" : `It's ${lands}`}: ${op.value} mod ${size} = ${home}${
-              probing && lands !== home ? `, taken, so it walks on to ${lands}` : ""
+            `${right ? verdict.right : verdict.its(lands)}: ${op.value} mod ${size} = ${home}${
+              probing && lands !== home ? text.walksOn(lands) : ""
             }.`,
         });
       }
@@ -182,14 +230,10 @@ export const dpQuestions = (run: TableRun): Question[] => {
       at,
       run,
       cell: { i: e.i, j: e.j },
-      prompt: corner
-        ? "The corner: what's the answer?"
-        : knapsack
-          ? `Best value with room ${e.j}?`
-          : "What goes in this cell?",
+      prompt: corner ? text.corner : knapsack ? text.bestValue(e.j) : text.cell,
       options: choicesAround(e.value, near, 0),
       answer: e.value,
-      explain: (right) => `${right ? "Right" : `It's ${e.value}`}. ${narrateDp(run, at)}`,
+      explain: (right) => `${right ? verdict.right : verdict.its(e.value)}. ${narrateDp(run, at)}`,
     });
   });
   return questions;
@@ -212,16 +256,11 @@ const insertionQuestions = (run: Timeline): Question[] => {
       // Asked with the pass lit on screen, before its first comparison.
       at: lit + 1,
       run,
-      prompt: `${value} joins the sorted part. How many places does it move left?`,
+      prompt: text.slides(value),
       options: choicesAround(moves, [], 0, picked),
       answer: moves,
       labels: [run.frameAt(lit).order[picked]],
-      explain: (right) =>
-        `${right ? "Right" : `It's ${moves}`}: ${
-          moves === 0
-            ? `${value} is already at least as big as the value before it.`
-            : `${value} slides past ${moves} bigger value${moves === 1 ? "" : "s"}.`
-        }`,
+      explain: (right) => `${right ? verdict.right : verdict.its(moves)}: ${text.slidesWhy(value, moves)}`,
     };
   });
 };

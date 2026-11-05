@@ -3,8 +3,22 @@ import { selectLastIndex, useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { useModuleUI } from "@/modules";
 import { Slider } from "../ui/slider";
+import { lang, localized } from "@/i18n";
 
-const format = (n: number) => n.toLocaleString("en-US");
+const text = localized({
+  en: {
+    progress: "Progress",
+    step: "step",
+    position: (unit: string, at: string, last: string) => `${unit} ${at} of ${last}`,
+  },
+  es: {
+    progress: "Progreso",
+    step: "paso",
+    position: (unit, at, last) => `${unit} ${at} de ${last}`,
+  },
+});
+
+const format = (n: number) => n.toLocaleString(lang === "es" ? "es" : "en-US");
 
 /** The timeline with the position and the counters under it. Kept apart from the dock because it re-renders on every frame. */
 export const Progress = ({ className }: { className?: string }) => {
@@ -18,15 +32,15 @@ export const Progress = ({ className }: { className?: string }) => {
       isRace: s.view === "race",
     }))
   );
-  const unit = isRace && race ? race.unit.one : "step";
+  const unit = isRace && race ? race.unit.one : text.step;
   // A module can count its own way (Fourier counts degrees).
   const custom = !isRace && progress ? progress(frameIndex, lastIndex) : null;
 
   return (
     <div className={cn("flex min-w-0 flex-col gap-2.5", className)}>
       <Slider
-        aria-label="Progress"
-        aria-valuetext={custom ?? `${unit} ${format(frameIndex)} of ${format(lastIndex)}`}
+        aria-label={text.progress}
+        aria-valuetext={custom ?? text.position(unit, format(frameIndex), format(lastIndex))}
         value={[frameIndex]}
         min={0}
         max={lastIndex}
@@ -40,7 +54,7 @@ export const Progress = ({ className }: { className?: string }) => {
         <span aria-hidden className="whitespace-nowrap">
           {custom ?? (
             <>
-              {isRace ? "" : "step "}
+              {isRace ? "" : `${text.step} `}
               {format(frameIndex)} / {format(lastIndex)}
               {isRace && race && ` ${race.unit.short}`}
             </>

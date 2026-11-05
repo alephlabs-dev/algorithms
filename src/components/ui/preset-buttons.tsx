@@ -1,5 +1,11 @@
 import { UpdateIcon } from "@radix-ui/react-icons";
 import { cn } from "@/utils/cn";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: { layouts: "Layouts", another: (title: string) => `${title} (another one)` },
+  es: { layouts: "Disposiciones", another: (title) => `${title} (otra más)` },
+});
 
 type Preset<T extends string> = { value: T; label: string; title: string };
 
@@ -11,7 +17,7 @@ export const PresetButtons = <T extends string>({
   presets,
   current,
   onPick,
-  label = "Layouts",
+  label = text.layouts,
   className,
 }: {
   presets: Preset<T>[];
@@ -27,7 +33,7 @@ export const PresetButtons = <T extends string>({
         <button
           key={p.value}
           type="button"
-          title={isCurrent ? `${p.title} (another one)` : p.title}
+          title={isCurrent ? text.another(p.title) : p.title}
           aria-pressed={isCurrent}
           onClick={() => onPick(p.value)}
           className={cn(

@@ -1,3 +1,4 @@
+import { localized } from "@/i18n";
 import { encodePath } from "@/fourier/shapes";
 import { encodeGraph } from "@/graphs/graph";
 import { encodeCells } from "@/pathfinding/grid";
@@ -41,9 +42,13 @@ export type ModuleEngine = {
  * The sizes Guess plays with in sorting, in words ("10 or 20"); the tour says them too.
  * Bigger arrays have bars too thin to follow and too many moments to stop at.
  */
-export const sortGuessSizes = sizes.filter((size) => size <= SORT_GUESS_MAX_SIZE).join(" or ");
+const guessText = localized({
+  en: { or: " or ", unavailable: (sizes: string) => `Guess works with ${sizes} items` },
+  es: { or: " o ", unavailable: (sizes) => `Adivina funciona con ${sizes} elementos` },
+});
+export const sortGuessSizes = sizes.filter((size) => size <= SORT_GUESS_MAX_SIZE).join(guessText.or);
 const sortGuessUnavailable = (s: StoreState) =>
-  s.size <= SORT_GUESS_MAX_SIZE ? null : `Guess works with ${sortGuessSizes} items`;
+  s.size <= SORT_GUESS_MAX_SIZE ? null : guessText.unavailable(sortGuessSizes);
 
 export const engines: Record<ModuleId, ModuleEngine> = {
   sorting: {

@@ -1,4 +1,4 @@
-import { moduleOf, routeFromPath, routePath, type Route } from "./routes";
+import { href, moduleOf, routeFromPath, routePath, type Route } from "./routes";
 import { applyHead } from "./seo/head";
 import { tourDone, useStore, type StoreState } from "./store";
 import { engines } from "./modules/engine";
@@ -122,7 +122,7 @@ export const startUrlSync = () => {
     window.clearTimeout(timeout);
     const state = useStore.getState();
     const route = routeFor(state);
-    const url = routePath(route) + searchFor(state);
+    const url = href(route) + searchFor(state);
     if (mode === "push") window.history.pushState(null, "", url);
     else window.history.replaceState(null, "", url);
     applyHead(route);

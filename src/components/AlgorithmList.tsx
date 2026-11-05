@@ -2,13 +2,19 @@ import { useModuleUI } from "@/modules";
 import { useStore } from "@/store";
 import { ListItem } from "./ui/list-item";
 import { SectionLabel } from "./ui/section-label";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: { algorithms: "Algorithms" },
+  es: { algorithms: "Algoritmos" },
+});
 
 /** The module's algorithms, in its groups (sorting groups them by how they scale). */
 export const AlgorithmList = ({ onPick }: { onPick?: () => void }) => {
   const { algorithms, current, pick } = useModuleUI();
   const selected = useStore(current);
   return (
-    <nav aria-label="Algorithms" className="flex flex-col gap-4">
+    <nav aria-label={text.algorithms} className="flex flex-col gap-4">
       {algorithms.map((group, k) => (
         <div key={group.label ?? k} className="flex flex-col gap-1">
           {group.label && (

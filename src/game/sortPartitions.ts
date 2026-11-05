@@ -1,6 +1,34 @@
 import type { Timeline } from "@/algorithms/timeline";
-import { choicesAround } from "./choices";
+import { localized } from "@/i18n";
+import { choicesAround, verdict } from "./choices";
 import type { Question } from "./questions";
+
+const text = localized({
+  en: {
+    quick: (value: number) => `How many values in this partition are smaller than the pivot, ${value}?`,
+    quickWhy: (value: number, smaller: number) =>
+      smaller === 0
+        ? `nothing here is smaller than ${value}, so it lands first in this partition.`
+        : `${smaller} value${smaller === 1 ? " goes" : "s go"} before ${value}, so it lands right after ${smaller === 1 ? "it" : "them"}.`,
+    shell: (gap: number, value: number) => `Gap ${gap}: how many gap-steps does ${value} move back?`,
+    shellWhy: (gap: number, value: number, moves: number) =>
+      moves === 0
+        ? `the value ${gap} places before ${value} is no bigger, so it stays.`
+        : `${value} jumps back ${gap} places at a time, past ${moves} bigger value${moves === 1 ? "" : "s"} in its group.`,
+  },
+  es: {
+    quick: (value) => `¿Cuántos valores de esta partición son menores que el pivote, ${value}?`,
+    quickWhy: (value, smaller) =>
+      smaller === 0
+        ? `aquí nada es menor que ${value}, así que queda primero en esta partición.`
+        : `${smaller === 1 ? "1 valor va" : `${smaller} valores van`} antes de ${value}, así que queda justo después.`,
+    shell: (gap, value) => `Salto ${gap}: ¿cuántos saltos retrocede ${value}?`,
+    shellWhy: (gap, value, moves) =>
+      moves === 0
+        ? `el valor ${gap} lugares antes de ${value} no es mayor, así que se queda.`
+        : `${value} retrocede de ${gap} en ${gap} lugares y pasa ${moves === 1 ? "1 valor mayor" : `${moves} valores mayores`} de su grupo.`,
+  },
+});
 
 /**
  * Quick sort: how many values in a partition are smaller than its pivot, which
@@ -26,16 +54,11 @@ export const quickQuestions = (run: Timeline): Question[] => {
       // Asked with the partition lit and its pivot marked, before the first comparison.
       at: lit + 1,
       run,
-      prompt: `How many values in this partition are smaller than the pivot, ${value}?`,
+      prompt: text.quick(value),
       options: choicesAround(smaller, [], 0, size - 1),
       answer: smaller,
       labels: [pivot],
-      explain: (right) =>
-        `${right ? "Right" : `It's ${smaller}`}: ${
-          smaller === 0
-            ? `nothing here is smaller than ${value}, so it lands first in this partition.`
-            : `${smaller} value${smaller === 1 ? " goes" : "s go"} before ${value}, so it lands right after ${smaller === 1 ? "it" : "them"}.`
-        }`,
+      explain: (right) => `${right ? verdict.right : verdict.its(smaller)}: ${text.quickWhy(value, smaller)}`,
     });
   }
   return questions;
@@ -74,17 +97,12 @@ export const shellQuestions = (run: Timeline): Question[] => {
       // Asked before the pick-up frame shows: its first comparison's narration says whether it moves.
       at: lit,
       run,
-      prompt: `Gap ${gap}: how many gap-steps does ${value} move back?`,
+      prompt: text.shell(gap, value),
       options: choicesAround(moves, [], 0, behind),
       answer: moves,
       // The value and the gap group it moves back through, so the bigger ones can be counted.
       labels: temp,
-      explain: (right) =>
-        `${right ? "Right" : `It's ${moves}`}: ${
-          moves === 0
-            ? `the value ${gap} places before ${value} is no bigger, so it stays.`
-            : `${value} jumps back ${gap} places at a time, past ${moves} bigger value${moves === 1 ? "" : "s"} in its group.`
-        }`,
+      explain: (right) => `${right ? verdict.right : verdict.its(moves)}: ${text.shellWhy(gap, value, moves)}`,
     });
   });
   return questions;

@@ -5,9 +5,42 @@ import { graphAlgorithms } from "@/consts/graphAlgorithms";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { RACE_DESCRIPTION } from "@/consts/race";
-import { moduleOf, routePath, SITE_URL, type Route } from "@/routes";
+import { localized } from "@/i18n";
+import { href, moduleOf, SITE_URL, type Route } from "@/routes";
 
 export const SITE_NAME = "Aleph Labs Algorithms";
+
+// Sorting's pages, in both languages. Other modules are translated in their own sub-issues of #36.
+const sortingText = localized({
+  en: {
+    moduleTitle: "Sorting Algorithm Visualizer: 9 Algorithms Step by Step · Aleph Labs",
+    moduleDescription:
+      "Watch Bubble, Insertion, Quick, Merge, Heap, Radix Sort and more sort an array step by step, with the pseudocode lit up and every move explained.",
+    raceTitle: "Sorting Algorithm Race: Compare Algorithms Side by Side · Aleph Labs",
+    raceDescription: (description: string) => `Race up to four sorting algorithms on the same array. ${description}`.slice(0, 160),
+    algorithmTitle: (title: string) => `${title} Visualized Step by Step · Aleph Labs`,
+    algorithmDescription: (title: string, average: string) =>
+      `See how ${title} works: watch it sort an array step by step, follow the pseudocode line by line and compare it with other algorithms. ${average} on average.`,
+    section: "Sorting",
+    race: "Race",
+  },
+  es: {
+    moduleTitle: "Visualizador de algoritmos de ordenamiento: 9 algoritmos paso a paso · Aleph Labs",
+    moduleDescription:
+      "Mira cómo Bubble, Insertion, Quick, Merge, Heap, Radix Sort y más ordenan un arreglo paso a paso, con el pseudocódigo resaltado y cada movimiento explicado.",
+    raceTitle: "Carrera de algoritmos de ordenamiento: compáralos lado a lado · Aleph Labs",
+    raceDescription: (description) =>
+      `Haz competir hasta cuatro algoritmos de ordenamiento con el mismo arreglo. ${description}`.slice(0, 200),
+    algorithmTitle: (title) => `${title} paso a paso, visualizado · Aleph Labs`,
+    algorithmDescription: (title, average) =>
+      `Mira cómo funciona ${title}: ordena un arreglo paso a paso, sigue el pseudocódigo línea por línea y compáralo con otros algoritmos. ${average} en promedio.`,
+    section: "Ordenamiento",
+    race: "Carrera",
+  },
+});
+
+// The home page is translated with the landing page (#69).
+const ROOT_NAME = localized({ en: "Algorithms", es: "Algoritmos" });
 
 /** What search engines and social cards see for a page. */
 export type PageMeta = {
@@ -18,7 +51,7 @@ export type PageMeta = {
 };
 
 export const pageMeta = (route: Route): PageMeta => {
-  const path = routePath(route);
+  const path = href(route);
   const url = SITE_URL + (path === "/" ? "/" : path);
 
   if (route.kind === "home") {
@@ -34,9 +67,8 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "Sorting Algorithm Visualizer: 9 Algorithms Step by Step · Aleph Labs",
-      description:
-        "Watch Bubble, Insertion, Quick, Merge, Heap, Radix Sort and more sort an array step by step, with the pseudocode lit up and every move explained.",
+      title: sortingText.moduleTitle,
+      description: sortingText.moduleDescription,
     };
   }
   if (route.kind === "pathfinding") {
@@ -129,8 +161,8 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "Sorting Algorithm Race: Compare Algorithms Side by Side · Aleph Labs",
-      description: `Race up to four sorting algorithms on the same array. ${RACE_DESCRIPTION}`.slice(0, 160),
+      title: sortingText.raceTitle,
+      description: sortingText.raceDescription(RACE_DESCRIPTION),
     };
   }
   if (route.kind === "pathRace") {
@@ -183,8 +215,8 @@ export const pageMeta = (route: Route): PageMeta => {
   return {
     path,
     url,
-    title: `${title} Visualized Step by Step · Aleph Labs`,
-    description: `See how ${title} works: watch it sort an array step by step, follow the pseudocode line by line and compare it with other algorithms. ${timeComplexity.average} on average.`,
+    title: sortingText.algorithmTitle(title),
+    description: sortingText.algorithmDescription(title, timeComplexity.average),
   };
 };
 
@@ -209,7 +241,7 @@ export const structuredData = (route: Route): object[] => {
   }
   const module = moduleOf(route) ?? "sorting";
   const sectionNames = {
-    sorting: "Sorting",
+    sorting: sortingText.section,
     pathfinding: "Pathfinding",
     graphs: "Graphs",
     fourier: "Fourier series",
@@ -224,10 +256,11 @@ export const structuredData = (route: Route): object[] => {
     structures: { kind: "structures" },
     dp: { kind: "dp" },
   } as const;
-  const section = { name: sectionNames[module], url: `${SITE_URL}${routePath(sectionRoutes[module])}` };
+  const section = { name: sectionNames[module], url: `${SITE_URL}${href(sectionRoutes[module])}` };
   const name =
-    route.kind === "race" ||
-    route.kind === "pathRace" ||
+    route.kind === "race"
+      ? sortingText.race
+      : route.kind === "pathRace" ||
     route.kind === "graphRace" ||
     route.kind === "structureRace" ||
     route.kind === "dpRace"
@@ -246,7 +279,7 @@ export const structuredData = (route: Route): object[] => {
           ? sortingAlgorithms[route.algorithm].title
           : null;
   // Home › module › page; a module's own page stops at the module.
-  const trail = [{ name: "Algorithms", url: `${SITE_URL}/` }, section, ...(name ? [{ name, url: meta.url }] : [])];
+  const trail = [{ name: ROOT_NAME, url: `${SITE_URL}${href({ kind: "home" })}` }, section, ...(name ? [{ name, url: meta.url }] : [])];
   return [
     {
       "@context": "https://schema.org",

@@ -1,7 +1,14 @@
 import type { Timeline } from "@/algorithms/timeline";
+import { localized } from "@/i18n";
 import { seededRandom } from "@/utils/random";
 
 // Its own module so each algorithm's question builder can use it without importing questions.ts at runtime.
+
+/** How an explanation opens: "Right", or the answer when the guess missed. */
+export const verdict = localized({
+  en: { right: "Right", its: (answer: number) => `It's ${answer}` },
+  es: { right: "Correcto", its: (answer) => `Es ${answer}` },
+});
 
 /** Up to four numbers around `answer`, from `near` first, all different, in order. */
 export const choicesAround = (answer: number, near: number[], min = 0, max = Infinity) => {

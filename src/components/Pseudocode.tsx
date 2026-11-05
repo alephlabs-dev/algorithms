@@ -7,6 +7,22 @@ import { cn } from "@/utils/cn";
 import { stepsPerSecond } from "@/utils/speed";
 import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
 import { SectionLabel } from "./ui/section-label";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    tooFast: "Pause or slow down to follow each step.",
+    currentStep: "Current step",
+    pseudocode: "Pseudocode",
+    showPseudocode: (step: string) => `${step} Show pseudocode`,
+  },
+  es: {
+    tooFast: "Pausa o baja la velocidad para seguir cada paso.",
+    currentStep: "Paso actual",
+    pseudocode: "Pseudocódigo",
+    showPseudocode: (step) => `${step} Ver pseudocódigo`,
+  },
+});
 
 // Faster than this, a moving highlight can't be read, so the code and the
 // sentence step back until playback slows down or pauses.
@@ -38,15 +54,15 @@ const useNarration = () => {
   const tooFast = useStore(tooFastFor);
   const index = useThrottled(frameIndex, UPDATE_INTERVAL_MS);
   // Narrates from the store as it is now, at the throttled position.
-  const text = useStore((s) => (tooFast ? "" : code.narrate(s, index)));
-  if (tooFast) return { text: "Pause or slow down to follow each step.", muted: true };
-  return { text, muted: false };
+  const sentence = useStore((s) => (tooFast ? "" : code.narrate(s, index)));
+  if (tooFast) return { sentence: text.tooFast, muted: true };
+  return { sentence, muted: false };
 };
 
 const CodeLines = ({ lines, line }: { lines: string[]; line: number | null }) => (
   <ol className="flex flex-col font-mono text-[13px] leading-6">
-    {lines.map((text, k) => {
-      const indent = text.length - text.trimStart().length;
+    {lines.map((code, k) => {
+      const indent = code.length - code.trimStart().length;
       return (
         <li
           key={k}
@@ -58,7 +74,7 @@ const CodeLines = ({ lines, line }: { lines: string[]; line: number | null }) =>
             { "bg-secondary/20 text-foreground": k === line }
           )}
         >
-          {text.trimStart()}
+          {code.trimStart()}
         </li>
       );
     })}
@@ -66,10 +82,10 @@ const CodeLines = ({ lines, line }: { lines: string[]; line: number | null }) =>
 );
 
 const Narration = ({ className }: { className?: string }) => {
-  const { text, muted } = useNarration();
+  const { sentence, muted } = useNarration();
   return (
     <p aria-live="polite" className={cn("text-[15px] leading-snug", muted ? "text-foreground/60" : "text-foreground", className)}>
-      {text}
+      {sentence}
     </p>
   );
 };
@@ -83,11 +99,11 @@ export const NowCard = ({ className }: { className?: string }) => {
   return (
     <section
       data-tour="narration"
-      aria-label="Current step"
+      aria-label={text.currentStep}
       className={cn("flex min-h-0 flex-col gap-4 overflow-y-auto rounded-3xl border border-edge bg-surface p-5", className)}
     >
       <SectionLabel className="flex items-center gap-2">
-        <CodeIcon className="h-4 w-4" /> Pseudocode
+        <CodeIcon className="h-4 w-4" /> {text.pseudocode}
       </SectionLabel>
       <div className={cn("-mx-3 transition-opacity duration-300", { "opacity-40": tooFast })}>
         <CodeLines lines={lines} line={tooFast ? null : line} />
@@ -110,7 +126,7 @@ const ModuleLegend = () => {
  */
 export const StepCaption = ({ className }: { className?: string }) => {
   const { lines, line } = usePseudocode();
-  const { text, muted } = useNarration();
+  const { sentence, muted } = useNarration();
 
   return (
     <Drawer>
@@ -121,20 +137,20 @@ export const StepCaption = ({ className }: { className?: string }) => {
             muted ? "text-foreground/60" : "text-foreground",
             className
           )}
-          aria-label={`${text} Show pseudocode`}
+          aria-label={text.showPseudocode(sentence)}
           data-tour="narration"
         >
           <CodeIcon className="h-4 w-4 shrink-0 text-secondary" />
-          <span className="line-clamp-2">{text}</span>
+          <span className="line-clamp-2">{sentence}</span>
         </button>
       </DrawerTrigger>
       <DrawerContent aria-describedby={undefined}>
         <div className="flex flex-col gap-4 p-6 pb-10 text-foreground">
           <DrawerTitle className="flex items-center gap-2 text-xl font-semibold">
-            <CodeIcon className="h-4 w-4" /> Pseudocode
+            <CodeIcon className="h-4 w-4" /> {text.pseudocode}
           </DrawerTitle>
           <CodeLines lines={lines} line={line} />
-          <p className="border-l-2 border-secondary pl-3">{text}</p>
+          <p className="border-l-2 border-secondary pl-3">{sentence}</p>
         </div>
       </DrawerContent>
     </Drawer>

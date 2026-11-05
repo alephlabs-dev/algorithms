@@ -4,6 +4,7 @@ import type { StructureAlgorithm } from "./structures/types";
 import type { GraphAlgorithm } from "./graphs/types";
 import type { PathAlgorithm } from "./pathfinding/types";
 import type { Algorithm } from "./types";
+import { lang, LANG_PREFIX, stripLang, type Lang } from "./i18n";
 
 /** Where the site is published; canonical URLs, the sitemap and social cards use it. */
 export const SITE_URL = "https://algorithms-aleph.vercel.app";
@@ -108,9 +109,19 @@ export const routePath = (route: Route): string => {
   return `/sorting/${algorithmSlugs[route.algorithm]}`;
 };
 
-/** The page a path points at, or null for paths the site doesn't have. */
+/** A page's path in a language: /sorting in English, /es/sorting in Spanish. */
+export const pathIn = (route: Route, language: Lang): string => {
+  const path = routePath(route);
+  if (language === "en") return path;
+  return LANG_PREFIX[language] + (path === "/" ? "" : path);
+}
+
+/** A page's path in this page load's language, for links. */
+export const href = (route: Route): string => pathIn(route, lang);
+
+/** The page a path points at, in either language, or null for paths the site doesn't have. */
 export const routeFromPath = (pathname: string): Route | null => {
-  const path = pathname.replace(/\/+$/, "") || "/";
+  const path = stripLang(pathname).replace(/\/+$/, "") || "/";
   if (path === "/") return { kind: "home" };
   if (path === "/sorting") return { kind: "sorting" };
   if (path === "/pathfinding") return { kind: "pathfinding" };
@@ -184,4 +195,17 @@ export const moduleOf = (route: Route): "sorting" | "pathfinding" | "graphs" | "
   if (route.kind === "fourier" || route.kind === "series") return "fourier";
   if (route.kind === "graphs" || route.kind === "graph" || route.kind === "graphRace") return "graphs";
   return route.kind === "pathfinding" || route.kind === "path" || route.kind === "pathRace" ? "pathfinding" : "sorting";
+};
+
+/**
+ * Modules whose text is in Spanish. Their /es pages are indexed and linked
+ * with hreflang; the others exist under /es in English, marked noindex,
+ * until their sub-issue of #36 adds them here.
+ */
+const TRANSLATED: ReadonlySet<NonNullable<ReturnType<typeof moduleOf>>> = new Set(["sorting"]);
+
+/** Whether a page has a Spanish version worth indexing. */
+export const isTranslated = (route: Route): boolean => {
+  const module = moduleOf(route);
+  return module !== null && TRANSLATED.has(module);
 };

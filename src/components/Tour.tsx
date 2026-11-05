@@ -5,6 +5,12 @@ import { moduleUIs } from "@/modules";
 import type { TourStep } from "@/modules/types";
 import { useStore } from "@/store";
 import { Button } from "./ui/button";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: { close: "Close tour", back: "Back", done: "Done", next: "Next" },
+  es: { close: "Cerrar recorrido", back: "Atrás", done: "Listo", next: "Siguiente" },
+});
 
 const PAD = 8; // space between the element and the edge of the light
 const GAP = 14; // space between the light and the bubble
@@ -141,7 +147,7 @@ const TourDialog = ({ steps }: { steps: TourStep[] }) => {
             size="icon"
             className="-mr-2 -mt-2 h-9 w-9"
             onClick={closeTour}
-            aria-label="Close tour"
+            aria-label={text.close}
           >
             <Cross2Icon />
           </Button>
@@ -166,11 +172,11 @@ const TourDialog = ({ steps }: { steps: TourStep[] }) => {
           <div className="flex gap-2">
             {index > 0 && (
               <Button variant="ghost" size="sm" onClick={back}>
-                Back
+                {text.back}
               </Button>
             )}
             <Button ref={nextRef} variant="primary" size="sm" className="px-4" onClick={next}>
-              {isLast ? "Done" : "Next"}
+              {isLast ? text.done : text.next}
             </Button>
           </div>
         </div>

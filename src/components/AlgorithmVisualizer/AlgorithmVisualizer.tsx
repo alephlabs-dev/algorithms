@@ -3,6 +3,24 @@ import { useShallow } from "zustand/react/shallow";
 import { selectFrame, selectGameQuestion, selectGuessPlaying, selectLastIndex, useStore } from "@/store";
 import { ArrayCanvas } from "./ArrayCanvas";
 import { FinishSummary } from "./FinishSummary";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    sorted: "The array is sorted.",
+    comparing: (a: number, b: number) => `Comparing ${a} and ${b}.`,
+    values: (values: string) => ` Values left to right: ${values}.`,
+    label: (items: number, step: number, last: number, detail: string) =>
+      `Array of ${items} items, step ${step} of ${last}. ${detail}`,
+  },
+  es: {
+    sorted: "El arreglo está ordenado.",
+    comparing: (a, b) => `Comparando ${a} y ${b}.`,
+    values: (values) => ` Valores de izquierda a derecha: ${values}.`,
+    label: (items, step, last, detail) =>
+      `Arreglo de ${items} elementos, paso ${step} de ${last}. ${detail}`,
+  },
+});
 
 export const AlgorithmVisualizer = () => {
   const { frame, values, frameIndex, lastIndex, arrayId, displayMode, labels, labelAll } = useStore(
@@ -23,15 +41,15 @@ export const AlgorithmVisualizer = () => {
 
   // The canvas is a picture to screen readers, so describe the current step in words.
   const describe = () => {
-    if (finished) return "The array is sorted.";
+    if (finished) return text.sorted;
     if (shown.active.length === 2) {
       const [a, b] = shown.active.map((id) => values[id]);
-      return `Comparing ${a} and ${b}.`;
+      return text.comparing(a, b);
     }
     return "";
   };
   // Guess mode shows every value on the bars; say them too, so a question can be answered by ear.
-  const valuesInOrder = labelAll ? ` Values left to right: ${frame.order.map((id) => values[id]).join(", ")}.` : "";
+  const valuesInOrder = labelAll ? text.values(frame.order.map((id) => values[id]).join(", ")) : "";
 
   // Full bleed: the bars sit on the page itself, with no panel around them.
   return (
@@ -45,7 +63,7 @@ export const AlgorithmVisualizer = () => {
         annotate
         labels={labels}
         labelAll={labelAll}
-        label={`Array of ${values.length} items, step ${frameIndex} of ${lastIndex}. ${describe()}${valuesInOrder}`}
+        label={text.label(values.length, frameIndex, lastIndex, `${describe()}${valuesInOrder}`)}
       />
       {/* In the empty band above the tallest bars (they reach 80% of the height). */}
       <FinishSummary className="absolute inset-x-2 top-2 flex justify-center" />

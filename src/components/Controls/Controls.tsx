@@ -9,6 +9,30 @@ import { KeyboardShortcuts } from "./KeyboardShortcuts";
 import { Playback } from "./Playback";
 import { Progress } from "./Progress";
 import { SpeedControl, SpeedCycleButton } from "./SpeedControl";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    previous: "Previous step",
+    previousHint: "Previous step (←)",
+    next: "Next step",
+    nextHint: "Next step (→)",
+    pause: "Pause",
+    replay: "Replay",
+    play: "Play",
+    space: "Space",
+  },
+  es: {
+    previous: "Paso anterior",
+    previousHint: "Paso anterior (←)",
+    next: "Paso siguiente",
+    nextHint: "Paso siguiente (→)",
+    pause: "Pausa",
+    replay: "Repetir",
+    play: "Reproducir",
+    space: "Espacio",
+  },
+});
 
 /**
  * The floating dock under the stage. Wide: one row with the transport, the
@@ -37,9 +61,9 @@ export const Controls = ({ className }: { className?: string }) => {
       className="shrink-0"
       onClick={stepBackward}
       disabled={atStart}
-      aria-label="Previous step"
+      aria-label={text.previous}
       aria-keyshortcuts="ArrowLeft"
-      title="Previous step (←)"
+      title={text.previousHint}
     >
       <ChevronLeftIcon />
     </Button>
@@ -50,14 +74,14 @@ export const Controls = ({ className }: { className?: string }) => {
       className="shrink-0"
       onClick={stepForward}
       disabled={atEnd}
-      aria-label="Next step"
+      aria-label={text.next}
       aria-keyshortcuts="ArrowRight"
-      title="Next step (→)"
+      title={text.nextHint}
     >
       <ChevronRightIcon />
     </Button>
   );
-  const playLabel = isPlaying ? "Pause" : atEnd ? "Replay" : "Play";
+  const playLabel = isPlaying ? text.pause : atEnd ? text.replay : text.play;
   // The main action: the only filled button, round and larger than the rest.
   const playButton = (
     <Button
@@ -67,7 +91,7 @@ export const Controls = ({ className }: { className?: string }) => {
       onClick={isPlaying ? pause : play}
       aria-label={playLabel}
       aria-keyshortcuts="Space"
-      title={`${playLabel} (Space)`}
+      title={`${playLabel} (${text.space})`}
     >
       {isPlaying ? <PauseIcon /> : atEnd ? <ResetIcon /> : <PlayIcon />}
     </Button>

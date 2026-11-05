@@ -1,6 +1,28 @@
 import type { Timeline } from "@/algorithms/timeline";
-import { shuffled } from "./choices";
+import { localized } from "@/i18n";
+import { shuffled, verdict } from "./choices";
 import type { Question } from "./questions";
+
+const text = localized({
+  en: {
+    selection: "Which value goes into the next place?",
+    selectionWhy: (v: number) => `${v} is the smallest value left, so the pass picks it for the front of what's left.`,
+    bubble: "Which value reaches the end of this pass?",
+    right: "Going right: which value reaches the end?",
+    left: "Going left: which value reaches the start?",
+    largestWhy: (v: number) => `${v} is the largest value left, so every comparison carries it one step right.`,
+    smallestWhy: (v: number) => `${v} is the smallest value left, so every comparison carries it one step left.`,
+  },
+  es: {
+    selection: "¿Qué valor va en el siguiente lugar?",
+    selectionWhy: (v) => `${v} es el menor valor que queda, así que la pasada lo pone al principio de lo que queda.`,
+    bubble: "¿Qué valor llega al final de esta pasada?",
+    right: "Hacia la derecha: ¿qué valor llega al final?",
+    left: "Hacia la izquierda: ¿qué valor llega al inicio?",
+    largestWhy: (v) => `${v} es el mayor valor que queda, así que cada comparación lo lleva un paso a la derecha.`,
+    smallestWhy: (v) => `${v} es el menor valor que queda, así que cada comparación lo lleva un paso a la izquierda.`,
+  },
+});
 
 /** Which end of what's left a pass fills: the front with the smallest value, the back with the largest. */
 type End = "front" | "back";
@@ -50,7 +72,7 @@ const passQuestions = (
         answer,
         // Every bar holding an offered value, so ties can be found too.
         labels: inPlay.filter(({ id }) => options.includes(run.values[id])).map(({ id }) => id),
-        explain: (right) => `${right ? "Right" : `It's ${answer}`}: ${why(answer)}`,
+        explain: (right) => `${right ? verdict.right : verdict.its(answer)}: ${why(answer)}`,
       },
     ];
   });
@@ -62,8 +84,8 @@ export const selectionQuestions = (run: Timeline) =>
     run,
     () => "front",
     () => ({
-      prompt: "Which value goes into the next place?",
-      why: (v) => `${v} is the smallest value left, so the pass picks it for the front of what's left.`,
+      prompt: text.selection,
+      why: text.selectionWhy,
     }),
   );
 
@@ -73,8 +95,8 @@ export const bubbleQuestions = (run: Timeline) =>
     run,
     () => "back",
     () => ({
-      prompt: "Which value reaches the end of this pass?",
-      why: (v) => `${v} is the largest value left, so every comparison carries it one step right.`,
+      prompt: text.bubble,
+      why: text.largestWhy,
     }),
   );
 
@@ -85,12 +107,6 @@ export const cocktailQuestions = (run: Timeline) =>
     (pass) => (pass % 2 === 0 ? "back" : "front"),
     (end) =>
       end === "back"
-        ? {
-            prompt: "Going right: which value reaches the end?",
-            why: (v) => `${v} is the largest value left, so every comparison carries it one step right.`,
-          }
-        : {
-            prompt: "Going left: which value reaches the start?",
-            why: (v) => `${v} is the smallest value left, so every comparison carries it one step left.`,
-          },
+        ? { prompt: text.right, why: text.largestWhy }
+        : { prompt: text.left, why: text.smallestWhy },
   );

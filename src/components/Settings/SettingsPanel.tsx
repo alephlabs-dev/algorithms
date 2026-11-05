@@ -13,6 +13,72 @@ import { GraphPresetButtons, GraphSizePicker } from "../Graphs/GraphTools";
 import { BrushPicker, GridSizePicker, PresetButtons } from "../Pathfinding/PathTools";
 import { ListItem } from "../ui/list-item";
 import { SegmentedControl } from "../ui/segmented";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    sizeHelp: (limit: number) =>
+      `How many items to sort. Small arrays are easier to follow; large ones show how algorithms scale. Numbers mode fits up to ${limit}.`,
+    displayHelp: "Bars show values as heights; numbers show the values themselves, for small arrays.",
+    items: (size: number) => `${size} items`,
+    arraySize: "Array size",
+    input: "Input",
+    display: "Display",
+    bars: "Bars",
+    numbers: "Numbers",
+    startingValues: "Starting values",
+    startingValuesHelp: "Ascending values show why balancing matters: a plain BST turns into a list.",
+    howMany: "How many",
+    howManyHelp: "A new size starts a fresh tree. Insert, search and delete with the bar under the tree.",
+    bag: "Bag and items",
+    bagHelp: "Items are named A, B, C… in order, each with its weight and value.",
+    example: "Example",
+    exampleWords: "Example words",
+    exampleWordsHelp: "Or type any two words under the table, up to 10 letters each.",
+    circles: "Circles",
+    circlesHelp: "More circles, closer to the goal. Jumps and corners need the most.",
+    drawing: "Drawing",
+    drawingHelp: "“Draw your own” turns the stage into a canvas: draw a shape in one stroke.",
+    size: "Size",
+    freshLayout: "A new size starts a fresh layout of the same kind.",
+    layout: "Layout",
+    graphLayoutHelp: "Drag a node to move it, tap two nodes to join or split them, double-tap a node to start there.",
+    gridSize: "Grid size",
+    brush: "Brush",
+    brushHelp: "Drag on the grid to paint; start on a painted cell to erase. Drag the start or target to move them.",
+  },
+  es: {
+    sizeHelp: (limit) =>
+      `Cuántos elementos ordenar. Los arreglos pequeños se siguen mejor; los grandes muestran cómo escala cada algoritmo. El modo números admite hasta ${limit}.`,
+    displayHelp: "Las barras muestran los valores como alturas; los números muestran los valores mismos, para arreglos pequeños.",
+    items: (size) => `${size} elementos`,
+    arraySize: "Tamaño del arreglo",
+    input: "Orden inicial",
+    display: "Vista",
+    bars: "Barras",
+    numbers: "Números",
+    startingValues: "Valores iniciales",
+    startingValuesHelp: "Los valores ascendentes muestran por qué importa balancear: un BST simple se vuelve una lista.",
+    howMany: "Cuántos",
+    howManyHelp: "Un tamaño nuevo empieza un árbol nuevo. Inserta, busca y borra con la barra bajo el árbol.",
+    bag: "Mochila y objetos",
+    bagHelp: "Los objetos se llaman A, B, C… en orden, cada uno con su peso y su valor.",
+    example: "Ejemplo",
+    exampleWords: "Palabras de ejemplo",
+    exampleWordsHelp: "O escribe dos palabras cualesquiera bajo la tabla, de hasta 10 letras cada una.",
+    circles: "Círculos",
+    circlesHelp: "Más círculos, más cerca del objetivo. Los saltos y las esquinas necesitan más.",
+    drawing: "Dibujo",
+    drawingHelp: "“Dibuja el tuyo” convierte el escenario en un lienzo: dibuja una figura de un solo trazo.",
+    size: "Tamaño",
+    freshLayout: "Un tamaño nuevo empieza una disposición nueva del mismo tipo.",
+    layout: "Disposición",
+    graphLayoutHelp: "Arrastra un nodo para moverlo, toca dos nodos para unirlos o separarlos, toca dos veces un nodo para empezar ahí.",
+    gridSize: "Tamaño de la cuadrícula",
+    brush: "Pincel",
+    brushHelp: "Arrastra sobre la cuadrícula para pintar; empieza en una celda pintada para borrar. Arrastra el inicio o el destino para moverlos.",
+  },
+});
 
 const NUMBERS_LIMIT = { desktop: 20, mobile: 10 };
 
@@ -30,9 +96,8 @@ const useSettings = () =>
     }))
   );
 
-const sizeHelp = (limit: number) =>
-  `How many items to sort. Small arrays are easier to follow; large ones show how algorithms scale. Numbers mode fits up to ${limit}.`;
-const displayHelp = "Bars show values as heights; numbers show the values themselves, for small arrays.";
+const sizeHelp = text.sizeHelp;
+const displayHelp = text.displayHelp;
 
 // The pickers: shared by the phone settings sheet and the desktop toolbar.
 
@@ -44,12 +109,12 @@ const SizePicker = () => {
     .map((size) => ({
       value: size,
       label: <span className="font-mono">{size}</span>,
-      title: `${size} items`,
+      title: text.items(size),
       disabled: s.displayMode === "numbers" && size > limit,
     }));
   return (
     <SegmentedControl
-      label="Array size"
+      label={text.arraySize}
       options={options}
       value={s.size}
       onChange={(size) => size !== s.size && s.setSize(size)}
@@ -62,7 +127,7 @@ const SizePicker = () => {
 const InputList = () => {
   const s = useSettings();
   return (
-    <div role="radiogroup" aria-label="Input" className="flex flex-col gap-1">
+    <div role="radiogroup" aria-label={text.input} className="flex flex-col gap-1">
       {(Object.keys(inputOrders) as InputOrder[]).map((order) => (
         <ListItem
           key={order}
@@ -87,10 +152,10 @@ const DisplayPicker = () => {
   const s = useSettings();
   return (
     <SegmentedControl<DisplayMode>
-      label="Display"
+      label={text.display}
       options={[
-        { value: "bars", label: <><BarChartIcon /> Bars</> },
-        { value: "numbers", label: <><span className="font-mono text-xs">123</span> Numbers</> },
+        { value: "bars", label: <><BarChartIcon /> {text.bars}</> },
+        { value: "numbers", label: <><span className="font-mono text-xs">123</span> {text.numbers}</> },
       ]}
       value={s.displayMode}
       onChange={(mode) => mode !== s.displayMode && s.setDisplayMode(mode)}
@@ -111,10 +176,10 @@ const Field = ({ label, help, children }: { label: string; help?: string; childr
 /** Data structures' settings: how many values the tree starts with, in which order. */
 export const StructureSettings = () => (
   <div className="flex flex-col gap-6">
-    <Field label="Starting values" help="Ascending values show why balancing matters: a plain BST turns into a list.">
+    <Field label={text.startingValues} help={text.startingValuesHelp}>
       <StructurePresetButtons />
     </Field>
-    <Field label="How many" help="A new size starts a fresh tree. Insert, search and delete with the bar under the tree.">
+    <Field label={text.howMany} help={text.howManyHelp}>
       <StructureSizePicker />
     </Field>
   </div>
@@ -125,15 +190,15 @@ export const DpSettings = () => {
   const bag = useStore((s) => s.dpAlgorithm === "knapsack" || s.view === "race");
   return bag ? (
     <div className="flex flex-col gap-6">
-      <Field label="Bag and items" help="Items are named A, B, C… in order, each with its weight and value.">
+      <Field label={text.bag} help={text.bagHelp}>
         <ItemsControls className="flex flex-wrap items-center gap-x-5 gap-y-3" />
       </Field>
-      <Field label="Example">
+      <Field label={text.example}>
         <DpStartPicker />
       </Field>
     </div>
   ) : (
-    <Field label="Example words" help="Or type any two words under the table, up to 10 letters each.">
+    <Field label={text.exampleWords} help={text.exampleWordsHelp}>
       <DpStartPicker />
     </Field>
   );
@@ -144,11 +209,11 @@ export const FourierSettings = () => {
   const wave = useStore((s) => s.fourierAlgorithm !== "epicycles");
   return (
     <div className="flex flex-col gap-6">
-      <Field label="Circles" help="More circles, closer to the goal. Jumps and corners need the most.">
+      <Field label={text.circles} help={text.circlesHelp}>
         <CirclesPicker />
       </Field>
       {!wave && (
-        <Field label="Drawing" help="“Draw your own” turns the stage into a canvas: draw a shape in one stroke.">
+        <Field label={text.drawing} help={text.drawingHelp}>
           <ShapeGrid />
         </Field>
       )}
@@ -159,13 +224,10 @@ export const FourierSettings = () => {
 /** Graphs' settings: how many nodes and what kind of layout "new layout" makes. */
 export const GraphSettings = () => (
   <div className="flex flex-col gap-6">
-    <Field label="Size" help="A new size starts a fresh layout of the same kind.">
+    <Field label={text.size} help={text.freshLayout}>
       <GraphSizePicker />
     </Field>
-    <Field
-      label="Layout"
-      help="Drag a node to move it, tap two nodes to join or split them, double-tap a node to start there."
-    >
+    <Field label={text.layout} help={text.graphLayoutHelp}>
       <GraphPresetButtons />
     </Field>
   </div>
@@ -174,13 +236,13 @@ export const GraphSettings = () => (
 /** Pathfinding's settings: grid size, brush and layouts. */
 export const PathSettings = () => (
   <div className="flex flex-col gap-6">
-    <Field label="Grid size" help="A new size starts a fresh layout of the same kind.">
+    <Field label={text.gridSize} help={text.freshLayout}>
       <GridSizePicker />
     </Field>
-    <Field label="Brush" help="Drag on the grid to paint; start on a painted cell to erase. Drag the start or target to move them.">
+    <Field label={text.brush} help={text.brushHelp}>
       <BrushPicker />
     </Field>
-    <Field label="Layout">
+    <Field label={text.layout}>
       <PresetButtons />
     </Field>
   </div>
@@ -191,15 +253,15 @@ export const SortingSettings = () => {
   const s = useSettings();
   return (
     <div className="flex flex-col gap-6">
-      <Field label="Array size" help={sizeHelp(s.isMobile ? NUMBERS_LIMIT.mobile : NUMBERS_LIMIT.desktop)}>
+      <Field label={text.arraySize} help={sizeHelp(s.isMobile ? NUMBERS_LIMIT.mobile : NUMBERS_LIMIT.desktop)}>
         <SizePicker />
       </Field>
-      <Field label="Input">
+      <Field label={text.input}>
         <InputList />
       </Field>
       {/* Race lanes always draw bars. */}
       {!s.isRace && (
-        <Field label="Display" help={displayHelp}>
+        <Field label={text.display} help={displayHelp}>
           <DisplayPicker />
         </Field>
       )}

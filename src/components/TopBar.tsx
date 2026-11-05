@@ -10,11 +10,34 @@ import { RacerList } from "./Race/RacerPicker";
 import { ModuleMenu } from "./ModuleSwitcher";
 import { ShareButton } from "./ShareButton";
 import { StageInfo } from "./StageInfo";
+import { LanguageButton } from "./LanguageSwitch";
 import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "./ui/button";
 import { popoverClass } from "./ui/popover";
 import { ViewSwitch } from "./ViewSwitch";
 import { GameToggle } from "./Game";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    algorithmPill: (title: string) => `Algorithm: ${title}. Change`,
+    race: "Race",
+    racers: (count: number) => `${count} racers`,
+    racersPill: (count: number, max: number) => `Racers: ${count} of ${max}. Change`,
+    takeTour: "Take the tour",
+    about: (title: string) => `About ${title}`,
+    howItWorks: "How it works",
+  },
+  es: {
+    algorithmPill: (title) => `Algoritmo: ${title}. Cambiar`,
+    race: "Carrera",
+    racers: (count) => `${count} ${count === 1 ? "competidor" : "competidores"}`,
+    racersPill: (count, max) => `Competidores: ${count} de ${max}. Cambiar`,
+    takeTour: "Hacer el recorrido",
+    about: (title) => `Acerca de ${title}`,
+    howItWorks: "Cómo funciona",
+  },
+});
 
 /** A pill that names what's on stage and opens the list to change it. */
 const PickerPill = ({
@@ -67,7 +90,7 @@ const AlgorithmPicker = () => {
       title
     );
   return (
-    <PickerPill label={label} ariaLabel={`Algorithm: ${title}. Change`} open={open} onOpenChange={setOpen} hint="picker">
+    <PickerPill label={label} ariaLabel={text.algorithmPill(title)} open={open} onOpenChange={setOpen} hint="picker">
       <AlgorithmList onPick={() => setOpen(false)} />
     </PickerPill>
   );
@@ -80,10 +103,10 @@ const RacersPicker = () => {
     <PickerPill
       label={
         <>
-          Race <span className="font-normal text-foreground/60">· {count} racers</span>
+          {text.race} <span className="font-normal text-foreground/60">· {text.racers(count)}</span>
         </>
       }
-      ariaLabel={`Racers: ${count} of ${MAX_RACERS}. Change`}
+      ariaLabel={text.racersPill(count, MAX_RACERS)}
     >
       <RacerList />
     </PickerPill>
@@ -103,7 +126,7 @@ export const TourLink = (props: ComponentProps<"button">) => {
       }}
       className="self-start rounded-full text-sm font-semibold underline decoration-line underline-offset-4 hover:decoration-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
     >
-      Take the tour
+      {text.takeTour}
     </button>
   );
 };
@@ -111,11 +134,11 @@ export const TourLink = (props: ComponentProps<"button">) => {
 /** The longer explanation, on demand, so the stage stays clear. */
 const AboutButton = () => {
   const { about } = useModuleUI();
-  const title = useStore((s) => (s.view === "race" ? "Race" : about(s).title));
+  const title = useStore((s) => (s.view === "race" ? text.race : about(s).title));
   return (
     <Popover.Root>
       <Popover.Trigger asChild>
-        <Button variant="ghost" size="icon" aria-label={`About ${title}`} title="How it works">
+        <Button variant="ghost" size="icon" aria-label={text.about(title)} title={text.howItWorks}>
           <InfoCircledIcon />
         </Button>
       </Popover.Trigger>
@@ -136,8 +159,8 @@ const AboutButton = () => {
 /** One line next to the picker: how the algorithm scales, or what the race measures. */
 const Summary = () => {
   const { summary, race } = useModuleUI();
-  const text = useStore((s) => (s.view === "race" && race ? race.tagline : summary(s)));
-  return <span className="hidden truncate font-mono text-xs text-foreground/60 xl:inline">{text}</span>;
+  const line = useStore((s) => (s.view === "race" && race ? race.tagline : summary(s)));
+  return <span className="hidden truncate font-mono text-xs text-foreground/60 xl:inline">{line}</span>;
 };
 
 /** Desktop: what's on stage (a pill to change it) on the left, the view and actions on the right. */
@@ -158,6 +181,7 @@ export const TopBar = ({ className }: { className?: string }) => {
         {hasRace && <ViewSwitch className="w-56" />}
         <ShareButton iconOnly />
         <ThemeToggle />
+        <LanguageButton />
         <ShortcutsHelp />
       </div>
     </header>
