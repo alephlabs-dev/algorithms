@@ -21,6 +21,11 @@ type Annotations = {
   pivot?: number | null;
   /** Pseudocode line (0-based) this step belongs to; it stays until another step changes it. */
   line?: number;
+  /**
+   * Radix sort: this step starts a digit pass on this place value (1 for the ones
+   * digit, 10 for the tens). It only says so: frames, stats and pacing ignore it.
+   */
+  place?: number;
 };
 
 export type Step = Annotations &
