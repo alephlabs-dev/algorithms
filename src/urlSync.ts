@@ -41,7 +41,10 @@ const applyRoute = (route: Route) => {
     return;
   }
   const inPath = store.module === "pathfinding";
-  if (route.kind === "structure" || route.kind === "structures") {
+  if (route.kind === "dp" || route.kind === "dpProblem") {
+    const algorithm = route.kind === "dpProblem" ? route.algorithm : store.dpAlgorithm;
+    if (store.module !== "dp" || store.dpAlgorithm !== algorithm) store.setDpAlgorithm(algorithm);
+  } else if (route.kind === "structure" || route.kind === "structures") {
     const algorithm = route.kind === "structure" ? route.algorithm : store.structureAlgorithm;
     if (store.module !== "structures" || store.view !== "single" || store.structureAlgorithm !== algorithm)
       store.setStructureAlgorithm(algorithm);
@@ -79,7 +82,8 @@ const applyRoute = (route: Route) => {
       route.kind === "pathfinding" ||
       route.kind === "graphs" ||
       route.kind === "fourier" ||
-      route.kind === "structures",
+      route.kind === "structures" ||
+      route.kind === "dp",
   });
 };
 

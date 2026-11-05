@@ -1,6 +1,7 @@
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "@/store";
 import type { ModuleId } from "./engine";
+import { dpUI } from "./dp";
 import { fourierUI } from "./fourier";
 import { structuresUI } from "./structures";
 import { graphsUI } from "./graphs";
@@ -15,6 +16,7 @@ export const moduleUIs: Record<ModuleId, ModuleUI> = {
   graphs: graphsUI,
   fourier: fourierUI,
   structures: structuresUI,
+  dp: dpUI,
 };
 
 /** The interface of the module on stage. */

@@ -4,7 +4,7 @@ import type { Route } from "@/routes";
 import { cn } from "@/utils/cn";
 import { PageLink } from "../PageLink";
 import { HeroDemo } from "./HeroDemo";
-import { FourierThumb, GraphThumb, PathThumb, SortingThumb, StructureThumb } from "./Thumbnails";
+import { DpThumb, FourierThumb, GraphThumb, PathThumb, SortingThumb, StructureThumb } from "./Thumbnails";
 
 type Props = {
   /** In the app, links switch pages without reloading; in prerendered HTML they're plain links. */
@@ -31,6 +31,7 @@ const thumbs: Record<string, ReactNode> = {
   graphs: <GraphThumb className="h-20 w-full" />,
   fourier: <FourierThumb className="h-24 w-full" />,
   structures: <StructureThumb className="h-20 w-full" />,
+  dp: <DpThumb className="h-24 w-full" />,
 };
 
 /**
@@ -116,7 +117,7 @@ export const Landing = ({ onNavigate, actions }: Props) => {
             Modules
           </h2>
           <span className="font-mono text-xs text-foreground/60">
-            {open.length} OPEN · {modules.length - open.length} IN PREPARATION
+            {open.length} OPEN{open.length < modules.length && ` · ${modules.length - open.length} IN PREPARATION`}
           </span>
         </div>
         <ol className="flex flex-col">

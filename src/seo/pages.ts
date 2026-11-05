@@ -1,3 +1,4 @@
+import { dpProblems } from "@/consts/dp";
 import { fourierSeries } from "@/consts/fourierSeries";
 import { structures } from "@/consts/structures";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
@@ -141,6 +142,24 @@ export const pageMeta = (route: Route): PageMeta => {
         "Race BFS, DFS, Dijkstra, A* and Greedy Best-First Search on the same grid. See which looks at the fewest cells, and which finds the cheapest path.",
     };
   }
+  if (route.kind === "dp") {
+    return {
+      path,
+      url,
+      title: "Dynamic Programming Visualizer: Edit Distance and LCS · Aleph Labs",
+      description:
+        "Watch a dynamic programming table fill cell by cell for any two words, each cell built from its neighbors, then walk back from the corner to the edits or the shared letters.",
+    };
+  }
+  if (route.kind === "dpProblem") {
+    const { title, shortDescription } = dpProblems[route.algorithm];
+    return {
+      path,
+      url,
+      title: `${title} Visualized: The Dynamic Programming Table · Aleph Labs`,
+      description: shortDescription.slice(0, 200),
+    };
+  }
   if (route.kind === "path") {
     const { title, short } = pathAlgorithms[route.algorithm];
     const name = title.includes(short) ? title : `${title} (${short})`;
@@ -186,8 +205,17 @@ export const structuredData = (route: Route): object[] => {
     graphs: "Graphs",
     fourier: "Fourier series",
     structures: "Data structures",
+    dp: "Dynamic programming",
   };
-  const section = { name: sectionNames[module], url: `${SITE_URL}/${module}` };
+  const sectionRoutes = {
+    sorting: { kind: "sorting" },
+    pathfinding: { kind: "pathfinding" },
+    graphs: { kind: "graphs" },
+    fourier: { kind: "fourier" },
+    structures: { kind: "structures" },
+    dp: { kind: "dp" },
+  } as const;
+  const section = { name: sectionNames[module], url: `${SITE_URL}${routePath(sectionRoutes[module])}` };
   const name =
     route.kind === "race" || route.kind === "pathRace" || route.kind === "graphRace" || route.kind === "structureRace"
       ? "Race"
@@ -199,6 +227,8 @@ export const structuredData = (route: Route): object[] => {
             ? fourierSeries[route.algorithm].title
             : route.kind === "structure"
               ? structures[route.algorithm].title
+            : route.kind === "dpProblem"
+              ? dpProblems[route.algorithm].title
         : route.kind === "algorithm"
           ? sortingAlgorithms[route.algorithm].title
           : null;

@@ -5,6 +5,7 @@ import { inputOrders } from "@/consts/inputOrders";
 import { MAX_MOBILE_SIZE, sizes } from "@/consts/sizesMap";
 import { useStore } from "@/store";
 import type { DisplayMode, InputOrder } from "@/types";
+import { WordPairButtons } from "../Dp/DpTools";
 import { CirclesPicker, ShapeGrid } from "../Fourier/FourierTools";
 import { StructurePresetButtons, StructureSizePicker } from "../Structures/StructureTools";
 import { GraphPresetButtons, GraphSizePicker } from "../Graphs/GraphTools";
@@ -116,6 +117,13 @@ export const StructureSettings = () => (
       <StructureSizePicker />
     </Field>
   </div>
+);
+
+/** Dynamic programming's settings: example words (any two can be typed under the table). */
+export const DpSettings = () => (
+  <Field label="Example words" help="Or type any two words under the table, up to 10 letters each.">
+    <WordPairButtons />
+  </Field>
 );
 
 /** Fourier's settings: how many circles, and for epicycles which drawing. */

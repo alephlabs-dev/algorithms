@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { pseudocode } from "@/algorithms";
+import { dpProblems } from "@/consts/dp";
+import { dpPseudocode, type DpAlgorithm } from "@/dp";
 import { fourierSeries } from "@/consts/fourierSeries";
 import { STRUCTURE_RACE_DESCRIPTION } from "@/consts/race";
 import { structures } from "@/consts/structures";
@@ -671,6 +673,93 @@ const StructureRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"]
   </>
 );
 
+
+const dpOrder = Object.keys(dpProblems) as DpAlgorithm[];
+
+const DpArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
+  <>
+    <header className="flex flex-col gap-3">
+      <h1 className="text-display font-semibold">Dynamic programming</h1>
+      <p className="text-lg text-foreground/80">
+        Big questions answered from small ones: a table where each cell is worked out from cells already filled in,
+        so nothing is ever solved twice. Watch it fill for any two words, then walk back to the answer.
+      </p>
+    </header>
+    <Section title="Two words">
+      <ul className="flex flex-col divide-y divide-edge">
+        {dpOrder.map((algorithm) => (
+          <li key={algorithm} className="flex flex-col gap-1 py-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+              <PageLink to={{ kind: "dpProblem", algorithm }} onNavigate={onNavigate}>
+                {dpProblems[algorithm].title}
+              </PageLink>
+              <span className="font-mono text-xs text-foreground/60">{dpProblems[algorithm].cost}</span>
+            </div>
+            <p className="text-sm text-foreground/75">{dpProblems[algorithm].shortDescription}</p>
+          </li>
+        ))}
+      </ul>
+    </Section>
+    <Section title="Why a table">
+      <p className="leading-relaxed text-foreground/80">
+        Both problems break into smaller versions of themselves: the answer for two words depends on the answers for
+        the same words a letter shorter. Solved by plain recursion, those smaller questions come up again and again,
+        and the work grows exponentially. Writing each answer down the first time, in a table filled in an order where
+        everything a cell needs is already there, makes it m × n cells of constant work each.
+      </p>
+    </Section>
+  </>
+);
+
+const DpProblemArticle = ({ algorithm, onNavigate }: { algorithm: DpAlgorithm; onNavigate?: Props["onNavigate"] }) => {
+  const { title, shortDescription, longDescription, cost, cell } = dpProblems[algorithm];
+  const other = dpOrder.find((a) => a !== algorithm)!;
+  return (
+    <>
+      <header className="flex flex-col gap-3">
+        <h1 className="text-display font-semibold">{title}</h1>
+        <p className="text-lg text-foreground/80">{shortDescription}</p>
+      </header>
+      <Section title="How it works">
+        <p className="leading-relaxed text-foreground/80">{longDescription}</p>
+      </Section>
+      <Section title="At a glance">
+        <table className="w-full max-w-lg text-sm">
+          <tbody>
+            {(
+              [
+                ["Cost, for words of m and n letters", cost],
+                ["Each cell holds", cell],
+              ] as const
+            ).map(([name, value]) => (
+              <tr key={name} className="border-b border-edge last:border-0">
+                <th scope="row" className="py-2.5 pr-6 text-left align-top font-normal text-foreground/70">
+                  {name}
+                </th>
+                <td className="py-2.5">{value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Section>
+      <Section title="Pseudocode">
+        <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
+          {dpPseudocode[algorithm].join("\n")}
+        </pre>
+      </Section>
+      <Section title="Compare">
+        <p className="text-foreground/80">
+          Same table, different question:{" "}
+          <PageLink to={{ kind: "dpProblem", algorithm: other }} onNavigate={onNavigate}>
+            {dpProblems[other].title}
+          </PageLink>
+          .
+        </p>
+      </Section>
+    </>
+  );
+};
+
 export const About = ({ route, onNavigate }: Props) => (
   <article id="about" className="mx-auto flex w-full max-w-3xl flex-col gap-12 px-4 pb-20 pt-16 text-foreground md:px-6">
     {route.kind === "sorting" && <SortingArticle onNavigate={onNavigate} />}
@@ -687,6 +776,8 @@ export const About = ({ route, onNavigate }: Props) => (
     {route.kind === "structures" && <StructuresArticle onNavigate={onNavigate} />}
     {route.kind === "structure" && <StructureArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
     {route.kind === "structureRace" && <StructureRaceArticle onNavigate={onNavigate} />}
+    {route.kind === "dp" && <DpArticle onNavigate={onNavigate} />}
+    {route.kind === "dpProblem" && <DpProblemArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
     <footer className="border-t border-edge pt-6 text-sm text-foreground/60">
       <PageLink
         to={{ kind: "home" }}

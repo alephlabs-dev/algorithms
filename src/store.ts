@@ -35,6 +35,7 @@ import {
   type FourierShape,
   type Point,
 } from "./fourier";
+import { DpRun, wordPairs, type DpAlgorithm } from "./dp";
 import { engines, type ModuleId } from "./modules/engine";
 import {
   decodeOperations,
@@ -71,6 +72,7 @@ const TOUR_KEYS: Record<Module, string> = {
   graphs: "tour-done-graphs",
   fourier: "tour-done-fourier",
   structures: "tour-done-structures",
+  dp: "tour-done-dp",
 };
 
 export const tourDone = (module: Module) => {
@@ -128,6 +130,12 @@ export type StoreState = {
   structureRaceRuns: TreeRecorder[];
   /** Bumped when the values are replaced wholesale, so nodes don't glide between unrelated trees. */
   structureId: number;
+  dpAlgorithm: DpAlgorithm;
+  /** The two words: down the side, and across the top. */
+  dpA: string;
+  dpB: string;
+  /** The table filled and walked back, frame by frame. */
+  dpRun: DpRun;
   /** Bumped when the graph is replaced wholesale, so nodes don't glide between layouts. */
   graphId: number;
   /** Searches racing on the grid, in the picker's order. */
@@ -211,6 +219,9 @@ export type StoreState = {
   setStructureSize: (size: StructureSize) => void;
   /** Does one more operation and plays it. */
   runOperation: (op: Operation) => void;
+  setDpAlgorithm: (algorithm: DpAlgorithm) => void;
+  /** New words (already cleaned up); the table starts over. */
+  setDpWords: (a: string, b: string) => void;
   togglePathRacer: (algorithm: PathAlgorithm) => void;
   /** Switch to the pathfinding race with `algorithm` among the racers. */
   pathRaceWith: (algorithm: PathAlgorithm) => void;
@@ -380,6 +391,9 @@ const initial = (() => {
   const structureOps =
     (url.structure.ops && decodeOperations(url.structure.ops)) ||
     presetOperations(structurePreset, structureSize, seededRandom(newSeed()));
+  const dpAlgorithm = url.dpAlgorithm ?? "edit";
+  const dpA = url.dp.a ?? wordPairs[0].a;
+  const dpB = url.dp.b ?? wordPairs[0].b;
   const fourierAlgorithm = url.fourierAlgorithm ?? "square";
   const fourierShape = url.fourier.shape ?? "heart";
   const fourierPath = url.fourier.path ? decodePath(url.fourier.path) : null;
@@ -411,6 +425,10 @@ const initial = (() => {
     fourierShape,
     fourierPath,
     fourierRun: new FourierRun(fourierAlgorithm, fourierCircles, fourierShape, fourierPath),
+    dpAlgorithm,
+    dpA,
+    dpB,
+    dpRun: new DpRun(dpAlgorithm, dpA, dpB),
     structureAlgorithm,
     structurePreset,
     structureSize,
@@ -675,6 +693,13 @@ export const useStore = create<StoreState>((set, get) => {
       if (module === "pathfinding") applyGridPreset(gridPreset === "clear" ? "maze" : gridPreset);
       else if (module === "graphs") applyGraphPreset(graphPreset);
       else if (module === "structures") get().applyStructurePreset(get().structurePreset);
+      else if (module === "dp") {
+        // "New" moves on to the next example pair, wrapping around.
+        const { dpA, dpB, setDpWords } = get();
+        const at = wordPairs.findIndex((p) => p.a === dpA && p.b === dpB);
+        const next = wordPairs[(at + 1) % wordPairs.length];
+        setDpWords(next.a, next.b);
+      }
       else if (module === "fourier") {
         // "New" adds circles, wrapping back to the fewest: the quickest way to see the series converge.
         const { fourierAlgorithm, fourierCircles, setFourierCircles } = get();
@@ -791,6 +816,28 @@ export const useStore = create<StoreState>((set, get) => {
         const start = state.view === "race" ? 0 : runs.structureRun.opStarts[runs.structureRun.opStarts.length - 1];
         return { ...runs, frameIndex: start, isPlaying: true };
       });
+      applyAutoSpeed();
+    },
+
+    setDpAlgorithm: (algorithm) => {
+      set((state) => ({
+        module: "dp",
+        view: "single",
+        isModuleStart: false,
+        dpAlgorithm: algorithm,
+        dpRun: new DpRun(algorithm, state.dpA, state.dpB),
+        raceTimelines: [],
+        pathRaceTimelines: [],
+        graphRaceTimelines: [],
+        structureRaceRuns: [],
+        frameIndex: 0,
+        isPlaying: false,
+      }));
+      applyAutoSpeed();
+    },
+
+    setDpWords: (dpA, dpB) => {
+      set((state) => ({ dpA, dpB, dpRun: new DpRun(state.dpAlgorithm, dpA, dpB), frameIndex: 0, isPlaying: false }));
       applyAutoSpeed();
     },
 
