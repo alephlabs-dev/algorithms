@@ -8,6 +8,43 @@ import { newSeed, seededRandom } from "@/utils/random";
 import { useElementSize } from "@/hooks/useElementSize";
 import { selectGameQuestion, useStore } from "@/store";
 import { Button } from "../ui/button";
+import { localized } from "@/i18n";
+
+const copy = localized({
+  en: {
+    twoWords: (max: number) => `Two words of letters, up to ${max} each`,
+    words: "Words",
+    first: "First word (down the side)",
+    firstShort: "First word",
+    swap: "Swap the words",
+    second: "Second word (across the top)",
+    secondShort: "Second word",
+    compare: "Compare",
+    less: (label: string) => `Less ${label.toLowerCase()}`,
+    more: (label: string) => `More ${label.toLowerCase()}`,
+    bagAndItems: "Bag and items",
+    bag: "Bag",
+    items: "Items",
+    newItems: "New items",
+  },
+  es: {
+    twoWords: (max) => `Dos palabras solo con letras, de hasta ${max} cada una`,
+    words: "Palabras",
+    first: "Primera palabra (en el costado)",
+    firstShort: "Primera palabra",
+    swap: "Intercambiar las palabras",
+    second: "Segunda palabra (arriba)",
+    secondShort: "Segunda palabra",
+    compare: "Comparar",
+    less: (label) => `${label}: menos`,
+    more: (label) => `${label}: más`,
+    bagAndItems: "Mochila y objetos",
+    bag: "Mochila",
+    items: "Objetos",
+    newItems: "Nuevos objetos",
+  },
+});
+
 
 const DpCanvas = () => {
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -67,7 +104,7 @@ const WordsBar = ({ a, b }: { a: string; b: string }) => {
     const x = cleanWord(first);
     const y = cleanWord(second);
     if (!x || !y) {
-      setError(`Two words of letters, up to ${MAX_WORD} each`);
+      setError(copy.twoWords(MAX_WORD));
       return;
     }
     setError(null);
@@ -79,16 +116,16 @@ const WordsBar = ({ a, b }: { a: string; b: string }) => {
     <form
       data-tour="words"
       onSubmit={submit}
-      aria-label="Words"
+      aria-label={copy.words}
       className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-edge bg-surface px-2 py-2 sm:gap-2 sm:px-3"
     >
       <label className="flex min-w-16 flex-1 items-center sm:max-w-44">
-        <span className="sr-only">First word (down the side)</span>
+        <span className="sr-only">{copy.first}</span>
         <input
           value={first}
           maxLength={MAX_WORD}
           onChange={(e) => setFirst(e.target.value)}
-          placeholder="First word"
+          placeholder={copy.firstShort}
           autoCapitalize="characters"
           spellCheck={false}
           className={inputClass}
@@ -103,25 +140,25 @@ const WordsBar = ({ a, b }: { a: string; b: string }) => {
           setFirst(second);
           setSecond(first);
         }}
-        aria-label="Swap the words"
-        title="Swap the words"
+        aria-label={copy.swap}
+        title={copy.swap}
       >
         <WidthIcon />
       </Button>
       <label className="flex min-w-16 flex-1 items-center sm:max-w-44">
-        <span className="sr-only">Second word (across the top)</span>
+        <span className="sr-only">{copy.second}</span>
         <input
           value={second}
           maxLength={MAX_WORD}
           onChange={(e) => setSecond(e.target.value)}
-          placeholder="Second word"
+          placeholder={copy.secondShort}
           autoCapitalize="characters"
           spellCheck={false}
           className={inputClass}
         />
       </label>
       <Button type="submit" size="sm" variant="primary" className="h-10 shrink-0 px-3 sm:px-4">
-        Compare
+        {copy.compare}
       </Button>
       {error && (
         <span role="alert" className="basis-full px-1 text-xs text-foreground/70 sm:basis-auto">
@@ -155,7 +192,7 @@ const Stepper = ({
       className="h-9 w-9 shrink-0"
       disabled={value <= min}
       onClick={() => onChange(value - 1)}
-      aria-label={`Less ${label.toLowerCase()}`}
+      aria-label={copy.less(label)}
     >
       <MinusIcon />
     </Button>
@@ -169,7 +206,7 @@ const Stepper = ({
       className="h-9 w-9 shrink-0"
       disabled={value >= max}
       onClick={() => onChange(value + 1)}
-      aria-label={`More ${label.toLowerCase()}`}
+      aria-label={copy.more(label)}
     >
       <PlusIcon />
     </Button>
@@ -183,10 +220,10 @@ export const ItemsControls = ({ className }: { className?: string }) => {
   );
   const random = () => seededRandom(newSeed());
   return (
-    <div role="group" aria-label="Bag and items" className={className}>
-      <Stepper label="Bag" value={capacity} min={1} max={MAX_CAPACITY} onChange={(c) => setItems(items, c)} />
+    <div role="group" aria-label={copy.bagAndItems} className={className}>
+      <Stepper label={copy.bag} value={capacity} min={1} max={MAX_CAPACITY} onChange={(c) => setItems(items, c)} />
       <Stepper
-        label="Items"
+        label={copy.items}
         value={items.length}
         min={1}
         max={MAX_ITEMS}
@@ -205,7 +242,7 @@ export const ItemsControls = ({ className }: { className?: string }) => {
         onClick={() => setItems(randomItems(items.length, random()), capacity)}
       >
         <ShuffleIcon />
-        New items
+        {copy.newItems}
       </Button>
     </div>
   );

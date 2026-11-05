@@ -266,6 +266,64 @@ const structureText = localized({
   },
 });
 
+const dpText = localized({
+  en: {
+    moduleTitle: "Dynamic programming",
+    moduleIntro:
+      "Big questions answered from small ones: a table where each cell is worked out from cells already filled in, so nothing is ever solved twice. Watch it fill for any two words, then walk back to the answer.",
+    problems: "Problems",
+    raceMethods: "Race the methods",
+    whyTable: "Why a table",
+    whyTableText:
+      "Each problem breaks into smaller versions of itself: the answer for two words depends on the answers for the same words a letter shorter, and the best bag on the best smaller bags with one item fewer. Solved by plain recursion, those smaller questions come up again and again, and the work grows exponentially. Writing each answer down the first time, in a table filled in an order where everything a cell needs is already there, makes it m × n cells of constant work each.",
+    raceTitle: "Table vs recursion",
+    raceIntro: "One knapsack, solved three ways side by side: the bottom-up table, memoized recursion and plain recursion.",
+    whatMemoSaves: "What memoizing saves",
+    raceTip:
+      "Each lane is the table of subproblems, colored by how many times that method has worked each one out. Plain recursion lights the same cells up again and again; with more items its count roughly doubles per item, while the table only grows by one row.",
+    theProblems: "The problems",
+    howItWorks: "How it works",
+    atAGlance: "At a glance",
+    costKnapsack: "Cost, for n items and a bag of W",
+    costWords: "Cost, for words of m and n letters",
+    cellHolds: "Each cell holds",
+    compare: "Compare",
+    compareLine: (other: ReactNode, race: Link) => (
+      <>
+        Same idea, different question: {other}. Or {race("race the table against plain recursion")} on a knapsack.
+      </>
+    ),
+  },
+  es: {
+    moduleTitle: "Programación dinámica",
+    moduleIntro:
+      "Preguntas grandes respondidas a partir de otras pequeñas: una tabla donde cada celda se calcula a partir de celdas ya llenas, así que nada se resuelve dos veces. Mira cómo se llena para dos palabras cualesquiera y después vuelve hasta la respuesta.",
+    problems: "Problemas",
+    raceMethods: "Haz competir los métodos",
+    whyTable: "Por qué una tabla",
+    whyTableText:
+      "Cada problema se divide en versiones más pequeñas de sí mismo: la respuesta para dos palabras depende de las respuestas para las mismas palabras con una letra menos, y la mejor mochila de las mejores mochilas más pequeñas con un objeto menos. Con recursión simple, esas preguntas más pequeñas aparecen una y otra vez, y el trabajo crece exponencialmente. Anotar cada respuesta la primera vez, en una tabla que se llena en un orden donde todo lo que necesita una celda ya está calculado, lo reduce a m × n celdas de trabajo constante cada una.",
+    raceTitle: "Tabla contra recursión",
+    raceIntro:
+      "Una mochila, resuelta de tres formas lado a lado: la tabla de abajo hacia arriba, la recursión con memoización y la recursión simple.",
+    whatMemoSaves: "Lo que ahorra memorizar",
+    raceTip:
+      "Cada carril es la tabla de subproblemas, coloreada según cuántas veces ese método calculó cada uno. La recursión simple ilumina las mismas celdas una y otra vez; con más objetos su cuenta casi se duplica por objeto, mientras que la tabla solo crece una fila.",
+    theProblems: "Los problemas",
+    howItWorks: "Cómo funciona",
+    atAGlance: "De un vistazo",
+    costKnapsack: "Costo, para n objetos y una mochila de W",
+    costWords: "Costo, para palabras de m y n letras",
+    cellHolds: "Cada celda guarda",
+    compare: "Compara",
+    compareLine: (other, race) => (
+      <>
+        La misma idea, otra pregunta: {other}. O {race("haz competir la tabla contra la recursión simple")} con una mochila.
+      </>
+    ),
+  },
+});
+
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
   <section className="flex flex-col gap-4">
     <h2 className="text-xl font-semibold">{title}</h2>
@@ -862,13 +920,10 @@ const dpOrder = Object.keys(dpProblems) as DpAlgorithm[];
 const DpArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
   <>
     <header className="flex flex-col gap-3">
-      <h1 className="text-display font-semibold">Dynamic programming</h1>
-      <p className="text-lg text-foreground/80">
-        Big questions answered from small ones: a table where each cell is worked out from cells already filled in,
-        so nothing is ever solved twice. Watch it fill for any two words, then walk back to the answer.
-      </p>
+      <h1 className="text-display font-semibold">{dpText.moduleTitle}</h1>
+      <p className="text-lg text-foreground/80">{dpText.moduleIntro}</p>
     </header>
-    <Section title="Problems">
+    <Section title={dpText.problems}>
       <ul className="flex flex-col divide-y divide-edge">
         {dpOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
@@ -883,22 +938,17 @@ const DpArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
         ))}
       </ul>
     </Section>
-    <Section title="Race the methods">
+    <Section title={dpText.raceMethods}>
       <p className="leading-relaxed text-foreground/80">
         {DP_RACE_DESCRIPTION}{" "}
         <PageLink to={{ kind: "dpRace" }} onNavigate={onNavigate}>
-          Start a race
+          {text.startRace}
         </PageLink>
         .
       </p>
     </Section>
-    <Section title="Why a table">
-      <p className="leading-relaxed text-foreground/80">
-        Each problem breaks into smaller versions of itself: the answer for two words depends on the answers for the
-        same words a letter shorter, and the best bag on the best smaller bags with one item fewer. Solved by plain recursion, those smaller questions come up again and again,
-        and the work grows exponentially. Writing each answer down the first time, in a table filled in an order where
-        everything a cell needs is already there, makes it m × n cells of constant work each.
-      </p>
+    <Section title={dpText.whyTable}>
+      <p className="leading-relaxed text-foreground/80">{dpText.whyTableText}</p>
     </Section>
   </>
 );
@@ -906,20 +956,14 @@ const DpArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
 const DpRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
   <>
     <header className="flex flex-col gap-3">
-      <h1 className="text-display font-semibold">Table vs recursion</h1>
-      <p className="text-lg text-foreground/80">
-        One knapsack, solved three ways side by side: the bottom-up table, memoized recursion and plain recursion.
-      </p>
+      <h1 className="text-display font-semibold">{dpText.raceTitle}</h1>
+      <p className="text-lg text-foreground/80">{dpText.raceIntro}</p>
     </header>
-    <Section title="What memoizing saves">
+    <Section title={dpText.whatMemoSaves}>
       <p className="leading-relaxed text-foreground/80">{DP_RACE_DESCRIPTION}</p>
-      <p className="leading-relaxed text-foreground/80">
-        Each lane is the table of subproblems, colored by how many times that method has worked each one out. Plain
-        recursion lights the same cells up again and again; with more items its count roughly doubles per item, while
-        the table only grows by one row.
-      </p>
+      <p className="leading-relaxed text-foreground/80">{dpText.raceTip}</p>
     </Section>
-    <Section title="The problems">
+    <Section title={dpText.theProblems}>
       <ul className="flex flex-wrap gap-x-6 gap-y-2">
         {dpOrder.map((algorithm) => (
           <li key={algorithm}>
@@ -942,16 +986,16 @@ const DpProblemArticle = ({ algorithm, onNavigate }: { algorithm: DpAlgorithm; o
         <h1 className="text-display font-semibold">{title}</h1>
         <p className="text-lg text-foreground/80">{shortDescription}</p>
       </header>
-      <Section title="How it works">
+      <Section title={dpText.howItWorks}>
         <p className="leading-relaxed text-foreground/80">{longDescription}</p>
       </Section>
-      <Section title="At a glance">
+      <Section title={dpText.atAGlance}>
         <table className="w-full max-w-lg text-sm">
           <tbody>
             {(
               [
-                [algorithm === "knapsack" ? "Cost, for n items and a bag of W" : "Cost, for words of m and n letters", cost],
-                ["Each cell holds", cell],
+                [algorithm === "knapsack" ? dpText.costKnapsack : dpText.costWords, cost],
+                [dpText.cellHolds, cell],
               ] as const
             ).map(([name, value]) => (
               <tr key={name} className="border-b border-edge last:border-0">
@@ -964,22 +1008,23 @@ const DpProblemArticle = ({ algorithm, onNavigate }: { algorithm: DpAlgorithm; o
           </tbody>
         </table>
       </Section>
-      <Section title="Pseudocode">
+      <Section title={text.pseudocode}>
         <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
           {dpPseudocode[algorithm].join("\n")}
         </pre>
       </Section>
-      <Section title="Compare">
+      <Section title={dpText.compare}>
         <p className="text-foreground/80">
-          Same idea, different question:{" "}
-          <PageLink to={{ kind: "dpProblem", algorithm: other }} onNavigate={onNavigate}>
-            {dpProblems[other].title}
-          </PageLink>
-          . Or{" "}
-          <PageLink to={{ kind: "dpRace" }} onNavigate={onNavigate}>
-            race the table against plain recursion
-          </PageLink>{" "}
-          on a knapsack.
+          {dpText.compareLine(
+            <PageLink to={{ kind: "dpProblem", algorithm: other }} onNavigate={onNavigate}>
+              {dpProblems[other].title}
+            </PageLink>,
+            (children) => (
+              <PageLink to={{ kind: "dpRace" }} onNavigate={onNavigate}>
+                {children}
+              </PageLink>
+            ),
+          )}
         </p>
       </Section>
     </>

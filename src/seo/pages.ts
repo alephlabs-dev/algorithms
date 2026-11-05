@@ -121,6 +121,29 @@ const structureText = localized({
   },
 });
 
+const dpText = localized({
+  en: {
+    moduleTitle: "Dynamic Programming Visualizer: Edit Distance, LCS, Knapsack · Aleph Labs",
+    moduleDescription:
+      "Watch a dynamic programming table fill cell by cell, then walk back from the corner to the answer: the edits between two words, what they share, or what fits in a bag.",
+    raceTitle: "Recursion vs Memoization vs Table: Dynamic Programming Race · Aleph Labs",
+    raceDescription:
+      "One knapsack solved three ways side by side: plain recursion redoing the same subproblems, memoized recursion, and the bottom-up table. Count the work each does.",
+    problemTitle: (title: string) => `${title} Visualized: The Dynamic Programming Table · Aleph Labs`,
+    section: "Dynamic programming",
+  },
+  es: {
+    moduleTitle: "Visualizador de programación dinámica: distancia de edición, LCS y mochila · Aleph Labs",
+    moduleDescription:
+      "Mira cómo se llena una tabla de programación dinámica celda por celda y vuelve desde la esquina hasta la respuesta: las ediciones entre dos palabras, lo que comparten o lo que cabe en una mochila.",
+    raceTitle: "Recursión contra memoización contra tabla: carrera de programación dinámica · Aleph Labs",
+    raceDescription:
+      "Una mochila resuelta de tres formas lado a lado: la recursión simple que rehace los mismos subproblemas, la recursión con memoización y la tabla. Cuenta el trabajo de cada una.",
+    problemTitle: (title) => `${title}: la tabla de programación dinámica, paso a paso · Aleph Labs`,
+    section: "Programación dinámica",
+  },
+});
+
 const homeText = localized({
   en: {
     title: "Algorithm Visualizer: Sorting, Graphs, Data Structures, DP and More · Aleph Labs",
@@ -268,18 +291,16 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "Dynamic Programming Visualizer: Edit Distance, LCS, Knapsack · Aleph Labs",
-      description:
-        "Watch a dynamic programming table fill cell by cell, then walk back from the corner to the answer: the edits between two words, what they share, or what fits in a bag.",
+      title: dpText.moduleTitle,
+      description: dpText.moduleDescription,
     };
   }
   if (route.kind === "dpRace") {
     return {
       path,
       url,
-      title: "Recursion vs Memoization vs Table: Dynamic Programming Race · Aleph Labs",
-      description:
-        "One knapsack solved three ways side by side: plain recursion redoing the same subproblems, memoized recursion, and the bottom-up table. Count the work each does.",
+      title: dpText.raceTitle,
+      description: dpText.raceDescription,
     };
   }
   if (route.kind === "dpProblem") {
@@ -287,7 +308,7 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: `${title} Visualized: The Dynamic Programming Table · Aleph Labs`,
+      title: dpText.problemTitle(title),
       description: shortDescription.slice(0, 200),
     };
   }
@@ -335,7 +356,7 @@ export const structuredData = (route: Route): object[] => {
     graphs: graphText.section,
     fourier: "Fourier series",
     structures: structureText.section,
-    dp: "Dynamic programming",
+    dp: dpText.section,
   };
   const sectionRoutes = {
     sorting: { kind: "sorting" },
@@ -347,10 +368,12 @@ export const structuredData = (route: Route): object[] => {
   } as const;
   const section = { name: sectionNames[module], url: `${SITE_URL}${href(sectionRoutes[module])}` };
   const name =
-    route.kind === "race" || route.kind === "pathRace" || route.kind === "graphRace" || route.kind === "structureRace"
+    route.kind === "race" ||
+    route.kind === "pathRace" ||
+    route.kind === "graphRace" ||
+    route.kind === "structureRace" ||
+    route.kind === "dpRace"
       ? sortingText.race
-      : route.kind === "dpRace"
-        ? "Race"
       : route.kind === "path"
         ? pathAlgorithms[route.algorithm].title
         : route.kind === "graph"

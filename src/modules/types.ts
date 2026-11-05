@@ -71,6 +71,8 @@ export type ModuleUI = {
     description: string;
     /** What one tick of the race clock counts. */
     unit: { one: string; short: string };
+    /** A racer's short name, when the racers aren't the module's algorithms (the DP race's methods). */
+    racerName?: (id: string) => string;
   };
 
   /** The pseudocode on stage, the line it's on, and the step into frame `index` in words. */
