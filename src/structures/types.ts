@@ -4,7 +4,10 @@
  * frame by frame, so playback can go back and forth through all of it.
  */
 
-export type StructureAlgorithm = "bst" | "avl";
+export type StructureAlgorithm = "bst" | "avl" | "heap" | "chaining" | "probing";
+/** The two search trees: the ones that race. */
+export type TreeAlgorithm = "bst" | "avl";
+export const isHashTable = (a: StructureAlgorithm): a is "chaining" | "probing" => a === "chaining" || a === "probing";
 
 export type OperationKind = "insert" | "search" | "delete";
 export type Operation = { kind: OperationKind; value: number };
@@ -44,9 +47,22 @@ export type TreeEvent =
   | { type: "height"; node: number; balance: number }
   /** AVL: a rotation at `pivot`, which moves down; `up` takes its place. */
   | { type: "rotate"; direction: "left" | "right"; pivot: number; up: number }
+  /** Heap: `node` was added at the end of the array, at `index`. */
+  | { type: "append"; node: number; index: number }
+  /** Heap: `node` compared with its parent (up) or its smaller child (down); `swap` if they're out of order. */
+  | { type: "sift"; node: number; other: number; swap: boolean; direction: "up" | "down" }
+  /** Heap: `node` and `other` traded places. */
+  | { type: "swap"; node: number; other: number; direction: "up" | "down" }
+  /** Heap: checking slot `index` while looking for `value`. */
+  | { type: "scan"; node: number; value: number; index: number; match: boolean }
+  /** Heap: taking `value` out of `node`'s slot. */
+  | { type: "take"; node: number; value: number }
+  /** Heap: the last value, `node`, moved into the hole. */
+  | { type: "lift"; node: number; value: number }
   | { type: "done"; op: Operation };
 
 export type TreeFrame = {
+  shape: "tree";
   nodes: NodeView[];
   root: number | null;
   event: TreeEvent;
@@ -57,7 +73,60 @@ export type TreeFrame = {
   line: number | null;
   /** Which operation this frame belongs to. */
   opIndex: number;
-  stats: { comparisons: number; rotations: number };
+  stats: StructureStats;
   /** Edges on the longest way down from the root (−1 for an empty tree). */
   height: number;
 };
+
+export type StructureStats = { comparisons: number; rotations: number; swaps: number };
+
+/** A value in a hash table. A deleted one, in linear probing, stays behind as a marker. */
+export type HashItem = { id: number; value: number; deleted?: boolean };
+
+export type HashEvent =
+  | { type: "start"; op: Operation }
+  /** `value` mod the table size: the bucket it belongs in. */
+  | { type: "hash"; value: number; bucket: number }
+  /** Looking at `item` (null: an empty slot) in `bucket`; `match` if it holds `value`. */
+  | { type: "probe"; bucket: number; item: number | null; value: number; match: boolean; deleted: boolean }
+  | { type: "place"; bucket: number; item: number; probes: number }
+  | { type: "duplicate"; bucket: number; item: number }
+  | { type: "found"; bucket: number; item: number }
+  | { type: "missing"; value: number }
+  /** Gone from `bucket`; in linear probing a marker stays in its slot. */
+  | { type: "removed"; value: number; bucket: number; marker: boolean }
+  /** Linear probing: every slot is taken. */
+  | { type: "full"; value: number }
+  | { type: "done"; op: Operation };
+
+export type HashFrame = {
+  shape: "table";
+  /** Chaining: each bucket's chain. Linear probing: each slot holds at most one item. */
+  buckets: HashItem[][];
+  event: HashEvent;
+  /** The bucket and item the step is about. */
+  focus: { bucket: number; item: number | null } | null;
+  /** Buckets the current operation has looked in. */
+  probed: number[];
+  line: number | null;
+  opIndex: number;
+  stats: StructureStats;
+  /** Values in the table (markers don't count). */
+  count: number;
+};
+
+export type StructureFrame = TreeFrame | HashFrame;
+
+/** Every frame of every operation so far, for any structure. */
+export type StructureRun = {
+  readonly algorithm: StructureAlgorithm;
+  readonly frames: StructureFrame[];
+  /** The frame each operation starts at. */
+  readonly opStarts: number[];
+};
+
+/** The values a frame holds, in no particular order. */
+export const valuesIn = (frame: StructureFrame): number[] =>
+  frame.shape === "tree"
+    ? frame.nodes.map((n) => n.value)
+    : frame.buckets.flatMap((b) => b.filter((i) => !i.deleted).map((i) => i.value));

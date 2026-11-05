@@ -51,6 +51,9 @@ export const seriesSlugs: Record<FourierAlgorithm, string> = {
 export const structureSlugs: Record<StructureAlgorithm, string> = {
   bst: "binary-search-tree",
   avl: "avl-tree",
+  heap: "min-heap",
+  chaining: "hash-table-chaining",
+  probing: "hash-table-linear-probing",
 };
 
 /** Every page the site has. Settings (size, input, speed, seed…) stay in the query string. */

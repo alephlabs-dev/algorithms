@@ -39,9 +39,12 @@ import { engines, type ModuleId } from "./modules/engine";
 import {
   decodeOperations,
   presetOperations,
+  recordStructure,
   TreeRecorder,
   type Operation,
   type StructureAlgorithm,
+  type StructureRun,
+  type TreeAlgorithm,
   type StructurePreset,
   type StructureSize,
 } from "./structures";
@@ -120,7 +123,7 @@ export type StoreState = {
   /** Every operation so far, starting with the preset's inserts. */
   structureOps: Operation[];
   /** All of them, recorded frame by frame. */
-  structureRun: TreeRecorder;
+  structureRun: StructureRun;
   /** Race view: BST and AVL on the same operations. */
   structureRaceRuns: TreeRecorder[];
   /** Bumped when the values are replaced wholesale, so nodes don't glide between unrelated trees. */
@@ -285,7 +288,7 @@ const graphRaceTimelinesFor = (view: View, algorithms: GraphAlgorithm[], graph: 
   view === "race" ? algorithms.map((a) => graphTimelineFor(a, graph)) : [];
 
 // The race is the point of AVL: the same operations, with and without balancing.
-const STRUCTURE_RACERS: StructureAlgorithm[] = ["bst", "avl"];
+const STRUCTURE_RACERS: TreeAlgorithm[] = ["bst", "avl"];
 
 const structureRaceRunsFor = (view: View, ops: Operation[]) =>
   view === "race" ? STRUCTURE_RACERS.map((a) => new TreeRecorder(a, ops)) : [];
@@ -293,7 +296,7 @@ const structureRaceRunsFor = (view: View, ops: Operation[]) =>
 /** The runs after the operations change: the single one and, in a race, both racers. */
 const structureRunsFor = (state: StoreState, ops: Operation[]) => ({
   structureOps: ops,
-  structureRun: new TreeRecorder(state.structureAlgorithm, ops),
+  structureRun: recordStructure(state.structureAlgorithm, ops),
   structureRaceRuns: structureRaceRunsFor(state.module === "structures" ? state.view : "single", ops),
   frameIndex: 0,
   isPlaying: false,
@@ -412,7 +415,7 @@ const initial = (() => {
     structurePreset,
     structureSize,
     structureOps,
-    structureRun: new TreeRecorder(structureAlgorithm, structureOps),
+    structureRun: recordStructure(structureAlgorithm, structureOps),
     structureRaceRuns: structureRaceRunsFor(module === "structures" ? view : "single", structureOps),
     graphRaceAlgorithms: url.graph.racers ?? DEFAULT_GRAPH_RACERS,
     graphRaceTimelines: graphRaceTimelinesFor(
@@ -753,7 +756,7 @@ export const useStore = create<StoreState>((set, get) => {
         view: "single",
         isModuleStart: false,
         structureAlgorithm: algorithm,
-        structureRun: new TreeRecorder(algorithm, state.structureOps),
+        structureRun: recordStructure(algorithm, state.structureOps),
         raceTimelines: [],
         pathRaceTimelines: [],
         graphRaceTimelines: [],
