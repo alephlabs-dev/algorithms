@@ -48,7 +48,8 @@ export const heapSort: SortAlgorithm = function* (arr) {
 
   yield { type: "highlight", line: 0 };
   for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
-    yield { type: "highlight", line: 2 };
+    // A new sift-down: the last pair compared stops being lit.
+    yield { type: "highlight", active: [], line: 2 };
     yield* siftDown(arr, i, n);
   }
 
@@ -56,7 +57,7 @@ export const heapSort: SortAlgorithm = function* (arr) {
     // The max sits at the root: move it to the end of the heap.
     yield { type: "swap", i: 0, j: end, line: 4 };
     yield { type: "done", indices: [end], focus: range(0, end), line: 5 };
-    yield { type: "highlight", line: 6 };
+    yield { type: "highlight", active: [], line: 6 };
     yield* siftDown(arr, 0, end);
   }
 };

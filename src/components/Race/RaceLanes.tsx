@@ -80,10 +80,10 @@ export const RaceLanes = () => {
     <div className="relative flex min-h-0 flex-1">
       <div
         className={cn("grid min-h-0 w-full gap-2 md:gap-3", {
-          // Two columns from tablet width up; phones stack the lanes.
+          // Two racers: stacked on phones (each lane stays wide), side by side from tablet width up.
+          // Three or four: a 2×2 grid everywhere, so lanes on phones don't get too short.
           "grid-rows-2 md:grid-rows-1 md:grid-cols-2": count === 2,
-          "grid-rows-3 md:grid-rows-2 md:grid-cols-2": count === 3,
-          "grid-rows-4 md:grid-rows-2 md:grid-cols-2": count === 4,
+          "grid-cols-2 grid-rows-2": count >= 3,
         })}
       >
         {algorithms.map((algorithm, k) => (
@@ -95,7 +95,7 @@ export const RaceLanes = () => {
             place={placeOf(timelines[k])}
             runId={runId}
             // With three racers on a 2×2 grid, the last lane takes the full bottom row.
-            className={cn({ "md:col-span-2": count === 3 && k === 2 })}
+            className={cn({ "col-span-2": count === 3 && k === 2 })}
           />
         ))}
       </div>
