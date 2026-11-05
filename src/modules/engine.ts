@@ -5,7 +5,7 @@ import type { Route } from "@/routes";
 import type { StoreState, View } from "@/store";
 import type { Size } from "@/types";
 import { encodeOperations } from "@/structures/link";
-import type { TreeEvent } from "@/structures/types";
+import type { HashEvent, TreeEvent } from "@/structures/types";
 import { toFourierSearch, toGraphSearch, toPathSearch, toSearch, toStructureSearch } from "@/urlState";
 import { GRAPH_STEP_WEIGHT, PATH_STEP_WEIGHT, STEP_WEIGHT, type Pace } from "@/utils/speed";
 
@@ -129,7 +129,7 @@ export const engines: Record<ModuleId, ModuleEngine> = {
 };
 
 /** A rotation gets the longest beat, so the nodes can be seen gliding; going back up is quick. */
-const STRUCTURE_STEP_WEIGHT: Record<TreeEvent["type"], number> = {
+const STRUCTURE_STEP_WEIGHT: Record<TreeEvent["type"] | HashEvent["type"], number> = {
   start: 0.7,
   compare: 0.8,
   place: 1,
@@ -141,5 +141,16 @@ const STRUCTURE_STEP_WEIGHT: Record<TreeEvent["type"], number> = {
   successor: 1,
   height: 0.5,
   rotate: 1.6,
+  // Heap: a swap glides like a rotation; scanning slot after slot is quick.
+  append: 1,
+  sift: 0.7,
+  swap: 1.3,
+  scan: 0.5,
+  take: 1,
+  lift: 1.3,
+  // Hash tables: the jump to a bucket is the point, so it gets a beat.
+  hash: 1,
+  probe: 0.7,
+  full: 1,
   done: 0.4,
 };

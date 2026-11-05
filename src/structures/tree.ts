@@ -1,4 +1,4 @@
-import type { NodeView, Operation, StructureAlgorithm, TreeEvent, TreeFrame } from "./types";
+import type { NodeView, Operation, StructureRun, TreeAlgorithm, TreeEvent, TreeFrame } from "./types";
 
 type Node = { id: number; value: number; left: number | null; right: number | null; height: number };
 
@@ -21,7 +21,7 @@ export const LINE = {
  * frame for every step: each comparison, where a node lands, what a delete
  * does, and (AVL) every height fixed and rotation made on the way back up.
  */
-export class TreeRecorder {
+export class TreeRecorder implements StructureRun {
   readonly frames: TreeFrame[] = [];
   /** The frame each operation starts at. */
   readonly opStarts: number[] = [];
@@ -30,10 +30,10 @@ export class TreeRecorder {
   private nextId = 0;
   private path: number[] = [];
   private opIndex = -1;
-  private stats = { comparisons: 0, rotations: 0 };
+  private stats = { comparisons: 0, rotations: 0, swaps: 0 };
 
   constructor(
-    readonly algorithm: StructureAlgorithm,
+    readonly algorithm: TreeAlgorithm,
     operations: Operation[],
   ) {
     // Frame 0: the empty tree, before anything happens.
@@ -58,6 +58,7 @@ export class TreeRecorder {
   private frameOf(event: TreeEvent, focus: number | null, line: number | null): TreeFrame {
     const nodes: NodeView[] = [...this.nodes.values()].map((n) => ({ ...n, balance: this.balanceOf(n.id) }));
     return {
+      shape: "tree",
       nodes,
       root: this.root,
       event,

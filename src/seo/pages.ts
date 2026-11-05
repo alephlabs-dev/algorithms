@@ -71,9 +71,9 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "Data Structure Visualizer: Binary Search and AVL Trees · Aleph Labs",
+      title: "Data Structure Visualizer: BST, AVL Tree, Heap, Hash Table · Aleph Labs",
       description:
-        "Insert, search and delete in a binary search tree or an AVL tree and watch every comparison and rotation, step by step with the pseudocode.",
+        "Insert, search and delete in a binary search tree, an AVL tree, a min-heap or a hash table, and watch every comparison, rotation, swap and probe, step by step with the pseudocode.",
     };
   }
   if (route.kind === "structure") {

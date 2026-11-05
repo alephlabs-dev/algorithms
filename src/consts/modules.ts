@@ -48,8 +48,8 @@ export const modules: ModuleInfo[] = [
   {
     id: "structures",
     title: "Data structures",
-    summary: "Binary search trees and self-balancing AVL trees you insert into, search and delete from.",
-    count: `${Object.keys(structures).length} trees`,
+    summary: "Search trees, AVL rotations, a min-heap and hash tables you insert into, search and delete from.",
+    count: `${Object.keys(structures).length} structures`,
     route: { kind: "structures" },
   },
   { id: "dp", title: "Dynamic programming", summary: "Edit distance, LCS and knapsack, one table cell at a time." },

@@ -40,17 +40,19 @@ export const structuresUI: ModuleUI = {
   },
   newRunLabel: "New values",
 
-  algorithms: [
-    {
-      label: "Trees",
-      hint: "search in O(height)",
-      items: (Object.keys(structures) as StructureAlgorithm[]).map((id) => ({
-        id,
-        title: structures[id].title,
-        short: structures[id].short,
-      })),
-    },
-  ],
+  algorithms: (
+    [
+      ["Trees", "O(height)"],
+      ["Heaps", "min on top"],
+      ["Hash tables", "O(1) average"],
+    ] as const
+  ).map(([label, hint]) => ({
+    label,
+    hint,
+    items: (Object.keys(structures) as StructureAlgorithm[])
+      .filter((id) => structures[id].group === label)
+      .map((id) => ({ id, title: structures[id].title, short: structures[id].short })),
+  })),
   current: (s) => s.structureAlgorithm,
   pick: (id) => useStore.getState().setStructureAlgorithm(id as StructureAlgorithm),
 

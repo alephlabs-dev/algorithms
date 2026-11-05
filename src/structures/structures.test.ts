@@ -4,7 +4,11 @@ import {
   decodeOperations,
   encodeOperations,
   presetOperations,
+  HashRecorder,
+  HeapRecorder,
+  PROBING_SLOTS,
   TreeRecorder,
+  type HashFrame,
   type NodeView,
   type Operation,
   type TreeFrame,
@@ -106,5 +110,104 @@ describe("trees", () => {
     expect(decodeOperations(encodeOperations(ops))).toEqual(ops);
     expect(decodeOperations("i5.x3")).toBeNull();
     expect(decodeOperations("i500")).toBeNull();
+  });
+});
+
+describe("HeapRecorder", () => {
+  const lastOf = (ops: Operation[]) => {
+    const run = new HeapRecorder(ops);
+    return run.frames[run.frames.length - 1] as TreeFrame;
+  };
+
+  it("keeps every parent no bigger than its children, with the same values as a reference", () => {
+    for (let seed = 1; seed <= 20; seed++) {
+      const ops = randomOps(seed, 60);
+      const reference: number[] = [];
+      for (let k = 1; k <= ops.length; k++) {
+        const op = ops[k - 1];
+        if (op.kind === "insert") reference.push(op.value);
+        if (op.kind === "delete") {
+          const at = reference.indexOf(op.value);
+          if (at >= 0) reference.splice(at, 1);
+        }
+        const values = lastOf(ops.slice(0, k)).nodes.map((n) => n.value);
+        for (let i = 1; i < values.length; i++) expect(values[Math.floor((i - 1) / 2)]).toBeLessThanOrEqual(values[i]);
+        expect([...values].sort((a, b) => a - b)).toEqual([...reference].sort((a, b) => a - b));
+      }
+    }
+  });
+
+  it("pops values in increasing order", () => {
+    const values = [50, 30, 20, 70, 80, 75, 40, 35, 45, 10];
+    const ops: Operation[] = values.map((value) => ({ kind: "insert", value }));
+    const popped: number[] = [];
+    for (let k = 0; k < values.length; k++) {
+      const min = lastOf(ops).nodes[0].value;
+      popped.push(min);
+      ops.push({ kind: "delete", value: min });
+    }
+    expect(popped).toEqual([...values].sort((a, b) => a - b));
+    expect(lastOf(ops).nodes).toHaveLength(0);
+  });
+
+  it("finds values by checking slot after slot", () => {
+    const run = new HeapRecorder([
+      { kind: "insert", value: 5 },
+      { kind: "insert", value: 9 },
+      { kind: "search", value: 9 },
+      { kind: "search", value: 7 },
+    ]);
+    const events = run.frames.map((f) => f.event.type);
+    expect(events).toContain("found");
+    expect(events).toContain("missing");
+  });
+});
+
+describe("HashRecorder", () => {
+  const valuesOf = (run: HashRecorder) => {
+    const frame = run.frames[run.frames.length - 1] as HashFrame;
+    return frame.buckets.flatMap((b) => b.filter((i) => !i.deleted).map((i) => i.value)).sort((a, b) => a - b);
+  };
+
+  it.each(["chaining", "probing"] as const)("%s holds the same values as a set, and finds each one", (algorithm) => {
+    for (let seed = 1; seed <= 20; seed++) {
+      const ops = randomOps(seed, 60);
+      const reference = new Set<number>();
+      for (const op of ops) {
+        // Linear probing has PROBING_SLOTS slots: once they all hold values, inserts are turned away.
+        const full = algorithm === "probing" && reference.size >= PROBING_SLOTS;
+        if (op.kind === "insert" && !full) reference.add(op.value);
+        if (op.kind === "delete") reference.delete(op.value);
+      }
+      const run = new HashRecorder(algorithm, ops);
+      expect(valuesOf(run)).toEqual([...reference].sort((a, b) => a - b));
+      const searches = new HashRecorder(algorithm, [
+        ...ops,
+        ...[...reference].map((value) => ({ kind: "search" as const, value })),
+      ]);
+      const found = searches.frames.filter((f) => f.event.type === "found").length;
+      const before = run.frames.filter((f) => f.event.type === "found").length;
+      expect(found - before).toBe(reference.size);
+    }
+  });
+
+  it("puts values in their bucket, value mod size", () => {
+    const run = new HashRecorder(
+      "chaining",
+      [10, 17, 3].map((value) => ({ kind: "insert", value })),
+    );
+    const frame = run.frames[run.frames.length - 1] as HashFrame;
+    expect(frame.buckets[3].map((i) => i.value)).toEqual([10, 17, 3]);
+  });
+
+  it("probing walks past a deleted value's marker", () => {
+    // 1 and 24 both start at slot 1; deleting 1 must not hide 24.
+    const run = new HashRecorder("probing", [
+      { kind: "insert", value: 1 },
+      { kind: "insert", value: 24 },
+      { kind: "delete", value: 1 },
+      { kind: "search", value: 24 },
+    ]);
+    expect(run.frames[run.frames.length - 2].event).toMatchObject({ type: "found", bucket: 2 });
   });
 });

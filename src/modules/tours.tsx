@@ -207,18 +207,18 @@ export const fourierTour: TourStep[] = [
 export const structuresTour: TourStep[] = [
   {
     anchor: "picker",
-    title: "Pick a tree",
-    text: () => "A plain binary search tree, or an AVL tree that rebalances itself as it goes.",
+    title: "Pick a structure",
+    text: () => "Two search trees (one rebalances itself as it goes), a min-heap, and a hash table two ways.",
   },
   {
     anchor: "bars",
-    title: "The tree",
-    text: () => "Smaller values to the left, bigger to the right, at every node. Press play to watch it built one insert at a time.",
+    title: "The structure",
+    text: () => "Press play to watch it built one insert at a time. The strip on top shows what's coming: guess where each value lands, then see.",
   },
   {
     anchor: "structure",
     title: "Operate on it",
-    text: () => "Type a value, then insert, find or delete it. Each operation plays step by step: every comparison, and every rotation an AVL tree makes.",
+    text: () => "Type a value, then insert, find or delete it. Each operation plays step by step: every comparison, rotation, swap or probe.",
   },
   {
     anchor: "tools",

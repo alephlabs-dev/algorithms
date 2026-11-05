@@ -4,7 +4,7 @@ import type { TreeRecorder } from "@/structures";
 import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { ordinal } from "@/utils/ordinal";
-import { TreeCanvas } from "../Structures/StructureStage";
+import { StructureCanvas } from "../Structures/StructureStage";
 import { PlaceBadge, ResultsOverlay } from "./RaceParts";
 
 const format = (n: number) => n.toLocaleString("en-US");
@@ -30,7 +30,7 @@ const StructureRaceLane = ({ run, clock, place }: { run: TreeRecorder; clock: nu
           height {Math.max(0, frame.height)}
         </span>
       </header>
-      <TreeCanvas frame={frame} algorithm={run.algorithm} label={`${title}: height ${Math.max(0, frame.height)}.`} />
+      <StructureCanvas frame={frame} algorithm={run.algorithm} label={`${title}: height ${Math.max(0, frame.height)}.`} />
     </section>
   );
 };

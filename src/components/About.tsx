@@ -563,26 +563,30 @@ const StructuresArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] })
     <header className="flex flex-col gap-3">
       <h1 className="text-display font-semibold">Data structures</h1>
       <p className="text-lg text-foreground/80">
-        Insert, search and delete, and watch each operation step by step: every comparison on the way down, and every
-        rotation a self-balancing tree makes to stay short.
+        Insert, search and delete, and watch each operation step by step: every comparison on the way down, every
+        rotation a self-balancing tree makes to stay short, every swap in a heap and every slot a hash table probes.
       </p>
     </header>
-    <Section title="Trees">
-      <ul className="flex flex-col divide-y divide-edge">
-        {structureOrder.map((algorithm) => (
-          <li key={algorithm} className="flex flex-col gap-1 py-4">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-              <PageLink to={{ kind: "structure", algorithm }} onNavigate={onNavigate}>
-                {structures[algorithm].title}
-              </PageLink>
-              <span className="font-mono text-xs text-foreground/60">{structures[algorithm].cost}</span>
-            </div>
-            <p className="text-sm text-foreground/75">{structures[algorithm].shortDescription}</p>
-          </li>
-        ))}
-      </ul>
-    </Section>
-    <Section title="Race them">
+    {(["Trees", "Heaps", "Hash tables"] as const).map((group) => (
+      <Section key={group} title={group}>
+        <ul className="flex flex-col divide-y divide-edge">
+          {structureOrder
+            .filter((algorithm) => structures[algorithm].group === group)
+            .map((algorithm) => (
+              <li key={algorithm} className="flex flex-col gap-1 py-4">
+                <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+                  <PageLink to={{ kind: "structure", algorithm }} onNavigate={onNavigate}>
+                    {structures[algorithm].title}
+                  </PageLink>
+                  <span className="font-mono text-xs text-foreground/60">{structures[algorithm].cost}</span>
+                </div>
+                <p className="text-sm text-foreground/75">{structures[algorithm].shortDescription}</p>
+              </li>
+            ))}
+        </ul>
+      </Section>
+    ))}
+    <Section title="Race the trees">
       <p className="leading-relaxed text-foreground/80">
         {STRUCTURE_RACE_DESCRIPTION}{" "}
         <PageLink to={{ kind: "structureRace" }} onNavigate={onNavigate}>
@@ -595,14 +599,16 @@ const StructuresArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] })
 );
 
 const StructureArticle = ({ algorithm, onNavigate }: { algorithm: StructureAlgorithm; onNavigate?: Props["onNavigate"] }) => {
-  const { title, shortDescription, longDescription, cost, shape } = structures[algorithm];
+  const { title, shortDescription, longDescription, cost, shape, shapeLabel } = structures[algorithm];
   return (
     <>
       <header className="flex flex-col gap-3">
         <h1 className="text-display font-semibold">{title}</h1>
         <p className="text-lg text-foreground/80">{shortDescription}</p>
       </header>
-      <Section title={`How a ${title.toLowerCase().replace("avl", "AVL")} works`}>
+      <Section
+        title={`How ${/^[AEIOU]/.test(title) ? "an" : "a"} ${title.replace(/ \(.*\)$/, "").toLowerCase().replace("avl", "AVL")} works`}
+      >
         <p className="leading-relaxed text-foreground/80">{longDescription}</p>
       </Section>
       <Section title="At a glance">
@@ -611,7 +617,7 @@ const StructureArticle = ({ algorithm, onNavigate }: { algorithm: StructureAlgor
             {(
               [
                 ["Search, insert, delete", cost],
-                ["Shape", shape],
+                [shapeLabel, shape],
               ] as const
             ).map(([name, value]) => (
               <tr key={name} className="border-b border-edge last:border-0">
@@ -634,7 +640,7 @@ const StructureArticle = ({ algorithm, onNavigate }: { algorithm: StructureAlgor
         <p className="text-foreground/80">
           Or{" "}
           <PageLink to={{ kind: "structureRace" }} onNavigate={onNavigate}>
-            race them
+            race the two search trees
           </PageLink>{" "}
           on the same values.
         </p>

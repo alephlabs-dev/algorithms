@@ -50,11 +50,23 @@ const PickerPill = ({
 );
 
 const AlgorithmPicker = () => {
-  const { about } = useModuleUI();
+  const { about, algorithms, current } = useModuleUI();
   const title = useStore((s) => about(s).title);
+  const id = useStore(current);
+  const short = algorithms.flatMap((g) => g.items).find((item) => item.id === id)?.short;
   const [open, setOpen] = useState(false);
+  // Long names give way to the short one until there's room.
+  const label =
+    short && title.length > 20 ? (
+      <>
+        <span className="2xl:hidden">{short}</span>
+        <span className="hidden 2xl:inline">{title}</span>
+      </>
+    ) : (
+      title
+    );
   return (
-    <PickerPill label={title} ariaLabel={`Algorithm: ${title}. Change`} open={open} onOpenChange={setOpen} hint="picker">
+    <PickerPill label={label} ariaLabel={`Algorithm: ${title}. Change`} open={open} onOpenChange={setOpen} hint="picker">
       <AlgorithmList onPick={() => setOpen(false)} />
     </PickerPill>
   );
