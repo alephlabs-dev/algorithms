@@ -18,6 +18,7 @@ Hooks and CI only call these Makefile targets. When the stack changes, change th
 - `make test`: unit tests
 - `make ci`: everything CI runs
 - `make e2e`: browser tests on iPhone, iPad (portrait and landscape) and desktop, without screenshot comparison.
+- `PORT=<n> make e2e`: the same on another port, so runs in parallel worktrees don't test each other's builds (default 4173; 5173 is the human's dev server, never use it).
 
 ## Rules
 
