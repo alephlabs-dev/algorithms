@@ -1,6 +1,7 @@
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { fourierSeries } from "@/consts/fourierSeries";
+import { structures } from "@/consts/structures";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
@@ -18,6 +19,12 @@ const labelFor = (route: Route) => {
       return "About graph algorithms";
     case "fourier":
       return "About Fourier series";
+    case "structures":
+      return "About these data structures";
+    case "structure":
+      return `How the ${structures[route.algorithm].title} works`;
+    case "structureRace":
+      return "Why balancing matters";
     case "series":
       return `How the ${fourierSeries[route.algorithm].title} works`;
     case "graph":

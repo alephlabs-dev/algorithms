@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import { pseudocode } from "@/algorithms";
 import { fourierSeries } from "@/consts/fourierSeries";
+import { STRUCTURE_RACE_DESCRIPTION } from "@/consts/race";
+import { structures } from "@/consts/structures";
+import { structurePseudocode, type StructureAlgorithm } from "@/structures";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
 import { fourierPseudocode, type FourierAlgorithm } from "@/fourier";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
@@ -537,6 +540,131 @@ const SeriesArticle = ({ algorithm, onNavigate }: { algorithm: FourierAlgorithm;
   );
 };
 
+const structureOrder = Object.keys(structures) as StructureAlgorithm[];
+
+const StructureIndex = ({ current, onNavigate }: { current?: StructureAlgorithm; onNavigate?: Props["onNavigate"] }) => (
+  <ul className="flex flex-wrap gap-x-6 gap-y-2">
+    {structureOrder.map((algorithm) => (
+      <li key={algorithm}>
+        {algorithm === current ? (
+          <span className="font-semibold">{structures[algorithm].title}</span>
+        ) : (
+          <PageLink to={{ kind: "structure", algorithm }} onNavigate={onNavigate}>
+            {structures[algorithm].title}
+          </PageLink>
+        )}
+      </li>
+    ))}
+  </ul>
+);
+
+const StructuresArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
+  <>
+    <header className="flex flex-col gap-3">
+      <h1 className="text-display font-semibold">Data structures</h1>
+      <p className="text-lg text-foreground/80">
+        Insert, search and delete, and watch each operation step by step: every comparison on the way down, and every
+        rotation a self-balancing tree makes to stay short.
+      </p>
+    </header>
+    <Section title="Trees">
+      <ul className="flex flex-col divide-y divide-edge">
+        {structureOrder.map((algorithm) => (
+          <li key={algorithm} className="flex flex-col gap-1 py-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+              <PageLink to={{ kind: "structure", algorithm }} onNavigate={onNavigate}>
+                {structures[algorithm].title}
+              </PageLink>
+              <span className="font-mono text-xs text-foreground/60">{structures[algorithm].cost}</span>
+            </div>
+            <p className="text-sm text-foreground/75">{structures[algorithm].shortDescription}</p>
+          </li>
+        ))}
+      </ul>
+    </Section>
+    <Section title="Race them">
+      <p className="leading-relaxed text-foreground/80">
+        {STRUCTURE_RACE_DESCRIPTION}{" "}
+        <PageLink to={{ kind: "structureRace" }} onNavigate={onNavigate}>
+          Start a race
+        </PageLink>
+        .
+      </p>
+    </Section>
+  </>
+);
+
+const StructureArticle = ({ algorithm, onNavigate }: { algorithm: StructureAlgorithm; onNavigate?: Props["onNavigate"] }) => {
+  const { title, shortDescription, longDescription, cost, shape } = structures[algorithm];
+  return (
+    <>
+      <header className="flex flex-col gap-3">
+        <h1 className="text-display font-semibold">{title}</h1>
+        <p className="text-lg text-foreground/80">{shortDescription}</p>
+      </header>
+      <Section title={`How a ${title.toLowerCase().replace("avl", "AVL")} works`}>
+        <p className="leading-relaxed text-foreground/80">{longDescription}</p>
+      </Section>
+      <Section title="At a glance">
+        <table className="w-full max-w-lg text-sm">
+          <tbody>
+            {(
+              [
+                ["Search, insert, delete", cost],
+                ["Shape", shape],
+              ] as const
+            ).map(([name, value]) => (
+              <tr key={name} className="border-b border-edge last:border-0">
+                <th scope="row" className="py-2.5 pr-6 text-left align-top font-normal text-foreground/70">
+                  {name}
+                </th>
+                <td className="py-2.5">{value}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Section>
+      <Section title="Pseudocode">
+        <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
+          {structurePseudocode[algorithm].join("\n")}
+        </pre>
+      </Section>
+      <Section title="Compare">
+        <StructureIndex current={algorithm} onNavigate={onNavigate} />
+        <p className="text-foreground/80">
+          Or{" "}
+          <PageLink to={{ kind: "structureRace" }} onNavigate={onNavigate}>
+            race them
+          </PageLink>{" "}
+          on the same values.
+        </p>
+      </Section>
+    </>
+  );
+};
+
+const StructureRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
+  <>
+    <header className="flex flex-col gap-3">
+      <h1 className="text-display font-semibold">BST vs AVL tree</h1>
+      <p className="text-lg text-foreground/80">
+        The same values into a plain binary search tree and an AVL tree, side by side, one step per tick.
+      </p>
+    </header>
+    <Section title="Why balancing matters">
+      <p className="leading-relaxed text-foreground/80">{STRUCTURE_RACE_DESCRIPTION}</p>
+      <p className="leading-relaxed text-foreground/80">
+        A binary search tree is only as fast as it is short. Values arriving in sorted order (timestamps, ids, a sorted
+        list) all go to the same side, and the tree becomes a list. An AVL tree pays a few rotations per insert to keep
+        its height near log₂ n, so searching a million values takes about 20 steps instead of a million.
+      </p>
+    </Section>
+    <Section title="Learn each tree">
+      <StructureIndex onNavigate={onNavigate} />
+    </Section>
+  </>
+);
+
 export const About = ({ route, onNavigate }: Props) => (
   <article id="about" className="mx-auto flex w-full max-w-3xl flex-col gap-12 px-4 pb-20 pt-16 text-foreground md:px-6">
     {route.kind === "sorting" && <SortingArticle onNavigate={onNavigate} />}
@@ -550,6 +678,9 @@ export const About = ({ route, onNavigate }: Props) => (
     {route.kind === "graphRace" && <GraphRaceArticle onNavigate={onNavigate} />}
     {route.kind === "fourier" && <FourierArticle onNavigate={onNavigate} />}
     {route.kind === "series" && <SeriesArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
+    {route.kind === "structures" && <StructuresArticle onNavigate={onNavigate} />}
+    {route.kind === "structure" && <StructureArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
+    {route.kind === "structureRace" && <StructureRaceArticle onNavigate={onNavigate} />}
     <footer className="border-t border-edge pt-6 text-sm text-foreground/60">
       <PageLink
         to={{ kind: "home" }}

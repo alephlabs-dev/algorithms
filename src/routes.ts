@@ -1,4 +1,5 @@
 import type { FourierAlgorithm } from "./fourier/types";
+import type { StructureAlgorithm } from "./structures/types";
 import type { GraphAlgorithm } from "./graphs/types";
 import type { PathAlgorithm } from "./pathfinding/types";
 import type { Algorithm } from "./types";
@@ -46,6 +47,12 @@ export const seriesSlugs: Record<FourierAlgorithm, string> = {
   epicycles: "epicycles",
 };
 
+/** URL slug for each data structure, e.g. /structures/avl-tree. */
+export const structureSlugs: Record<StructureAlgorithm, string> = {
+  bst: "binary-search-tree",
+  avl: "avl-tree",
+};
+
 /** Every page the site has. Settings (size, input, speed, seed…) stay in the query string. */
 export type Route =
   /** The landing page. */
@@ -61,7 +68,10 @@ export type Route =
   | { kind: "graph"; algorithm: GraphAlgorithm }
   | { kind: "graphRace" }
   | { kind: "fourier" }
-  | { kind: "series"; algorithm: FourierAlgorithm };
+  | { kind: "series"; algorithm: FourierAlgorithm }
+  | { kind: "structures" }
+  | { kind: "structure"; algorithm: StructureAlgorithm }
+  | { kind: "structureRace" };
 
 export const routePath = (route: Route): string => {
   if (route.kind === "home") return "/";
@@ -72,6 +82,9 @@ export const routePath = (route: Route): string => {
   if (route.kind === "graphRace") return "/graphs/race";
   if (route.kind === "fourier") return "/fourier";
   if (route.kind === "series") return `/fourier/${seriesSlugs[route.algorithm]}`;
+  if (route.kind === "structures") return "/structures";
+  if (route.kind === "structure") return `/structures/${structureSlugs[route.algorithm]}`;
+  if (route.kind === "structureRace") return "/structures/race";
   if (route.kind === "race") return "/sorting/race";
   if (route.kind === "pathRace") return "/pathfinding/race";
   if (route.kind === "path") return `/pathfinding/${pathSlugs[route.algorithm]}`;
@@ -87,6 +100,13 @@ export const routeFromPath = (pathname: string): Route | null => {
   if (path === "/graphs") return { kind: "graphs" };
   if (path === "/graphs/race") return { kind: "graphRace" };
   if (path === "/fourier") return { kind: "fourier" };
+  if (path === "/structures") return { kind: "structures" };
+  if (path === "/structures/race") return { kind: "structureRace" };
+  const structureMatch = /^\/structures\/([a-z-]+)$/.exec(path);
+  if (structureMatch) {
+    const found = Object.entries(structureSlugs).find(([, slug]) => slug === structureMatch[1]);
+    return found ? { kind: "structure", algorithm: found[0] as StructureAlgorithm } : null;
+  }
   const seriesMatch = /^\/fourier\/([a-z-]+)$/.exec(path);
   if (seriesMatch) {
     const found = Object.entries(seriesSlugs).find(([, slug]) => slug === seriesMatch[1]);
@@ -124,11 +144,15 @@ export const allRoutes: Route[] = [
   { kind: "graphRace" },
   { kind: "fourier" },
   ...(Object.keys(seriesSlugs) as FourierAlgorithm[]).map((algorithm) => ({ kind: "series" as const, algorithm })),
+  { kind: "structures" },
+  ...(Object.keys(structureSlugs) as StructureAlgorithm[]).map((algorithm) => ({ kind: "structure" as const, algorithm })),
+  { kind: "structureRace" },
 ];
 
 /** Which module a page belongs to, if any (the landing page belongs to none). */
-export const moduleOf = (route: Route): "sorting" | "pathfinding" | "graphs" | "fourier" | null => {
+export const moduleOf = (route: Route): "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | null => {
   if (route.kind === "home") return null;
+  if (route.kind === "structures" || route.kind === "structure" || route.kind === "structureRace") return "structures";
   if (route.kind === "fourier" || route.kind === "series") return "fourier";
   if (route.kind === "graphs" || route.kind === "graph" || route.kind === "graphRace") return "graphs";
   return route.kind === "pathfinding" || route.kind === "path" || route.kind === "pathRace" ? "pathfinding" : "sorting";

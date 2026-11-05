@@ -26,6 +26,7 @@ describe("url state", () => {
       path: {},
       graph: {},
       fourier: {},
+      structure: {},
     });
     // The race page has no algorithm of its own (toEqual ignores undefined keys).
     expect(readLocation(routePath({ kind: "race" }), toSearch(state))).toEqual({
@@ -37,6 +38,7 @@ describe("url state", () => {
       path: {},
       graph: {},
       fourier: {},
+      structure: {},
     });
   });
 
