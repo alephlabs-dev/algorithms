@@ -1,10 +1,10 @@
 import { useShallow } from "zustand/react/shallow";
-import { selectFrame, selectLastIndex, useStore } from "@/store";
+import { selectFrame, selectGameQuestion, selectLastIndex, useStore } from "@/store";
 import { ArrayCanvas } from "./ArrayCanvas";
 import { FinishSummary } from "./FinishSummary";
 
 export const AlgorithmVisualizer = () => {
-  const { frame, values, frameIndex, lastIndex, arrayId, displayMode } = useStore(
+  const { frame, values, frameIndex, lastIndex, arrayId, displayMode, labels } = useStore(
     useShallow((s) => ({
       frame: selectFrame(s),
       values: s.timeline.values,
@@ -12,6 +12,7 @@ export const AlgorithmVisualizer = () => {
       lastIndex: selectLastIndex(s),
       arrayId: s.arrayId,
       displayMode: s.displayMode,
+      labels: selectGameQuestion(s)?.labels,
     }))
   );
   const finished = frameIndex > 0 && frameIndex === lastIndex;
@@ -36,6 +37,7 @@ export const AlgorithmVisualizer = () => {
         celebrate={finished}
         runId={arrayId}
         annotate
+        labels={labels}
         label={`Array of ${values.length} items, step ${frameIndex} of ${lastIndex}. ${describe()}`}
       />
       {/* In the empty band above the tallest bars (they reach 80% of the height). */}

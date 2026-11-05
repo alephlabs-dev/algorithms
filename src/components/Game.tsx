@@ -108,8 +108,8 @@ const optionClass =
   "h-10 min-w-12 rounded-full border border-line/70 px-4 font-mono text-sm font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
 
 /**
- * Guess mode on stage: the question waiting for an answer (or how the last
- * one went), over the bottom of the stage, and the score in a corner.
+ * Guess mode under the stage: the question waiting for an answer, or how the
+ * last one went, in room the stage gives up while guess mode is on.
  */
 export const GameLayer = () => {
   const { on, question, feedback, score, answer, reset } = useStore(
@@ -157,15 +157,15 @@ export const GameLayer = () => {
   const showFeedback = feedback !== null && shownFeedback === feedback.id;
 
   return (
-    <>
-      {(question || showFeedback) && (
-        // Over the bar under the stage (operations, words), which waits while it asks.
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex">
+    // Room under the stage, kept the whole time guess mode is on: the stage shrinks once, never hides behind a question.
+    <div className="flex min-h-28 shrink-0 flex-col justify-end">
+      {question || showFeedback ? (
+        <div className="flex">
           <div
             role={question ? "dialog" : undefined}
             aria-label={question ? "Your guess" : undefined}
             className={cn(
-              "pointer-events-auto flex min-h-14 w-full flex-col justify-center gap-2 rounded-2xl border bg-surface px-4 py-2.5 shadow-lg",
+              "flex min-h-14 w-full flex-col justify-center gap-2 rounded-2xl border bg-surface px-4 py-2.5 shadow-lg",
               !question && showFeedback && feedback.right ? "border-primary" : "border-edge",
             )}
           >
@@ -247,7 +247,12 @@ export const GameLayer = () => {
             )}
           </div>
         </div>
+      ) : (
+        <p className="flex items-center gap-2 px-1 pb-2 text-sm text-foreground/60">
+          <TargetIcon className="shrink-0" />
+          Guess is on: playback stops before key moments to ask what comes next.
+        </p>
       )}
-    </>
+    </div>
   );
 };

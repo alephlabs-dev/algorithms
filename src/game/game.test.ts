@@ -31,8 +31,12 @@ describe("guess mode questions for sorting", () => {
         expect(q.options).toContain(q.answer);
         expect(q.options.length).toBeLessThanOrEqual(4);
         expect(new Set(q.options).size).toBe(q.options.length);
-        // The value picked up on pass k sits at position k + 1 until its pass starts.
-        const id = timeline.frameAt(q.at - 1).order[k + 1];
+        // The value picked up on pass k sits at position k + 1 until it moves.
+        const shown = timeline.frameAt(q.at - 1);
+        const id = shown.order[k + 1];
+        // Asked with the pass on screen: the sorted part and the picked value lit, and the value labelled.
+        expect(shown.temp).toContain(id);
+        expect(q.labels).toEqual([id]);
         const passEnd = k + 1 < questions.length ? questions[k + 1].at - 1 : timeline.length - 1;
         const landed = timeline.frameAt(passEnd).order.indexOf(id);
         expect(q.answer).toBe(k + 1 - landed);

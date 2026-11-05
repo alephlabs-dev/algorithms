@@ -21,6 +21,8 @@ type Base = {
   prompt: string;
   /** What to say once it's answered, right or wrong. */
   explain: (right: boolean) => string;
+  /** Items the stage labels with their values while it asks, so the prompt's numbers can be found. */
+  labels?: number[];
 };
 
 export type Question =
@@ -192,22 +194,24 @@ export const dpQuestions = (run: TableRun): Question[] => {
 /** Insertion sort: how many places each picked-up value moves left. */
 const insertionQuestions = (run: Timeline): Question[] => {
   // Each pass opens with a highlight of the sorted part plus the value it picks up.
-  const starts: number[] = [];
-  for (let at = 1; at < run.length; at++) if (run.stepAt(at)?.type === "highlight") starts.push(at);
-  return starts.map((at, k) => {
-    const step = run.stepAt(at);
+  const passes: number[] = [];
+  for (let f = 1; f < run.length; f++) if (run.stepAt(f)?.type === "highlight") passes.push(f);
+  return passes.map((lit, k) => {
+    const step = run.stepAt(lit);
     const picked = (step?.type === "highlight" ? (step.temp?.length ?? 1) : 1) - 1;
-    const end = k + 1 < starts.length ? starts[k + 1] : run.length - 1;
+    const end = k + 1 < passes.length ? passes[k + 1] : run.length - 1;
     let moves = 0;
-    for (let f = at + 1; f <= end; f++) if (run.stepAt(f)?.type === "swap") moves++;
-    const value = run.valuesAt(at)[picked];
+    for (let f = lit + 1; f <= end; f++) if (run.stepAt(f)?.type === "swap") moves++;
+    const value = run.valuesAt(lit)[picked];
     return {
       kind: "choice",
-      at,
+      // Asked with the pass lit on screen, before its first comparison.
+      at: lit + 1,
       run,
       prompt: `${value} joins the sorted part. How many places does it move left?`,
       options: choicesAround(moves, [], 0, picked),
       answer: moves,
+      labels: [run.frameAt(lit).order[picked]],
       explain: (right) =>
         `${right ? "Right" : `It's ${moves}`}: ${
           moves === 0
