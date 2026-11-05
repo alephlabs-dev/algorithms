@@ -7,6 +7,11 @@
     {
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "minor and patch"
+    },
+    {
+      "description": "Hold TypeScript 7: typescript-eslint only supports typescript <6.1.0. Remove when #28 is unblocked.",
+      "matchPackageNames": ["typescript"],
+      "allowedVersions": "<7"
     }
   ]
 }
