@@ -16,8 +16,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 600,
   },
   test: {
-    // Agent worktrees live under .claude/ and carry their own copy of the tests.
-    exclude: [...configDefaults.exclude, ".claude/**"],
+    // Agent worktrees live under .claude/ and carry their own copy of the tests; e2e/ is Playwright.
+    exclude: [...configDefaults.exclude, ".claude/**", "e2e/**"],
   },
   resolve: {
     alias: {

@@ -10,5 +10,5 @@
     "noEmit": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["vite.config.ts", "vite-plugin-prerender.ts"]
+  "include": ["vite.config.ts", "vite-plugin-prerender.ts", "playwright.config.ts", "e2e"]
 }

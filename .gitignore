@@ -25,3 +25,12 @@ dist-ssr
 
 # Browser automation logs and screenshots
 .playwright-mcp/
+
+# Claude Code hook state
+.claude/.dirty
+.claude/.verify-attempts
+
+# Playwright
+test-results/
+playwright-report/
+e2e/**/*-darwin.png
