@@ -256,6 +256,7 @@ export const dpTour: TourStep[] = [
   },
   {
     anchor: "words",
+    phoneAnchor: "settings",
     title: "Your input",
     text: () => "Type any two words, up to 10 letters each. For the knapsack: the size of the bag, and how many items.",
   },

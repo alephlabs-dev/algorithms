@@ -172,19 +172,14 @@ const Stepper = ({
   </div>
 );
 
-/** Knapsack: the bag's capacity, how many items, and a fresh set. */
-const ItemsBar = () => {
+/** Knapsack: the bag's capacity, how many items, and a fresh set. In the bar under the table, and in settings. */
+export const ItemsControls = ({ className }: { className?: string }) => {
   const { items, capacity, setItems } = useStore(
     useShallow((s) => ({ items: s.dpItems, capacity: s.dpCapacity, setItems: s.setDpItems })),
   );
   const random = () => seededRandom(newSeed());
   return (
-    <div
-      data-tour="words"
-      role="toolbar"
-      aria-label="Bag and items"
-      className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 rounded-2xl border border-edge bg-surface px-2 py-2 sm:justify-start sm:gap-x-5 sm:px-3"
-    >
+    <div role="group" aria-label="Bag and items" className={className}>
       <Stepper label="Bag" value={capacity} min={1} max={MAX_CAPACITY} onChange={(c) => setItems(items, c)} />
       <Stepper
         label="Items"
@@ -211,6 +206,13 @@ const ItemsBar = () => {
     </div>
   );
 };
+
+// From tablet width up; on phones it lives in settings, so the table gets the room.
+const ItemsBar = () => (
+  <div data-tour="words" className="hidden rounded-2xl border border-edge bg-surface px-3 py-2 md:block">
+    <ItemsControls className="flex flex-wrap items-center gap-x-5 gap-y-1.5" />
+  </div>
+);
 
 /** The table, and the words (or items) it's for. */
 export const DpStage = () => {

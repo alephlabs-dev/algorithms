@@ -3,7 +3,6 @@ import { gridSizeLabels, presets } from "@/consts/pathLabels";
 import { gridSizes, MUD_COST, type GridSize } from "@/pathfinding";
 import { raceMaxGridSize, selectPathFrame, useStore, type Brush } from "@/store";
 import { cn } from "@/utils/cn";
-import { count } from "@/utils/count";
 import { PresetButtons as LayoutButtons } from "../ui/preset-buttons";
 import { SegmentedControl } from "../ui/segmented";
 
@@ -99,7 +98,7 @@ export const PathStatsInline = ({ className }: { className?: string }) => {
   const stats = useStore((s) => selectPathFrame(s).stats);
   return (
     <p className={cn("whitespace-nowrap font-mono text-xs text-foreground/80", className)}>
-      {count(stats.visited, "cell")} looked at
+      {stats.visited} explored
       {stats.pathLength > 0 && ` · path ${stats.pathLength}`}
     </p>
   );

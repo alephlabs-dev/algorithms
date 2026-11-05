@@ -46,7 +46,8 @@ export const Progress = ({ className }: { className?: string }) => {
             </>
           )}
         </span>
-        {!isRace && <Stats />}
+        {/* Whatever a module counts, it never runs under the controls beside the dock. */}
+        {!isRace && <Stats className="min-w-0 max-w-full truncate" />}
       </div>
     </div>
   );

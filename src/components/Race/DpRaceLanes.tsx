@@ -53,7 +53,9 @@ const Lane = ({ work, clock, place }: { work: KnapsackWork; clock: number; place
       <header className="flex items-center gap-2 px-1 text-xs text-foreground md:text-sm">
         <h3 className="truncate font-semibold">{title}</h3>
         {finished && <PlaceBadge place={place} />}
-        <span className="ml-auto whitespace-nowrap font-mono text-foreground/70">{format(calls)} calls</span>
+        <span className="ml-auto whitespace-nowrap font-mono text-foreground/70">
+          {format(calls)} {calls === 1 ? "call" : "calls"}
+        </span>
       </header>
       <WorkCanvas work={work} clock={clock} label={`${title}: ${format(calls)} subproblems so far.`} />
     </section>

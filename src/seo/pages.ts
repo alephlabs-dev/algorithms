@@ -25,9 +25,9 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "Algorithm Visualizer: Sorting, Pathfinding and Graphs Step by Step · Aleph Labs",
+      title: "Algorithm Visualizer: Sorting, Graphs, Data Structures, DP and More · Aleph Labs",
       description:
-        "Watch Quick Sort and Merge Sort sort an array, A* search a maze and Dijkstra walk a graph, step by step with pseudocode and plain-language explanations.",
+        "Watch sorts, A*, Dijkstra, AVL rotations, hash tables, Fourier circles and dynamic programming tables work step by step, with pseudocode and plain-language explanations.",
     };
   }
   if (route.kind === "sorting") {
