@@ -1,6 +1,22 @@
 import { CheckIcon, Link2Icon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    copied: "Link copied",
+    failed: "Copy from the address bar",
+    copy: "Copy link",
+    hint: "Copy a link to this exact array and settings",
+  },
+  es: {
+    copied: "Enlace copiado",
+    failed: "Cópialo de la barra de direcciones",
+    copy: "Copiar enlace",
+    hint: "Copia un enlace a este arreglo y estos ajustes exactos",
+  },
+});
 
 type Status = "idle" | "copied" | "failed";
 
@@ -31,7 +47,7 @@ export const ShareButton = ({
   };
 
   const label =
-    status === "copied" ? "Link copied" : status === "failed" ? "Copy from the address bar" : "Copy link";
+    status === "copied" ? text.copied : status === "failed" ? text.failed : text.copy;
 
   return (
     <Button
@@ -39,7 +55,7 @@ export const ShareButton = ({
       size={iconOnly ? "icon" : "sm"}
       onClick={copy}
       aria-label={iconOnly || labelClassName ? label : undefined}
-      title="Copy a link to this exact array and settings"
+      title={text.hint}
     >
       {status === "copied" ? <CheckIcon className="text-primary" /> : <Link2Icon />}
       {!iconOnly && (

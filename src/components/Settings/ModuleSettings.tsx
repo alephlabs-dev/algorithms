@@ -3,6 +3,12 @@ import * as Popover from "@radix-ui/react-popover";
 import { useModuleUI, useSettingsSummary } from "@/modules";
 import { cn } from "@/utils/cn";
 import { popoverClass } from "../ui/popover";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: { settings: (label: string) => `Settings: ${label}. Change` },
+  es: { settings: (label) => `Ajustes: ${label}. Cambiar` },
+});
 
 /** The settings of the module on stage. */
 export const SettingsPanel = () => {
@@ -20,7 +26,7 @@ export const SettingsMenu = ({ className }: { className?: string }) => {
     <Popover.Root>
       <Popover.Trigger
         data-tour="settings"
-        aria-label={`Settings: ${label}. Change`}
+        aria-label={text.settings(label)}
         className={cn(
           "flex h-11 shrink-0 items-center gap-2 rounded-full border border-edge px-4 text-sm text-foreground transition-colors hover:bg-accent data-[state=open]:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
           className,

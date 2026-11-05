@@ -1,5 +1,9 @@
-export const RACE_DESCRIPTION =
-  "Same array, same clock. Each tick is one operation (a comparison, a swap or a write), so the lanes show how much work each algorithm really does.";
+import { localized } from "@/i18n";
+
+export const RACE_DESCRIPTION = localized({
+  en: "Same array, same clock. Each tick is one operation (a comparison, a swap or a write), so the lanes show how much work each algorithm really does.",
+  es: "Mismo arreglo, mismo reloj. Cada tic es una operación (una comparación, un intercambio o una escritura), así que los carriles muestran cuánto trabajo hace de verdad cada algoritmo.",
+});
 
 export const STRUCTURE_RACE_DESCRIPTION =
   "The same values, in the same order, into a plain binary search tree and an AVL tree. Each tick, both take one step. Feed them ascending values to see why balancing exists.";

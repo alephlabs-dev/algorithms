@@ -15,6 +15,30 @@ import { Button } from "./ui/button";
 import { Drawer, DrawerClose, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
 import { ViewSwitch } from "./ViewSwitch";
 import { GameToggle } from "./Game";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    about: (label: string) => `About ${label}`,
+    settings: "Settings",
+    settingsLabel: (summary: string) => `Settings: ${summary}`,
+    algorithm: "Algorithm",
+    racersField: (names: string) => `Racers: ${names}. Change`,
+    racers: (count: number) => `${count} racers`,
+    racersSheet: (count: number, max: number) => `Racers ${count}/${max}`,
+    race: "Race",
+  },
+  es: {
+    about: (label) => `Acerca de ${label}`,
+    settings: "Ajustes",
+    settingsLabel: (summary) => `Ajustes: ${summary}`,
+    algorithm: "Algoritmo",
+    racersField: (names) => `Competidores: ${names}. Cambiar`,
+    racers: (count) => `${count} ${count === 1 ? "competidor" : "competidores"}`,
+    racersSheet: (count, max) => `Competidores ${count}/${max}`,
+    race: "Carrera",
+  },
+});
 
 /** Bottom sheet with a title and scrollable content. */
 const Sheet = ({ title, children }: { title: string; children: ReactNode }) => (
@@ -29,7 +53,7 @@ const Sheet = ({ title, children }: { title: string; children: ReactNode }) => (
 const InfoButton = ({ label, children }: { label: string; children: ReactNode }) => (
   <Drawer>
     <DrawerTrigger asChild>
-      <Button variant="ghost" size="icon" aria-label={`About ${label}`}>
+      <Button variant="ghost" size="icon" aria-label={text.about(label)}>
         <InfoCircledIcon />
       </Button>
     </DrawerTrigger>
@@ -47,13 +71,13 @@ const SettingsButton = () => {
           data-tour="settings"
           size="icon"
           className="h-12 w-12 shrink-0"
-          aria-label={`Settings: ${summary}`}
+          aria-label={text.settingsLabel(summary)}
           title={summary}
         >
           <MixerHorizontalIcon />
         </Button>
       </DrawerTrigger>
-      <Sheet title="Settings">
+      <Sheet title={text.settings}>
         <SettingsPanel />
       </Sheet>
     </Drawer>
@@ -81,7 +105,7 @@ const AlgorithmField = () => {
   return (
     <div data-tour="picker" className="relative min-w-0 flex-1">
       <select
-        aria-label="Algorithm"
+        aria-label={text.algorithm}
         value={value}
         onChange={(event) => pick(event.target.value)}
         className={cn(fieldClass, "appearance-none truncate")}
@@ -119,15 +143,15 @@ const RacersField = () => {
   return (
     <Drawer>
       <DrawerTrigger asChild>
-        <button type="button" aria-label={`Racers: ${names.join(", ")}. Change`} className={cn(fieldClass, "relative")}>
+        <button type="button" aria-label={text.racersField(names.join(", "))} className={cn(fieldClass, "relative")}>
           <span className="truncate">
-            {names.length} racers{" "}
+            {text.racers(names.length)}{" "}
             <span className="font-sans text-sm font-normal text-foreground/70">· {names.join(", ")}</span>
           </span>
           <FieldChevron />
         </button>
       </DrawerTrigger>
-      <Sheet title={`Racers ${names.length}/${MAX_RACERS}`}>
+      <Sheet title={text.racersSheet(names.length, MAX_RACERS)}>
         <RacerList showHeader={false} />
       </Sheet>
     </Drawer>
@@ -180,7 +204,7 @@ export const MobileRaceBar = ({ className }: { className?: string }) => (
     <ViewRow />
     <div className="flex items-center gap-1">
       <RacersField />
-      <InfoButton label="Race">
+      <InfoButton label={text.race}>
         <StageInfo />
         <DrawerClose asChild>
           <TourLink />

@@ -14,6 +14,7 @@ import { MUD_COST, pathPseudocode, type PathAlgorithm } from "@/pathfinding";
 import { algorithmGroups } from "@/consts/algorithmGroups";
 import { GRAPH_RACE_DESCRIPTION, PATH_RACE_DESCRIPTION, RACE_DESCRIPTION } from "@/consts/race";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
+import { localized } from "@/i18n";
 import type { Route } from "@/routes";
 import type { Algorithm } from "@/types";
 import { PageLink } from "./PageLink";
@@ -30,6 +31,83 @@ type Props = {
   onNavigate?: (route: Route) => void;
 };
 
+type Link = (children: ReactNode) => ReactNode;
+
+// Sorting's articles and the footer. Other modules are translated in their own sub-issues of #36.
+const text = localized({
+  en: {
+    bestCase: "Best case",
+    averageCase: "Average case",
+    worstCase: "Worst case",
+    extraMemory: "Extra memory",
+    stable: "Stable",
+    stableYes: "Yes: equal values keep their order",
+    stableNo: "No: equal values may swap places",
+    howItWorks: (title: string) => `How ${title} works`,
+    complexity: "Time and space complexity",
+    pseudocode: "Pseudocode",
+    pseudocodeNote: "The visualizer above highlights each of these lines as it runs, with the step explained in plain words.",
+    compare: "Compare with other algorithms",
+    orRace: (title: string, race: Link) => (
+      <>
+        Or put {title} in a {race("race")} against others on the same array.
+      </>
+    ),
+    sortingTitle: "Sorting algorithms",
+    sortingIntro:
+      "Watch nine sorting algorithms put an array in order, one comparison at a time. Each step is explained in plain words next to the line of pseudocode it runs, and every run can be shared with a link.",
+    allSorting: "All sorting algorithms",
+    average: (o: string) => `${o} average`,
+    raceThem: "Race them",
+    startRace: "Start a race",
+    raceTitle: "Sorting algorithm race",
+    raceIntro: "Put two to four sorting algorithms side by side on the same array and see which one finishes first.",
+    howRaceWorks: "How the race works",
+    raceTip:
+      "Try a nearly sorted array to see Insertion Sort beat Quick Sort, or a reversed one to see which algorithms struggle with their worst case.",
+    learnEach: "Learn each algorithm",
+    allModules: "All modules",
+    madeBy: "Made by Aleph Labs",
+    github: "Open source on GitHub",
+  },
+  es: {
+    bestCase: "Mejor caso",
+    averageCase: "Caso promedio",
+    worstCase: "Peor caso",
+    extraMemory: "Memoria extra",
+    stable: "Estable",
+    stableYes: "Sí: los valores iguales mantienen su orden",
+    stableNo: "No: los valores iguales pueden cambiar de lugar",
+    howItWorks: (title) => `Cómo funciona ${title}`,
+    complexity: "Complejidad en tiempo y espacio",
+    pseudocode: "Pseudocódigo",
+    pseudocodeNote:
+      "El visualizador de arriba resalta cada una de estas líneas mientras se ejecuta y explica el paso con palabras simples.",
+    compare: "Compara con otros algoritmos",
+    orRace: (title, race) => (
+      <>
+        O pon a {title} en una {race("carrera")} contra otros con el mismo arreglo.
+      </>
+    ),
+    sortingTitle: "Algoritmos de ordenamiento",
+    sortingIntro:
+      "Mira cómo nueve algoritmos de ordenamiento ponen un arreglo en orden, comparación por comparación. Cada paso se explica con palabras simples junto a la línea de pseudocódigo que ejecuta, y cada ejecución se puede compartir con un enlace.",
+    allSorting: "Todos los algoritmos de ordenamiento",
+    average: (o) => `${o} en promedio`,
+    raceThem: "Hazlos competir",
+    startRace: "Empieza una carrera",
+    raceTitle: "Carrera de algoritmos de ordenamiento",
+    raceIntro: "Pon de dos a cuatro algoritmos de ordenamiento lado a lado con el mismo arreglo y mira cuál termina primero.",
+    howRaceWorks: "Cómo funciona la carrera",
+    raceTip:
+      "Prueba un arreglo casi ordenado para ver a Insertion Sort ganarle a Quick Sort, o uno invertido para ver qué algoritmos sufren con su peor caso.",
+    learnEach: "Aprende cada algoritmo",
+    allModules: "Todos los módulos",
+    madeBy: "Hecho por Aleph Labs",
+    github: "Código abierto en GitHub",
+  },
+});
+
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
   <section className="flex flex-col gap-4">
     <h2 className="text-xl font-semibold">{title}</h2>
@@ -40,11 +118,11 @@ const Section = ({ title, children }: { title: string; children: ReactNode }) =>
 const ComplexityTable = ({ algorithm }: { algorithm: Algorithm }) => {
   const { timeComplexity, space, stable } = sortingAlgorithms[algorithm];
   const rows: [string, string][] = [
-    ["Best case", timeComplexity.best],
-    ["Average case", timeComplexity.average],
-    ["Worst case", timeComplexity.worst],
-    ["Extra memory", space],
-    ["Stable", stable ? "Yes: equal values keep their order" : "No: equal values may swap places"],
+    [text.bestCase, timeComplexity.best],
+    [text.averageCase, timeComplexity.average],
+    [text.worstCase, timeComplexity.worst],
+    [text.extraMemory, space],
+    [text.stable, stable ? text.stableYes : text.stableNo],
   ];
   return (
     <table className="w-full max-w-lg text-sm">
@@ -96,28 +174,26 @@ const AlgorithmArticle = ({ algorithm, onNavigate }: { algorithm: Algorithm; onN
         <h1 className="text-display font-semibold">{title}</h1>
         <p className="text-lg text-foreground/80">{shortDescription}</p>
       </header>
-      <Section title={`How ${title} works`}>
+      <Section title={text.howItWorks(title)}>
         <p className="leading-relaxed text-foreground/80">{longDescription}</p>
       </Section>
-      <Section title="Time and space complexity">
+      <Section title={text.complexity}>
         <ComplexityTable algorithm={algorithm} />
       </Section>
-      <Section title="Pseudocode">
+      <Section title={text.pseudocode}>
         <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
           {pseudocode[algorithm].join("\n")}
         </pre>
-        <p className="text-sm text-foreground/70">
-          The visualizer above highlights each of these lines as it runs, with the step explained in plain words.
-        </p>
+        <p className="text-sm text-foreground/70">{text.pseudocodeNote}</p>
       </Section>
-      <Section title="Compare with other algorithms">
+      <Section title={text.compare}>
         <AlgorithmIndex current={algorithm} onNavigate={onNavigate} />
         <p className="text-foreground/80">
-          Or put {title} in a{" "}
-          <PageLink to={{ kind: "race" }} onNavigate={onNavigate}>
-            race
-          </PageLink>{" "}
-          against others on the same array.
+          {text.orRace(title, (children) => (
+            <PageLink to={{ kind: "race" }} onNavigate={onNavigate}>
+              {children}
+            </PageLink>
+          ))}
         </p>
       </Section>
     </>
@@ -210,13 +286,10 @@ const PathArticle = ({ algorithm, onNavigate }: { algorithm: PathAlgorithm; onNa
 const SortingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
   <>
     <header className="flex flex-col gap-3">
-      <h1 className="text-display font-semibold">Sorting algorithms</h1>
-      <p className="text-lg text-foreground/80">
-        Watch nine sorting algorithms put an array in order, one comparison at a time. Each step is explained in plain
-        words next to the line of pseudocode it runs, and every run can be shared with a link.
-      </p>
+      <h1 className="text-display font-semibold">{text.sortingTitle}</h1>
+      <p className="text-lg text-foreground/80">{text.sortingIntro}</p>
     </header>
-    <Section title="All sorting algorithms">
+    <Section title={text.allSorting}>
       <ul className="flex flex-col divide-y divide-edge">
         {(Object.keys(sortingAlgorithms) as Algorithm[]).map((algorithm) => {
           const { title, shortDescription, timeComplexity } = sortingAlgorithms[algorithm];
@@ -226,7 +299,7 @@ const SortingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) =>
                 <PageLink to={{ kind: "algorithm", algorithm }} onNavigate={onNavigate}>
                   {title}
                 </PageLink>
-                <span className="font-mono text-xs text-foreground/60">{timeComplexity.average} average</span>
+                <span className="font-mono text-xs text-foreground/60">{text.average(timeComplexity.average)}</span>
               </div>
               <p className="text-sm text-foreground/75">{shortDescription}</p>
             </li>
@@ -234,11 +307,11 @@ const SortingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) =>
         })}
       </ul>
     </Section>
-    <Section title="Race them">
+    <Section title={text.raceThem}>
       <p className="leading-relaxed text-foreground/80">
         {RACE_DESCRIPTION}{" "}
         <PageLink to={{ kind: "race" }} onNavigate={onNavigate}>
-          Start a race
+          {text.startRace}
         </PageLink>
         .
       </p>
@@ -282,19 +355,14 @@ const PathfindingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }
 const RaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
   <>
     <header className="flex flex-col gap-3">
-      <h1 className="text-display font-semibold">Sorting algorithm race</h1>
-      <p className="text-lg text-foreground/80">
-        Put two to four sorting algorithms side by side on the same array and see which one finishes first.
-      </p>
+      <h1 className="text-display font-semibold">{text.raceTitle}</h1>
+      <p className="text-lg text-foreground/80">{text.raceIntro}</p>
     </header>
-    <Section title="How the race works">
+    <Section title={text.howRaceWorks}>
       <p className="leading-relaxed text-foreground/80">{RACE_DESCRIPTION}</p>
-      <p className="leading-relaxed text-foreground/80">
-        Try a nearly sorted array to see Insertion Sort beat Quick Sort, or a reversed one to see which algorithms
-        struggle with their worst case.
-      </p>
+      <p className="leading-relaxed text-foreground/80">{text.raceTip}</p>
     </Section>
-    <Section title="Learn each algorithm">
+    <Section title={text.learnEach}>
       <AlgorithmIndex onNavigate={onNavigate} />
     </Section>
   </>
@@ -828,14 +896,14 @@ export const About = ({ route, onNavigate }: Props) => (
         onNavigate={onNavigate}
         className="underline decoration-line underline-offset-4 hover:text-foreground"
       >
-        All modules
+        {text.allModules}
       </PageLink>{" "}
-      · Made by Aleph Labs ·{" "}
+      · {text.madeBy} ·{" "}
       <a
         href="https://github.com/alephlabs-dev/algorithms"
         className="underline decoration-line underline-offset-4 hover:text-foreground"
       >
-        Open source on GitHub
+        {text.github}
       </a>
     </footer>
   </article>

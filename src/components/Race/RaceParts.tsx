@@ -3,6 +3,12 @@ import { useState, type ReactNode } from "react";
 import { cn } from "@/utils/cn";
 import { ordinal } from "@/utils/ordinal";
 import { Button } from "../ui/button";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: { show: "Show results", label: "Race results", results: "Results", hide: "Hide", again: "Race again" },
+  es: { show: "Ver resultados", label: "Resultados de la carrera", results: "Resultados", hide: "Ocultar", again: "Correr de nuevo" },
+});
 
 /** A finishing position, with the winner in the accent color. */
 export const PlaceBadge = ({ place }: { place: number }) => (
@@ -27,7 +33,7 @@ export const ResultsOverlay = ({ children, onReplay }: { children: ReactNode; on
         className="absolute bottom-3 right-3 z-10 border-edge bg-surface shadow-[var(--shadow-dock)] animate-in fade-in slide-in-from-bottom-2 duration-200 hover:bg-accent motion-reduce:animate-none"
         onClick={() => setFolded(false)}
       >
-        <BarChartIcon /> Show results
+        <BarChartIcon /> {text.show}
       </Button>
     );
   }
@@ -37,17 +43,17 @@ export const ResultsOverlay = ({ children, onReplay }: { children: ReactNode; on
     <div className="fixed inset-0 z-40 grid place-items-center bg-background/60 p-4 backdrop-blur-[2px] animate-in fade-in duration-300 motion-reduce:animate-none md:absolute md:z-10">
       <section
         role="status"
-        aria-label="Race results"
+        aria-label={text.label}
         className="flex w-full max-w-md flex-col gap-4 rounded-3xl border border-edge bg-surface p-6 shadow-2xl"
       >
-        <h2 className="text-xl font-semibold">Results</h2>
+        <h2 className="text-xl font-semibold">{text.results}</h2>
         {children}
         <div className="flex justify-end gap-2">
           <Button variant="ghost" size="sm" onClick={() => setFolded(true)}>
-            Hide
+            {text.hide}
           </Button>
           <Button variant="primary" size="sm" onClick={onReplay}>
-            <ResetIcon /> Race again
+            <ResetIcon /> {text.again}
           </Button>
         </div>
       </section>

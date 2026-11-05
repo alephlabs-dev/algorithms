@@ -2,8 +2,14 @@ import type { Timeline } from "@/algorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import type { Algorithm } from "@/types";
 import { PlaceBadge, ResultsOverlay } from "./RaceParts";
+import { lang, localized } from "@/i18n";
 
-const format = (n: number) => n.toLocaleString("en-US");
+const text = localized({
+  en: { place: "Place", algorithm: "Algorithm", operations: "Operations", comparisons: "Comparisons" },
+  es: { place: "Lugar", algorithm: "Algoritmo", operations: "Operaciones", comparisons: "Comparaciones" },
+});
+
+const format = (n: number) => n.toLocaleString(lang === "es" ? "es" : "en-US");
 
 type Props = {
   algorithms: Algorithm[];
@@ -23,10 +29,10 @@ export const RaceResults = ({ algorithms, timelines, placeOf, onReplay }: Props)
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left text-xs text-foreground/60">
-            <th className="pb-2 font-normal">Place</th>
-            <th className="pb-2 font-normal">Algorithm</th>
-            <th className="pb-2 text-right font-normal">Operations</th>
-            <th className="hidden pb-2 text-right font-normal sm:table-cell">Comparisons</th>
+            <th className="pb-2 font-normal">{text.place}</th>
+            <th className="pb-2 font-normal">{text.algorithm}</th>
+            <th className="pb-2 text-right font-normal">{text.operations}</th>
+            <th className="hidden pb-2 text-right font-normal sm:table-cell">{text.comparisons}</th>
           </tr>
         </thead>
         <tbody>

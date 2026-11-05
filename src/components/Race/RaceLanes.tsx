@@ -8,8 +8,22 @@ import { ArrayCanvas } from "../AlgorithmVisualizer/ArrayCanvas";
 import { ordinal } from "@/utils/ordinal";
 import { PlaceBadge } from "./RaceParts";
 import { RaceResults } from "./RaceResults";
+import { lang, localized } from "@/i18n";
 
-const formatOps = (n: number) => n.toLocaleString("en-US");
+const text = localized({
+  en: {
+    ops: (ops: string) => `${ops} ops`,
+    label: (title: string, ops: string, total: string, place?: string) =>
+      `${title}: ${ops} of ${total} operations${place ? `, finished ${place}` : ""}.`,
+  },
+  es: {
+    ops: (ops) => `${ops} ops`,
+    label: (title, ops, total, place) =>
+      `${title}: ${ops} de ${total} operaciones${place ? `, terminó ${place}` : ""}.`,
+  },
+});
+
+const formatOps = (n: number) => n.toLocaleString(lang === "es" ? "es" : "en-US");
 
 type LaneProps = {
   algorithm: Algorithm;
@@ -43,7 +57,7 @@ const RaceLane = ({ algorithm, timeline, clock, place, runId, className }: LaneP
         <h3 className="truncate font-semibold">{title}</h3>
         {finished && <PlaceBadge place={place} />}
         <span className="ml-auto whitespace-nowrap font-mono text-foreground/70">
-          {formatOps(ops)} ops
+          {text.ops(formatOps(ops))}
         </span>
       </header>
       <ArrayCanvas
@@ -52,7 +66,7 @@ const RaceLane = ({ algorithm, timeline, clock, place, runId, className }: LaneP
         mode="bars"
         celebrate={finished}
         runId={runId}
-        label={`${title}: ${formatOps(ops)} of ${formatOps(timeline.totalOps)} operations${finished ? `, finished ${ordinal(place)}` : ""}.`}
+        label={text.label(title, formatOps(ops), formatOps(timeline.totalOps), finished ? ordinal(place) : undefined)}
       />
     </section>
   );

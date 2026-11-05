@@ -1,5 +1,5 @@
 import type { MouseEvent, ReactNode } from "react";
-import { routePath, type Route } from "@/routes";
+import { href, type Route } from "@/routes";
 
 /**
  * A link to one of the site's pages. In the app it switches pages without
@@ -19,7 +19,7 @@ export const PageLink = ({
   "aria-label"?: string;
 }) => (
   <a
-    href={routePath(to)}
+    href={href(to)}
     className={className}
     {...rest}
     onClick={(event: MouseEvent) => {

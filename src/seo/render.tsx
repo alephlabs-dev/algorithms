@@ -1,12 +1,16 @@
 import { renderToString } from "react-dom/server";
 import { About } from "@/components/About";
 import { Landing } from "@/components/Landing/Landing";
-import { allRoutes, routePath, SITE_URL, type Route } from "@/routes";
+import { allRoutes, href, isTranslated, pathIn, SITE_URL, type Route } from "@/routes";
 import { renderHead } from "./head";
 
-/** Build-time entry (see vite-plugin-prerender.ts): one static HTML file per page. */
+/**
+ * Build-time entry (see vite-plugin-prerender.ts): one static HTML file per
+ * page. The build loads it once per language; `href` gives each page's path
+ * in that language.
+ */
 
-export { allRoutes, routePath };
+export { allRoutes, href };
 
 const ROOT = '<div id="root"></div>';
 
@@ -26,9 +30,13 @@ export const renderPage = (template: string, route: Route): string => {
 };
 
 export const sitemap = (lastModified: string): string => {
-  const urls = allRoutes
-    .map((route) => {
-      const path = routePath(route);
+  // Spanish pages are listed once their module is translated.
+  const pages = [
+    ...allRoutes.map((route) => ({ route, path: pathIn(route, "en") })),
+    ...allRoutes.filter(isTranslated).map((route) => ({ route, path: pathIn(route, "es") })),
+  ];
+  const urls = pages
+    .map(({ route, path }) => {
       const priority = route.kind === "home" ? "1.0" : route.kind === "sorting" || route.kind === "pathfinding" ? "0.9" : "0.8";
       return `  <url><loc>${SITE_URL}${path === "/" ? "/" : path}</loc><lastmod>${lastModified}</lastmod><priority>${priority}</priority></url>`;
     })

@@ -11,6 +11,23 @@ import { ListItem } from "./ui/list-item";
 import { popoverClass } from "./ui/popover";
 import { SectionLabel } from "./ui/section-label";
 import { AlephMark } from "./ui/aleph-mark";
+import { LanguageRow } from "./LanguageSwitch";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    modules: "Modules",
+    comingSoon: "Coming soon",
+    allModules: "All modules",
+    modulePill: (title: string) => `Module: ${title}. Change`,
+  },
+  es: {
+    modules: "Módulos",
+    comingSoon: "Próximamente",
+    allModules: "Todos los módulos",
+    modulePill: (title) => `Módulo: ${title}. Cambiar`,
+  },
+});
 
 const logoClass =
   "grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary text-lg font-bold text-background transition-opacity hover:opacity-90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background";
@@ -19,7 +36,7 @@ const logoClass =
 const ModuleList = ({ onPick }: { onPick: () => void }) => {
   const current = useStore((s) => s.module);
   return (
-    <nav aria-label="Modules" className="flex flex-col gap-1">
+    <nav aria-label={text.modules} className="flex flex-col gap-1">
       {modules
         .filter((m) => m.route)
         .map((m) => (
@@ -35,7 +52,7 @@ const ModuleList = ({ onPick }: { onPick: () => void }) => {
             <span className="font-mono text-xs font-normal text-foreground/60">{m.count}</span>
           </ListItem>
         ))}
-      <SectionLabel className="px-3 pb-1 pt-3">Coming soon</SectionLabel>
+      <SectionLabel className="px-3 pb-1 pt-3">{text.comingSoon}</SectionLabel>
       {modules
         .filter((m) => !m.route)
         .map((m) => (
@@ -51,8 +68,9 @@ const ModuleList = ({ onPick }: { onPick: () => void }) => {
           onPick();
         }}
       >
-        <ArrowLeftIcon /> All modules
+        <ArrowLeftIcon /> {text.allModules}
       </ListItem>
+      <LanguageRow />
     </nav>
   );
 };
@@ -67,8 +85,8 @@ export const ModuleMenu = ({ className }: { className?: string }) => {
     <div className={cn("flex items-center gap-2", className)}>
       <button
         type="button"
-        aria-label="All modules"
-        title="All modules"
+        aria-label={text.allModules}
+        title={text.allModules}
         onClick={() => navigate({ kind: "home" })}
         className={logoClass}
       >
@@ -76,7 +94,7 @@ export const ModuleMenu = ({ className }: { className?: string }) => {
       </button>
       <Popover.Root open={open} onOpenChange={setOpen}>
         <Popover.Trigger
-          aria-label={`Module: ${title}. Change`}
+          aria-label={text.modulePill(title)}
           className="flex h-11 shrink-0 items-center gap-2 rounded-full border border-line/70 px-4 text-[15px] font-semibold text-foreground transition-colors hover:bg-accent data-[state=open]:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
         >
           {title}
@@ -98,12 +116,12 @@ export const ModuleButton = () => {
   const title = useModuleTitle();
   return (
     <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger aria-label={`Module: ${title}. Change`} className={logoClass}>
+      <DrawerTrigger aria-label={text.modulePill(title)} className={logoClass}>
         <AlephMark />
       </DrawerTrigger>
       <DrawerContent aria-describedby={undefined}>
         <div className="flex max-h-[85dvh] flex-col gap-4 overflow-y-auto p-6 pb-10 text-foreground">
-          <DrawerTitle className="text-xl font-semibold">Modules</DrawerTitle>
+          <DrawerTitle className="text-xl font-semibold">{text.modules}</DrawerTitle>
           <ModuleList onPick={() => setOpen(false)} />
         </div>
       </DrawerContent>

@@ -1,6 +1,38 @@
 import type { Timeline } from "@/algorithms/timeline";
-import { shuffled } from "./choices";
+import { localized } from "@/i18n";
+import { shuffled, verdict } from "./choices";
 import type { Question } from "./questions";
+
+const text = localized({
+  en: {
+    merge: "Merging two runs: which value is placed next?",
+    mergeWhy: (answer: number, left: number, right: number) =>
+      left === right
+        ? `both runs start with ${answer}, and the left one's goes first, which keeps equal values in order.`
+        : `the runs start with ${left} and ${right}, and the smaller front goes next.`,
+    sift: (own: number) => `Sifting ${own} down: which child does it swap with, or does it stay?`,
+    stays: (own: number) => `${own} stays`,
+    itStays: "It stays",
+    siftWhy: (stays: boolean, answer: number, own: number) =>
+      stays
+        ? `no child is bigger than ${own}, so it's where it belongs.`
+        : `${answer} is the bigger child and bigger than ${own}, so they swap.`,
+  },
+  es: {
+    merge: "Al mezclar dos tramos: ¿qué valor va ahora?",
+    mergeWhy: (answer, left, right) =>
+      left === right
+        ? `los dos tramos empiezan con ${answer} y va primero el de la izquierda, así los valores iguales mantienen su orden.`
+        : `los tramos empiezan con ${left} y ${right}, y va primero el menor.`,
+    sift: (own) => `${own} baja: ¿con qué hijo se intercambia, o se queda?`,
+    stays: (own) => `${own} se queda`,
+    itStays: "Se queda",
+    siftWhy: (stays, answer, own) =>
+      stays
+        ? `ningún hijo es mayor que ${own}, así que está donde debe.`
+        : `${answer} es el hijo mayor y es mayor que ${own}, así que se intercambian.`,
+  },
+});
 
 /**
  * Merge sort: which value a merge places next. A placement is a decision while
@@ -39,18 +71,14 @@ export const mergeQuestions = (run: Timeline): Question[] => {
       // Asked before the fronts' comparison, whose narration says which is smaller.
       at: f,
       run,
-      prompt: "Merging two runs: which value is placed next?",
+      prompt: text.merge,
       // The answer is always the smallest option, so the buttons are shuffled.
       options: shuffled(offered, run, f),
       answer,
       // Every bar in the two runs holding an offered value, so ties can be found too.
       labels: runs.filter((id) => offered.includes(run.values[id])),
       explain: (right) =>
-        `${right ? "Right" : `It's ${answer}`}: ${
-          leftFront === rightFront
-            ? `both runs start with ${answer}, and the left one's goes first, which keeps equal values in order.`
-            : `the runs start with ${leftFront} and ${rightFront}, and the smaller front goes next.`
-        }`,
+        `${right ? verdict.right : verdict.its(answer)}: ${text.mergeWhy(answer, leftFront, rightFront)}`,
     });
   }
   return questions;
@@ -85,18 +113,14 @@ export const heapQuestions = (run: Timeline): Question[] => {
       // Asked before the children are compared: the narration of the comparisons gives it away.
       at: f,
       run,
-      prompt: `Sifting ${own} down: which child does it swap with, or does it stay?`,
+      prompt: text.sift(own),
       // In the order the bars appear, then staying: the answer's spot varies on its own.
       options: [...childValues, own],
-      optionLabels: [...childValues.map(String), `${own} stays`],
+      optionLabels: [...childValues.map(String), text.stays(own)],
       answer,
       labels: [node, ...children],
       explain: (right) =>
-        `${right ? "Right" : stays ? "It stays" : `It's ${answer}`}: ${
-          stays
-            ? `no child is bigger than ${own}, so it's where it belongs.`
-            : `${answer} is the bigger child and bigger than ${own}, so they swap.`
-        }`,
+        `${right ? verdict.right : stays ? text.itStays : verdict.its(answer)}: ${text.siftWhy(stays, answer, own)}`,
     });
   }
   return questions;
