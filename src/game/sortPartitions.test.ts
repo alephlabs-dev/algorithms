@@ -72,20 +72,24 @@ describe("guess mode questions for quick sort", () => {
 describe("guess mode questions for shell sort", () => {
   const run = (items: number[]) => new Timeline(sortAlgorithms.shell, items);
 
-  it("asks how many gap-steps each picked-up value moves back, in the gap passes", () => {
-    // Worked by hand. Gap 5: only 2 passes 3. Gap 2: 1 passes 2; 5 passes 9, 7; 3 passes 9, 7, 5;
-    // 4 passes 9, 7, 5; 6 passes 10, 8. The last pass (gap 1) is plain insertion sort and asks nothing.
+  it("asks how many gap-steps every other picked-up value moves back, in the gap passes", () => {
+    // Worked by hand, every pick-up: gap 5 moves 0, 1, 0, 0, 0 (only 2 passes 3); gap 2 moves
+    // 0, 1, 2, 0, 3, 0, 3, 2 (1 passes 2; 5 passes 9, 7; 3 passes 9, 7, 5; 4 passes 9, 7, 5; 6 passes 10, 8).
+    // It asks about the 1st, 3rd, 5th… of each pass: 8, 10, 6 at gap 5; 9, 5, 3, 4 at gap 2.
+    // The last pass (gap 1) is plain insertion sort and asks nothing.
     const questions = choices(sortQuestions(run(input), "shell"));
-    expect(questions.map((q) => q.answer)).toEqual([0, 1, 0, 0, 0, 0, 1, 2, 0, 3, 0, 3, 2]);
-    expect(questions[1].prompt).toBe("Gap 5: how many gap-steps does 2 move back?");
+    expect(questions.map((q) => q.answer)).toEqual([0, 0, 0, 0, 2, 3, 3]);
+    expect(questions.map((q) => q.prompt.match(/does (\d+)/)![1])).toEqual(["8", "10", "6", "9", "5", "3", "4"]);
+    expect(questions[4].prompt).toBe("Gap 2: how many gap-steps does 5 move back?");
   });
 
-  it.each(orders)("on %s input: the value really moves that many gap-steps, asked just before it's picked up", (order) => {
-    const timeline = run(generateItems(10, order, seededRandom(7)));
+  it.each(orders.flatMap((order) => [10, 20].map((size) => [order, size] as const)))(
+    "on %s input with %i items: the value really moves that many gap-steps, asked just before it's picked up",
+    (order, size) => {
+    const timeline = run(generateItems(size, order, seededRandom(7)));
     const questions = choices(sortQuestions(timeline, "shell"));
-    // Gaps 5 and 2 pick up 5 + 8 values.
-    expect(questions).toHaveLength(13);
     expectFairOptions(questions);
+    const perGap = new Map<number, number>();
     questions.forEach((q) => {
       // The asked-about frame lights the gap group and compares the picked value with the one a gap
       // before it. Its narration says which is smaller, so the question comes before it shows.
@@ -94,6 +98,9 @@ describe("guess mode questions for shell sort", () => {
       const gap = Math.abs(a - b);
       expect(gap).toBeGreaterThan(1);
       const from = Math.max(a, b);
+      // A gap pass picks up the values at gap, gap + 1, … in turn; it asks about every other one.
+      expect((from - gap) % 2).toBe(0);
+      perGap.set(gap, (perGap.get(gap) ?? 0) + 1);
       const picked = pickup.order[from];
       expect(timeline.frameAt(q.at - 1).active).not.toContain(picked);
       expect(q.prompt).toBe(`Gap ${gap}: how many gap-steps does ${timeline.values[picked]} move back?`);
@@ -108,5 +115,11 @@ describe("guess mode questions for shell sort", () => {
       expect((from - to) % gap).toBe(0);
       expect(q.answer).toBe((from - to) / gap);
     });
-  });
+    // Each gap pass bigger than 1 picks up size - gap values and asks about half of them, rounded up.
+    const expected = new Map<number, number>();
+    for (let gap = Math.floor(size / 2); gap > 1; gap = Math.floor(gap / 2))
+      expected.set(gap, Math.ceil((size - gap) / 2));
+    expect(perGap).toEqual(expected);
+  },
+  );
 });

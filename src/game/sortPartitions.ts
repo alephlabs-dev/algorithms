@@ -41,8 +41,9 @@ export const quickQuestions = (run: Timeline): Question[] => {
 };
 
 /**
- * Shell sort: how many gap-steps a picked-up value moves back. Asked in the
- * passes with a gap bigger than 1; the last pass is plain insertion sort.
+ * Shell sort: how many gap-steps a picked-up value moves back. Asked for every
+ * other pick-up in the passes with a gap bigger than 1; the last pass is plain
+ * insertion sort.
  */
 export const shellQuestions = (run: Timeline): Question[] => {
   // A value is picked up when its gap group lights up for its first comparison.
@@ -57,6 +58,9 @@ export const shellQuestions = (run: Timeline): Question[] => {
     if (step?.type !== "compare") return;
     const gap = step.j - step.i;
     if (gap <= 1) return;
+    // A pass picks up the values at gap, gap + 1, …; ask about every other one (the 1st, 3rd, …),
+    // so a run isn't a question per value and each pass still gets at least one.
+    if ((step.j - gap) % 2 !== 0) return;
     const end = k + 1 < pickups.length ? pickups[k + 1] - 1 : run.length - 1;
     let moves = 0;
     for (let f = lit + 1; f <= end; f++) if (run.stepAt(f)?.type === "swap") moves++;
