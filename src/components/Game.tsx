@@ -10,14 +10,19 @@ const seenBefore = () => {
     return true;
   }
 };
+import * as Popover from "@radix-ui/react-popover";
 import { useShallow } from "zustand/react/shallow";
 import { engines } from "@/modules/engine";
 import { selectGameQuestion, useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { Button } from "./ui/button";
+import { popoverClass } from "./ui/popover";
 
 /** Whether the module on stage has a guess mode, in the view on stage. */
 const useHasGame = () => useStore((s) => s.view === "single" && engines[s.module].game !== undefined);
+
+/** Why guess mode can't play the run on stage (too many items, say), or null when it can. */
+const useGameUnavailable = () => useStore((s) => engines[s.module].gameUnavailable?.(s) ?? null);
 
 /**
  * Turns guess mode on and off, and while it's on, keeps the score: "Guess 3/5"
@@ -27,11 +32,11 @@ export const GameToggle = ({ compact }: { compact?: boolean }) => {
   const { isOn, toggle, score } = useStore(
     useShallow((s) => ({ isOn: s.isGameOn, toggle: s.toggleGame, score: s.gameScore })),
   );
-  const unavailable = useStore((s) => engines[s.module].gameUnavailable?.(s) ?? null);
+  const unavailable = useGameUnavailable();
   const [seen, setSeen] = useState(seenBefore);
   if (!useHasGame()) return null;
-  // Can't play this run (too many items): looks off and says why. aria-disabled keeps the tooltip.
-  const on = isOn && unavailable === null;
+  // Guess is on and can play this run; when it can't, the toggle looks off.
+  const playing = isOn && unavailable === null;
   const tally = `${score.right}/${score.asked}`;
   const onClick = () => {
     if (unavailable) return;
@@ -45,31 +50,30 @@ export const GameToggle = ({ compact }: { compact?: boolean }) => {
     }
   };
   const label = unavailable
-    ? `Guess mode: ${unavailable}`
-    : on
+    ? `Guess mode unavailable: ${unavailable}`
+    : playing
       ? `Guess mode on, ${score.right} right out of ${score.asked}: turn it off`
       : "Guess mode: it stops to ask what comes next";
-  return (
+  const button = (
     <Button
-      variant={on ? "primary" : "ghost"}
-      size={compact && !on ? "icon" : "sm"}
+      variant={playing ? "primary" : "ghost"}
+      size={compact && !playing ? "icon" : "sm"}
       onClick={onClick}
-      aria-pressed={on}
-      aria-disabled={unavailable !== null || undefined}
+      aria-pressed={playing}
       aria-label={seen ? label : `New: ${label}`}
       title={label}
       data-tour="game"
       className={cn(
         "relative h-10 shrink-0",
-        (!compact || on) && "gap-1.5 px-3.5",
-        compact && on && "px-3",
-        !on && !compact && "border border-line/70",
+        (!compact || playing) && "gap-1.5 px-3.5",
+        compact && playing && "px-3",
+        !playing && !compact && "border border-line/70",
         unavailable && "cursor-not-allowed opacity-50 hover:bg-transparent",
       )}
     >
       <TargetIcon />
       {!compact && "Guess"}
-      {on && <span className="font-mono text-xs">{tally}</span>}
+      {playing && <span className="font-mono text-xs">{tally}</span>}
       {!seen &&
         (compact ? (
           <span
@@ -86,6 +90,18 @@ export const GameToggle = ({ compact }: { compact?: boolean }) => {
         ))}
     </Button>
   );
+  if (!unavailable) return button;
+  // Not disabled: touch screens never show the title, so the toggle opens a note saying why it's off.
+  return (
+    <Popover.Root>
+      <Popover.Trigger asChild>{button}</Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content align="end" sideOffset={8} className={cn(popoverClass, "w-64 text-sm")}>
+          {unavailable}.
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  );
 };
 
 const optionClass =
@@ -98,7 +114,7 @@ const optionClass =
 export const GameLayer = () => {
   const { on, question, feedback, score, answer, reset } = useStore(
     useShallow((s) => ({
-      on: s.isGameOn && s.view === "single" && !engines[s.module].gameUnavailable?.(s),
+      on: s.isGameOn && s.view === "single",
       question: selectGameQuestion(s),
       feedback: s.gameFeedback,
       score: s.gameScore,
@@ -106,6 +122,7 @@ export const GameLayer = () => {
       reset: s.resetGame,
     })),
   );
+  const unavailable = useGameUnavailable();
   // Feedback shows for a few seconds, then gets out of the way.
   const [shownFeedback, setShownFeedback] = useState<number | null>(null);
   useEffect(() => {
@@ -135,7 +152,7 @@ export const GameLayer = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [question, answer]);
 
-  if (!on) return null;
+  if (!on || unavailable) return null;
   // The last answer's result stays a few seconds, above the next question if one comes quickly.
   const showFeedback = feedback !== null && shownFeedback === feedback.id;
 

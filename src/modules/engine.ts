@@ -6,6 +6,7 @@ import type { StoreState, View } from "@/store";
 import type { Size } from "@/types";
 import { encodeOperations } from "@/structures/link";
 import type { HashEvent, TreeEvent } from "@/structures/types";
+import { sizes } from "@/consts/sizesMap";
 import { encodeItems } from "@/dp/presets";
 import { dpQuestions, questionsOf, SORT_GUESS_MAX_SIZE, sortQuestions, structureQuestions, type Question } from "@/game";
 import { toDpSearch, toFourierSearch, toGraphSearch, toPathSearch, toSearch, toStructureSearch } from "@/urlState";
@@ -36,6 +37,11 @@ export type ModuleEngine = {
   gameUnavailable?: (s: StoreState) => string | null;
 };
 
+// Bigger arrays have bars too thin to follow and too many moments to stop at.
+const sortGuessSizes = sizes.filter((size) => size <= SORT_GUESS_MAX_SIZE).join(" or ");
+const sortGuessUnavailable = (s: StoreState) =>
+  s.size <= SORT_GUESS_MAX_SIZE ? null : `Guess works with ${sortGuessSizes} items`;
+
 export const engines: Record<ModuleId, ModuleEngine> = {
   sorting: {
     lastIndex: (s, view) =>
@@ -56,11 +62,9 @@ export const engines: Record<ModuleId, ModuleEngine> = {
         seed: s.seed,
         raceAlgorithms: s.raceAlgorithms,
       }),
-    // Bigger arrays have bars too thin to follow and too many moments to stop at.
     game: (s) =>
-      s.size <= SORT_GUESS_MAX_SIZE ? questionsOf(s.timeline, (run) => sortQuestions(run, s.activeAlgorithm)) : [],
-    gameUnavailable: (s) =>
-      s.size <= SORT_GUESS_MAX_SIZE ? null : "Guess works with 10 or 20 items",
+      sortGuessUnavailable(s) ? [] : questionsOf(s.timeline, (run) => sortQuestions(run, s.activeAlgorithm)),
+    gameUnavailable: sortGuessUnavailable,
   },
   pathfinding: {
     // Races run on cells examined, so every lane gets the same clock.
