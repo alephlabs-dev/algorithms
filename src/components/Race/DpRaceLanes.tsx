@@ -8,6 +8,37 @@ import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { ordinal } from "@/utils/ordinal";
 import { PlaceBadge, ResultsOverlay } from "./RaceParts";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    finished: (place: string) => `, finished ${place}`,
+    calls: (n: string, one: boolean) => `${n} ${one ? "call" : "calls"}`,
+    soFar: (title: string, n: string) => `${title}: ${n} subproblems so far.`,
+    place: "Place",
+    method: "Method",
+    callsHeader: "Calls",
+    repeats: "Repeats",
+    fewItems: (answer: number) =>
+      `Same answer, ${answer}, every way. With this few items plain recursion hardly repeats itself, so filling the whole table is more work. Add items (or a bigger bag) and watch it blow up: its calls roughly double with every item.`,
+    manyItems: (answer: number, repeats: string, table: string) =>
+      `Same answer, ${answer}, every way. Plain recursion worked out ${repeats} subproblems it had already solved; the table did each of its ${table} once, and memoizing only touched the ones the answer needs.`,
+  },
+  es: {
+    finished: (place) => `, terminó ${place}`,
+    calls: (n, one) => `${n} ${one ? "llamada" : "llamadas"}`,
+    soFar: (title, n) => `${title}: ${n} subproblemas hasta ahora.`,
+    place: "Lugar",
+    method: "Método",
+    callsHeader: "Llamadas",
+    repeats: "Repetidas",
+    fewItems: (answer) =>
+      `La misma respuesta, ${answer}, de las tres formas. Con tan pocos objetos la recursión simple casi no se repite, así que llenar toda la tabla es más trabajo. Agrega objetos (o una mochila más grande) y mira cómo se dispara: sus llamadas casi se duplican con cada objeto.`,
+    manyItems: (answer, repeats, table) =>
+      `La misma respuesta, ${answer}, de las tres formas. La recursión simple calculó ${repeats} subproblemas que ya había resuelto; la tabla calculó cada una de sus ${table} celdas una sola vez, y la memoización solo tocó las que necesita la respuesta.`,
+  },
+});
+
 
 const format = (n: number) => n.toLocaleString("en-US");
 /** Subproblems worked out again: plain recursion's wasted effort. */
@@ -44,7 +75,7 @@ const Lane = ({ work, clock, place }: { work: KnapsackWork; clock: number; place
   const calls = Math.min(clock, end) + 1;
   return (
     <section
-      aria-label={`${title}${finished ? `, finished ${ordinal(place)}` : ""}`}
+      aria-label={`${title}${finished ? text.finished(ordinal(place)) : ""}`}
       className={cn(
         "flex min-h-0 min-w-0 flex-col gap-1 rounded-3xl border border-edge bg-surface p-2 ring-1 ring-transparent transition-shadow md:p-3",
         { "ring-primary": finished && place === 1 },
@@ -54,10 +85,10 @@ const Lane = ({ work, clock, place }: { work: KnapsackWork; clock: number; place
         <h3 className="truncate font-semibold">{title}</h3>
         {finished && <PlaceBadge place={place} />}
         <span className="ml-auto whitespace-nowrap font-mono text-foreground/70">
-          {format(calls)} {calls === 1 ? "call" : "calls"}
+          {text.calls(format(calls), calls === 1)}
         </span>
       </header>
-      <WorkCanvas work={work} clock={clock} label={`${title}: ${format(calls)} subproblems so far.`} />
+      <WorkCanvas work={work} clock={clock} label={text.soFar(title, format(calls))} />
     </section>
   );
 };
@@ -87,10 +118,10 @@ export const DpRaceLanes = () => {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-foreground/60">
-                <th className="pb-2 font-normal">Place</th>
-                <th className="pb-2 font-normal">Method</th>
-                <th className="pb-2 text-right font-normal">Calls</th>
-                <th className="pb-2 text-right font-normal">Repeats</th>
+                <th className="pb-2 font-normal">{text.place}</th>
+                <th className="pb-2 font-normal">{text.method}</th>
+                <th className="pb-2 text-right font-normal">{text.callsHeader}</th>
+                <th className="pb-2 text-right font-normal">{text.repeats}</th>
               </tr>
             </thead>
             <tbody>
@@ -107,17 +138,11 @@ export const DpRaceLanes = () => {
             </tbody>
           </table>
           {recursion && table && recursion.length <= table.length && (
-            <p className="text-sm text-foreground/80">
-              Same answer, {recursion.answer}, every way. With this few items plain recursion hardly repeats itself, so
-              filling the whole table is more work. Add items (or a bigger bag) and watch it blow up: its calls roughly
-              double with every item.
-            </p>
+            <p className="text-sm text-foreground/80">{text.fewItems(recursion.answer)}</p>
           )}
           {recursion && table && recursion.length > table.length && (
             <p className="text-sm text-foreground/80">
-              Same answer, {recursion.answer}, every way. Plain recursion worked out {format(repeats(recursion))}{" "}
-              subproblems it had already solved; the table did each of its {format(table.length)} once, and memoizing
-              only touched the ones the answer needs.
+              {text.manyItems(recursion.answer, format(repeats(recursion)), format(table.length))}
             </p>
           )}
         </ResultsOverlay>

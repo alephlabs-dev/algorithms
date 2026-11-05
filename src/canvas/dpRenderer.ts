@@ -10,6 +10,27 @@ import {
 } from "@/dp";
 import { css, inkOn, mix, structurePalette } from "./structurePaint";
 import { readColors, type RGB } from "./theme";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    hints: {
+      edit: "The edits will show here, read off the way back.",
+      lcs: "The shared letters will show here.",
+      knapsack: "What goes in the bag will show here.",
+    },
+    noItems: "no items",
+  },
+  es: {
+    hints: {
+      edit: "Aquí aparecerán las ediciones, leídas en el camino de vuelta.",
+      lcs: "Aquí aparecerán las letras compartidas.",
+      knapsack: "Aquí aparecerá lo que va en la mochila.",
+    },
+    noItems: "sin objetos",
+  },
+});
+
 
 export type DpRenderInput = {
   run: TableRun;
@@ -23,11 +44,7 @@ const SANS = `"Instrument Sans", system-ui, sans-serif`;
 const DOLLAR = "$";
 const itemText = (item: { weight: number; value: number }) => `${item.weight}kg ` + DOLLAR + item.value;
 
-const HINTS = {
-  edit: "The edits will show here, read off the way back.",
-  lcs: "The shared letters will show here.",
-  knapsack: "What goes in the bag will show here.",
-} as const;
+const HINTS = text.hints;
 
 /**
  * Draws a dynamic programming table: one word down the side, the other
@@ -210,7 +227,7 @@ export class DpRenderer {
     if (i === 0) {
       ctx.fillStyle = css(ink, 0.4);
       ctx.font = `600 ${Math.round(h * 0.3)}px ${SANS}`;
-      ctx.fillText("no items", x + w / 2, y + h / 2 + 1);
+      ctx.fillText(text.noItems, x + w / 2, y + h / 2 + 1);
       return;
     }
     const item = run.items[i - 1];

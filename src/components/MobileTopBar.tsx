@@ -136,7 +136,7 @@ const RacersField = () => {
   const names = useStore(
     useShallow((s) => {
       const shortOf = new Map(algorithms.flatMap((g) => g.items).map((item) => [item.id, item.short]));
-      return (race?.racers(s) ?? []).map((id) => shortOf.get(id) ?? id);
+      return (race?.racers(s) ?? []).map((id) => race?.racerName?.(id) ?? shortOf.get(id) ?? id);
     })
   );
 

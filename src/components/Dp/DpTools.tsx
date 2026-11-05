@@ -4,12 +4,59 @@ import { EXAMPLE_CAPACITY, EXAMPLE_ITEMS, encodeItems, RACE_CAPACITY, RACE_ITEMS
 import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { FactLine } from "../ui/fact-line";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    exampleWords: "Example words",
+    raceTitle: "Eight light items, a bag of 12: plenty for plain recursion to repeat itself",
+    textbookTitle: "Four items, a bag of 7: the best fill isn't the most valuable item",
+    raceExample: "Race example",
+    textbook: "Textbook example",
+    examples: "Examples",
+    legend: "Legend",
+    once: "Worked out once",
+    again: "Again and again (how many times)",
+    workingReplaced: "Working out; replaced",
+    working: "Working out",
+    comesFrom: "Comes from",
+    backKept: "The way back; kept",
+    backTaken: "The way back; taken",
+    backShared: "The way back; shared",
+    insertedDeleted: "Inserted or deleted",
+    cells: (filled: number, total: number) => `${filled}/${total} cells`,
+    answer: (n: number) => ` · answer ${n}`,
+    aCell: (cell: string) => `a cell: ${cell}`,
+  },
+  es: {
+    exampleWords: "Palabras de ejemplo",
+    raceTitle: "Ocho objetos livianos, una mochila de 12: de sobra para que la recursión simple se repita",
+    textbookTitle: "Cuatro objetos, una mochila de 7: el mejor llenado no empieza por el objeto más valioso",
+    raceExample: "Ejemplo de carrera",
+    textbook: "Ejemplo clásico",
+    examples: "Ejemplos",
+    legend: "Leyenda",
+    once: "Calculado una vez",
+    again: "Una y otra vez (cuántas veces)",
+    workingReplaced: "Calculando; reemplazada",
+    working: "Calculando",
+    comesFrom: "Viene de",
+    backKept: "El camino de vuelta; se queda",
+    backTaken: "El camino de vuelta; tomado",
+    backShared: "El camino de vuelta; compartida",
+    insertedDeleted: "Insertada o borrada",
+    cells: (filled, total) => `${filled}/${total} celdas`,
+    answer: (n) => ` · respuesta ${n}`,
+    aCell: (cell) => `una celda: ${cell}`,
+  },
+});
+
 
 /** Example word pairs to start from. */
 export const WordPairButtons = ({ className }: { className?: string }) => {
   const { a, b, setWords } = useStore(useShallow((s) => ({ a: s.dpA, b: s.dpB, setWords: s.setDpWords })));
   return (
-    <div role="group" aria-label="Example words" className={cn("flex flex-wrap gap-2", className)}>
+    <div role="group" aria-label={text.exampleWords} className={cn("flex flex-wrap gap-2", className)}>
       {wordPairs.map((pair) => {
         const current = pair.a === a && pair.b === b;
         return (
@@ -50,8 +97,8 @@ const ExampleBagButton = () => {
       onClick={() => setItems(items, capacity)}
       title={
         race
-          ? "Eight light items, a bag of 12: plenty for plain recursion to repeat itself"
-          : "Four items, a bag of 7: the best fill isn't the most valuable item"
+          ? text.raceTitle
+          : text.textbookTitle
       }
       className={cn(
         "flex h-10 items-center rounded-full border px-4 text-sm transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
@@ -60,7 +107,7 @@ const ExampleBagButton = () => {
           : "border-line/70 text-foreground/85 hover:bg-accent hover:text-foreground",
       )}
     >
-      {race ? "Race example" : "Textbook example"}
+      {race ? text.raceExample : text.textbook}
     </button>
   );
 };
@@ -73,7 +120,7 @@ export const DpStartPicker = ({ className }: { className?: string }) => {
 
 /** Above the stage: example words, or the example bag. */
 export const DpTools = ({ className }: { className?: string }) => (
-  <div data-tour="tools" role="toolbar" aria-label="Examples" className={cn("self-start", className)}>
+  <div data-tour="tools" role="toolbar" aria-label={text.examples} className={cn("self-start", className)}>
     <DpStartPicker />
   </div>
 );
@@ -96,33 +143,33 @@ export const DpLegend = ({ className, stacked }: { className?: string; stacked?:
   if (race)
     return (
       <ul
-        aria-label="Legend"
+        aria-label={text.legend}
         className={cn(
           "flex text-xs text-foreground md:text-sm",
           stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
           className,
         )}
       >
-        <Item className="bg-primary" label="Worked out once" />
-        <Item className="bg-tertiary" label="Again and again (how many times)" />
+        <Item className="bg-primary" label={text.once} />
+        <Item className="bg-tertiary" label={text.again} />
       </ul>
     );
   return (
     <ul
-      aria-label="Legend"
+      aria-label={text.legend}
       className={cn(
         "flex text-xs text-foreground md:text-sm",
         stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
         className,
       )}
     >
-      <Item className="bg-secondary" label={edit ? "Working out; replaced" : "Working out"} />
-      <Item className="bg-secondary/45" label="Comes from" />
+      <Item className="bg-secondary" label={edit ? text.workingReplaced : text.working} />
+      <Item className="bg-secondary/45" label={text.comesFrom} />
       <Item
         className="bg-primary"
-        label={edit ? "The way back; kept" : knapsack ? "The way back; taken" : "The way back; shared"}
+        label={edit ? text.backKept : knapsack ? text.backTaken : text.backShared}
       />
-      {edit && <Item className="bg-tertiary" label="Inserted or deleted" />}
+      {edit && <Item className="bg-tertiary" label={text.insertedDeleted} />}
     </ul>
   );
 };
@@ -138,7 +185,8 @@ export const DpStatsInline = ({ className }: { className?: string }) => {
   );
   return (
     <p className={cn("whitespace-nowrap font-mono text-xs text-foreground/80", className)}>
-      {filled}/{total} cells{answer !== null && ` · answer ${answer}`}
+      {text.cells(filled, total)}
+      {answer !== null && text.answer(answer)}
     </p>
   );
 };
@@ -146,5 +194,5 @@ export const DpStatsInline = ({ className }: { className?: string }) => {
 export const DpFacts = () => {
   const algorithm = useStore((s) => s.dpAlgorithm);
   const { cost, cell } = dpProblems[algorithm];
-  return <FactLine facts={[cost, `a cell: ${cell}`]} />;
+  return <FactLine facts={[cost, text.aCell(cell)]} />;
 };

@@ -20,5 +20,7 @@ export const PATH_RACE_DESCRIPTION = localized({
   es: "Misma cuadrícula, mismo reloj. En cada tic, cada búsqueda revisa una celda, así que la primera en llegar al destino es la que revisó menos celdas. Después compara los caminos que encontraron.",
 });
 
-export const DP_RACE_DESCRIPTION =
-  "The same knapsack three ways, one subproblem per tick each. The table fills every cell once, row by row. Plain recursion asks for the corner and splits each question in two, so it works out the same subproblems again and again, and the count grows exponentially with the items. Memoized recursion asks the same way but writes each answer down: a repeat is a lookup, and it only touches the cells the answer needs.";
+export const DP_RACE_DESCRIPTION = localized({
+  en: "The same knapsack three ways, one subproblem per tick each. The table fills every cell once, row by row. Plain recursion asks for the corner and splits each question in two, so it works out the same subproblems again and again, and the count grows exponentially with the items. Memoized recursion asks the same way but writes each answer down: a repeat is a lookup, and it only touches the cells the answer needs.",
+  es: "La misma mochila de tres formas, un subproblema por tic cada una. La tabla llena cada celda una vez, fila por fila. La recursión simple pregunta por la esquina y divide cada pregunta en dos, así que calcula los mismos subproblemas una y otra vez, y la cuenta crece exponencialmente con los objetos. La recursión con memoización pregunta igual, pero anota cada respuesta: una repetición es una consulta, y solo toca las celdas que necesita la respuesta.",
+});
