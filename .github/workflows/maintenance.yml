@@ -1,0 +1,49 @@
+name: maintenance
+
+on:
+  schedule:
+    - cron: "17 11 * * 1" # Mondays 08:17 Buenos Aires (11:17 UTC)
+  workflow_dispatch:
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Weekly maintenance review of this repo. Read CLAUDE.md first.
+            Do NOT change code, commit, push or open PRs. Your only output is issues.
+
+            Look for:
+            1. Dependencies with known vulnerabilities, or a major version behind (use the project's package manager).
+            2. Skipped, disabled or flaky tests.
+            3. TODO/FIXME added in the last week (git log --since="1 week ago" -p).
+            4. Files over 400 lines that grew this week.
+            5. Accessibility or responsive problems visible in last week's diffs to UI code.
+
+            For each real finding: search open issues first (gh issue list --search) to avoid duplicates.
+            Then open at most 5 issues in total with:
+              gh issue create --label needs-triage --label enhancement   (or --label bug)
+            Title prefix: "[mantenimiento] ". Body: what, where, why it matters, suggested next step.
+            If nothing is worth filing, open no issues.
+          claude_args: |
+            --max-turns 30
+            --allowedTools "Read,Grep,Glob,Bash(git log *),Bash(gh issue list *),Bash(gh issue create *),Bash(pnpm outdated *),Bash(pnpm audit *)"
