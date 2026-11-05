@@ -11,6 +11,7 @@ type PassAlgorithm = "selection" | "bubble" | "cocktail";
 // Ties on purpose: two 2s and two 5s.
 const input = [5, 2, 8, 2, 9, 1, 5, 7, 3, 6];
 const run = (algorithm: PassAlgorithm, items: number[]) => new Timeline(sortAlgorithms[algorithm], items);
+const sorted = (values: readonly number[]) => [...values].sort((a, b) => a - b);
 const choices = (questions: Question[]) =>
   questions.map((q) => {
     if (q.kind !== "choice") throw new Error(`expected a choice question, got ${q.kind}`);
@@ -23,7 +24,7 @@ describe("guess mode questions for selection, bubble and cocktail", () => {
     const questions = choices(sortQuestions(run("selection", input), "selection"));
     expect(questions.map((q) => q.answer)).toEqual([1, 2, 2, 3, 5, 5, 6, 7, 8]);
     // First pass: every value is in play, the four nearest the answer are offered, and their bars are labelled.
-    expect(questions[0].options).toEqual([1, 2, 3, 5]);
+    expect(sorted(questions[0].options)).toEqual([1, 2, 3, 5]);
     expect(questions[0].labels).toEqual([0, 1, 3, 5, 6, 8]);
     expect(questions[0].at).toBe(1);
   });
@@ -32,14 +33,14 @@ describe("guess mode questions for selection, bubble and cocktail", () => {
     // Worked by hand: 9, 8, 7, 6 and 5 bubble up; the sixth pass swaps nothing (its largest, 5, is already last) and stops.
     const questions = choices(sortQuestions(run("bubble", input), "bubble"));
     expect(questions.map((q) => q.answer)).toEqual([9, 8, 7, 6, 5, 5]);
-    expect(questions[0].options).toEqual([6, 7, 8, 9]);
+    expect(sorted(questions[0].options)).toEqual([6, 7, 8, 9]);
   });
 
   it("cocktail asks it both ways: the largest going right, the smallest going left", () => {
     // Worked by hand: right carries 9, left carries 1, right 8, left 2, then a pass with no swaps ends it.
     const questions = choices(sortQuestions(run("cocktail", input), "cocktail"));
     expect(questions.map((q) => q.answer)).toEqual([9, 1, 8, 2, 7]);
-    expect(questions[1].options).toEqual([1, 2, 3, 5]);
+    expect(sorted(questions[1].options)).toEqual([1, 2, 3, 5]);
     expect(questions[0].prompt).not.toBe(questions[1].prompt);
   });
 
@@ -72,7 +73,6 @@ describe("guess mode questions for selection, bubble and cocktail", () => {
       expect(q.options.length).toBeLessThanOrEqual(4);
       expect(q.options.length).toBeGreaterThan(1);
       expect(new Set(q.options).size).toBe(q.options.length);
-      expect([...q.options].sort((a, b) => a - b)).toEqual(q.options);
       for (const option of q.options) expect(inPlay.map(value)).toContain(option);
       // Every bar holding an option's value is labelled, and only those.
       expect([...(q.labels ?? [])].sort()).toEqual(inPlay.filter((id) => q.options.includes(value(id))).sort());
@@ -99,4 +99,27 @@ describe("guess mode questions for selection, bubble and cocktail", () => {
     const tied = questions.filter((q) => (q.labels ?? []).filter((id) => timeline.values[id] === q.answer).length > 1);
     expect(tied.length).toBeGreaterThan(0);
   });
+
+  it.each(["selection", "bubble", "cocktail"] as PassAlgorithm[])(
+    "%s shuffles its options, so the answer isn't always the first or last button",
+    (algorithm) => {
+      const spots = (["random", "reversed", "fewUnique"] as InputOrder[]).flatMap((order) => {
+        const items = generateItems(10, order, seededRandom(3));
+        const questions = choices(sortQuestions(run(algorithm, items), algorithm));
+        // The same run always shows the same order, so replays and tests are stable.
+        const again = choices(sortQuestions(run(algorithm, items), algorithm));
+        expect(again.map((q) => q.options)).toEqual(questions.map((q) => q.options));
+        return questions.map((q) => {
+          expect(q.options).toContain(q.answer);
+          expect(q.options.length).toBeLessThanOrEqual(4);
+          expect(new Set(q.options).size).toBe(q.options.length);
+          const spot = q.options.indexOf(q.answer);
+          return spot === 0 ? "first" : spot === q.options.length - 1 ? "last" : "middle";
+        });
+      });
+      expect(spots.some((spot) => spot !== "first")).toBe(true);
+      expect(spots.some((spot) => spot !== "last")).toBe(true);
+      expect(spots).toContain("middle");
+    },
+  );
 });
