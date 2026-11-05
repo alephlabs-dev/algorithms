@@ -7,7 +7,6 @@ import { pathAlgorithms } from "./pathAlgorithms";
 import { sortingAlgorithms } from "./sortingAlgorithms";
 import { localized } from "@/i18n";
 
-// The landing page's summaries are translated with the landing page (#69).
 const text = localized({
   en: {
     sorting: "Sorting",
@@ -21,6 +20,14 @@ const text = localized({
     series: (n: number) => `${n} series`,
     structureCount: (n: number) => `${n} structures`,
     problems: (n: number) => `${n} problems`,
+    summaries: {
+      sorting: "Selection, Insertion, Bubble, Cocktail, Shell, Quick, Merge, Heap and Radix Sort.",
+      pathfinding: "Breadth-first, depth-first, Dijkstra, A* and greedy search, on a grid you draw.",
+      graphs: "BFS, DFS, Dijkstra, Prim, Kruskal and topological sort on a graph you can reshape.",
+      fourier: "Square, sawtooth and triangle waves built from circles, and circles on circles that draw any shape.",
+      structures: "Search trees, AVL rotations, a min-heap and hash tables you insert into, search and delete from.",
+      dp: "Edit distance, the longest common subsequence and the knapsack, one table cell at a time, and a race against plain recursion.",
+    },
   },
   es: {
     sorting: "Ordenamiento",
@@ -34,6 +41,14 @@ const text = localized({
     series: (n) => `${n} series`,
     structureCount: (n) => `${n} estructuras`,
     problems: (n) => `${n} problemas`,
+    summaries: {
+      sorting: "Selection, Insertion, Bubble, Cocktail, Shell, Quick, Merge, Heap y Radix Sort.",
+      pathfinding: "Búsqueda en anchura, en profundidad, Dijkstra, A* y búsqueda voraz, en una cuadrícula que tú dibujas.",
+      graphs: "BFS, DFS, Dijkstra, Prim, Kruskal y orden topológico en un grafo que puedes modificar.",
+      fourier: "Ondas cuadradas, de sierra y triangulares hechas con círculos, y círculos sobre círculos que dibujan cualquier forma.",
+      structures: "Árboles de búsqueda, rotaciones AVL, un montículo mínimo y tablas hash donde insertas, buscas y borras.",
+      dp: "Distancia de edición, la subsecuencia común más larga y la mochila, celda por celda, y una carrera contra la recursión simple.",
+    },
   },
 });
 
@@ -52,42 +67,42 @@ export const modules: ModuleInfo[] = [
   {
     id: "sorting",
     title: text.sorting,
-    summary: "Selection, Insertion, Bubble, Cocktail, Shell, Quick, Merge, Heap and Radix Sort.",
+    summary: text.summaries.sorting,
     count: text.algorithms(Object.keys(sortingAlgorithms).length),
     route: { kind: "sorting" },
   },
   {
     id: "pathfinding",
     title: text.pathfinding,
-    summary: "Breadth-first, depth-first, Dijkstra, A* and greedy search, on a grid you draw.",
+    summary: text.summaries.pathfinding,
     count: text.searches(Object.keys(pathAlgorithms).length),
     route: { kind: "pathfinding" },
   },
   {
     id: "graphs",
     title: text.graphs,
-    summary: "BFS, DFS, Dijkstra, Prim, Kruskal and topological sort on a graph you can reshape.",
+    summary: text.summaries.graphs,
     count: text.algorithms(Object.keys(graphAlgorithms).length),
     route: { kind: "graphs" },
   },
   {
     id: "fourier",
     title: text.fourier,
-    summary: "Square, sawtooth and triangle waves built from circles, and circles on circles that draw any shape.",
+    summary: text.summaries.fourier,
     count: text.series(Object.keys(fourierSeries).length),
     route: { kind: "fourier" },
   },
   {
     id: "structures",
     title: text.structures,
-    summary: "Search trees, AVL rotations, a min-heap and hash tables you insert into, search and delete from.",
+    summary: text.summaries.structures,
     count: text.structureCount(Object.keys(structures).length),
     route: { kind: "structures" },
   },
   {
     id: "dp",
     title: text.dp,
-    summary: "Edit distance, the longest common subsequence and the knapsack, one table cell at a time, and a race against plain recursion.",
+    summary: text.summaries.dp,
     count: text.problems(Object.keys(dpProblems).length),
     route: { kind: "dp" },
   },

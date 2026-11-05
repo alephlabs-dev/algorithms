@@ -6,6 +6,7 @@ import { Landing } from "./components/Landing/Landing";
 import { MobileRaceBar, MobileTopBar } from "./components/MobileTopBar";
 import { NowCard, StepCaption } from "./components/Pseudocode";
 import { ScrollHint } from "./components/ScrollHint";
+import { LanguageButton } from "./components/LanguageSwitch";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { TopBar } from "./components/TopBar";
 import { Tour } from "./components/Tour";
@@ -40,7 +41,12 @@ function App() {
     setIsPortrait(isPortrait);
   }, [isPortrait, setIsPortrait]);
 
-  if (isLanding) return <Landing onNavigate={navigate} actions={<ThemeToggle />} />;
+  if (isLanding) return <Landing onNavigate={navigate} actions={
+          <>
+            <ThemeToggle />
+            <LanguageButton />
+          </>
+        } />;
 
   return (
     <>
