@@ -57,8 +57,8 @@ function App() {
                   <StepCaption className="-ml-3 flex-1" />
                   <Legend className="hidden shrink-0 md:flex" />
                 </div>
-                {/* Guess mode asks over the stage, so the stage keeps its size. */}
-                <div className="relative flex min-h-0 flex-1 flex-col">
+                {/* Guess mode asks under the stage, so it never covers what it's asking about. */}
+                <div className="relative flex min-h-0 flex-1 flex-col gap-2">
                   <Stage />
                   <GameLayer />
                 </div>

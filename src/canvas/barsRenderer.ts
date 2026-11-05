@@ -17,6 +17,8 @@ export type RenderInput = {
   runId: number;
   /** Label compared bars with their values and the pivot by name, when bars are wide enough. */
   annotate?: boolean;
+  /** Items labelled with their values whatever they're doing (guess mode's question names them). */
+  labels?: readonly number[];
 };
 
 type Spring = { value: number; velocity: number };
@@ -435,9 +437,11 @@ export class BarsRenderer {
     ctx.font = `600 12px "JetBrains Mono Variable", ui-monospace, monospace`;
     ctx.textAlign = "center";
     ctx.textBaseline = "alphabetic";
+    const named = new Set(input.labels);
     this.items.forEach((item, id) => {
       const isPivot = id === input.frame.pivot;
-      const strength = isPivot ? Math.max(item.lift.value, this.pivotLine.alpha.value) : item.lift.value;
+      const lifted = isPivot ? Math.max(item.lift.value, this.pivotLine.alpha.value) : item.lift.value;
+      const strength = named.has(id) ? 1 : lifted;
       if (strength < 0.05) return;
       const value = input.values[id];
       const top = height - this.barHeight(value) * item.grow.value - item.lift.value * liftPx - item.arc;

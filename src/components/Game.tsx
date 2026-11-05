@@ -10,27 +10,36 @@ const seenBefore = () => {
     return true;
   }
 };
+import * as Popover from "@radix-ui/react-popover";
 import { useShallow } from "zustand/react/shallow";
 import { engines } from "@/modules/engine";
 import { selectGameQuestion, useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { Button } from "./ui/button";
+import { popoverClass } from "./ui/popover";
 
 /** Whether the module on stage has a guess mode, in the view on stage. */
 const useHasGame = () => useStore((s) => s.view === "single" && engines[s.module].game !== undefined);
+
+/** Why guess mode can't play the run on stage (too many items, say), or null when it can. */
+const useGameUnavailable = () => useStore((s) => engines[s.module].gameUnavailable?.(s) ?? null);
 
 /**
  * Turns guess mode on and off, and while it's on, keeps the score: "Guess 3/5"
  * where there's room, the target and "3/5" on phones.
  */
 export const GameToggle = ({ compact }: { compact?: boolean }) => {
-  const { on, toggle, score } = useStore(
-    useShallow((s) => ({ on: s.isGameOn, toggle: s.toggleGame, score: s.gameScore })),
+  const { isOn, toggle, score } = useStore(
+    useShallow((s) => ({ isOn: s.isGameOn, toggle: s.toggleGame, score: s.gameScore })),
   );
+  const unavailable = useGameUnavailable();
   const [seen, setSeen] = useState(seenBefore);
   if (!useHasGame()) return null;
+  // Guess is on and can play this run; when it can't, the toggle looks off.
+  const playing = isOn && unavailable === null;
   const tally = `${score.right}/${score.asked}`;
   const onClick = () => {
+    if (unavailable) return;
     toggle();
     if (seen) return;
     setSeen(true);
@@ -40,28 +49,31 @@ export const GameToggle = ({ compact }: { compact?: boolean }) => {
       // Private mode: it just says "new" again next time.
     }
   };
-  const label = on
-    ? `Guess mode on, ${score.right} right out of ${score.asked}: turn it off`
-    : "Guess mode: it stops to ask what comes next";
-  return (
+  const label = unavailable
+    ? `Guess mode unavailable: ${unavailable}`
+    : playing
+      ? `Guess mode on, ${score.right} right out of ${score.asked}: turn it off`
+      : "Guess mode: it stops to ask what comes next";
+  const button = (
     <Button
-      variant={on ? "primary" : "ghost"}
-      size={compact && !on ? "icon" : "sm"}
+      variant={playing ? "primary" : "ghost"}
+      size={compact && !playing ? "icon" : "sm"}
       onClick={onClick}
-      aria-pressed={on}
+      aria-pressed={playing}
       aria-label={seen ? label : `New: ${label}`}
       title={label}
       data-tour="game"
       className={cn(
         "relative h-10 shrink-0",
-        (!compact || on) && "gap-1.5 px-3.5",
-        compact && on && "px-3",
-        !on && !compact && "border border-line/70",
+        (!compact || playing) && "gap-1.5 px-3.5",
+        compact && playing && "px-3",
+        !playing && !compact && "border border-line/70",
+        unavailable && "cursor-not-allowed opacity-50 hover:bg-transparent",
       )}
     >
       <TargetIcon />
       {!compact && "Guess"}
-      {on && <span className="font-mono text-xs">{tally}</span>}
+      {playing && <span className="font-mono text-xs">{tally}</span>}
       {!seen &&
         (compact ? (
           <span
@@ -78,14 +90,26 @@ export const GameToggle = ({ compact }: { compact?: boolean }) => {
         ))}
     </Button>
   );
+  if (!unavailable) return button;
+  // Not disabled: touch screens never show the title, so the toggle opens a note saying why it's off.
+  return (
+    <Popover.Root>
+      <Popover.Trigger asChild>{button}</Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content align="end" sideOffset={8} className={cn(popoverClass, "w-64 text-sm")}>
+          {unavailable}.
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  );
 };
 
 const optionClass =
   "h-10 min-w-12 rounded-full border border-line/70 px-4 font-mono text-sm font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
 
 /**
- * Guess mode on stage: the question waiting for an answer (or how the last
- * one went), over the bottom of the stage, and the score in a corner.
+ * Guess mode under the stage: the question waiting for an answer, or how the
+ * last one went, in room the stage gives up while guess mode is on.
  */
 export const GameLayer = () => {
   const { on, question, feedback, score, answer, reset } = useStore(
@@ -98,6 +122,7 @@ export const GameLayer = () => {
       reset: s.resetGame,
     })),
   );
+  const unavailable = useGameUnavailable();
   // Feedback shows for a few seconds, then gets out of the way.
   const [shownFeedback, setShownFeedback] = useState<number | null>(null);
   useEffect(() => {
@@ -127,20 +152,20 @@ export const GameLayer = () => {
     return () => window.removeEventListener("keydown", onKey);
   }, [question, answer]);
 
-  if (!on) return null;
+  if (!on || unavailable) return null;
   // The last answer's result stays a few seconds, above the next question if one comes quickly.
   const showFeedback = feedback !== null && shownFeedback === feedback.id;
 
   return (
-    <>
-      {(question || showFeedback) && (
-        // Over the bar under the stage (operations, words), which waits while it asks.
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex">
+    // Room under the stage, kept the whole time guess mode is on: the stage shrinks once, never hides behind a question.
+    <div className="flex min-h-28 shrink-0 flex-col justify-end">
+      {question || showFeedback ? (
+        <div className="flex">
           <div
             role={question ? "dialog" : undefined}
             aria-label={question ? "Your guess" : undefined}
             className={cn(
-              "pointer-events-auto flex min-h-14 w-full flex-col justify-center gap-2 rounded-2xl border bg-surface px-4 py-2.5 shadow-lg",
+              "flex min-h-14 w-full flex-col justify-center gap-2 rounded-2xl border bg-surface px-4 py-2.5 shadow-lg",
               !question && showFeedback && feedback.right ? "border-primary" : "border-edge",
             )}
           >
@@ -222,7 +247,12 @@ export const GameLayer = () => {
             )}
           </div>
         </div>
+      ) : (
+        <p className="flex items-center gap-2 px-1 pb-2 text-sm text-foreground/60">
+          <TargetIcon className="shrink-0" />
+          Guess is on: playback stops before key moments to ask what comes next.
+        </p>
       )}
-    </>
+    </div>
   );
 };

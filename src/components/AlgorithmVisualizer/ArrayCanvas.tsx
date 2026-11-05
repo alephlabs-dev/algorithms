@@ -15,10 +15,12 @@ type Props = {
   label: string;
   /** Callouts on the bars (compared values, pivot). Off for small race lanes. */
   annotate?: boolean;
+  /** Items to label with their values anyway (the open guess question's). */
+  labels?: readonly number[];
 };
 
 /** A canvas that draws one frame and animates into the next. Fills its parent. */
-export const ArrayCanvas = ({ frame, values, mode, celebrate, runId, label, annotate = false }: Props) => {
+export const ArrayCanvas = ({ frame, values, mode, celebrate, runId, label, annotate = false, labels }: Props) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<BarsRenderer | null>(null);
@@ -51,8 +53,9 @@ export const ArrayCanvas = ({ frame, values, mode, celebrate, runId, label, anno
       celebrate,
       runId,
       annotate,
+      labels,
     });
-  }, [frame, values, mode, speed, isScrubbing, celebrate, runId, annotate]);
+  }, [frame, values, mode, speed, isScrubbing, celebrate, runId, annotate, labels]);
 
   return (
     <div ref={wrapperRef} className="relative w-full flex-1 min-h-0">
