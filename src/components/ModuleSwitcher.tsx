@@ -35,6 +35,7 @@ const logoClass =
 /** Every module: the open ones to switch to, the rest as coming soon, and the way back to the landing page. */
 const ModuleList = ({ onPick }: { onPick: () => void }) => {
   const current = useStore((s) => s.module);
+  const upcoming = modules.filter((m) => !m.route);
   return (
     <nav aria-label={text.modules} className="flex flex-col gap-1">
       {modules
@@ -52,14 +53,13 @@ const ModuleList = ({ onPick }: { onPick: () => void }) => {
             <span className="font-mono text-xs font-normal text-foreground/60">{m.count}</span>
           </ListItem>
         ))}
-      <SectionLabel className="px-3 pb-1 pt-3">{text.comingSoon}</SectionLabel>
-      {modules
-        .filter((m) => !m.route)
-        .map((m) => (
-          <div key={m.id} className="flex min-h-9 items-center px-3 text-sm text-foreground/60">
-            {m.title}
-          </div>
-        ))}
+      {/* Only when some module is still in preparation. */}
+      {upcoming.length > 0 && <SectionLabel className="px-3 pb-1 pt-3">{text.comingSoon}</SectionLabel>}
+      {upcoming.map((m) => (
+        <div key={m.id} className="flex min-h-9 items-center px-3 text-sm text-foreground/60">
+          {m.title}
+        </div>
+      ))}
       <div className="my-1 h-px bg-edge" />
       <ListItem
         selected={false}
