@@ -45,7 +45,7 @@ describe("guess mode questions for sorting", () => {
   );
 
   it("other algorithms ask nothing yet", () => {
-    expect(sortQuestions(new Timeline(sortAlgorithms.quick, input), "quick")).toEqual([]);
+    expect(sortQuestions(new Timeline(sortAlgorithms.merge, input), "merge")).toEqual([]);
   });
 });
 

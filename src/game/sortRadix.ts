@@ -1,5 +1,6 @@
 import type { Timeline } from "@/algorithms/timeline";
-import { choicesAround, type Question } from "./questions";
+import { choicesAround } from "./choices";
+import type { Question } from "./questions";
 
 const PLACES: Record<number, string> = { 1: "ones", 10: "tens", 100: "hundreds" };
 const digitOf = (value: number, place: number) => Math.floor(value / place) % 10;
