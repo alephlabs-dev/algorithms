@@ -14,6 +14,7 @@ import { StageInfo } from "./StageInfo";
 import { Button } from "./ui/button";
 import { Drawer, DrawerClose, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
 import { ViewSwitch } from "./ViewSwitch";
+import { GameToggle } from "./Game";
 
 /** Bottom sheet with a title and scrollable content. */
 const Sheet = ({ title, children }: { title: string; children: ReactNode }) => (
@@ -145,6 +146,7 @@ const ViewRow = () => {
       ) : (
         <span className="flex-1 pl-1 text-[15px] font-semibold">{title}</span>
       )}
+      <GameToggle compact />
       <ShareButton iconOnly />
       <ThemeToggle />
     </div>

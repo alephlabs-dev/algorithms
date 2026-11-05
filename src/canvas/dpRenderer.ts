@@ -11,7 +11,12 @@ import {
 import { css, inkOn, mix, structurePalette } from "./structurePaint";
 import { readColors, type RGB } from "./theme";
 
-export type DpRenderInput = { run: TableRun; frame: DpFrame };
+export type DpRenderInput = {
+  run: TableRun;
+  frame: DpFrame;
+  /** Guess mode: the frame of the cell being asked about, shown with its neighbors but not its value. */
+  ask?: DpFrame;
+};
 
 const MONO = `"JetBrains Mono", ui-monospace, monospace`;
 const SANS = `"Instrument Sans", system-ui, sans-serif`;
@@ -68,7 +73,9 @@ export class DpRenderer {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
     if (!input || width === 0 || height === 0) return;
-    const { run, frame } = input;
+    const { run, ask } = input;
+    // Asking: the cell in focus with where it comes from, but not yet filled, and no hint of which way wins.
+    const frame = ask ? { ...ask, filled: ask.filled - 1 } : input.frame;
     const p = this.palette;
     const m = run.rowLabels.length - 1;
     const n = run.colLabels.length - 1;
@@ -97,7 +104,7 @@ export class DpRenderer {
     const e = frame.event;
     const pickedCell =
       e.type === "cell" ? e.options.find((o) => o.from === e.pick)!.cell : e.type === "trace" ? e.step.to : null;
-    const picked = pickedCell && `${pickedCell.i},${pickedCell.j}`;
+    const picked = ask ? null : pickedCell && `${pickedCell.i},${pickedCell.j}`;
     const focus = frame.focus;
     const finished = e.type === "done";
     // The corner, once the way back is done, if the answer's path ends there too.
@@ -158,6 +165,11 @@ export class DpRenderer {
           ctx.strokeStyle = css(p.ring, 0.6);
           ctx.lineWidth = 1;
           ctx.stroke();
+        }
+        if (ask && isFocus) {
+          ctx.fillStyle = css(inkOn(fill, p));
+          ctx.font = `700 ${Math.round(cell * 0.42)}px ${SANS}`;
+          ctx.fillText("?", x + cell / 2, y + cell / 2 + 1);
         }
         if (filled) {
           ctx.fillStyle = css(inkOn(fill, p));

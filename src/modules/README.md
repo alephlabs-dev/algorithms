@@ -22,4 +22,8 @@ A module is two declarations:
 5. **Landing page:** give it a `route` and a `count` in `src/consts/modules.ts`, and a thumbnail in
    `src/components/Landing/Thumbnails.tsx`.
 
+6. **Guess mode** (optional): give the engine a `game` that lists the run's questions (see `src/game`).
+   Each one names the frame it's asked before, so playback stops there; the stage can draw what the
+   question needs (spots to tap, a cell marked "?") from `selectGameQuestion`.
+
 `engine.test.ts` checks that every page an engine can be on belongs to it and survives its own URL.

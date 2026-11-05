@@ -1,3 +1,4 @@
+import type { Slot } from "@/game";
 import type { NodeView, Operation, TreeFrame } from "@/structures";
 import { css, drawOpsQueue, drawWaiting, inkOn, luminance, QUEUE_HEIGHT, structurePalette } from "./structurePaint";
 import { readColors, type RGB } from "./theme";
@@ -12,6 +13,8 @@ export type TreeRenderInput = {
   showBalance: boolean;
   /** Heap: also draw the array the tree is stored in, under it. */
   array: boolean;
+  /** Guess mode: empty spots to tap, where the value might land. */
+  slots?: Slot[];
   /** Every operation in the run; the frame's opIndex says which one is under way. */
   ops: Operation[];
 };
@@ -36,6 +39,8 @@ export class TreeRenderer {
   private input: TreeRenderInput | null = null;
   private palette = structurePalette(readColors());
   private shown = new Map<number, Place>();
+  /** Where the guess-mode spots were last drawn, for taps. */
+  private spots: { key: string; x: number; y: number; r: number }[] = [];
   private lastTick = 0;
   private request = 0;
 
@@ -72,7 +77,7 @@ export class TreeRenderer {
   }
 
   /** Where every node goes: x by its place in sorted order, y by its depth. */
-  private layout(frame: TreeFrame, reserved: number, bottom: number) {
+  private layout(frame: TreeFrame, reserved: number, bottom: number, extraLevel = false) {
     const byId = new Map(frame.nodes.map((n) => [n.id, n]));
     const order: number[] = [];
     const depth = new Map<number, number>();
@@ -85,7 +90,8 @@ export class TreeRenderer {
       walk(n.right, d + 1);
     };
     walk(frame.root, 0);
-    const levels = Math.max(1, frame.height + 1);
+    // Guess mode draws spots one level below the deepest node: leave room for them.
+    const levels = Math.max(1, frame.height + 1 + (extraLevel ? 1 : 0));
     const count = Math.max(1, order.length);
     const pad = 28;
     const gap = Math.min(72, (this.height - 2 * pad - reserved - bottom) / Math.max(1, levels - 1 || 1));
@@ -95,7 +101,7 @@ export class TreeRenderer {
     const top = Math.max(pad + reserved, (this.height + reserved - bottom - treeHeight) / 2);
     const target = new Map<number, { x: number; y: number }>();
     order.forEach((id, k) => target.set(id, { x: pad + (k + 0.5) * column, y: top + depth.get(id)! * gap }));
-    return { byId, target, radius };
+    return { byId, target, radius, column, gap };
   }
 
   private start() {
@@ -121,7 +127,12 @@ export class TreeRenderer {
     const p = this.palette;
     // Once it's started, a strip along the top keeps the whole queue in view.
     const showQueue = frame.opIndex >= 0 && input.ops.length > 1;
-    const { byId, target, radius } = this.layout(frame, showQueue ? QUEUE_HEIGHT : 0, input.array ? ARRAY_HEIGHT : 0);
+    const { byId, target, radius, column, gap } = this.layout(
+      frame,
+      showQueue ? QUEUE_HEIGHT : 0,
+      input.array ? ARRAY_HEIGHT : 0,
+      !!input.slots?.length,
+    );
     const snap = this.reducedMotion.matches || input.fade === 0;
     const blend = snap ? 1 : 1 - Math.exp(-dt / Math.max(0.03, input.fade / 3));
     let busy = false;
@@ -204,10 +215,64 @@ export class TreeRenderer {
     }
 
     for (const node of frame.nodes) this.drawNode(node, highlighted(node.id), radius, showBalance, byId.size);
+    this.drawSlots(input.slots ?? [], target, radius, column, gap);
     // A heap value starts at the end of the array, not the root: nothing to carry down.
     if (!input.array) this.drawCarried(frame, radius);
     if (input.array) this.drawArray(frame, highlighted);
     return busy;
+  }
+
+  /** Guess mode: every empty spot, dashed, with a line up to the node it would hang from. */
+  private drawSlots(
+    slots: Slot[],
+    target: Map<number, { x: number; y: number }>,
+    radius: number,
+    column: number,
+    gap: number,
+  ) {
+    const { ctx } = this;
+    const p = this.palette;
+    this.spots = [];
+    const r = Math.max(10, radius * 0.72);
+    for (const slot of slots) {
+      const parent = target.get(slot.parent);
+      if (!parent) continue;
+      // Half a column over (where an in-order neighbor would sit), but never wider than a branch looks.
+      const reach = Math.min(Math.max(column * 0.5, r * 1.1), Math.max(gap * 1.1, r * 2.4));
+      const x = parent.x + (slot.side === "left" ? -1 : 1) * reach;
+      const y = parent.y + gap;
+      this.spots.push({ key: slot.key, x, y, r: r + 6 });
+      ctx.strokeStyle = css(p.focus, 0.5);
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(parent.x, parent.y);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.fillStyle = css(p.background);
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = css(p.focus);
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = css(p.focus);
+      ctx.font = `700 ${Math.round(r * 0.9)}px "Instrument Sans", system-ui, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("?", x, y + 1);
+    }
+  }
+
+  /** The guess-mode spot under a point (canvas pixels), if any. */
+  slotAt(x: number, y: number): string | null {
+    let best: { key: string; d: number } | null = null;
+    for (const s of this.spots) {
+      const d = Math.hypot(s.x - x, s.y - y);
+      if (d <= s.r && (!best || d < best.d)) best = { key: s.key, d };
+    }
+    return best?.key ?? null;
   }
 
   /** Heap: the array behind the tree, slot by slot, colored like the nodes. */

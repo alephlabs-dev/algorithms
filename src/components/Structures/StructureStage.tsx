@@ -13,9 +13,10 @@ import {
   type StructureAlgorithm,
   type StructureFrame,
 } from "@/structures";
-import { useStore } from "@/store";
+import { selectGameQuestion, useStore } from "@/store";
 import { count } from "@/utils/count";
 import { moveDuration } from "@/utils/speed";
+import { cn } from "@/utils/cn";
 import { Button } from "../ui/button";
 
 /** A structure on canvas: a tree (or heap) or a hash table. Shared by the single view and the race lanes. */
@@ -23,24 +24,31 @@ export const StructureCanvas = ({
   frame,
   algorithm,
   label,
+  guess = false,
 }: {
   frame: StructureFrame;
   algorithm: StructureAlgorithm;
   label: string;
+  /** The single view's tree, where guess mode asks (race lanes never do). */
+  guess?: boolean;
 }) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<TreeRenderer | HashRenderer | null>(null);
   const { width, height } = useElementSize(wrapperRef);
-  const { structureId, speed, isScrubbing, theme, ops } = useStore(
+  const { structureId, speed, isScrubbing, theme, ops, question, answer } = useStore(
     useShallow((s) => ({
       structureId: s.structureId,
       speed: s.speed,
       isScrubbing: s.isScrubbing,
       theme: s.theme,
       ops: s.structureOps,
+      question: selectGameQuestion(s),
+      answer: s.answerGame,
     })),
   );
+  // Guess mode: the spots to tap, in the single view's tree (race lanes never ask).
+  const slots = question?.kind === "slot" && guess ? question.slots : undefined;
   const kind = frame.shape;
 
   // A tree and a table draw differently: a new renderer when the shape changes.
@@ -69,15 +77,30 @@ export const StructureCanvas = ({
         showBalance: algorithm === "avl",
         array: algorithm === "heap",
         ops,
+        slots,
       });
     } else if (renderer instanceof HashRenderer && frame.shape === "table") {
       renderer.update({ frame, chaining: algorithm === "chaining", structureId, fade, ops });
     }
-  }, [frame, structureId, speed, isScrubbing, algorithm, ops, kind]);
+  }, [frame, structureId, speed, isScrubbing, algorithm, ops, kind, slots]);
+
+  const tap = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const renderer = rendererRef.current;
+    if (!slots || !(renderer instanceof TreeRenderer)) return;
+    const box = event.currentTarget.getBoundingClientRect();
+    const key = renderer.slotAt(event.clientX - box.left, event.clientY - box.top);
+    if (key) answer(key);
+  };
 
   return (
     <div ref={wrapperRef} className="relative min-h-0 w-full flex-1">
-      <canvas ref={canvasRef} role="img" aria-label={label} className="absolute inset-0 h-full w-full" />
+      <canvas
+        ref={canvasRef}
+        role="img"
+        aria-label={slots ? `${label} Tap the spot where the value will land.` : label}
+        onClick={tap}
+        className={cn("absolute inset-0 h-full w-full", slots && "cursor-pointer")}
+      />
     </div>
   );
 };
@@ -214,7 +237,7 @@ export const StructureStage = () => {
       : `${structures[algorithm].title} with ${count(size, "value")} in ${count(frame.buckets.length, algorithm === "chaining" ? "bucket" : "slot")}.`;
   return (
     <div data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col gap-2">
-      <StructureCanvas frame={frame} algorithm={algorithm} label={label} />
+      <StructureCanvas frame={frame} algorithm={algorithm} label={label} guess />
       <OperationBar />
     </div>
   );

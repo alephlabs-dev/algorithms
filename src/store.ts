@@ -53,6 +53,7 @@ import {
   type TableRun,
 } from "./dp";
 import { engines, type ModuleId } from "./modules/engine";
+import { forgetAnswers, isAnswered, markAnswered, NEW_SCORE, type Answer, type GameScore, type Question } from "./game";
 import {
   decodeOperations,
   presetOperations,
@@ -255,6 +256,17 @@ export type StoreState = {
   applyGridPreset: (preset: Preset) => void;
 
   play: () => void;
+  /** Guess mode: playback stops before the frames that would give an answer away, and asks. */
+  isGameOn: boolean;
+  gameScore: GameScore;
+  /** The question waiting for an answer, if any. */
+  gameQuestion: Question | null;
+  /** How the last answer went, for a moment. */
+  gameFeedback: { right: boolean; text: string; id: number } | null;
+  toggleGame: () => void;
+  answerGame: (answer: Answer) => void;
+  /** A clean score, and every question of the run on stage asked again. */
+  resetGame: () => void;
   pause: () => void;
   /** Moves `steps` frames ahead and stops at the end. Called by the playback loop. */
   advanceBy: (steps: number) => void;
@@ -266,6 +278,21 @@ export type StoreState = {
 export const selectFrame = (state: StoreState) => state.timeline.frameAt(state.frameIndex);
 export const selectPathFrame = (state: StoreState) => state.pathTimeline.frameAt(state.frameIndex);
 export const selectLastIndex = (state: StoreState) => engines[state.module].lastIndex(state, state.view);
+
+/** Guess mode's questions for the run on stage (none in a race, or without guess mode). */
+export const gameQuestionsOf = (state: StoreState): Question[] =>
+  state.isGameOn && state.view === "single" ? (engines[state.module].game?.(state) ?? []) : [];
+
+/** The first unanswered question between the current frame and `target`: playback stops before it. */
+const nextQuestion = (state: StoreState, target: number) =>
+  gameQuestionsOf(state).find((q) => q.at > state.frameIndex && q.at <= target && !isAnswered(q)) ?? null;
+
+/** The question on screen: only while its run is on stage and playback sits right before it. */
+export const selectGameQuestion = (state: StoreState) => {
+  const q = state.gameQuestion;
+  if (!q || state.frameIndex !== q.at - 1) return null;
+  return gameQuestionsOf(state).includes(q) ? q : null;
+};
 
 /** How fast 1× is depends on what's playing. */
 const paceOf = (module: Module, view: View): Pace => engines[module].pace(view);
@@ -1013,9 +1040,52 @@ export const useStore = create<StoreState>((set, get) => {
     play: () =>
       set((state) => ({
         isPlaying: true,
+        gameFeedback: null,
         // Replay from the start if the run already finished.
         frameIndex: state.frameIndex >= selectLastIndex(state) ? 0 : state.frameIndex,
       })),
+
+    isGameOn: false,
+    gameScore: NEW_SCORE,
+    gameQuestion: null,
+    gameFeedback: null,
+
+    toggleGame: () =>
+      set((state) => ({
+        isGameOn: !state.isGameOn,
+        gameQuestion: null,
+        gameFeedback: null,
+        // Turning it on stops playback, so the first question isn't missed mid-run.
+        isPlaying: state.isGameOn ? state.isPlaying : false,
+      })),
+
+    answerGame: (answer) =>
+      set((state) => {
+        const q = state.gameQuestion;
+        if (!q) return {};
+        const right = answer === q.answer;
+        markAnswered(q);
+        const streak = right ? state.gameScore.streak + 1 : 0;
+        return {
+          gameQuestion: null,
+          gameFeedback: { right, text: q.explain(right), id: Date.now() },
+          gameScore: {
+            asked: state.gameScore.asked + 1,
+            right: state.gameScore.right + (right ? 1 : 0),
+            streak,
+            best: Math.max(state.gameScore.best, streak),
+          },
+          // Carry on, to show what happens.
+          isPlaying: true,
+        };
+      }),
+
+    resetGame: () =>
+      set((state) => {
+        const run = gameQuestionsOf(state)[0]?.run;
+        if (run) forgetAnswers(run);
+        return { gameScore: NEW_SCORE, gameQuestion: null, gameFeedback: null };
+      }),
 
     pause: () => set({ isPlaying: false }),
 
@@ -1023,18 +1093,23 @@ export const useStore = create<StoreState>((set, get) => {
       set((state) => {
         const lastIndex = selectLastIndex(state);
         const frameIndex = Math.min(state.frameIndex + steps, lastIndex);
+        const ask = nextQuestion(state, frameIndex);
+        if (ask) return { frameIndex: ask.at - 1, isPlaying: false, gameQuestion: ask };
         return { frameIndex, isPlaying: frameIndex < lastIndex };
       }),
 
     stepForward: () =>
-      set((state) => ({
-        isPlaying: false,
-        frameIndex: Math.min(state.frameIndex + 1, selectLastIndex(state)),
-      })),
+      set((state) => {
+        const frameIndex = Math.min(state.frameIndex + 1, selectLastIndex(state));
+        const ask = nextQuestion(state, frameIndex);
+        if (ask) return { frameIndex: ask.at - 1, isPlaying: false, gameQuestion: ask };
+        return { isPlaying: false, frameIndex };
+      }),
 
     stepBackward: () =>
       set((state) => ({
         isPlaying: false,
+        gameQuestion: null,
         frameIndex: Math.max(state.frameIndex - 1, 0),
       })),
 
