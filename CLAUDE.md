@@ -28,3 +28,17 @@ Hooks and CI only call these Makefile targets. When the stack changes, change th
 - UI changes: before saying done, open the affected route at 393x852 (iPhone), 834x1194 (iPad) and 1280x800 (desktop) with the browser tool, check the console, and report what you saw at each size. No screenshots, no "done".
 - Never run `--update-snapshots` or `make baselines`. If a visual change is intended, say so in the PR and I regenerate the baselines.
 - New screen or flow: add one test for it in `e2e/` (it runs on all four device projects).
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues on `alephlabs-dev/algorithms`, via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default vocabulary, each label equal to its role: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `GLOSSARY.md` and `docs/adr/` at the repo root, created lazily. See `docs/agents/domain.md`.
