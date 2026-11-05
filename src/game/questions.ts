@@ -222,6 +222,11 @@ const insertionQuestions = (run: Timeline): Question[] => {
   });
 };
 
+/** Each sorting algorithm's key-moment questions; one entry per algorithm. */
+const sortBuilders: Partial<Record<Algorithm, (run: Timeline) => Question[]>> = {
+  insertion: insertionQuestions,
+};
+
 /** Sorting: each algorithm asks about its key moment. Algorithms without one yet ask nothing. */
 export const sortQuestions = (run: Timeline, algorithm: Algorithm): Question[] =>
-  algorithm === "insertion" ? insertionQuestions(run) : [];
+  sortBuilders[algorithm]?.(run) ?? [];

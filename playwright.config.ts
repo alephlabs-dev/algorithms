@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// Production preview: vite build + vite preview.
-const PORT = 4173;
+// Production preview: vite build + vite preview. PORT lets runs in parallel worktrees each serve their own build.
+const PORT = Number(process.env.PORT ?? 4173);
 const BASE_URL = process.env.BASE_URL ?? `http://localhost:${PORT}`;
 
 export default defineConfig({
