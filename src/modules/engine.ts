@@ -37,8 +37,11 @@ export type ModuleEngine = {
   gameUnavailable?: (s: StoreState) => string | null;
 };
 
-// Bigger arrays have bars too thin to follow and too many moments to stop at.
-const sortGuessSizes = sizes.filter((size) => size <= SORT_GUESS_MAX_SIZE).join(" or ");
+/**
+ * The sizes Guess plays with in sorting, in words ("10 or 20"); the tour says them too.
+ * Bigger arrays have bars too thin to follow and too many moments to stop at.
+ */
+export const sortGuessSizes = sizes.filter((size) => size <= SORT_GUESS_MAX_SIZE).join(" or ");
 const sortGuessUnavailable = (s: StoreState) =>
   s.size <= SORT_GUESS_MAX_SIZE ? null : `Guess works with ${sortGuessSizes} items`;
 

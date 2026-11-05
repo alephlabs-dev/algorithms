@@ -1,6 +1,7 @@
 import { MUD_COST } from "@/pathfinding";
 import type { Theme } from "@/store";
 import { Swatch } from "@/components/TourSwatch";
+import { sortGuessSizes } from "./engine";
 import type { TourStep } from "./types";
 
 // The guided tour of each module: which control to light up, and what to say about it.
@@ -50,6 +51,12 @@ export const sortingTour: TourStep[] = [
     anchor: "settings",
     title: "Change the array",
     text: () => "How many items, how they start out (random, reversed, nearly sorted…), and bars or numbers.",
+  },
+  {
+    anchor: "game",
+    title: "A guessing game",
+    text: () =>
+      `Turn on Guess and playback stops before the key moments to ask what comes next. Answer, then watch whether you were right. It keeps score. For now it plays with ${sortGuessSizes} items, and not every algorithm asks yet.`,
   },
   {
     anchor: "race",

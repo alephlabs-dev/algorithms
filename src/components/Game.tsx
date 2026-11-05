@@ -37,6 +37,8 @@ export const GameToggle = ({ compact }: { compact?: boolean }) => {
   if (!useHasGame()) return null;
   // Guess is on and can play this run; when it can't, the toggle looks off.
   const playing = isOn && unavailable === null;
+  // "New" only where Guess can be tried: a toggle that only says why it's off would never clear it.
+  const isNew = !seen && unavailable === null;
   const tally = `${score.right}/${score.asked}`;
   const onClick = () => {
     if (unavailable) return;
@@ -60,7 +62,7 @@ export const GameToggle = ({ compact }: { compact?: boolean }) => {
       size={compact && !playing ? "icon" : "sm"}
       onClick={onClick}
       aria-pressed={playing}
-      aria-label={seen ? label : `New: ${label}`}
+      aria-label={isNew ? `New: ${label}` : label}
       title={label}
       data-tour="game"
       className={cn(
@@ -74,7 +76,7 @@ export const GameToggle = ({ compact }: { compact?: boolean }) => {
       <TargetIcon />
       {!compact && "Guess"}
       {playing && <span className="font-mono text-xs">{tally}</span>}
-      {!seen &&
+      {isNew &&
         (compact ? (
           <span
             aria-hidden
