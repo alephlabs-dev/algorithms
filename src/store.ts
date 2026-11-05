@@ -35,7 +35,23 @@ import {
   type FourierShape,
   type Point,
 } from "./fourier";
-import { DpRun, wordPairs, type DpAlgorithm } from "./dp";
+import {
+  decodeItems,
+  DpRun,
+  EXAMPLE_CAPACITY,
+  EXAMPLE_ITEMS,
+  encodeItems,
+  KnapsackRun,
+  RACE_CAPACITY,
+  RACE_ITEMS,
+  KnapsackWork,
+  methods,
+  randomItems,
+  wordPairs,
+  type DpAlgorithm,
+  type Item,
+  type TableRun,
+} from "./dp";
 import { engines, type ModuleId } from "./modules/engine";
 import {
   decodeOperations,
@@ -134,8 +150,13 @@ export type StoreState = {
   /** The two words: down the side, and across the top. */
   dpA: string;
   dpB: string;
+  /** Knapsack: the items (named A, B, C… in order) and the bag's capacity. */
+  dpItems: Item[];
+  dpCapacity: number;
   /** The table filled and walked back, frame by frame. */
-  dpRun: DpRun;
+  dpRun: TableRun;
+  /** Race view: the knapsack solved three ways, every subproblem each one touches. */
+  dpRaceRuns: KnapsackWork[];
   /** Bumped when the graph is replaced wholesale, so nodes don't glide between layouts. */
   graphId: number;
   /** Searches racing on the grid, in the picker's order. */
@@ -222,6 +243,8 @@ export type StoreState = {
   setDpAlgorithm: (algorithm: DpAlgorithm) => void;
   /** New words (already cleaned up); the table starts over. */
   setDpWords: (a: string, b: string) => void;
+  /** New knapsack items and capacity; the table starts over. */
+  setDpItems: (items: Item[], capacity: number) => void;
   togglePathRacer: (algorithm: PathAlgorithm) => void;
   /** Switch to the pathfinding race with `algorithm` among the racers. */
   pathRaceWith: (algorithm: PathAlgorithm) => void;
@@ -303,6 +326,34 @@ const STRUCTURE_RACERS: TreeAlgorithm[] = ["bst", "avl"];
 
 const structureRaceRunsFor = (view: View, ops: Operation[]) =>
   view === "race" ? STRUCTURE_RACERS.map((a) => new TreeRecorder(a, ops)) : [];
+
+/** The table for a problem: two words, or a knapsack. */
+const dpRunFor = (algorithm: DpAlgorithm, a: string, b: string, items: Item[], capacity: number): TableRun =>
+  algorithm === "knapsack" ? new KnapsackRun(items, capacity) : new DpRun(algorithm, a, b);
+
+const dpRaceRunsFor = (view: View, items: Item[], capacity: number) =>
+  view === "race" ? methods.map((m) => new KnapsackWork(m, items, capacity)) : [];
+
+const isTextbookBag = (items: Item[], capacity: number) =>
+  capacity === EXAMPLE_CAPACITY && encodeItems(items) === encodeItems(EXAMPLE_ITEMS);
+
+/**
+ * Switching dynamic programming's view: the race's runs and, coming from the
+ * four-item textbook bag (too small for recursion to repeat itself), the
+ * race's own example.
+ */
+const dpRaceFor = (state: StoreState, view: View) => {
+  if (state.module !== "dp") return { dpRaceRuns: [] };
+  const swap = view === "race" && isTextbookBag(state.dpItems, state.dpCapacity);
+  const dpItems = swap ? RACE_ITEMS : state.dpItems;
+  const dpCapacity = swap ? RACE_CAPACITY : state.dpCapacity;
+  return {
+    dpItems,
+    dpCapacity,
+    dpRun: swap ? dpRunFor(state.dpAlgorithm, state.dpA, state.dpB, dpItems, dpCapacity) : state.dpRun,
+    dpRaceRuns: dpRaceRunsFor(view, dpItems, dpCapacity),
+  };
+};
 
 /** The runs after the operations change: the single one and, in a race, both racers. */
 const structureRunsFor = (state: StoreState, ops: Operation[]) => ({
@@ -394,6 +445,10 @@ const initial = (() => {
   const dpAlgorithm = url.dpAlgorithm ?? "edit";
   const dpA = url.dp.a ?? wordPairs[0].a;
   const dpB = url.dp.b ?? wordPairs[0].b;
+  // The race opens on its own example, big enough for plain recursion to show its repeats.
+  const dpRaceStart = module === "dp" && view === "race";
+  const dpItems = (url.dp.items && decodeItems(url.dp.items)) || (dpRaceStart ? RACE_ITEMS : EXAMPLE_ITEMS);
+  const dpCapacity = url.dp.capacity ?? (dpRaceStart ? RACE_CAPACITY : EXAMPLE_CAPACITY);
   const fourierAlgorithm = url.fourierAlgorithm ?? "square";
   const fourierShape = url.fourier.shape ?? "heart";
   const fourierPath = url.fourier.path ? decodePath(url.fourier.path) : null;
@@ -428,7 +483,10 @@ const initial = (() => {
     dpAlgorithm,
     dpA,
     dpB,
-    dpRun: new DpRun(dpAlgorithm, dpA, dpB),
+    dpItems,
+    dpCapacity,
+    dpRun: dpRunFor(dpAlgorithm, dpA, dpB, dpItems, dpCapacity),
+    dpRaceRuns: dpRaceRunsFor(module === "dp" ? view : "single", dpItems, dpCapacity),
     structureAlgorithm,
     structurePreset,
     structureSize,
@@ -576,6 +634,7 @@ export const useStore = create<StoreState>((set, get) => {
           state.graph,
         ),
         structureRaceRuns: structureRaceRunsFor(state.module === "structures" ? view : "single", state.structureOps),
+        ...dpRaceFor(state, view),
       }));
       applyAutoSpeed();
     },
@@ -693,7 +752,11 @@ export const useStore = create<StoreState>((set, get) => {
       if (module === "pathfinding") applyGridPreset(gridPreset === "clear" ? "maze" : gridPreset);
       else if (module === "graphs") applyGraphPreset(graphPreset);
       else if (module === "structures") get().applyStructurePreset(get().structurePreset);
-      else if (module === "dp") {
+      else if (module === "dp" && (get().dpAlgorithm === "knapsack" || get().view === "race")) {
+        // A new bag: a handful of random items for the same capacity.
+        const { dpItems, dpCapacity, setDpItems } = get();
+        setDpItems(randomItems(Math.max(4, dpItems.length), seededRandom(newSeed())), dpCapacity);
+      } else if (module === "dp") {
         // "New" moves on to the next example pair, wrapping around.
         const { dpA, dpB, setDpWords } = get();
         const at = wordPairs.findIndex((p) => p.a === dpA && p.b === dpB);
@@ -786,6 +849,7 @@ export const useStore = create<StoreState>((set, get) => {
         pathRaceTimelines: [],
         graphRaceTimelines: [],
         structureRaceRuns: [],
+        dpRaceRuns: [],
         frameIndex: 0,
         isPlaying: false,
       }));
@@ -825,7 +889,8 @@ export const useStore = create<StoreState>((set, get) => {
         view: "single",
         isModuleStart: false,
         dpAlgorithm: algorithm,
-        dpRun: new DpRun(algorithm, state.dpA, state.dpB),
+        dpRun: dpRunFor(algorithm, state.dpA, state.dpB, state.dpItems, state.dpCapacity),
+        dpRaceRuns: [],
         raceTimelines: [],
         pathRaceTimelines: [],
         graphRaceTimelines: [],
@@ -837,7 +902,25 @@ export const useStore = create<StoreState>((set, get) => {
     },
 
     setDpWords: (dpA, dpB) => {
-      set((state) => ({ dpA, dpB, dpRun: new DpRun(state.dpAlgorithm, dpA, dpB), frameIndex: 0, isPlaying: false }));
+      set((state) => ({
+        dpA,
+        dpB,
+        dpRun: dpRunFor(state.dpAlgorithm, dpA, dpB, state.dpItems, state.dpCapacity),
+        frameIndex: 0,
+        isPlaying: false,
+      }));
+      applyAutoSpeed();
+    },
+
+    setDpItems: (dpItems, dpCapacity) => {
+      set((state) => ({
+        dpItems,
+        dpCapacity,
+        dpRun: dpRunFor(state.dpAlgorithm, state.dpA, state.dpB, dpItems, dpCapacity),
+        dpRaceRuns: dpRaceRunsFor(state.module === "dp" ? state.view : "single", dpItems, dpCapacity),
+        frameIndex: 0,
+        isPlaying: false,
+      }));
       applyAutoSpeed();
     },
 

@@ -56,7 +56,7 @@ export const modules: ModuleInfo[] = [
   {
     id: "dp",
     title: "Dynamic programming",
-    summary: "Edit distance and the longest common subsequence of any two words, one table cell at a time.",
+    summary: "Edit distance, the longest common subsequence and the knapsack, one table cell at a time, and a race against plain recursion.",
     count: `${Object.keys(dpProblems).length} problems`,
     route: { kind: "dp" },
   },

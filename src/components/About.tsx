@@ -3,7 +3,7 @@ import { pseudocode } from "@/algorithms";
 import { dpProblems } from "@/consts/dp";
 import { dpPseudocode, type DpAlgorithm } from "@/dp";
 import { fourierSeries } from "@/consts/fourierSeries";
-import { STRUCTURE_RACE_DESCRIPTION } from "@/consts/race";
+import { DP_RACE_DESCRIPTION, STRUCTURE_RACE_DESCRIPTION } from "@/consts/race";
 import { structures } from "@/consts/structures";
 import { structurePseudocode, type StructureAlgorithm } from "@/structures";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
@@ -685,7 +685,7 @@ const DpArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
         so nothing is ever solved twice. Watch it fill for any two words, then walk back to the answer.
       </p>
     </header>
-    <Section title="Two words">
+    <Section title="Problems">
       <ul className="flex flex-col divide-y divide-edge">
         {dpOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
@@ -700,10 +700,19 @@ const DpArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
         ))}
       </ul>
     </Section>
+    <Section title="Race the methods">
+      <p className="leading-relaxed text-foreground/80">
+        {DP_RACE_DESCRIPTION}{" "}
+        <PageLink to={{ kind: "dpRace" }} onNavigate={onNavigate}>
+          Start a race
+        </PageLink>
+        .
+      </p>
+    </Section>
     <Section title="Why a table">
       <p className="leading-relaxed text-foreground/80">
-        Both problems break into smaller versions of themselves: the answer for two words depends on the answers for
-        the same words a letter shorter. Solved by plain recursion, those smaller questions come up again and again,
+        Each problem breaks into smaller versions of itself: the answer for two words depends on the answers for the
+        same words a letter shorter, and the best bag on the best smaller bags with one item fewer. Solved by plain recursion, those smaller questions come up again and again,
         and the work grows exponentially. Writing each answer down the first time, in a table filled in an order where
         everything a cell needs is already there, makes it m × n cells of constant work each.
       </p>
@@ -711,9 +720,39 @@ const DpArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
   </>
 );
 
+const DpRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
+  <>
+    <header className="flex flex-col gap-3">
+      <h1 className="text-display font-semibold">Table vs recursion</h1>
+      <p className="text-lg text-foreground/80">
+        One knapsack, solved three ways side by side: the bottom-up table, memoized recursion and plain recursion.
+      </p>
+    </header>
+    <Section title="What memoizing saves">
+      <p className="leading-relaxed text-foreground/80">{DP_RACE_DESCRIPTION}</p>
+      <p className="leading-relaxed text-foreground/80">
+        Each lane is the table of subproblems, colored by how many times that method has worked each one out. Plain
+        recursion lights the same cells up again and again; with more items its count roughly doubles per item, while
+        the table only grows by one row.
+      </p>
+    </Section>
+    <Section title="The problems">
+      <ul className="flex flex-wrap gap-x-6 gap-y-2">
+        {dpOrder.map((algorithm) => (
+          <li key={algorithm}>
+            <PageLink to={{ kind: "dpProblem", algorithm }} onNavigate={onNavigate}>
+              {dpProblems[algorithm].title}
+            </PageLink>
+          </li>
+        ))}
+      </ul>
+    </Section>
+  </>
+);
+
 const DpProblemArticle = ({ algorithm, onNavigate }: { algorithm: DpAlgorithm; onNavigate?: Props["onNavigate"] }) => {
   const { title, shortDescription, longDescription, cost, cell } = dpProblems[algorithm];
-  const other = dpOrder.find((a) => a !== algorithm)!;
+  const other = algorithm === "edit" ? "lcs" : "edit";
   return (
     <>
       <header className="flex flex-col gap-3">
@@ -728,7 +767,7 @@ const DpProblemArticle = ({ algorithm, onNavigate }: { algorithm: DpAlgorithm; o
           <tbody>
             {(
               [
-                ["Cost, for words of m and n letters", cost],
+                [algorithm === "knapsack" ? "Cost, for n items and a bag of W" : "Cost, for words of m and n letters", cost],
                 ["Each cell holds", cell],
               ] as const
             ).map(([name, value]) => (
@@ -749,11 +788,15 @@ const DpProblemArticle = ({ algorithm, onNavigate }: { algorithm: DpAlgorithm; o
       </Section>
       <Section title="Compare">
         <p className="text-foreground/80">
-          Same table, different question:{" "}
+          Same idea, different question:{" "}
           <PageLink to={{ kind: "dpProblem", algorithm: other }} onNavigate={onNavigate}>
             {dpProblems[other].title}
           </PageLink>
-          .
+          . Or{" "}
+          <PageLink to={{ kind: "dpRace" }} onNavigate={onNavigate}>
+            race the table against plain recursion
+          </PageLink>{" "}
+          on a knapsack.
         </p>
       </Section>
     </>
@@ -778,6 +821,7 @@ export const About = ({ route, onNavigate }: Props) => (
     {route.kind === "structureRace" && <StructureRaceArticle onNavigate={onNavigate} />}
     {route.kind === "dp" && <DpArticle onNavigate={onNavigate} />}
     {route.kind === "dpProblem" && <DpProblemArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
+    {route.kind === "dpRace" && <DpRaceArticle onNavigate={onNavigate} />}
     <footer className="border-t border-edge pt-6 text-sm text-foreground/60">
       <PageLink
         to={{ kind: "home" }}

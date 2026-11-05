@@ -6,6 +6,7 @@ import type { StoreState, View } from "@/store";
 import type { Size } from "@/types";
 import { encodeOperations } from "@/structures/link";
 import type { HashEvent, TreeEvent } from "@/structures/types";
+import { encodeItems } from "@/dp/presets";
 import { toDpSearch, toFourierSearch, toGraphSearch, toPathSearch, toSearch, toStructureSearch } from "@/urlState";
 import type { DpEvent } from "@/dp/types";
 import { GRAPH_STEP_WEIGHT, PATH_STEP_WEIGHT, STEP_WEIGHT, type Pace } from "@/utils/speed";
@@ -128,11 +129,20 @@ export const engines: Record<ModuleId, ModuleEngine> = {
       }),
   },
   dp: {
-    lastIndex: (s) => s.dpRun.length - 1,
+    // The race clock counts subproblems: it runs until the slowest method is done.
+    lastIndex: (s, view) =>
+      view === "race" ? Math.max(0, ...s.dpRaceRuns.map((r) => r.length - 1)) : s.dpRun.length - 1,
     stepWeight: (s, index) => DP_STEP_WEIGHT[s.dpRun.frames[index]?.event.type ?? "done"],
-    pace: () => "dp",
-    route: (s) => (s.isModuleStart ? { kind: "dp" } : { kind: "dpProblem", algorithm: s.dpAlgorithm }),
-    search: (s) => toDpSearch({ a: s.dpA, b: s.dpB, speed: s.speedPreset }),
+    pace: (view) => (view === "race" ? "dpRace" : "dp"),
+    route: (s) => {
+      if (s.view === "race") return { kind: "dpRace" };
+      return s.isModuleStart ? { kind: "dp" } : { kind: "dpProblem", algorithm: s.dpAlgorithm };
+    },
+    // A knapsack (or its race) links its items; the word problems their words.
+    search: (s) =>
+      s.dpAlgorithm === "knapsack" || s.view === "race"
+        ? toDpSearch({ items: encodeItems(s.dpItems), capacity: s.dpCapacity, speed: s.speedPreset })
+        : toDpSearch({ a: s.dpA, b: s.dpB, speed: s.speedPreset }),
   },
 };
 

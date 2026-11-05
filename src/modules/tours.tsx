@@ -245,7 +245,8 @@ export const dpTour: TourStep[] = [
   {
     anchor: "picker",
     title: "Pick a problem",
-    text: () => "Edit distance (how many edits turn one word into another) or the longest common subsequence (what they share).",
+    text: () =>
+      "Edit distance (how many edits turn one word into another), the longest common subsequence (what they share), or the knapsack (what fits in a bag).",
   },
   {
     anchor: "bars",
@@ -255,8 +256,8 @@ export const dpTour: TourStep[] = [
   },
   {
     anchor: "words",
-    title: "Your words",
-    text: () => "Type any two words, up to 10 letters each, and compare them.",
+    title: "Your input",
+    text: () => "Type any two words, up to 10 letters each. For the knapsack: the size of the bag, and how many items.",
   },
   {
     anchor: "tools",

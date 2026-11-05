@@ -24,6 +24,8 @@ const labelFor = (route: Route) => {
       return "About these data structures";
     case "dp":
       return "About dynamic programming";
+    case "dpRace":
+      return "What memoizing saves";
     case "dpProblem":
       return `How ${dpProblems[route.algorithm].title.toLowerCase()} works`;
     case "structure":

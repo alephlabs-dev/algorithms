@@ -1,11 +1,28 @@
-import { alignment, keptLetters, type DpFrame, type DpRun } from "@/dp";
+import {
+  alignment,
+  itemName,
+  keptLetters,
+  KnapsackRun,
+  takenItems,
+  type DpFrame,
+  type DpRun,
+  type TableRun,
+} from "@/dp";
 import { css, inkOn, mix, structurePalette } from "./structurePaint";
 import { readColors, type RGB } from "./theme";
 
-export type DpRenderInput = { run: DpRun; frame: DpFrame };
+export type DpRenderInput = { run: TableRun; frame: DpFrame };
 
 const MONO = `"JetBrains Mono", ui-monospace, monospace`;
 const SANS = `"Instrument Sans", system-ui, sans-serif`;
+const DOLLAR = "$";
+const itemText = (item: { weight: number; value: number }) => `${item.weight}kg ` + DOLLAR + item.value;
+
+const HINTS = {
+  edit: "The edits will show here, read off the way back.",
+  lcs: "The shared letters will show here.",
+  knapsack: "What goes in the bag will show here.",
+} as const;
 
 /**
  * Draws a dynamic programming table: one word down the side, the other
@@ -53,44 +70,50 @@ export class DpRenderer {
     if (!input || width === 0 || height === 0) return;
     const { run, frame } = input;
     const p = this.palette;
-    const m = run.a.length;
-    const n = run.b.length;
+    const m = run.rowLabels.length - 1;
+    const n = run.colLabels.length - 1;
+    const knapsack = run instanceof KnapsackRun;
     const answerRoom = Math.min(110, height * 0.24);
     const pad = 10;
-    const cell = Math.max(14, Math.min(52, (width - 2 * pad) / (n + 2), (height - 2 * pad - answerRoom) / (m + 2)));
-    const gridW = cell * (n + 2);
+    // A knapsack's rows are items, labeled with their weight and value: a wider first column.
+    const side = knapsack ? 2.2 : 1;
+    const cell = Math.max(
+      14,
+      Math.min(52, (width - 2 * pad) / (n + 1 + side), (height - 2 * pad - answerRoom) / (m + 2)),
+    );
+    const gridW = cell * (n + 1 + side);
     const gridH = cell * (m + 2);
     const x0 = (width - gridW) / 2;
     const y0 = pad + Math.max(0, (height - 2 * pad - answerRoom - gridH) / 2);
-    // Cell (i, j) of the table sits one row and one column in, after the letters.
-    const at = (i: number, j: number) => ({ x: x0 + (j + 1) * cell, y: y0 + (i + 1) * cell });
+    // Cell (i, j) of the table sits one row and one column in, after the labels.
+    const at = (i: number, j: number) => ({ x: x0 + (j + side) * cell, y: y0 + (i + 1) * cell });
 
-    const isFilled = (i: number, j: number) => (i === 0 || j === 0 ? frame.base : (i - 1) * n + (j - 1) < frame.filled);
+    const isFilled = (i: number, j: number) => {
+      const k = run.fillIndex(i, j);
+      return k < 0 ? frame.base : k < frame.filled;
+    };
     const onPath = new Set(frame.trace.map((s) => `${s.i},${s.j}`));
     const deps = new Set(frame.deps.map((c) => `${c.i},${c.j}`));
     const e = frame.event;
-    const picked =
-      e.type === "cell"
-        ? (({ i, j }) =>
-            e.pick === "diag" ? `${i - 1},${j - 1}` : e.pick === "up" ? `${i - 1},${j}` : `${i},${j - 1}`)(e)
-        : e.type === "trace"
-          ? `${frame.deps[0].i},${frame.deps[0].j}`
-          : null;
+    const pickedCell =
+      e.type === "cell" ? e.options.find((o) => o.from === e.pick)!.cell : e.type === "trace" ? e.step.to : null;
+    const picked = pickedCell && `${pickedCell.i},${pickedCell.j}`;
     const focus = frame.focus;
     const finished = e.type === "done";
     // The corner, once the way back is done, if the answer's path ends there too.
     if (finished) {
       onPath.add(`${m},${n}`);
-      if (run.algorithm === "edit") onPath.add("0,0");
+      const last = run.trace[run.trace.length - 1];
+      if (last) onPath.add(`${last.to.i},${last.to.j}`);
     }
 
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
-    // Letters: the first word down the side, the second across the top.
-    const match = focus && focus.i > 0 && focus.j > 0 && run.a[focus.i - 1] === run.b[focus.j - 1];
+    // Labels: the first word (or the items) down the side, the second word (or the room) across the top.
+    const match = e.type === "cell" && e.match;
     const letterFill = (lit: boolean): RGB | null => (lit ? (match ? p.done : p.focus) : null);
-    const letter = (text: string, x: number, y: number, fill: RGB | null, faint = false) => {
+    const letter = (text: string, x: number, y: number, fill: RGB | null, faint = false, size = 0.42) => {
       if (fill) {
         ctx.fillStyle = css(fill);
         ctx.beginPath();
@@ -98,13 +121,19 @@ export class DpRenderer {
         ctx.fill();
       }
       ctx.fillStyle = css(fill ? inkOn(fill, p) : p.ink, faint ? 0.4 : 0.9);
-      ctx.font = `600 ${Math.round(cell * 0.42)}px ${faint ? SANS : MONO}`;
+      ctx.font = `600 ${Math.round(cell * size)}px ${faint ? SANS : MONO}`;
       ctx.fillText(text, x + cell / 2, y + cell / 2 + 1);
     };
-    letter("ε", x0 + cell, y0, null, true);
-    letter("ε", x0, y0 + cell, null, true);
-    for (let j = 1; j <= n; j++) letter(run.b[j - 1], at(0, j).x, y0, letterFill(focus?.j === j));
-    for (let i = 1; i <= m; i++) letter(run.a[i - 1], x0, at(i, 0).y, letterFill(focus?.i === i));
+    if (run instanceof KnapsackRun) {
+      for (let j = 0; j <= n; j++) letter(run.colLabels[j], at(0, j).x, y0, letterFill(focus?.j === j), false, 0.34);
+      for (let i = 0; i <= m; i++)
+        this.itemLabel(run, i, x0, at(i, 0).y, cell * side, cell, letterFill(focus?.i === i && i > 0));
+    } else {
+      letter("ε", at(0, 0).x, y0, null, true);
+      letter("ε", x0, at(0, 0).y, null, true);
+      for (let j = 1; j <= n; j++) letter(run.colLabels[j], at(0, j).x, y0, letterFill(focus?.j === j));
+      for (let i = 1; i <= m; i++) letter(run.rowLabels[i], x0, at(i, 0).y, letterFill(focus?.i === i));
+    }
 
     // Cells.
     for (let i = 0; i <= m; i++) {
@@ -155,6 +184,32 @@ export class DpRenderer {
     this.drawAnswer(run, frame, y0 + gridH + 14, answerRoom - 14);
   }
 
+  /** Knapsack: an item's row label, its name then its weight and value. */
+  private itemLabel(run: KnapsackRun, i: number, x: number, y: number, w: number, h: number, fill: RGB | null) {
+    const { ctx } = this;
+    const p = this.palette;
+    if (fill) {
+      ctx.fillStyle = css(fill);
+      ctx.beginPath();
+      ctx.roundRect(x + 3, y + 3, w - 6, h - 6, 8);
+      ctx.fill();
+    }
+    const ink = fill ? inkOn(fill, p) : p.ink;
+    if (i === 0) {
+      ctx.fillStyle = css(ink, 0.4);
+      ctx.font = `600 ${Math.round(h * 0.3)}px ${SANS}`;
+      ctx.fillText("no items", x + w / 2, y + h / 2 + 1);
+      return;
+    }
+    const item = run.items[i - 1];
+    ctx.fillStyle = css(ink, 0.95);
+    ctx.font = `700 ${Math.round(h * 0.36)}px ${MONO}`;
+    ctx.fillText(itemName(i - 1), x + w * 0.2, y + h / 2 + 1);
+    ctx.fillStyle = css(ink, 0.75);
+    ctx.font = `500 ${Math.round(h * 0.26)}px ${MONO}`;
+    ctx.fillText(itemText(item), x + w * 0.62, y + h / 2 + 1);
+  }
+
   /** A short arrow between two cell centers, trimmed so it doesn't cover the numbers. */
   private arrow(ax: number, ay: number, bx: number, by: number, cell: number, color: RGB, width: number) {
     const { ctx } = this;
@@ -187,7 +242,7 @@ export class DpRenderer {
   }
 
   /** Under the table: the alignment (edit distance) or the shared letters (LCS), as far as the way back has got. */
-  private drawAnswer(run: DpRun, frame: DpFrame, top: number, room: number) {
+  private drawAnswer(run: TableRun, frame: DpFrame, top: number, room: number) {
     const { ctx, width } = this;
     const p = this.palette;
     ctx.textAlign = "center";
@@ -196,15 +251,54 @@ export class DpRenderer {
       if (frame.event.type !== "start") return;
       ctx.fillStyle = css(p.ink, 0.6);
       ctx.font = `500 14px ${SANS}`;
-      ctx.fillText(
-        run.algorithm === "edit"
-          ? "The edits will show here, read off the way back."
-          : "The shared letters will show here.",
-        width / 2,
-        top + room / 2,
-      );
+      ctx.fillText(HINTS[run.algorithm], width / 2, top + room / 2);
       return;
     }
+    if (run instanceof KnapsackRun) this.drawBag(run, frame, top, room);
+    else this.drawWords(run as DpRun, frame, top, room);
+  }
+
+  /** Knapsack: the items taken so far, and what they add up to. */
+  private drawBag(run: KnapsackRun, frame: DpFrame, top: number, room: number) {
+    const { ctx, width } = this;
+    const p = this.palette;
+    const chosen = takenItems(frame.trace);
+    const all = run.chosen.length;
+    const box = Math.min(56, room * 0.62, (width - 24) / Math.max(1, all + 1.6));
+    const x0 = width / 2 - (box * (all + 1.6)) / 2;
+    for (let k = 0; k < all; k++) {
+      // Found from the last item back, so the ones still to come are on the left.
+      const index = chosen[k - (all - chosen.length)];
+      const x = x0 + k * box;
+      const lit = index !== undefined;
+      ctx.fillStyle = css(lit ? p.done : p.node);
+      ctx.beginPath();
+      ctx.roundRect(x + 3, top + 4, box - 6, box - 6, 8);
+      ctx.fill();
+      if (!lit) continue;
+      ctx.fillStyle = css(inkOn(p.done, p));
+      ctx.font = `700 ${Math.round(box * 0.34)}px ${MONO}`;
+      ctx.fillText(itemName(index), x + box / 2, top + 4 + box * 0.32);
+      ctx.font = `500 ${Math.round(box * 0.2)}px ${MONO}`;
+      ctx.fillText(itemText(run.items[index]), x + box / 2, top + 4 + box * 0.66);
+    }
+    const weight = chosen.reduce((sum, k) => sum + run.items[k].weight, 0);
+    const value = chosen.reduce((sum, k) => sum + run.items[k].value, 0);
+    const tx = x0 + all * box + 8;
+    ctx.textAlign = "left";
+    ctx.fillStyle = css(p.ink, 0.85);
+    ctx.font = `600 ${Math.round(Math.max(11, box * 0.26))}px ${MONO}`;
+    ctx.fillText("= " + DOLLAR + value, tx, top + 4 + box * 0.32);
+    ctx.fillStyle = css(p.ink, 0.6);
+    ctx.font = `500 ${Math.round(Math.max(10, box * 0.2))}px ${MONO}`;
+    ctx.fillText(`${weight}/${run.capacity}kg`, tx, top + 4 + box * 0.66);
+    ctx.textAlign = "center";
+  }
+
+  /** The word problems: the alignment (edit distance) or the shared letters (LCS). */
+  private drawWords(run: DpRun, frame: DpFrame, top: number, room: number) {
+    const { ctx, width } = this;
+    const p = this.palette;
     if (run.algorithm === "lcs") {
       const letters = keptLetters(run.a, frame.trace);
       const box = Math.min(34, room * 0.6, (width - 24) / Math.max(1, run.answer));

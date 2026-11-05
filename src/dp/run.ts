@@ -1,4 +1,4 @@
-import type { Cell, Direction, DpAlgorithm, DpEvent, DpFrame, Option, TraceStep } from "./types";
+import type { Cell, Direction, DpEvent, DpFrame, Option, TableRun, TraceStep, WordsAlgorithm } from "./types";
 
 // Pseudocode lines (see pseudocode.ts).
 export const DP_LINE = {
@@ -10,7 +10,7 @@ export const DP_LINE = {
   trace: 5,
 } as const;
 
-const traceLine = (algorithm: DpAlgorithm, kind: TraceStep["kind"]) =>
+const traceLine = (algorithm: WordsAlgorithm, kind: TraceStep["kind"]) =>
   algorithm === "edit" ? DP_LINE.trace : kind === "keep" ? 5 : 6;
 
 const step = (move: Direction, { i, j }: Cell): Cell =>
@@ -23,14 +23,14 @@ const step = (move: Direction, { i, j }: Cell): Cell =>
  * first j. LCS: L[i][j] is the length of the longest subsequence the two
  * prefixes share.
  */
-export class DpRun {
+export class DpRun implements TableRun {
   readonly table: number[][];
   readonly frames: DpFrame[] = [];
   readonly answer: number;
   readonly trace: TraceStep[] = [];
 
   constructor(
-    readonly algorithm: DpAlgorithm,
+    readonly algorithm: WordsAlgorithm,
     readonly a: string,
     readonly b: string,
   ) {
@@ -51,19 +51,22 @@ export class DpRun {
       for (let j = 1; j <= n; j++) {
         const T = this.table;
         const match = a[i - 1] === b[j - 1];
+        const diag = { i: i - 1, j: j - 1 };
+        const up = { i: i - 1, j };
+        const left = { i, j: j - 1 };
         const options: Option[] = edit
           ? match
-            ? [{ from: "diag", value: T[i - 1][j - 1] }]
+            ? [{ from: "diag", value: T[i - 1][j - 1], cell: diag }]
             : [
-                { from: "diag", value: T[i - 1][j - 1] + 1 },
-                { from: "up", value: T[i - 1][j] + 1 },
-                { from: "left", value: T[i][j - 1] + 1 },
+                { from: "diag", value: T[i - 1][j - 1] + 1, cell: diag },
+                { from: "up", value: T[i - 1][j] + 1, cell: up },
+                { from: "left", value: T[i][j - 1] + 1, cell: left },
               ]
           : match
-            ? [{ from: "diag", value: T[i - 1][j - 1] + 1 }]
+            ? [{ from: "diag", value: T[i - 1][j - 1] + 1, cell: diag }]
             : [
-                { from: "up", value: T[i - 1][j] },
-                { from: "left", value: T[i][j - 1] },
+                { from: "up", value: T[i - 1][j], cell: up },
+                { from: "left", value: T[i][j - 1], cell: left },
               ];
         // Ties go to the first option: diagonal, then up, then left.
         const best = options.reduce((x, y) => ((edit ? y.value < x.value : y.value > x.value) ? y : x));
@@ -75,7 +78,7 @@ export class DpRun {
             base: true,
             filled,
             focus: { i, j },
-            deps: options.map((o) => step(o.from, { i, j })),
+            deps: options.map((o) => o.cell),
           },
           match ? DP_LINE.match : DP_LINE.other,
         );
@@ -98,13 +101,14 @@ export class DpRun {
         else [move, kind] = ["left", "insert"];
       } else if (a[i - 1] === b[j - 1]) [move, kind] = ["diag", "keep"];
       else [move, kind] = [T[i - 1][j] >= T[i][j - 1] ? "up" : "left", "skip"];
-      this.trace.push({ i, j, move, kind });
+      const to = step(move, at);
+      this.trace.push({ i, j, move, kind, to });
       frame(
-        { type: "trace", step: { i, j, move, kind } },
-        { base: true, filled, focus: { i, j }, deps: [step(move, at)], trace: this.trace.slice() },
+        { type: "trace", step: { i, j, move, kind, to } },
+        { base: true, filled, focus: { i, j }, deps: [to], trace: this.trace.slice() },
         traceLine(algorithm, kind),
       );
-      at = step(move, at);
+      at = to;
     }
     frame({ type: "done", answer: this.answer }, { base: true, filled, trace: this.trace.slice() }, null);
   }
@@ -112,6 +116,17 @@ export class DpRun {
   get length() {
     return this.frames.length;
   }
+
+  get rowLabels() {
+    return ["ε", ...this.a];
+  }
+
+  get colLabels() {
+    return ["ε", ...this.b];
+  }
+
+  // Row and column 0 come first, all at once; then the rest, row by row.
+  fillIndex = (i: number, j: number) => (i === 0 || j === 0 ? -1 : (i - 1) * this.b.length + (j - 1));
 }
 
 /** The alignment the way back spells out, in reading order: one column per letter kept, changed, deleted or inserted. */

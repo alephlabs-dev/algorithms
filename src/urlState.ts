@@ -207,8 +207,8 @@ export const toStructureSearch = (state: Required<StructureUrlState> & { speed?:
     ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
   }).toString();
 
-/** A dynamic programming run as a link carries it: the two words. */
-export type DpUrlState = { a?: string; b?: string };
+/** A dynamic programming run as a link carries it: the two words, or the knapsack's items and capacity. */
+export type DpUrlState = { a?: string; b?: string; items?: string; capacity?: number };
 
 const readDpParams = (params: URLSearchParams): DpUrlState => {
   const state: DpUrlState = {};
@@ -216,14 +216,20 @@ const readDpParams = (params: URLSearchParams): DpUrlState => {
   const b = params.get("b")?.toUpperCase();
   if (a && /^[A-Z]{1,10}$/.test(a)) state.a = a;
   if (b && /^[A-Z]{1,10}$/.test(b)) state.b = b;
+  const items = params.get("items");
+  if (items && /^[0-9x.]+$/.test(items)) state.items = items;
+  const capacity = Number(params.get("cap"));
+  if (Number.isInteger(capacity) && capacity >= 1 && capacity <= 12) state.capacity = capacity;
   return state;
 };
 
-export const toDpSearch = (state: Required<DpUrlState> & { speed?: SpeedPreset }) =>
+export const toDpSearch = (state: DpUrlState & { speed?: SpeedPreset }) =>
   "?" +
   new URLSearchParams({
-    a: state.a,
-    b: state.b,
+    ...(state.a && { a: state.a }),
+    ...(state.b && { b: state.b }),
+    ...(state.items && { items: state.items }),
+    ...(state.capacity !== undefined && { cap: String(state.capacity) }),
     ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
   }).toString();
 
@@ -248,13 +254,13 @@ export const readLocation = (
 } => {
   const state = readUrlState(search);
   const route = routeFromPath(pathname);
-  if (route?.kind === "dp" || route?.kind === "dpProblem") {
+  if (route?.kind === "dp" || route?.kind === "dpProblem" || route?.kind === "dpRace") {
     return {
       ...state,
       isLanding: false,
       isModuleStart: route.kind === "dp",
       module: "dp",
-      view: "single",
+      view: route.kind === "dpRace" ? "race" : "single",
       ...(route.kind === "dpProblem" && { dpAlgorithm: route.algorithm }),
       path: {},
       graph: {},

@@ -43,7 +43,11 @@ const applyRoute = (route: Route) => {
   const inPath = store.module === "pathfinding";
   if (route.kind === "dp" || route.kind === "dpProblem") {
     const algorithm = route.kind === "dpProblem" ? route.algorithm : store.dpAlgorithm;
-    if (store.module !== "dp" || store.dpAlgorithm !== algorithm) store.setDpAlgorithm(algorithm);
+    if (store.module !== "dp" || store.view !== "single" || store.dpAlgorithm !== algorithm)
+      store.setDpAlgorithm(algorithm);
+  } else if (route.kind === "dpRace") {
+    if (store.module !== "dp") store.setDpAlgorithm(store.dpAlgorithm);
+    if (useStore.getState().view !== "race") store.setView("race");
   } else if (route.kind === "structure" || route.kind === "structures") {
     const algorithm = route.kind === "structure" ? route.algorithm : store.structureAlgorithm;
     if (store.module !== "structures" || store.view !== "single" || store.structureAlgorithm !== algorithm)

@@ -9,3 +9,6 @@ export const GRAPH_RACE_DESCRIPTION =
 
 export const PATH_RACE_DESCRIPTION =
   "Same grid, same clock. Each tick, every search examines one cell, so the first to reach the target is the one that looked at the fewest cells. Then compare the paths they found.";
+
+export const DP_RACE_DESCRIPTION =
+  "The same knapsack three ways, one subproblem per tick each. The table fills every cell once, row by row. Plain recursion asks for the corner and splits each question in two, so it works out the same subproblems again and again, and the count grows exponentially with the items. Memoized recursion asks the same way but writes each answer down: a repeat is a lookup, and it only touches the cells the answer needs.";
