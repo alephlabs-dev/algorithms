@@ -7,14 +7,32 @@ import { pathAlgorithms, pathTraits } from "@/consts/pathAlgorithms";
 import { gridSizeLabels, presetLabel } from "@/consts/pathLabels";
 import { PATH_RACE_DESCRIPTION } from "@/consts/race";
 import { pathPseudocode, type PathAlgorithm } from "@/pathfinding";
+import { localized } from "@/i18n";
 import { selectPathFrame, useStore } from "@/store";
 import { narratePath } from "@/utils/narratePath";
 import { pathfindingTour } from "./tours";
 import type { ModuleUI } from "./types";
 
+const text = localized({
+  en: {
+    title: "Pathfinding",
+    grid: (size: string, layout: string) => `${size} grid, ${layout}`,
+    newRun: "New layout",
+    tagline: "Same grid, same clock",
+    unit: { one: "cell", short: "cells" },
+  },
+  es: {
+    title: "Búsqueda de caminos",
+    grid: (size, layout) => `Cuadrícula ${size.toLowerCase()}, ${layout}`,
+    newRun: "Nueva disposición",
+    tagline: "Misma cuadrícula, mismo reloj",
+    unit: { one: "celda", short: "celdas" },
+  },
+});
+
 export const pathfindingUI: ModuleUI = {
   id: "pathfinding",
-  title: "Pathfinding",
+  title: text.title,
 
   Stage: PathStage,
   // Editing the grid is the point, so the brush and layouts sit right above it.
@@ -27,9 +45,9 @@ export const pathfindingUI: ModuleUI = {
   settingsSummary: (s) => {
     const size = gridSizeLabels[s.gridSize];
     const layout = presetLabel(s.gridPreset);
-    return { main: size, detail: layout, label: `${size} grid, ${layout}` };
+    return { main: size, detail: layout, label: text.grid(size, layout) };
   },
-  newRunLabel: "New layout",
+  newRunLabel: text.newRun,
 
   algorithms: [
     {
@@ -49,9 +67,9 @@ export const pathfindingUI: ModuleUI = {
     Stage: PathRaceLanes,
     racers: (s) => s.pathRaceAlgorithms,
     toggleRacer: (id) => useStore.getState().togglePathRacer(id as PathAlgorithm),
-    tagline: "Same grid, same clock",
+    tagline: text.tagline,
     description: PATH_RACE_DESCRIPTION,
-    unit: { one: "cell", short: "cells" },
+    unit: text.unit,
   },
 
   code: {

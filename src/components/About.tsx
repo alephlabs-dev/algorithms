@@ -108,6 +108,61 @@ const text = localized({
   },
 });
 
+const pathText = localized({
+  en: {
+    shortest: "Shortest path",
+    cheapest: "Yes, the cheapest",
+    inSteps: "Yes, in steps (ignores cost)",
+    notGuaranteed: "Not guaranteed",
+    usesCosts: "Uses cell costs",
+    aroundMud: (cost: number) => `Yes: goes around mud (×${cost}) when cheaper`,
+    sameCost: "No: every step counts the same",
+    keepsIn: "Keeps cells to explore in",
+    time: "Time",
+    atAGlance: "At a glance",
+    tryIt: "Try it",
+    tryIntro: (cost: number) =>
+      `Drag on the grid above to draw walls, switch the brush to mud to make some cells cost ${cost} steps, and drag the green start or the target to move them. Then compare with another search on the same grid:`,
+    orRace: (race: Link) => <>Or {race("race them")} side by side.</>,
+    moduleTitle: "Pathfinding algorithms",
+    moduleIntro:
+      "Draw walls and mud on a grid, then watch five classic searches look for the way from start to target: some find the fewest steps, some the cheapest path, some just any path.",
+    all: "All pathfinding algorithms",
+    raceTitle: "Pathfinding algorithm race",
+    raceIntro:
+      "Put two to four searches on the same grid and see which one reaches the target first, and which one finds the better path.",
+    raceTip:
+      "Finishing first and finding the best path are different things. Greedy Best-First Search heads straight for the target and usually wins, but its path can be long. Dijkstra and A* always find the cheapest path, and A* looks at far fewer cells to do it. Add some mud with the brush and watch Breadth-First Search walk straight through it.",
+    learnEach: "Learn each search",
+  },
+  es: {
+    shortest: "Camino más corto",
+    cheapest: "Sí, el más barato",
+    inSteps: "Sí, en pasos (ignora el costo)",
+    notGuaranteed: "No garantizado",
+    usesCosts: "Usa el costo de las celdas",
+    aroundMud: (cost) => `Sí: rodea el barro (×${cost}) cuando sale más barato`,
+    sameCost: "No: todos los pasos cuentan igual",
+    keepsIn: "Guarda las celdas por explorar en",
+    time: "Tiempo",
+    atAGlance: "De un vistazo",
+    tryIt: "Pruébalo",
+    tryIntro: (cost) =>
+      `Arrastra sobre la cuadrícula de arriba para dibujar paredes, cambia el pincel a barro para que algunas celdas cuesten ${cost} pasos, y arrastra el inicio verde o el destino para moverlos. Después compara con otra búsqueda en la misma cuadrícula:`,
+    orRace: (race) => <>O {race("hazlas competir")} lado a lado.</>,
+    moduleTitle: "Algoritmos de búsqueda de caminos",
+    moduleIntro:
+      "Dibuja paredes y barro en una cuadrícula y mira cómo cinco búsquedas clásicas buscan el camino del inicio al destino: algunas encuentran el de menos pasos, otras el más barato y otras uno cualquiera.",
+    all: "Todos los algoritmos de búsqueda de caminos",
+    raceTitle: "Carrera de algoritmos de búsqueda de caminos",
+    raceIntro:
+      "Pon de dos a cuatro búsquedas en la misma cuadrícula y mira cuál llega primero al destino y cuál encuentra el mejor camino.",
+    raceTip:
+      "Terminar primero y encontrar el mejor camino son cosas distintas. La búsqueda voraz va directo al destino y suele ganar, pero su camino puede ser largo. Dijkstra y A* siempre encuentran el camino más barato, y A* revisa muchas menos celdas para lograrlo. Agrega barro con el pincel y mira cómo la búsqueda en anchura lo atraviesa sin desviarse.",
+    learnEach: "Aprende cada búsqueda",
+  },
+});
+
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
   <section className="flex flex-col gap-4">
     <h2 className="text-xl font-semibold">{title}</h2>
@@ -223,12 +278,12 @@ const PathTable = ({ algorithm }: { algorithm: PathAlgorithm }) => {
   const { structure, shortest, weighted, timeComplexity } = pathAlgorithms[algorithm];
   const rows: [string, string][] = [
     [
-      "Shortest path",
-      shortest === "cost" ? "Yes, the cheapest" : shortest === "steps" ? "Yes, in steps (ignores cost)" : "Not guaranteed",
+      pathText.shortest,
+      shortest === "cost" ? pathText.cheapest : shortest === "steps" ? pathText.inSteps : pathText.notGuaranteed,
     ],
-    ["Uses cell costs", weighted ? `Yes: goes around mud (×${MUD_COST}) when cheaper` : "No: every step counts the same"],
-    ["Keeps cells to explore in", structure],
-    ["Time", timeComplexity],
+    [pathText.usesCosts, weighted ? pathText.aroundMud(MUD_COST) : pathText.sameCost],
+    [pathText.keepsIn, structure],
+    [pathText.time, timeComplexity],
   ];
   return (
     <table className="w-full max-w-lg text-sm">
@@ -254,29 +309,26 @@ const PathArticle = ({ algorithm, onNavigate }: { algorithm: PathAlgorithm; onNa
         <h1 className="text-display font-semibold">{title}</h1>
         <p className="text-lg text-foreground/80">{shortDescription}</p>
       </header>
-      <Section title={`How ${title} works`}>
+      <Section title={text.howItWorks(title)}>
         <p className="leading-relaxed text-foreground/80">{longDescription}</p>
       </Section>
-      <Section title="At a glance">
+      <Section title={pathText.atAGlance}>
         <PathTable algorithm={algorithm} />
       </Section>
-      <Section title="Pseudocode">
+      <Section title={text.pseudocode}>
         <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
           {pathPseudocode[algorithm].join("\n")}
         </pre>
       </Section>
-      <Section title="Try it">
-        <p className="leading-relaxed text-foreground/80">
-          Drag on the grid above to draw walls, switch the brush to mud to make some cells cost {MUD_COST} steps, and
-          drag the green start or the target to move them. Then compare with another search on the same grid:
-        </p>
+      <Section title={pathText.tryIt}>
+        <p className="leading-relaxed text-foreground/80">{pathText.tryIntro(MUD_COST)}</p>
         <PathIndex current={algorithm} onNavigate={onNavigate} />
         <p className="text-foreground/80">
-          Or{" "}
-          <PageLink to={{ kind: "pathRace" }} onNavigate={onNavigate}>
-            race them
-          </PageLink>{" "}
-          side by side.
+          {pathText.orRace((children) => (
+            <PageLink to={{ kind: "pathRace" }} onNavigate={onNavigate}>
+              {children}
+            </PageLink>
+          ))}
         </p>
       </Section>
     </>
@@ -322,13 +374,10 @@ const SortingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) =>
 const PathfindingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
   <>
     <header className="flex flex-col gap-3">
-      <h1 className="text-display font-semibold">Pathfinding algorithms</h1>
-      <p className="text-lg text-foreground/80">
-        Draw walls and mud on a grid, then watch five classic searches look for the way from start to target: some
-        find the fewest steps, some the cheapest path, some just any path.
-      </p>
+      <h1 className="text-display font-semibold">{pathText.moduleTitle}</h1>
+      <p className="text-lg text-foreground/80">{pathText.moduleIntro}</p>
     </header>
-    <Section title="All pathfinding algorithms">
+    <Section title={pathText.all}>
       <ul className="flex flex-col divide-y divide-edge">
         {pathOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
@@ -340,11 +389,11 @@ const PathfindingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }
         ))}
       </ul>
     </Section>
-    <Section title="Race them">
+    <Section title={text.raceThem}>
       <p className="leading-relaxed text-foreground/80">
         {PATH_RACE_DESCRIPTION}{" "}
         <PageLink to={{ kind: "pathRace" }} onNavigate={onNavigate}>
-          Start a race
+          {text.startRace}
         </PageLink>
         .
       </p>
@@ -371,22 +420,14 @@ const RaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
 const PathRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
   <>
     <header className="flex flex-col gap-3">
-      <h1 className="text-display font-semibold">Pathfinding algorithm race</h1>
-      <p className="text-lg text-foreground/80">
-        Put two to four searches on the same grid and see which one reaches the target first, and which one finds the
-        better path.
-      </p>
+      <h1 className="text-display font-semibold">{pathText.raceTitle}</h1>
+      <p className="text-lg text-foreground/80">{pathText.raceIntro}</p>
     </header>
-    <Section title="How the race works">
+    <Section title={text.howRaceWorks}>
       <p className="leading-relaxed text-foreground/80">{PATH_RACE_DESCRIPTION}</p>
-      <p className="leading-relaxed text-foreground/80">
-        Finishing first and finding the best path are different things. Greedy Best-First Search heads straight for the
-        target and usually wins, but its path can be long. Dijkstra and A* always find the cheapest path, and A* looks
-        at far fewer cells to do it. Add some mud with the brush and watch Breadth-First Search walk straight through
-        it.
-      </p>
+      <p className="leading-relaxed text-foreground/80">{pathText.raceTip}</p>
     </Section>
-    <Section title="Learn each search">
+    <Section title={pathText.learnEach}>
       <PathIndex onNavigate={onNavigate} />
     </Section>
   </>

@@ -8,6 +8,51 @@ import { describeFrame } from "@/utils/describePathFrame";
 import { ordinal } from "@/utils/ordinal";
 import { GridCanvas } from "../Pathfinding/PathStage";
 import { PlaceBadge, ResultsOverlay } from "./RaceParts";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    cost: (n: number) => `cost ${n}`,
+    cells: (n: string) => `${n} cells`,
+    finished: (place: string) => ` Finished ${place}.`,
+    unreachable: "The target can't be reached.",
+    both: (name: string) => (
+      <>
+        {name} looked at the fewest cells <em>and</em> found the cheapest path.
+      </>
+    ),
+    cheaper: (name: string, best: string, detail: string) => `${name} finished first, but ${best} found a cheaper path${detail}.`,
+    insteadOf: (cheapest: number, cost: number) => ` (${cheapest} instead of ${cost})`,
+    place: "Place",
+    search: "Search",
+    lookedAt: "Looked at",
+    pathCost: "Path cost",
+    costing: (steps: number, cost: number) => `${count(steps, "step")}, costing ${cost}`,
+    cheapest: "Cheapest: ",
+    none: "none",
+  },
+  es: {
+    cost: (n) => `costo ${n}`,
+    cells: (n) => `${n} celdas`,
+    finished: (place) => ` Terminó ${place}.`,
+    unreachable: "El destino es inalcanzable.",
+    both: (name) => (
+      <>
+        {name} revisó menos celdas <em>y</em> encontró el camino más barato.
+      </>
+    ),
+    cheaper: (name, best, detail) => `${name} terminó primero, pero ${best} encontró un camino más barato${detail}.`,
+    insteadOf: (cheapest, cost) => ` (${cheapest} en vez de ${cost})`,
+    place: "Lugar",
+    search: "Búsqueda",
+    lookedAt: "Revisadas",
+    pathCost: "Costo",
+    costing: (steps, cost) => `${count(steps, "paso")}, costo ${cost}`,
+    cheapest: "Más barato: ",
+    none: "ninguno",
+  },
+});
+
 
 const format = (n: number) => n.toLocaleString("en-US");
 
@@ -45,12 +90,12 @@ const PathRaceLane = ({ algorithm, timeline, clock, place, className }: LaneProp
         </h3>
         {finished && <PlaceBadge place={place} />}
         <span className="ml-auto whitespace-nowrap font-mono text-foreground/70">
-          {finished && frame.found ? `cost ${frame.stats.pathCost}` : `${format(frame.stats.visited)} cells`}
+          {finished && frame.found ? text.cost(frame.stats.pathCost) : text.cells(format(frame.stats.visited))}
         </span>
       </header>
       <GridCanvas
         frame={frame}
-        label={`${title}: ${describeFrame(frame)}${finished ? ` Finished ${ordinal(place)}.` : ""}`}
+        label={`${title}: ${describeFrame(frame)}${finished ? text.finished(ordinal(place)) : ""}`}
       />
     </section>
   );
@@ -61,23 +106,24 @@ type Row = { algorithm: PathAlgorithm; timeline: PathTimeline; place: number };
 /** Who got there first, and whether that was also the best path: they often aren't the same. */
 const Verdict = ({ rows }: { rows: Row[] }) => {
   const found = rows.filter((r) => outcomeOf(r.timeline).found);
-  if (found.length === 0) return <p className="text-sm text-foreground/80">The target can't be reached.</p>;
+  if (found.length === 0) return <p className="text-sm text-foreground/80">{text.unreachable}</p>;
   const cheapest = Math.min(...found.map((r) => outcomeOf(r.timeline).stats.pathCost));
   const winner = rows[0];
   const winnerCost = outcomeOf(winner.timeline).stats.pathCost;
   const name = pathAlgorithms[winner.algorithm].short;
   if (outcomeOf(winner.timeline).found && winnerCost === cheapest) {
     return (
-      <p className="text-sm text-foreground/80">
-        {name} looked at the fewest cells <em>and</em> found the cheapest path.
-      </p>
+      <p className="text-sm text-foreground/80">{text.both(name)}</p>
     );
   }
   const best = found.filter((r) => outcomeOf(r.timeline).stats.pathCost === cheapest)[0];
   return (
     <p className="text-sm text-foreground/80">
-      {name} finished first, but {pathAlgorithms[best.algorithm].short} found a cheaper path
-      {outcomeOf(winner.timeline).found && ` (${cheapest} instead of ${winnerCost})`}.
+      {text.cheaper(
+        name,
+        pathAlgorithms[best.algorithm].short,
+        outcomeOf(winner.timeline).found ? text.insteadOf(cheapest, winnerCost) : "",
+      )}
     </p>
   );
 };
@@ -93,10 +139,10 @@ const PathRaceResults = ({ rows, onReplay }: { rows: Row[]; onReplay: () => void
       <table className="w-full text-sm">
         <thead>
           <tr className="text-left text-xs text-foreground/60">
-            <th className="pb-2 font-normal">Place</th>
-            <th className="pb-2 font-normal">Search</th>
-            <th className="pb-2 text-right font-normal">Looked at</th>
-            <th className="pb-2 text-right font-normal">Path cost</th>
+            <th className="pb-2 font-normal">{text.place}</th>
+            <th className="pb-2 font-normal">{text.search}</th>
+            <th className="pb-2 text-right font-normal">{text.lookedAt}</th>
+            <th className="pb-2 text-right font-normal">{text.pathCost}</th>
           </tr>
         </thead>
         <tbody>
@@ -111,15 +157,15 @@ const PathRaceResults = ({ rows, onReplay }: { rows: Row[]; onReplay: () => void
                 <td className="py-2 text-right font-mono">{format(timeline.totalVisits)}</td>
                 <td
                   className="py-2 text-right font-mono"
-                  title={found ? `${count(stats.pathLength, "step")}, costing ${stats.pathCost}` : undefined}
+                  title={found ? text.costing(stats.pathLength, stats.pathCost) : undefined}
                 >
                   {found ? (
                     <span className={cn({ "font-semibold text-primary": stats.pathCost === cheapest })}>
-                      {stats.pathCost === cheapest && <span className="sr-only">Cheapest: </span>}
+                      {stats.pathCost === cheapest && <span className="sr-only">{text.cheapest}</span>}
                       {stats.pathCost}
                     </span>
                   ) : (
-                    <span className="text-foreground/60">none</span>
+                    <span className="text-foreground/60">{text.none}</span>
                   )}
                 </td>
               </tr>

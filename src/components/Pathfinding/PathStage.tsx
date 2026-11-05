@@ -9,6 +9,32 @@ import { count } from "@/utils/count";
 import { describeFrame } from "@/utils/describePathFrame";
 import { moveDuration } from "@/utils/speed";
 import { cn } from "@/utils/cn";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    canvas: (label: string) => `${label} Drag to draw walls or move the start and target.`,
+    onGrid: (title: string, rows: number, cols: number, frame: string) => `${title} on a ${rows} by ${cols} grid. ${frame}`,
+    found: "Path found",
+    none: "No path",
+    pathCost: (steps: number, cost: number) => `${count(steps, "step")} · cost ${cost} · `,
+    lookedAt: (n: number) => `${count(n, "cell")} looked at`,
+    tryOther: (name: string) => `Try ${name}`,
+    race: "Race them",
+  },
+  es: {
+    canvas: (label) => `${label} Arrastra para dibujar paredes o mover el inicio y el destino.`,
+    onGrid: (title, rows, cols, frame) => `${title} en una cuadrícula de ${rows} por ${cols}. ${frame}`,
+    // Short, so the pill stays on one line on phones.
+    found: "Hay camino",
+    none: "Sin camino",
+    pathCost: (steps, cost) => `${count(steps, "paso")} · costo ${cost} · `,
+    lookedAt: (n) => `${count(n, "celda")} ${n === 1 ? "revisada" : "revisadas"}`,
+    tryOther: (name) => `Prueba ${name}`,
+    race: "Compáralos",
+  },
+});
+
 
 /** What a drag does, decided by where it starts. */
 type Drag =
@@ -128,7 +154,7 @@ export const GridCanvas = ({ frame, label }: { frame: PathFrame; label: string }
       <canvas
         ref={canvasRef}
         role="img"
-        aria-label={`${label} Drag to draw walls or move the start and target.`}
+        aria-label={text.canvas(label)}
         className="absolute inset-0 h-full w-full touch-none select-none"
         style={{ cursor: "crosshair" }}
         onPointerDown={onPointerDown}
@@ -148,7 +174,7 @@ export const PathStage = () => {
   const { title } = pathAlgorithms[algorithm];
   return (
     <div data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col">
-      <GridCanvas frame={frame} label={`${title} on a ${grid.rows} by ${grid.cols} grid. ${describeFrame(frame)}`} />
+      <GridCanvas frame={frame} label={text.onGrid(title, grid.rows, grid.cols, describeFrame(frame))} />
       <PathFinishSummary className="pointer-events-none absolute inset-x-2 top-2 flex justify-center" />
     </div>
   );
@@ -175,18 +201,18 @@ const PathFinishSummary = ({ className }: { className?: string }) => {
       {finished && (
         <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-edge bg-surface/90 px-5 py-2 text-sm shadow-lg backdrop-blur-sm animate-in fade-in slide-in-from-top-2 duration-300 motion-reduce:animate-none">
           <span className={cn("font-semibold", frame.found ? "text-primary" : "text-foreground")}>
-            {frame.found ? "Path found" : "No path"}
+            {frame.found ? text.found : text.none}
           </span>
           {/* Phones show the counts in the dock right below; this keeps the pill to one line. */}
           <span className="hidden font-mono text-xs text-foreground/80 sm:inline">
-            {frame.found && `${count(frame.stats.pathLength, "step")} · cost ${frame.stats.pathCost} · `}
-            {count(frame.stats.visited, "cell")} looked at
+            {frame.found && text.pathCost(frame.stats.pathLength, frame.stats.pathCost)}
+            {text.lookedAt(frame.stats.visited)}
           </span>
           <button type="button" onClick={() => setPathAlgorithm(next)} className={linkClass}>
-            Try {pathAlgorithms[next].short}
+            {text.tryOther(pathAlgorithms[next].short)}
           </button>
           <button type="button" onClick={() => pathRaceWith(algorithm)} className={linkClass}>
-            Race them
+            {text.race}
           </button>
         </div>
       )}

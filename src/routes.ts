@@ -202,7 +202,7 @@ export const moduleOf = (route: Route): "sorting" | "pathfinding" | "graphs" | "
  * with hreflang; the others exist under /es in English, marked noindex,
  * until their sub-issue of #36 adds them here.
  */
-const TRANSLATED: ReadonlySet<NonNullable<ReturnType<typeof moduleOf>>> = new Set(["sorting"]);
+const TRANSLATED: ReadonlySet<NonNullable<ReturnType<typeof moduleOf>>> = new Set(["sorting", "pathfinding"]);
 
 /** Whether a page has a Spanish version worth indexing. The landing page does. */
 export const isTranslated = (route: Route): boolean => {
