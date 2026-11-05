@@ -13,6 +13,7 @@ import { useMediaQuery } from "./hooks/useMediaQuery";
 import { useModuleUI } from "./modules";
 import { MOBILE_QUERY, PORTRAIT_QUERY, useStore } from "./store";
 import { navigate, routeFor } from "./urlSync";
+import { GameLayer } from "./components/Game";
 
 /**
  * One stage, edge to edge: a slim bar on top that names what's playing, the
@@ -56,7 +57,11 @@ function App() {
                   <StepCaption className="-ml-3 flex-1" />
                   <Legend className="hidden shrink-0 md:flex" />
                 </div>
-                <Stage />
+                {/* Guess mode asks over the stage, so the stage keeps its size. */}
+                <div className="relative flex min-h-0 flex-1 flex-col">
+                  <Stage />
+                  <GameLayer />
+                </div>
               </div>
               {/* Never taller than the stage: the card scrolls inside if it has to. */}
               <NowCard className="hidden max-h-full w-80 shrink-0 self-start xl:flex" />

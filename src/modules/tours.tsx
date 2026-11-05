@@ -234,6 +234,12 @@ export const structuresTour: TourStep[] = [
       `Watch it, or go one step at a time with the buttons on either side.${wide ? " On a keyboard: Space, ← and →." : ""}`,
   },
   {
+    anchor: "game",
+    title: "A guessing game",
+    text: () =>
+      "Turn on Guess and playback stops before the key moments to ask what comes next. Answer, then watch whether you were right. It keeps score.",
+  },
+  {
     anchor: "narration",
     title: "Follow each step",
     text: ({ wide }) =>
@@ -270,6 +276,12 @@ export const dpTour: TourStep[] = [
     anchor: "play",
     title: "Play it",
     text: () => "The table fills cell by cell, then the way back from the corner spells out the answer under it.",
+  },
+  {
+    anchor: "game",
+    title: "A guessing game",
+    text: () =>
+      "Turn on Guess and playback stops before the key moments to ask what comes next. Answer, then watch whether you were right. It keeps score.",
   },
   {
     anchor: "narration",

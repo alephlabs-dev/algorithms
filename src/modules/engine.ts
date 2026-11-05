@@ -7,6 +7,7 @@ import type { Size } from "@/types";
 import { encodeOperations } from "@/structures/link";
 import type { HashEvent, TreeEvent } from "@/structures/types";
 import { encodeItems } from "@/dp/presets";
+import { dpQuestions, questionsOf, structureQuestions, type Question } from "@/game";
 import { toDpSearch, toFourierSearch, toGraphSearch, toPathSearch, toSearch, toStructureSearch } from "@/urlState";
 import type { DpEvent } from "@/dp/types";
 import { GRAPH_STEP_WEIGHT, PATH_STEP_WEIGHT, STEP_WEIGHT, type Pace } from "@/utils/speed";
@@ -29,6 +30,8 @@ export type ModuleEngine = {
   route: (s: StoreState) => Route;
   /** The query string that reproduces the run (array, grid, racers, speed). */
   search: (s: StoreState) => string;
+  /** Guess mode: the questions for the run on stage, in frame order. Without it, the module has no guess mode. */
+  game?: (s: StoreState) => Question[];
 };
 
 export const engines: Record<ModuleId, ModuleEngine> = {
@@ -127,6 +130,7 @@ export const engines: Record<ModuleId, ModuleEngine> = {
         preset: s.structurePreset,
         speed: s.speedPreset,
       }),
+    game: (s) => questionsOf(s.structureRun, structureQuestions),
   },
   dp: {
     // The race clock counts subproblems: it runs until the slowest method is done.
@@ -143,6 +147,7 @@ export const engines: Record<ModuleId, ModuleEngine> = {
       s.dpAlgorithm === "knapsack" || s.view === "race"
         ? toDpSearch({ items: encodeItems(s.dpItems), capacity: s.dpCapacity, speed: s.speedPreset })
         : toDpSearch({ a: s.dpA, b: s.dpB, speed: s.speedPreset }),
+    game: (s) => questionsOf(s.dpRun, dpQuestions),
   },
 };
 

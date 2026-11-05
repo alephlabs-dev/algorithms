@@ -6,7 +6,7 @@ import { dpProblems } from "@/consts/dp";
 import { cleanWord, MAX_CAPACITY, MAX_ITEMS, MAX_WORD, randomItems } from "@/dp";
 import { newSeed, seededRandom } from "@/utils/random";
 import { useElementSize } from "@/hooks/useElementSize";
-import { useStore } from "@/store";
+import { selectGameQuestion, useStore } from "@/store";
 import { Button } from "../ui/button";
 
 const DpCanvas = () => {
@@ -14,12 +14,16 @@ const DpCanvas = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<DpRenderer | null>(null);
   const { width, height } = useElementSize(wrapperRef);
-  const { run, frame, theme } = useStore(
-    useShallow((s) => ({
-      run: s.dpRun,
-      frame: s.dpRun.frames[Math.min(s.frameIndex, s.dpRun.length - 1)],
-      theme: s.theme,
-    })),
+  const { run, frame, theme, ask } = useStore(
+    useShallow((s) => {
+      const question = selectGameQuestion(s);
+      return {
+        run: s.dpRun,
+        frame: s.dpRun.frames[Math.min(s.frameIndex, s.dpRun.length - 1)],
+        theme: s.theme,
+        ask: question?.kind === "choice" && question.cell ? s.dpRun.frames[question.at] : undefined,
+      };
+    }),
   );
 
   useEffect(() => {
@@ -37,8 +41,8 @@ const DpCanvas = () => {
   }, [theme]);
 
   useEffect(() => {
-    rendererRef.current?.update({ run, frame });
-  }, [run, frame]);
+    rendererRef.current?.update({ run, frame, ask });
+  }, [run, frame, ask]);
 
   const label = `${dpProblems[run.algorithm].title} table: ${run.rowLabels.length - 1} rows, ${run.colLabels.length - 1} columns.`;
   return (

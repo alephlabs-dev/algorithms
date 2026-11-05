@@ -14,6 +14,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "./ui/button";
 import { popoverClass } from "./ui/popover";
 import { ViewSwitch } from "./ViewSwitch";
+import { GameToggle } from "./Game";
 
 /** A pill that names what's on stage and opens the list to change it. */
 const PickerPill = ({
@@ -153,6 +154,7 @@ export const TopBar = ({ className }: { className?: string }) => {
       <AboutButton />
       <Summary />
       <div className="ml-auto flex items-center gap-2">
+        <GameToggle />
         {hasRace && <ViewSwitch className="w-56" />}
         <ShareButton iconOnly />
         <ThemeToggle />
