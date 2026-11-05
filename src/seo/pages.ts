@@ -39,8 +39,23 @@ const sortingText = localized({
   },
 });
 
-// The home page is translated with the landing page (#69).
-const ROOT_NAME = localized({ en: "Algorithms", es: "Algoritmos" });
+const homeText = localized({
+  en: {
+    title: "Algorithm Visualizer: Sorting, Graphs, Data Structures, DP and More · Aleph Labs",
+    description:
+      "Watch sorts, A*, Dijkstra, AVL rotations, hash tables, Fourier circles and dynamic programming tables work step by step, with pseudocode and plain-language explanations.",
+    appName: "Algorithm Visualizer",
+    root: "Algorithms",
+  },
+  es: {
+    title: "Visualizador de algoritmos: ordenamiento, grafos, estructuras de datos, PD y más · Aleph Labs",
+    description:
+      "Mira paso a paso ordenamientos, A*, Dijkstra, rotaciones AVL, tablas hash, círculos de Fourier y tablas de programación dinámica, con pseudocódigo y explicaciones simples.",
+    appName: "Visualizador de algoritmos",
+    root: "Algoritmos",
+  },
+});
+const ROOT_NAME = homeText.root;
 
 /** What search engines and social cards see for a page. */
 export type PageMeta = {
@@ -58,9 +73,8 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "Algorithm Visualizer: Sorting, Graphs, Data Structures, DP and More · Aleph Labs",
-      description:
-        "Watch sorts, A*, Dijkstra, AVL rotations, hash tables, Fourier circles and dynamic programming tables work step by step, with pseudocode and plain-language explanations.",
+      title: homeText.title,
+      description: homeText.description,
     };
   }
   if (route.kind === "sorting") {
@@ -229,7 +243,7 @@ export const structuredData = (route: Route): object[] => {
       {
         "@context": "https://schema.org",
         "@type": "WebApplication",
-        name: "Algorithm Visualizer",
+        name: homeText.appName,
         url: meta.url,
         description: meta.description,
         applicationCategory: "EducationalApplication",

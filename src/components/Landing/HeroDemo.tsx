@@ -12,6 +12,20 @@ import {
 } from "@/pathfinding";
 import { count } from "@/utils/count";
 import { seededRandom } from "@/utils/random";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    visited: (n: number) => `${count(n, "cell")} looked at`,
+    path: (n: number) => ` · path ${count(n, "step")}`,
+    live: "live",
+  },
+  es: {
+    visited: (n) => `${count(n, "celda")} ${n === 1 ? "revisada" : "revisadas"}`,
+    path: (n) => ` · camino de ${count(n, "paso")}`,
+    live: "en vivo",
+  },
+});
 
 const ROWS = 15;
 const COLS = 29;
@@ -64,9 +78,8 @@ export const HeroDemo = () => {
       const frame = timeline.frameAt(frameIndex);
       renderer.update({ grid, frame, gridId: run, fade: reduced ? 0 : 0.15 });
       const { title } = pathAlgorithms[RUNS[run % RUNS.length].algorithm];
-      const found = frame.found ? ` · path ${count(frame.stats.pathLength, "step")}` : "";
-      if (captionRef.current)
-        captionRef.current.textContent = `${title} · ${count(frame.stats.visited, "cell")} looked at${found}`;
+      const found = frame.found ? text.path(frame.stats.pathLength) : "";
+      if (captionRef.current) captionRef.current.textContent = `${title} · ${text.visited(frame.stats.visited)}${found}`;
     };
 
     const tick = (now: number) => {
@@ -124,7 +137,7 @@ export const HeroDemo = () => {
         <span ref={captionRef} aria-hidden>
           A* Search
         </span>
-        <span>live</span>
+        <span>{text.live}</span>
       </figcaption>
     </figure>
   );

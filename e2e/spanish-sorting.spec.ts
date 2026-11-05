@@ -28,3 +28,18 @@ test('sorting in Spanish speaks Spanish and switches back to English', async ({ 
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   expect(errors).toEqual([]);
 });
+
+test('the Spanish home page speaks Spanish and its links stay in Spanish', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
+  await page.goto('/es');
+
+  await expect(page.locator('html')).toHaveAttribute('lang', 'es');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mira pensar a los algoritmos.');
+  await expect(page.getByRole('link', { name: 'English' })).toHaveAttribute('href', '/');
+
+  await page.getByRole('link', { name: 'Empieza con ordenamiento' }).click();
+  await expect(page).toHaveURL(/\/es\/sorting/);
+  expect(errors).toEqual([]);
+});

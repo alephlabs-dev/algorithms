@@ -29,6 +29,14 @@ describe("renderHead in Spanish", () => {
     expect(pageMeta({ kind: "algorithm", algorithm: "quick" }).title).toMatch(/paso a paso/);
   });
 
+  it("gives the Spanish home page its own address and both languages", () => {
+    const html = renderHead(template, { kind: "home" });
+    expect(html).toContain('<link rel="canonical" href="https://algorithms-aleph.vercel.app/es"');
+    expect(html).toContain('<link rel="alternate" hreflang="en" href="https://algorithms-aleph.vercel.app/" />');
+    expect(html).not.toContain('name="robots"');
+    expect(pageMeta({ kind: "home" }).title).toMatch(/^Visualizador de algoritmos/);
+  });
+
   it("keeps a page whose module isn't translated yet out of search", () => {
     const html = renderHead(template, { kind: "pathfinding" });
     expect(html).toContain('<meta name="robots" content="noindex" />');

@@ -204,8 +204,8 @@ export const moduleOf = (route: Route): "sorting" | "pathfinding" | "graphs" | "
  */
 const TRANSLATED: ReadonlySet<NonNullable<ReturnType<typeof moduleOf>>> = new Set(["sorting"]);
 
-/** Whether a page has a Spanish version worth indexing. */
+/** Whether a page has a Spanish version worth indexing. The landing page does. */
 export const isTranslated = (route: Route): boolean => {
   const module = moduleOf(route);
-  return module !== null && TRANSLATED.has(module);
+  return module === null || TRANSLATED.has(module);
 };

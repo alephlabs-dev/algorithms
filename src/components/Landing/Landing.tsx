@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { modules } from "@/consts/modules";
+import { localized } from "@/i18n";
 import type { Route } from "@/routes";
 import { cn } from "@/utils/cn";
 import { PageLink } from "../PageLink";
@@ -19,12 +20,59 @@ const GITHUB = "https://github.com/alephlabs-dev/algorithms";
 const buttonClass =
   "inline-flex h-13 items-center rounded-full px-6 font-semibold transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
 
-const features = [
-  { title: "One step at a time", text: "Play, pause, or scrub back and forth. Every frame can be rebuilt." },
-  { title: "The code, lit up", text: "Pseudocode with the running line highlighted, and the step in plain words." },
-  { title: "Races", text: "Same input, same clock. See which algorithm really does less work." },
-  { title: "Share any run", text: "The link carries the exact array or grid, so others see what you see." },
-];
+const text = localized({
+  en: {
+    brand: "Algorithms",
+    by: "by Aleph Labs",
+    /** Shorter names for the header, where they share one row; English fits as is. */
+    navNames: {} as Partial<Record<string, string>>,
+    modules: "Modules",
+    eyebrow: "OPEN SOURCE · STEP BY STEP · FREE",
+    headline: "Watch algorithms think.",
+    intro:
+      "Every comparison, every cell explored, one step at a time, with the line of code it runs and what it means in plain words.",
+    startSorting: "Start with sorting",
+    tryPathfinding: "Try pathfinding",
+    open: (n: number) => `${n} OPEN`,
+    inPreparation: (n: number) => ` · ${n} IN PREPARATION`,
+    preparing: "IN PREPARATION",
+    openModule: "Open →",
+    features: "Features",
+    featureList: [
+      { title: "One step at a time", text: "Play, pause, or scrub back and forth. Every frame can be rebuilt." },
+      { title: "The code, lit up", text: "Pseudocode with the running line highlighted, and the step in plain words." },
+      { title: "Races", text: "Same input, same clock. See which algorithm really does less work." },
+      { title: "Share any run", text: "The link carries the exact array or grid, so others see what you see." },
+    ],
+    madeBy: "Made by Aleph Labs",
+    github: "Open source on GitHub",
+  },
+  es: {
+    brand: "Algoritmos",
+    by: "por Aleph Labs",
+    navNames: { pathfinding: "Caminos", fourier: "Fourier", structures: "Estructuras", dp: "Prog. dinámica" },
+    modules: "Módulos",
+    eyebrow: "CÓDIGO ABIERTO · PASO A PASO · GRATIS",
+    headline: "Mira pensar a los algoritmos.",
+    intro:
+      "Cada comparación, cada celda explorada, paso a paso, con la línea de código que ejecuta y lo que significa en palabras simples.",
+    startSorting: "Empieza con ordenamiento",
+    tryPathfinding: "Prueba búsqueda de caminos",
+    open: (n) => `${n} ABIERTOS`,
+    inPreparation: (n) => ` · ${n} EN PREPARACIÓN`,
+    preparing: "EN PREPARACIÓN",
+    openModule: "Abrir →",
+    features: "Funciones",
+    featureList: [
+      { title: "Paso a paso", text: "Reproduce, pausa o avanza y retrocede. Cualquier momento se puede reconstruir." },
+      { title: "El código, resaltado", text: "Pseudocódigo con la línea en curso resaltada y el paso explicado en palabras simples." },
+      { title: "Carreras", text: "Misma entrada, mismo reloj. Mira qué algoritmo hace de verdad menos trabajo." },
+      { title: "Comparte cualquier ejecución", text: "El enlace lleva el arreglo o la cuadrícula exactos, así otros ven lo mismo que tú." },
+    ],
+    madeBy: "Hecho por Aleph Labs",
+    github: "Código abierto en GitHub",
+  },
+});
 
 const thumbs: Record<string, ReactNode> = {
   sorting: <SortingThumb className="h-16 w-full" />,
@@ -55,9 +103,9 @@ export const Landing = ({ onNavigate, actions }: Props) => {
           >
             <AlephMark />
           </span>
-          Algorithms <span className="hidden font-normal text-foreground/60 sm:inline">by Aleph Labs</span>
+          {text.brand} <span className="hidden font-normal text-foreground/60 sm:inline">{text.by}</span>
         </PageLink>
-        <nav aria-label="Modules" className="flex items-center gap-1">
+        <nav aria-label={text.modules} className="flex items-center gap-1">
           {open.map((m) => (
             <PageLink
               key={m.id}
@@ -65,7 +113,7 @@ export const Landing = ({ onNavigate, actions }: Props) => {
               onNavigate={onNavigate}
               className="hidden rounded-full px-4 py-2.5 text-[15px] transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary sm:inline-flex"
             >
-              {m.title}
+              {text.navNames[m.id] ?? m.title}
             </PageLink>
           ))}
           <a
@@ -81,14 +129,13 @@ export const Landing = ({ onNavigate, actions }: Props) => {
       <section className="flex flex-wrap items-center gap-12 lg:gap-14">
         <div className="flex min-w-0 flex-[1_1_420px] flex-col gap-7">
           <span className="font-mono text-xs tracking-[0.08em] text-foreground/60 md:text-sm">
-            OPEN SOURCE · STEP BY STEP · FREE
+            {text.eyebrow}
           </span>
           <h1 className="text-5xl font-semibold leading-[0.98] tracking-[-0.03em] md:text-7xl">
-            Watch algorithms think.
+            {text.headline}
           </h1>
           <p className="max-w-[34ch] text-lg leading-relaxed text-foreground/80 md:text-xl">
-            Every comparison, every cell explored, one step at a time, with the line of code it runs and what it means
-            in plain words.
+            {text.intro}
           </p>
           <div className="flex flex-wrap gap-3">
             <PageLink
@@ -96,14 +143,14 @@ export const Landing = ({ onNavigate, actions }: Props) => {
               onNavigate={onNavigate}
               className={cn(buttonClass, "bg-foreground text-background hover:bg-foreground/90")}
             >
-              Start with sorting
+              {text.startSorting}
             </PageLink>
             <PageLink
               to={{ kind: "pathfinding" }}
               onNavigate={onNavigate}
               className={cn(buttonClass, "border border-line hover:bg-accent")}
             >
-              Try pathfinding
+              {text.tryPathfinding}
             </PageLink>
           </div>
         </div>
@@ -115,10 +162,11 @@ export const Landing = ({ onNavigate, actions }: Props) => {
       <section aria-labelledby="modules" className="flex flex-col">
         <div className="flex flex-wrap items-baseline justify-between gap-4 border-b border-foreground/80 pb-4">
           <h2 id="modules" className="text-3xl font-semibold tracking-[-0.02em] md:text-4xl">
-            Modules
+            {text.modules}
           </h2>
           <span className="font-mono text-xs text-foreground/60">
-            {open.length} OPEN{open.length < modules.length && ` · ${modules.length - open.length} IN PREPARATION`}
+            {text.open(open.length)}
+            {open.length < modules.length && text.inPreparation(modules.length - open.length)}
           </span>
         </div>
         <ol className="flex flex-col">
@@ -136,7 +184,7 @@ export const Landing = ({ onNavigate, actions }: Props) => {
                     <p className="text-sm">{m.summary}</p>
                   </div>
                   <span className="rounded-full border border-dashed border-line px-3 py-1 font-mono text-[11px]">
-                    IN PREPARATION
+                    {text.preparing}
                   </span>
                 </li>
               );
@@ -157,7 +205,7 @@ export const Landing = ({ onNavigate, actions }: Props) => {
                     <p className="text-[15px] text-foreground/75">{m.summary}</p>
                   </div>
                   <div className="hidden w-56 shrink-0 sm:block">{thumbs[m.id]}</div>
-                  <span className="font-semibold transition-colors group-hover:text-primary">Open →</span>
+                  <span className="font-semibold transition-colors group-hover:text-primary">{text.openModule}</span>
                 </PageLink>
               </li>
             );
@@ -165,8 +213,8 @@ export const Landing = ({ onNavigate, actions }: Props) => {
         </ol>
       </section>
 
-      <section aria-label="Features" className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-        {features.map((f, k) => (
+      <section aria-label={text.features} className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+        {text.featureList.map((f, k) => (
           <div key={f.title} className="flex flex-col gap-2.5">
             <span className="font-mono text-sm text-primary">{String(k + 1).padStart(2, "0")}</span>
             <h3 className="text-xl font-semibold">{f.title}</h3>
@@ -176,9 +224,9 @@ export const Landing = ({ onNavigate, actions }: Props) => {
       </section>
 
       <footer className="flex flex-wrap justify-between gap-4 border-t border-edge pt-6 text-sm text-foreground/60">
-        <span>Made by Aleph Labs</span>
+        <span>{text.madeBy}</span>
         <a href={GITHUB} className="underline decoration-line underline-offset-4 hover:text-foreground">
-          Open source on GitHub
+          {text.github}
         </a>
       </footer>
     </div>
