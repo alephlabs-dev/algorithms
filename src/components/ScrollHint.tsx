@@ -22,7 +22,7 @@ const text = localized({
     dpProblem: (title: string) => `How ${title.toLowerCase()} works`,
     structure: (title: string) => `How the ${title} works`,
     structureRace: "Why balancing matters",
-    series: (title: string) => `How the ${title} works`,
+    series: ({ title }: { title: string; named: string }) => `How the ${title} works`,
     algorithm: (title: string) => `How ${title} works`,
     race: "How the race works",
   },
@@ -37,7 +37,7 @@ const text = localized({
     dpProblem: (named) => `Cómo funciona ${named}`,
     structure: (named) => `Cómo funciona ${named}`,
     structureRace: "Por qué importa balancear",
-    series: (title) => `Cómo funciona: ${title}`,
+    series: ({ named }) => `${/^l(o|a)s /.test(named) ? "Cómo funcionan" : "Cómo funciona"} ${named}`,
     algorithm: (title) => `Cómo funciona ${title}`,
     race: "Cómo funciona la carrera",
   },
@@ -67,7 +67,7 @@ const labelFor = (route: Route) => {
     case "structureRace":
       return text.structureRace;
     case "series":
-      return text.series(fourierSeries[route.algorithm].title);
+      return text.series(fourierSeries[route.algorithm]);
     case "graph":
       return text.algorithm(graphAlgorithms[route.algorithm].named);
     case "race":

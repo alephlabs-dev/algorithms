@@ -6,6 +6,23 @@ import { normalize, resample, type Point } from "@/fourier";
 import { useElementSize } from "@/hooks/useElementSize";
 import { useStore } from "@/store";
 import { count } from "@/utils/count";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    drawingArea: "Drawing area: draw a closed shape in one stroke.",
+    builtFrom: (title: string, circles: number, error: string) =>
+      `${title} built from ${count(circles, "circle")}. Off by ${error}% on average.`,
+    drawHere: "Draw a shape here in one stroke. It closes itself.",
+  },
+  es: {
+    drawingArea: "Área de dibujo: dibuja una forma cerrada de un solo trazo.",
+    builtFrom: (title, circles, error) =>
+      `${title}, con ${circles} ${circles === 1 ? "círculo" : "círculos"}. Error promedio de ${error}%.`,
+    drawHere: "Dibuja aquí una forma de un solo trazo. Se cierra sola.",
+  },
+});
+
 
 /** A stroke this short or small isn't a shape yet. */
 const MIN_POINTS = 12;
@@ -87,8 +104,8 @@ export const FourierStage = () => {
 
   const { title } = fourierSeries[algorithm];
   const label = drawing
-    ? "Drawing area: draw a closed shape in one stroke."
-    : `${title} built from ${count(circles, "circle")}. Off by ${(run.error * 100).toFixed(1)}% on average.`;
+    ? text.drawingArea
+    : text.builtFrom(title, circles, (run.error * 100).toFixed(1));
 
   return (
     <div data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col">
@@ -106,7 +123,7 @@ export const FourierStage = () => {
         />
         {drawing && !stroke && (
           <p className="pointer-events-none absolute inset-0 grid place-items-center p-6 text-center text-lg text-foreground/70">
-            Draw a shape here in one stroke. It closes itself.
+            {text.drawHere}
           </p>
         )}
       </div>

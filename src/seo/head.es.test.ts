@@ -38,7 +38,8 @@ describe("renderHead in Spanish", () => {
   });
 
   it("keeps a page whose module isn't translated yet out of search", () => {
-    const html = renderHead(template, { kind: "fourier" });
+    // Every module is translated today; a new one starts outside the list.
+    const html = renderHead(template, { kind: "fourier" }, new Set(["sorting", "pathfinding", "graphs", "structures", "dp"]));
     expect(html).toContain('<meta name="robots" content="noindex" />');
     expect(html).not.toContain('rel="alternate"');
   });

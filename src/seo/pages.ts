@@ -144,6 +144,25 @@ const dpText = localized({
   },
 });
 
+const fourierText = localized({
+  en: {
+    moduleTitle: "Fourier Series Visualizer: Waves and Drawings from Circles · Aleph Labs",
+    moduleDescription:
+      "Build a square, sawtooth or triangle wave from turning circles, or watch circles on circles retrace constellations, drawings or your own. See the fit improve with every circle.",
+    epicyclesTitle: "Fourier Epicycles: Draw Any Shape with Circles · Aleph Labs",
+    seriesTitle: (title: string) => `${title} Fourier Series, Visualized with Circles · Aleph Labs`,
+    section: "Fourier series",
+  },
+  es: {
+    moduleTitle: "Visualizador de series de Fourier: ondas y dibujos hechos con círculos · Aleph Labs",
+    moduleDescription:
+      "Construye una onda cuadrada, de sierra o triangular con círculos que giran, o mira círculos sobre círculos volver a trazar constelaciones, dibujos o el tuyo. El ajuste mejora con cada círculo.",
+    epicyclesTitle: "Epiciclos de Fourier: dibuja cualquier forma con círculos · Aleph Labs",
+    seriesTitle: (title) => `${title}: serie de Fourier visualizada con círculos · Aleph Labs`,
+    section: "Series de Fourier",
+  },
+});
+
 const homeText = localized({
   en: {
     title: "Algorithm Visualizer: Sorting, Graphs, Data Structures, DP and More · Aleph Labs",
@@ -246,9 +265,8 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "Fourier Series Visualizer: Waves and Drawings from Circles · Aleph Labs",
-      description:
-        "Build a square, sawtooth or triangle wave from turning circles, or watch circles on circles retrace constellations, drawings or your own. See the fit improve with every circle.",
+      title: fourierText.moduleTitle,
+      description: fourierText.moduleDescription,
     };
   }
   if (route.kind === "series") {
@@ -257,9 +275,7 @@ export const pageMeta = (route: Route): PageMeta => {
       path,
       url,
       title:
-        route.algorithm === "epicycles"
-          ? "Fourier Epicycles: Draw Any Shape with Circles · Aleph Labs"
-          : `${title} Fourier Series, Visualized with Circles · Aleph Labs`,
+        route.algorithm === "epicycles" ? fourierText.epicyclesTitle : fourierText.seriesTitle(title),
       description: shortDescription.slice(0, 200),
     };
   }
@@ -354,7 +370,7 @@ export const structuredData = (route: Route): object[] => {
     sorting: sortingText.section,
     pathfinding: pathText.section,
     graphs: graphText.section,
-    fourier: "Fourier series",
+    fourier: fourierText.section,
     structures: structureText.section,
     dp: dpText.section,
   };

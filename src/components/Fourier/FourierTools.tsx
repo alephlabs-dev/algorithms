@@ -12,6 +12,39 @@ import { popoverClass } from "../ui/popover";
 import { SectionLabel } from "../ui/section-label";
 import { SegmentedControl } from "../ui/segmented";
 import { ShapeThumb } from "./ShapeThumb";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    circles: "Circles",
+    all: "All",
+    circleCount: (n: number) => count(n, "circle"),
+    drawing: (label: string) => `Drawing: ${label}. Change`,
+    tools: "Fourier tools",
+    legend: "Legend",
+    tip: "Tip",
+    sum: "Their sum",
+    traced: "Traced",
+    theWave: "The wave",
+    theDrawing: "The drawing",
+    offBy: (error: string) => ` · off by ${error}%`,
+  },
+  es: {
+    circles: "Círculos",
+    all: "Todos",
+    circleCount: (n) => `${n} ${n === 1 ? "círculo" : "círculos"}`,
+    drawing: (label) => `Dibujo: ${label}. Cambiar`,
+    tools: "Herramientas de Fourier",
+    legend: "Leyenda",
+    tip: "Punta",
+    sum: "Su suma",
+    traced: "Trazado",
+    theWave: "La onda",
+    theDrawing: "El dibujo",
+    offBy: (error) => ` · error ${error}%`,
+  },
+});
+
 
 /** How many circles add up the series: the one control that shows the series converging. */
 export const CirclesPicker = ({ className }: { className?: string }) => {
@@ -25,11 +58,11 @@ export const CirclesPicker = ({ className }: { className?: string }) => {
   const options = circleOptions[wave ? "wave" : "drawing"];
   return (
     <SegmentedControl<number>
-      label="Circles"
+      label={text.circles}
       options={options.map((n) => ({
         value: n,
-        label: <span className="font-mono">{n === 256 ? "All" : n}</span>,
-        title: count(n, "circle"),
+        label: <span className="font-mono">{n === 256 ? text.all : n}</span>,
+        title: text.circleCount(n),
       }))}
       value={circles}
       onChange={(n) => n !== circles && setCircles(n)}
@@ -87,7 +120,7 @@ export const DrawingPicker = () => {
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger
-        aria-label={`Drawing: ${shapeLabel(shape)}. Change`}
+        aria-label={text.drawing(shapeLabel(shape))}
         className="flex h-10 items-center gap-2 rounded-full border border-line/70 pl-2 pr-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent data-[state=open]:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
       >
         <ShapeThumb shape={shape} className="h-7 w-7" />
@@ -110,11 +143,11 @@ export const FourierTools = ({ className }: { className?: string }) => {
     <div
       data-tour="tools"
       role="toolbar"
-      aria-label="Fourier tools"
+      aria-label={text.tools}
       className={cn("flex flex-wrap items-center gap-x-4 gap-y-2 self-start", className)}
     >
       <div className="flex items-center gap-2">
-        <span className="text-sm text-foreground/70">Circles</span>
+        <span className="text-sm text-foreground/70">{text.circles}</span>
         <CirclesPicker className="w-72" />
       </div>
       {!wave && <DrawingPicker />}
@@ -134,19 +167,19 @@ export const FourierLegend = ({ className, stacked }: { className?: string; stac
   const wave = useStore((s) => isWave(s.fourierAlgorithm));
   return (
     <ul
-      aria-label="Legend"
+      aria-label={text.legend}
       className={cn(
         "flex text-xs text-foreground md:text-sm",
         stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
         className,
       )}
     >
-      <Item className="h-3 w-3 rounded-full border border-line" label="Circles" />
-      <Item className="h-2.5 w-2.5 rounded-full bg-primary" label="Tip" />
-      <Item className="h-1 w-4 rounded-full bg-secondary" label={wave ? "Their sum" : "Traced"} />
+      <Item className="h-3 w-3 rounded-full border border-line" label={text.circles} />
+      <Item className="h-2.5 w-2.5 rounded-full bg-primary" label={text.tip} />
+      <Item className="h-1 w-4 rounded-full bg-secondary" label={wave ? text.sum : text.traced} />
       <Item
         className="h-0.5 w-4 bg-[repeating-linear-gradient(90deg,var(--color-line)_0_4px,transparent_4px_7px)]"
-        label={wave ? "The wave" : "The drawing"}
+        label={wave ? text.theWave : text.theDrawing}
       />
     </ul>
   );
@@ -157,7 +190,8 @@ export const FourierStatsInline = ({ className }: { className?: string }) => {
   const { circles, error } = useStore(useShallow((s) => ({ circles: s.fourierCircles, error: s.fourierRun.error })));
   return (
     <p className={cn("whitespace-nowrap font-mono text-xs text-foreground/80", className)}>
-      {count(circles, "circle")} · off by {(error * 100).toFixed(1)}%
+      {text.circleCount(circles)}
+      {text.offBy((error * 100).toFixed(1))}
     </p>
   );
 };

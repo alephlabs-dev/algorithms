@@ -324,6 +324,33 @@ const dpText = localized({
   },
 });
 
+const fourierText = localized({
+  en: {
+    moduleTitle: "Fourier series",
+    moduleIntro:
+      "Any repeating wave, and any closed drawing, can be built from circles turning at whole-number speeds. Watch them add up, and see how the fit improves with every circle you add.",
+    all: "All series",
+    whyCircles: "Why circles?",
+    whyText:
+      "A circle turning at a steady speed is the simplest repeating motion there is, and its height over time is a sine. Joseph Fourier showed in 1807 that repeating signals can be written as sums of sines; stacking each one as a circle on the tip of the last turns that sum into something you can watch. The same idea is behind JPEG images, MP3 audio and how phones tell voices apart.",
+    howItWorks: "How it works",
+    theSeries: "The series",
+    more: "More series",
+  },
+  es: {
+    moduleTitle: "Series de Fourier",
+    moduleIntro:
+      "Cualquier onda que se repite, y cualquier dibujo cerrado, se puede construir con círculos que giran a velocidades enteras. Mira cómo se suman y cómo el ajuste mejora con cada círculo que agregas.",
+    all: "Todas las series",
+    whyCircles: "¿Por qué círculos?",
+    whyText:
+      "Un círculo que gira a velocidad constante es el movimiento repetitivo más simple que existe, y su altura a lo largo del tiempo es un seno. Joseph Fourier mostró en 1807 que las señales que se repiten se pueden escribir como sumas de senos; apilar cada uno como un círculo en la punta del anterior convierte esa suma en algo que se puede ver. La misma idea está detrás de las imágenes JPEG, el audio MP3 y la forma en que los teléfonos distinguen voces.",
+    howItWorks: "Cómo funciona",
+    theSeries: "La serie",
+    more: "Más series",
+  },
+});
+
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
   <section className="flex flex-col gap-4">
     <h2 className="text-xl font-semibold">{title}</h2>
@@ -724,13 +751,10 @@ const seriesOrder = Object.keys(fourierSeries) as FourierAlgorithm[];
 const FourierArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
   <>
     <header className="flex flex-col gap-3">
-      <h1 className="text-display font-semibold">Fourier series</h1>
-      <p className="text-lg text-foreground/80">
-        Any repeating wave, and any closed drawing, can be built from circles turning at whole-number speeds. Watch
-        them add up, and see how the fit improves with every circle you add.
-      </p>
+      <h1 className="text-display font-semibold">{fourierText.moduleTitle}</h1>
+      <p className="text-lg text-foreground/80">{fourierText.moduleIntro}</p>
     </header>
-    <Section title="All series">
+    <Section title={fourierText.all}>
       <ul className="flex flex-col divide-y divide-edge">
         {seriesOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
@@ -745,13 +769,8 @@ const FourierArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) =>
         ))}
       </ul>
     </Section>
-    <Section title="Why circles?">
-      <p className="leading-relaxed text-foreground/80">
-        A circle turning at a steady speed is the simplest repeating motion there is, and its height over time is a
-        sine. Joseph Fourier showed in 1807 that repeating signals can be written as sums of sines; stacking each one
-        as a circle on the tip of the last turns that sum into something you can watch. The same idea is behind JPEG
-        images, MP3 audio and how phones tell voices apart.
-      </p>
+    <Section title={fourierText.whyCircles}>
+      <p className="leading-relaxed text-foreground/80">{fourierText.whyText}</p>
     </Section>
   </>
 );
@@ -764,18 +783,18 @@ const SeriesArticle = ({ algorithm, onNavigate }: { algorithm: FourierAlgorithm;
         <h1 className="text-display font-semibold">{title}</h1>
         <p className="text-lg text-foreground/80">{shortDescription}</p>
       </header>
-      <Section title="How it works">
+      <Section title={fourierText.howItWorks}>
         <p className="leading-relaxed text-foreground/80">{longDescription}</p>
       </Section>
-      <Section title="The series">
+      <Section title={fourierText.theSeries}>
         <p className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[15px]">{formula}</p>
       </Section>
-      <Section title="Pseudocode">
+      <Section title={text.pseudocode}>
         <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
           {fourierPseudocode[algorithm].join("\n")}
         </pre>
       </Section>
-      <Section title="More series">
+      <Section title={fourierText.more}>
         <ul className="flex flex-wrap gap-x-6 gap-y-2">
           {seriesOrder.map((other) => (
             <li key={other}>
