@@ -1,5 +1,15 @@
 import { CheckCircledIcon, CrossCircledIcon, ResetIcon, TargetIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
+
+const SEEN_KEY = "guess-seen";
+// Remembered per browser: until someone has tried it, the toggle says it's new (the tour may be long done).
+const seenBefore = () => {
+  try {
+    return localStorage.getItem(SEEN_KEY) === "true";
+  } catch {
+    return true;
+  }
+};
 import { useShallow } from "zustand/react/shallow";
 import { engines } from "@/modules/engine";
 import { selectGameQuestion, useStore } from "@/store";
@@ -17,8 +27,19 @@ export const GameToggle = ({ compact }: { compact?: boolean }) => {
   const { on, toggle, score } = useStore(
     useShallow((s) => ({ on: s.isGameOn, toggle: s.toggleGame, score: s.gameScore })),
   );
+  const [seen, setSeen] = useState(seenBefore);
   if (!useHasGame()) return null;
   const tally = `${score.right}/${score.asked}`;
+  const onClick = () => {
+    toggle();
+    if (seen) return;
+    setSeen(true);
+    try {
+      localStorage.setItem(SEEN_KEY, "true");
+    } catch {
+      // Private mode: it just says "new" again next time.
+    }
+  };
   const label = on
     ? `Guess mode on, ${score.right} right out of ${score.asked}: turn it off`
     : "Guess mode: it stops to ask what comes next";
@@ -26,13 +47,13 @@ export const GameToggle = ({ compact }: { compact?: boolean }) => {
     <Button
       variant={on ? "primary" : "ghost"}
       size={compact && !on ? "icon" : "sm"}
-      onClick={toggle}
+      onClick={onClick}
       aria-pressed={on}
-      aria-label={label}
+      aria-label={seen ? label : `New: ${label}`}
       title={label}
       data-tour="game"
       className={cn(
-        "h-10 shrink-0",
+        "relative h-10 shrink-0",
         (!compact || on) && "gap-1.5 px-3.5",
         compact && on && "px-3",
         !on && !compact && "border border-line/70",
@@ -41,6 +62,20 @@ export const GameToggle = ({ compact }: { compact?: boolean }) => {
       <TargetIcon />
       {!compact && "Guess"}
       {on && <span className="font-mono text-xs">{tally}</span>}
+      {!seen &&
+        (compact ? (
+          <span
+            aria-hidden
+            className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-secondary ring-2 ring-background"
+          />
+        ) : (
+          <span
+            aria-hidden
+            className="absolute -right-2 -top-2 rounded-full bg-secondary px-1.5 py-px text-[10px] font-bold uppercase leading-4 text-background"
+          >
+            New
+          </span>
+        ))}
     </Button>
   );
 };

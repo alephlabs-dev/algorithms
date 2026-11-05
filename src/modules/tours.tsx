@@ -235,8 +235,9 @@ export const structuresTour: TourStep[] = [
   },
   {
     anchor: "game",
-    title: "Play: guess first",
-    text: () => "Turn on Guess and playback stops before the key moments to ask what comes next. Then watch whether you were right.",
+    title: "A guessing game",
+    text: () =>
+      "Turn on Guess and playback stops before the key moments to ask what comes next. Answer, then watch whether you were right. It keeps score.",
   },
   {
     anchor: "narration",
@@ -278,8 +279,9 @@ export const dpTour: TourStep[] = [
   },
   {
     anchor: "game",
-    title: "Play: guess first",
-    text: () => "Turn on Guess and playback stops before the key moments to ask what comes next. Then watch whether you were right.",
+    title: "A guessing game",
+    text: () =>
+      "Turn on Guess and playback stops before the key moments to ask what comes next. Answer, then watch whether you were right. It keeps score.",
   },
   {
     anchor: "narration",
