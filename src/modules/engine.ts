@@ -6,11 +6,12 @@ import type { StoreState, View } from "@/store";
 import type { Size } from "@/types";
 import { encodeOperations } from "@/structures/link";
 import type { HashEvent, TreeEvent } from "@/structures/types";
-import { toFourierSearch, toGraphSearch, toPathSearch, toSearch, toStructureSearch } from "@/urlState";
+import { toDpSearch, toFourierSearch, toGraphSearch, toPathSearch, toSearch, toStructureSearch } from "@/urlState";
+import type { DpEvent } from "@/dp/types";
 import { GRAPH_STEP_WEIGHT, PATH_STEP_WEIGHT, STEP_WEIGHT, type Pace } from "@/utils/speed";
 
 /** The modules the app has. Each one declares its engine here and its interface in ./<id>.tsx. */
-export type ModuleId = "sorting" | "pathfinding" | "graphs" | "fourier" | "structures";
+export type ModuleId = "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp";
 
 /**
  * What playback needs from a module, without React: how long a run is and
@@ -126,6 +127,22 @@ export const engines: Record<ModuleId, ModuleEngine> = {
         speed: s.speedPreset,
       }),
   },
+  dp: {
+    lastIndex: (s) => s.dpRun.length - 1,
+    stepWeight: (s, index) => DP_STEP_WEIGHT[s.dpRun.frames[index]?.event.type ?? "done"],
+    pace: () => "dp",
+    route: (s) => (s.isModuleStart ? { kind: "dp" } : { kind: "dpProblem", algorithm: s.dpAlgorithm }),
+    search: (s) => toDpSearch({ a: s.dpA, b: s.dpB, speed: s.speedPreset }),
+  },
+};
+
+/** Cells fill briskly; the way back, the part that answers the question, gets a longer beat. */
+const DP_STEP_WEIGHT: Record<DpEvent["type"], number> = {
+  start: 0.7,
+  base: 1.2,
+  cell: 0.8,
+  trace: 1.4,
+  done: 0.5,
 };
 
 /** A rotation gets the longest beat, so the nodes can be seen gliding; going back up is quick. */

@@ -33,7 +33,7 @@ export const speedForStepsPerSecond = (sps: number) =>
 // How long a run should take at most when the speed is picked automatically.
 // Small arrays stay at the default speed; only long runs get faster.
 // Searches are shorter and read best brisk; sorts can take minutes at 1×.
-const TARGET_SECONDS = { single: 240, race: 30, pathfinding: 20, pathRace: 20, graphs: 25, graphRace: 25, fourier: 12, structures: 30, structureRace: 25 } as const;
+const TARGET_SECONDS = { single: 240, race: 30, pathfinding: 20, pathRace: 20, graphs: 25, graphRace: 25, fourier: 12, structures: 30, structureRace: 25, dp: 30 } as const;
 
 /** Which of the paces above a run uses. */
 export type Pace = keyof typeof TARGET_SECONDS;

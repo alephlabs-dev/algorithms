@@ -1,3 +1,4 @@
+import { dpProblems } from "./dp";
 import type { Route } from "@/routes";
 import { fourierSeries } from "./fourierSeries";
 import { structures } from "./structures";
@@ -52,5 +53,11 @@ export const modules: ModuleInfo[] = [
     count: `${Object.keys(structures).length} structures`,
     route: { kind: "structures" },
   },
-  { id: "dp", title: "Dynamic programming", summary: "Edit distance, LCS and knapsack, one table cell at a time." },
+  {
+    id: "dp",
+    title: "Dynamic programming",
+    summary: "Edit distance and the longest common subsequence of any two words, one table cell at a time.",
+    count: `${Object.keys(dpProblems).length} problems`,
+    route: { kind: "dp" },
+  },
 ];

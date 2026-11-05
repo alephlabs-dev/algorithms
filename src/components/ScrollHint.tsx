@@ -1,6 +1,7 @@
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { fourierSeries } from "@/consts/fourierSeries";
+import { dpProblems } from "@/consts/dp";
 import { structures } from "@/consts/structures";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
@@ -21,6 +22,10 @@ const labelFor = (route: Route) => {
       return "About Fourier series";
     case "structures":
       return "About these data structures";
+    case "dp":
+      return "About dynamic programming";
+    case "dpProblem":
+      return `How ${dpProblems[route.algorithm].title.toLowerCase()} works`;
     case "structure":
       return `How the ${structures[route.algorithm].title} works`;
     case "structureRace":

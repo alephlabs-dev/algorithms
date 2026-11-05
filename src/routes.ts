@@ -1,3 +1,4 @@
+import type { DpAlgorithm } from "./dp/types";
 import type { FourierAlgorithm } from "./fourier/types";
 import type { StructureAlgorithm } from "./structures/types";
 import type { GraphAlgorithm } from "./graphs/types";
@@ -56,6 +57,12 @@ export const structureSlugs: Record<StructureAlgorithm, string> = {
   probing: "hash-table-linear-probing",
 };
 
+/** URL slug for each dynamic programming problem, e.g. /dynamic-programming/edit-distance. */
+export const dpSlugs: Record<DpAlgorithm, string> = {
+  edit: "edit-distance",
+  lcs: "longest-common-subsequence",
+};
+
 /** Every page the site has. Settings (size, input, speed, seed…) stay in the query string. */
 export type Route =
   /** The landing page. */
@@ -74,7 +81,9 @@ export type Route =
   | { kind: "series"; algorithm: FourierAlgorithm }
   | { kind: "structures" }
   | { kind: "structure"; algorithm: StructureAlgorithm }
-  | { kind: "structureRace" };
+  | { kind: "structureRace" }
+  | { kind: "dp" }
+  | { kind: "dpProblem"; algorithm: DpAlgorithm };
 
 export const routePath = (route: Route): string => {
   if (route.kind === "home") return "/";
@@ -88,6 +97,8 @@ export const routePath = (route: Route): string => {
   if (route.kind === "structures") return "/structures";
   if (route.kind === "structure") return `/structures/${structureSlugs[route.algorithm]}`;
   if (route.kind === "structureRace") return "/structures/race";
+  if (route.kind === "dp") return "/dynamic-programming";
+  if (route.kind === "dpProblem") return `/dynamic-programming/${dpSlugs[route.algorithm]}`;
   if (route.kind === "race") return "/sorting/race";
   if (route.kind === "pathRace") return "/pathfinding/race";
   if (route.kind === "path") return `/pathfinding/${pathSlugs[route.algorithm]}`;
@@ -105,6 +116,12 @@ export const routeFromPath = (pathname: string): Route | null => {
   if (path === "/fourier") return { kind: "fourier" };
   if (path === "/structures") return { kind: "structures" };
   if (path === "/structures/race") return { kind: "structureRace" };
+  if (path === "/dynamic-programming") return { kind: "dp" };
+  const dpMatch = /^\/dynamic-programming\/([a-z-]+)$/.exec(path);
+  if (dpMatch) {
+    const found = Object.entries(dpSlugs).find(([, slug]) => slug === dpMatch[1]);
+    return found ? { kind: "dpProblem", algorithm: found[0] as DpAlgorithm } : null;
+  }
   const structureMatch = /^\/structures\/([a-z-]+)$/.exec(path);
   if (structureMatch) {
     const found = Object.entries(structureSlugs).find(([, slug]) => slug === structureMatch[1]);
@@ -150,11 +167,14 @@ export const allRoutes: Route[] = [
   { kind: "structures" },
   ...(Object.keys(structureSlugs) as StructureAlgorithm[]).map((algorithm) => ({ kind: "structure" as const, algorithm })),
   { kind: "structureRace" },
+  { kind: "dp" },
+  ...(Object.keys(dpSlugs) as DpAlgorithm[]).map((algorithm) => ({ kind: "dpProblem" as const, algorithm })),
 ];
 
 /** Which module a page belongs to, if any (the landing page belongs to none). */
-export const moduleOf = (route: Route): "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | null => {
+export const moduleOf = (route: Route): "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | null => {
   if (route.kind === "home") return null;
+  if (route.kind === "dp" || route.kind === "dpProblem") return "dp";
   if (route.kind === "structures" || route.kind === "structure" || route.kind === "structureRace") return "structures";
   if (route.kind === "fourier" || route.kind === "series") return "fourier";
   if (route.kind === "graphs" || route.kind === "graph" || route.kind === "graphRace") return "graphs";

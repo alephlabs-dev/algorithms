@@ -240,3 +240,39 @@ export const structuresTour: TourStep[] = [
       wide ? "The code it's running, and each step in plain words." : "Each step in plain words. Tap it to see the code.",
   },
 ];
+
+export const dpTour: TourStep[] = [
+  {
+    anchor: "picker",
+    title: "Pick a problem",
+    text: () => "Edit distance (how many edits turn one word into another) or the longest common subsequence (what they share).",
+  },
+  {
+    anchor: "bars",
+    title: "The table",
+    text: () =>
+      "One word down the side, one across the top. Each cell answers the question for the first letters of each, built from cells already filled. Guess the next one before it appears.",
+  },
+  {
+    anchor: "words",
+    title: "Your words",
+    text: () => "Type any two words, up to 10 letters each, and compare them.",
+  },
+  {
+    anchor: "tools",
+    phoneAnchor: "settings",
+    title: "Examples",
+    text: ({ phone }) => `${phone ? "In settings: classic" : "Classic"} pairs to start from, like kitten and sitting.`,
+  },
+  {
+    anchor: "play",
+    title: "Play it",
+    text: () => "The table fills cell by cell, then the way back from the corner spells out the answer under it.",
+  },
+  {
+    anchor: "narration",
+    title: "Follow each step",
+    text: ({ wide }) =>
+      wide ? "The code it's running, and each step in plain words." : "Each step in plain words. Tap it to see the code.",
+  },
+];
