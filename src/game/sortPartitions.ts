@@ -1,5 +1,6 @@
 import type { Timeline } from "@/algorithms/timeline";
-import { choicesAround, type Question } from "./questions";
+import { choicesAround } from "./choices";
+import type { Question } from "./questions";
 
 /**
  * Quick sort: how many values in a partition are smaller than its pivot, which

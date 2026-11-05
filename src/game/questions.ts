@@ -3,8 +3,10 @@ import { KnapsackRun, type TableRun } from "@/dp";
 import type { HashFrame, StructureRun, TreeFrame } from "@/structures";
 import type { Algorithm } from "@/types";
 import { narrateDp } from "@/utils/narrateDp";
+import { choicesAround } from "./choices";
 import { quickQuestions, shellQuestions } from "./sortPartitions";
 import { bubbleQuestions, cocktailQuestions, selectionQuestions } from "./sortPasses";
+import { radixQuestions } from "./sortRadix";
 
 /** An empty spot in a tree where a new value could go: under `parent`, on `side`. */
 export type Slot = {
@@ -47,14 +49,6 @@ const emptySlots = (frame: TreeFrame): Slot[] =>
         .filter((side) => n[side] === null)
         .map((side) => ({ key: slotKey(n.id, side), parent: n.id, side, label: `${side} of ${n.value}` })),
     );
-
-/** Up to four numbers around `answer`, from `near` first, all different, in order. */
-export const choicesAround = (answer: number, near: number[], min = 0, max = Infinity) => {
-  const picks = new Set<number>([answer]);
-  for (const v of [...near, answer + 1, answer - 1, answer + 2, answer - 2, answer + 3])
-    if (picks.size < 4 && v >= min && v <= max) picks.add(v);
-  return [...picks].sort((a, b) => a - b);
-};
 
 const valueIn = (frame: TreeFrame, id: number) => frame.nodes.find((n) => n.id === id)?.value;
 
@@ -232,6 +226,7 @@ const sortBuilders: Partial<Record<Algorithm, (run: Timeline) => Question[]>> = 
   cocktail: cocktailQuestions,
   shell: shellQuestions,
   quick: quickQuestions,
+  radix: radixQuestions,
 };
 
 /** Sorting: each algorithm asks about its key moment. Algorithms without one yet ask nothing. */

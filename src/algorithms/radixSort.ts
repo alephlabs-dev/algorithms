@@ -21,7 +21,7 @@ export const radixSort: SortAlgorithm = function* (arr) {
   const max = Math.max(...arr);
 
   for (let exp = 1; Math.floor(max / exp) > 0; exp *= 10) {
-    yield { type: "highlight", temp: [], line: 0 };
+    yield { type: "highlight", temp: [], line: 0, place: exp };
     let placed = 0;
     for (let d = 0; d <= 9; d++) {
       // Moving an item to `placed` shifts the ones in between right by one,
