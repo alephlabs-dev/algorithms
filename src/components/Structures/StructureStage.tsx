@@ -18,6 +18,38 @@ import { count } from "@/utils/count";
 import { moveDuration } from "@/utils/speed";
 import { cn } from "@/utils/cn";
 import { Button } from "../ui/button";
+import { localized } from "@/i18n";
+
+const copy = localized({
+  en: {
+    tapSpot: (label: string) => `${label} Tap the spot where the value will land.`,
+    actions: { insert: "Insert", search: "Find", delete: "Delete" } as Record<OperationKind, string>,
+    wholeNumber: (min: number, max: number) => `A whole number from ${min} to ${max}`,
+    operations: "Operations",
+    value: "Value",
+    random: "Pick a random value",
+    popTitle: "Take out the smallest value, the root",
+    popMin: "Pop min",
+    treeLabel: (title: string, size: number, height: number) => `${title} with ${count(size, "value")}, height ${height}.`,
+    tableLabel: (title: string, size: number, places: number, chaining: boolean) =>
+      `${title} with ${count(size, "value")} in ${count(places, chaining ? "bucket" : "slot")}.`,
+  },
+  es: {
+    tapSpot: (label) => `${label} Toca el lugar donde va a quedar el valor.`,
+    actions: { insert: "Insertar", search: "Buscar", delete: "Borrar" },
+    wholeNumber: (min, max) => `Un número entero de ${min} a ${max}`,
+    operations: "Operaciones",
+    value: "Valor",
+    random: "Elegir un valor al azar",
+    popTitle: "Saca el valor más pequeño, la raíz",
+    // Short so the bar keeps to one row on phones; the title says it takes the minimum.
+    popMin: "Sacar",
+    treeLabel: (title, size, height) => `${title} con ${size} ${size === 1 ? "valor" : "valores"}, altura ${height}.`,
+    tableLabel: (title, size, places, chaining) =>
+      `${title} con ${size} ${size === 1 ? "valor" : "valores"} en ${places} ${chaining ? (places === 1 ? "cubeta" : "cubetas") : places === 1 ? "casilla" : "casillas"}.`,
+  },
+});
+
 
 /** A structure on canvas: a tree (or heap) or a hash table. Shared by the single view and the race lanes. */
 export const StructureCanvas = ({
@@ -97,7 +129,7 @@ export const StructureCanvas = ({
       <canvas
         ref={canvasRef}
         role="img"
-        aria-label={slots ? `${label} Tap the spot where the value will land.` : label}
+        aria-label={slots ? copy.tapSpot(label) : label}
         onClick={tap}
         className={cn("absolute inset-0 h-full w-full", slots && "cursor-pointer")}
       />
@@ -105,11 +137,10 @@ export const StructureCanvas = ({
   );
 };
 
-const ACTIONS: { kind: OperationKind; label: string }[] = [
-  { kind: "insert", label: "Insert" },
-  { kind: "search", label: "Find" },
-  { kind: "delete", label: "Delete" },
-];
+const ACTIONS: { kind: OperationKind; label: string }[] = (["insert", "search", "delete"] as const).map((kind) => ({
+  kind,
+  label: copy.actions[kind],
+}));
 
 /** Type a value, then insert, find or delete it. Enter inserts. */
 const OperationBar = () => {
@@ -131,7 +162,7 @@ const OperationBar = () => {
   const run = (kind: OperationKind) => {
     const value = Number(text);
     if (!Number.isInteger(value) || value < MIN_VALUE || value > MAX_VALUE) {
-      setError(`A whole number from ${MIN_VALUE} to ${MAX_VALUE}`);
+      setError(copy.wholeNumber(MIN_VALUE, MAX_VALUE));
       return;
     }
     setError(null);
@@ -156,11 +187,11 @@ const OperationBar = () => {
     <form
       data-tour="structure"
       onSubmit={submit}
-      aria-label="Operations"
+      aria-label={copy.operations}
       className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-edge bg-surface px-2 py-2 sm:gap-2 sm:px-3"
     >
       <label className="flex min-w-11 flex-1 items-center sm:flex-none">
-        <span className="sr-only">Value</span>
+        <span className="sr-only">{copy.value}</span>
         <input
           type="number"
           inputMode="numeric"
@@ -168,7 +199,7 @@ const OperationBar = () => {
           max={MAX_VALUE}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Value"
+          placeholder={copy.value}
           aria-invalid={error !== null}
           aria-describedby={error ? "operation-error" : undefined}
           className="h-10 w-full min-w-11 rounded-full border border-line/70 bg-background px-2.5 text-center font-mono sm:w-24 sm:text-left sm:px-4 text-sm text-foreground placeholder:text-foreground/50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
@@ -180,8 +211,8 @@ const OperationBar = () => {
         size="icon"
         className="h-10 w-9 shrink-0 sm:w-10"
         onClick={pickRandom}
-        aria-label="Pick a random value"
-        title="Pick a random value"
+        aria-label={copy.random}
+        title={copy.random}
       >
         <ShuffleIcon />
       </Button>
@@ -208,9 +239,9 @@ const OperationBar = () => {
             setError(null);
             if (min !== null) runOperation({ kind: "delete", value: min });
           }}
-          title="Take out the smallest value, the root"
+          title={copy.popTitle}
         >
-          Pop min
+          {copy.popMin}
         </Button>
       )}
       {error && (
@@ -233,8 +264,8 @@ export const StructureStage = () => {
   const size = valuesIn(frame).length;
   const label =
     frame.shape === "tree"
-      ? `${structures[algorithm].title} with ${count(size, "value")}, height ${Math.max(0, frame.height)}.`
-      : `${structures[algorithm].title} with ${count(size, "value")} in ${count(frame.buckets.length, algorithm === "chaining" ? "bucket" : "slot")}.`;
+      ? copy.treeLabel(structures[algorithm].title, size, Math.max(0, frame.height))
+      : copy.tableLabel(structures[algorithm].title, size, frame.buckets.length, algorithm === "chaining");
   return (
     <div data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col gap-2">
       <StructureCanvas frame={frame} algorithm={algorithm} label={label} guess />

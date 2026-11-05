@@ -1,6 +1,13 @@
 import type { HashFrame, Operation } from "@/structures";
 import { css, drawOpsQueue, inkOn, QUEUE_HEIGHT, structurePalette } from "./structurePaint";
 import { readColors, type RGB } from "./theme";
+import { localized } from "@/i18n";
+
+const FULL = localized({
+  en: (v: number) => `Full: no free slot for ${v}`,
+  es: (v) => `Llena: no hay casilla libre para ${v}`,
+});
+
 
 export type HashRenderInput = {
   frame: HashFrame;
@@ -287,7 +294,7 @@ export class HashRenderer {
     if (e.type === "full") {
       ctx.fillStyle = css(p.warn);
       ctx.font = `600 14px "Instrument Sans", system-ui, sans-serif`;
-      ctx.fillText(`Full: no free slot for ${e.value}`, width / 2, top + 4);
+      ctx.fillText(FULL(e.value), width / 2, top + 4);
     }
   }
 }

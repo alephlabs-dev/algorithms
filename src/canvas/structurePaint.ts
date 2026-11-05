@@ -1,5 +1,18 @@
 import type { Operation } from "@/structures";
 import { hexToRgb, type CanvasColors, type RGB } from "./theme";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    pressPlay: (n: number) => `Press play to insert ${n === 1 ? "1 value" : `${n} values`}, in this order`,
+    short: "Press play to insert",
+  },
+  es: {
+    pressPlay: (n) => `Presiona play para insertar ${n === 1 ? "1 valor" : `${n} valores`}, en este orden`,
+    short: "Presiona play para insertar",
+  },
+});
+
 
 /* Colors and pieces shared by the data structure renderers. */
 
@@ -120,8 +133,8 @@ export const drawWaiting = (
   ctx.textBaseline = "middle";
   ctx.fillStyle = css(p.ink, 0.75);
   ctx.font = `500 15px "Instrument Sans", system-ui, sans-serif`;
-  const long = `Press play to insert ${values.length === 1 ? "1 value" : `${values.length} values`}, in this order`;
-  ctx.fillText(ctx.measureText(long).width < width - 32 ? long : "Press play to insert", width / 2, top - label);
+  const long = text.pressPlay(values.length);
+  ctx.fillText(ctx.measureText(long).width < width - 32 ? long : text.short, width / 2, top - label);
   values.forEach((value, k) => {
     const row = Math.floor(k / perRow);
     const inRow = Math.min(perRow, values.length - row * perRow);

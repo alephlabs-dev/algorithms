@@ -2,6 +2,13 @@ import type { Slot } from "@/game";
 import type { NodeView, Operation, TreeFrame } from "@/structures";
 import { css, drawOpsQueue, drawWaiting, inkOn, luminance, QUEUE_HEIGHT, structurePalette } from "./structurePaint";
 import { readColors, type RGB } from "./theme";
+import { localized } from "@/i18n";
+
+const EMPTY = localized({
+  en: { heap: "Empty heap: insert a value", tree: "Empty tree: insert a value" },
+  es: { heap: "Montículo vacío: inserta un valor", tree: "Árbol vacío: inserta un valor" },
+});
+
 
 export type TreeRenderInput = {
   frame: TreeFrame;
@@ -163,7 +170,7 @@ export class TreeRenderer {
         ctx.font = `500 15px "Instrument Sans", system-ui, sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText(input.array ? "Empty heap: insert a value" : "Empty tree: insert a value", width / 2, height / 2);
+        ctx.fillText(input.array ? EMPTY.heap : EMPTY.tree, width / 2, height / 2);
       }
       return busy;
     }
