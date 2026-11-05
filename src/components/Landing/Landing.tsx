@@ -5,6 +5,7 @@ import { cn } from "@/utils/cn";
 import { PageLink } from "../PageLink";
 import { HeroDemo } from "./HeroDemo";
 import { DpThumb, FourierThumb, GraphThumb, PathThumb, SortingThumb, StructureThumb } from "./Thumbnails";
+import { AlephMark } from "../ui/aleph-mark";
 
 type Props = {
   /** In the app, links switch pages without reloading; in prerendered HTML they're plain links. */
@@ -52,7 +53,7 @@ export const Landing = ({ onNavigate, actions }: Props) => {
             aria-hidden
             className="grid h-8 w-8 place-items-center rounded-[10px] bg-primary font-bold text-background"
           >
-            ℵ
+            <AlephMark />
           </span>
           Algorithms <span className="hidden font-normal text-foreground/60 sm:inline">by Aleph Labs</span>
         </PageLink>
