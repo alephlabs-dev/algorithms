@@ -5,7 +5,7 @@ import { inputOrders } from "@/consts/inputOrders";
 import { MAX_MOBILE_SIZE, sizes } from "@/consts/sizesMap";
 import { useStore } from "@/store";
 import type { DisplayMode, InputOrder } from "@/types";
-import { WordPairButtons } from "../Dp/DpTools";
+import { DpStartPicker } from "../Dp/DpTools";
 import { CirclesPicker, ShapeGrid } from "../Fourier/FourierTools";
 import { StructurePresetButtons, StructureSizePicker } from "../Structures/StructureTools";
 import { GraphPresetButtons, GraphSizePicker } from "../Graphs/GraphTools";
@@ -120,11 +120,18 @@ export const StructureSettings = () => (
 );
 
 /** Dynamic programming's settings: example words (any two can be typed under the table). */
-export const DpSettings = () => (
-  <Field label="Example words" help="Or type any two words under the table, up to 10 letters each.">
-    <WordPairButtons />
-  </Field>
-);
+export const DpSettings = () => {
+  const bag = useStore((s) => s.dpAlgorithm === "knapsack" || s.view === "race");
+  return bag ? (
+    <Field label="Example" help="Change the bag and the items with the bar under the table.">
+      <DpStartPicker />
+    </Field>
+  ) : (
+    <Field label="Example words" help="Or type any two words under the table, up to 10 letters each.">
+      <DpStartPicker />
+    </Field>
+  );
+};
 
 /** Fourier's settings: how many circles, and for epicycles which drawing. */
 export const FourierSettings = () => {

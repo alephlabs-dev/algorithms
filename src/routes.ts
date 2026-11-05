@@ -61,6 +61,7 @@ export const structureSlugs: Record<StructureAlgorithm, string> = {
 export const dpSlugs: Record<DpAlgorithm, string> = {
   edit: "edit-distance",
   lcs: "longest-common-subsequence",
+  knapsack: "knapsack",
 };
 
 /** Every page the site has. Settings (size, input, speed, seed…) stay in the query string. */
@@ -83,7 +84,8 @@ export type Route =
   | { kind: "structure"; algorithm: StructureAlgorithm }
   | { kind: "structureRace" }
   | { kind: "dp" }
-  | { kind: "dpProblem"; algorithm: DpAlgorithm };
+  | { kind: "dpProblem"; algorithm: DpAlgorithm }
+  | { kind: "dpRace" };
 
 export const routePath = (route: Route): string => {
   if (route.kind === "home") return "/";
@@ -98,6 +100,7 @@ export const routePath = (route: Route): string => {
   if (route.kind === "structure") return `/structures/${structureSlugs[route.algorithm]}`;
   if (route.kind === "structureRace") return "/structures/race";
   if (route.kind === "dp") return "/dynamic-programming";
+  if (route.kind === "dpRace") return "/dynamic-programming/race";
   if (route.kind === "dpProblem") return `/dynamic-programming/${dpSlugs[route.algorithm]}`;
   if (route.kind === "race") return "/sorting/race";
   if (route.kind === "pathRace") return "/pathfinding/race";
@@ -117,6 +120,7 @@ export const routeFromPath = (pathname: string): Route | null => {
   if (path === "/structures") return { kind: "structures" };
   if (path === "/structures/race") return { kind: "structureRace" };
   if (path === "/dynamic-programming") return { kind: "dp" };
+  if (path === "/dynamic-programming/race") return { kind: "dpRace" };
   const dpMatch = /^\/dynamic-programming\/([a-z-]+)$/.exec(path);
   if (dpMatch) {
     const found = Object.entries(dpSlugs).find(([, slug]) => slug === dpMatch[1]);
@@ -169,12 +173,13 @@ export const allRoutes: Route[] = [
   { kind: "structureRace" },
   { kind: "dp" },
   ...(Object.keys(dpSlugs) as DpAlgorithm[]).map((algorithm) => ({ kind: "dpProblem" as const, algorithm })),
+  { kind: "dpRace" },
 ];
 
 /** Which module a page belongs to, if any (the landing page belongs to none). */
 export const moduleOf = (route: Route): "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | null => {
   if (route.kind === "home") return null;
-  if (route.kind === "dp" || route.kind === "dpProblem") return "dp";
+  if (route.kind === "dp" || route.kind === "dpProblem" || route.kind === "dpRace") return "dp";
   if (route.kind === "structures" || route.kind === "structure" || route.kind === "structureRace") return "structures";
   if (route.kind === "fourier" || route.kind === "series") return "fourier";
   if (route.kind === "graphs" || route.kind === "graph" || route.kind === "graphRace") return "graphs";

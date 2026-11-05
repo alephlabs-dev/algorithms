@@ -1,9 +1,10 @@
-import { WidthIcon } from "@radix-ui/react-icons";
+import { MinusIcon, PlusIcon, ShuffleIcon, WidthIcon } from "@radix-ui/react-icons";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { DpRenderer } from "@/canvas/dpRenderer";
 import { dpProblems } from "@/consts/dp";
-import { cleanWord, MAX_WORD } from "@/dp";
+import { cleanWord, MAX_CAPACITY, MAX_ITEMS, MAX_WORD, randomItems } from "@/dp";
+import { newSeed, seededRandom } from "@/utils/random";
 import { useElementSize } from "@/hooks/useElementSize";
 import { useStore } from "@/store";
 import { Button } from "../ui/button";
@@ -39,7 +40,7 @@ const DpCanvas = () => {
     rendererRef.current?.update({ run, frame });
   }, [run, frame]);
 
-  const label = `${dpProblems[run.algorithm].title} table for ${run.a} and ${run.b}.`;
+  const label = `${dpProblems[run.algorithm].title} table: ${run.rowLabels.length - 1} rows, ${run.colLabels.length - 1} columns.`;
   return (
     <div ref={wrapperRef} className="relative min-h-0 w-full flex-1">
       <canvas ref={canvasRef} role="img" aria-label={label} className="absolute inset-0 h-full w-full" />
@@ -127,13 +128,99 @@ const WordsBar = ({ a, b }: { a: string; b: string }) => {
   );
 };
 
-/** The table, and the words it's for. */
+/** A number with − and + either side. */
+const Stepper = ({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+}) => (
+  <div role="group" aria-label={label} className="flex items-center gap-1">
+    <span className="pl-1 pr-0.5 text-xs text-foreground/70 sm:text-sm">{label}</span>
+    <Button
+      type="button"
+      variant="secondary"
+      size="icon"
+      className="h-9 w-9 shrink-0"
+      disabled={value <= min}
+      onClick={() => onChange(value - 1)}
+      aria-label={`Less ${label.toLowerCase()}`}
+    >
+      <MinusIcon />
+    </Button>
+    <span className="w-6 text-center font-mono text-sm font-semibold" aria-live="polite">
+      {value}
+    </span>
+    <Button
+      type="button"
+      variant="secondary"
+      size="icon"
+      className="h-9 w-9 shrink-0"
+      disabled={value >= max}
+      onClick={() => onChange(value + 1)}
+      aria-label={`More ${label.toLowerCase()}`}
+    >
+      <PlusIcon />
+    </Button>
+  </div>
+);
+
+/** Knapsack: the bag's capacity, how many items, and a fresh set. */
+const ItemsBar = () => {
+  const { items, capacity, setItems } = useStore(
+    useShallow((s) => ({ items: s.dpItems, capacity: s.dpCapacity, setItems: s.setDpItems })),
+  );
+  const random = () => seededRandom(newSeed());
+  return (
+    <div
+      data-tour="words"
+      role="toolbar"
+      aria-label="Bag and items"
+      className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 rounded-2xl border border-edge bg-surface px-2 py-2 sm:justify-start sm:gap-x-5 sm:px-3"
+    >
+      <Stepper label="Bag" value={capacity} min={1} max={MAX_CAPACITY} onChange={(c) => setItems(items, c)} />
+      <Stepper
+        label="Items"
+        value={items.length}
+        min={1}
+        max={MAX_ITEMS}
+        onChange={(n) =>
+          setItems(
+            n < items.length ? items.slice(0, n) : [...items, ...randomItems(n - items.length, random())],
+            capacity,
+          )
+        }
+      />
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        className="h-9 shrink-0 gap-1.5 px-3"
+        onClick={() => setItems(randomItems(items.length, random()), capacity)}
+      >
+        <ShuffleIcon />
+        New items
+      </Button>
+    </div>
+  );
+};
+
+/** The table, and the words (or items) it's for. */
 export const DpStage = () => {
-  const { a, b } = useStore(useShallow((s) => ({ a: s.dpA, b: s.dpB })));
+  const { a, b, knapsack } = useStore(
+    useShallow((s) => ({ a: s.dpA, b: s.dpB, knapsack: s.dpAlgorithm === "knapsack" })),
+  );
   return (
     <div data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col gap-2">
       <DpCanvas />
-      <WordsBar key={`${a}|${b}`} a={a} b={b} />
+      {knapsack ? <ItemsBar /> : <WordsBar key={`${a}|${b}`} a={a} b={b} />}
     </div>
   );
 };

@@ -146,9 +146,18 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "Dynamic Programming Visualizer: Edit Distance and LCS · Aleph Labs",
+      title: "Dynamic Programming Visualizer: Edit Distance, LCS, Knapsack · Aleph Labs",
       description:
-        "Watch a dynamic programming table fill cell by cell for any two words, each cell built from its neighbors, then walk back from the corner to the edits or the shared letters.",
+        "Watch a dynamic programming table fill cell by cell, then walk back from the corner to the answer: the edits between two words, what they share, or what fits in a bag.",
+    };
+  }
+  if (route.kind === "dpRace") {
+    return {
+      path,
+      url,
+      title: "Recursion vs Memoization vs Table: Dynamic Programming Race · Aleph Labs",
+      description:
+        "One knapsack solved three ways side by side: plain recursion redoing the same subproblems, memoized recursion, and the bottom-up table. Count the work each does.",
     };
   }
   if (route.kind === "dpProblem") {
@@ -217,7 +226,11 @@ export const structuredData = (route: Route): object[] => {
   } as const;
   const section = { name: sectionNames[module], url: `${SITE_URL}${routePath(sectionRoutes[module])}` };
   const name =
-    route.kind === "race" || route.kind === "pathRace" || route.kind === "graphRace" || route.kind === "structureRace"
+    route.kind === "race" ||
+    route.kind === "pathRace" ||
+    route.kind === "graphRace" ||
+    route.kind === "structureRace" ||
+    route.kind === "dpRace"
       ? "Race"
       : route.kind === "path"
         ? pathAlgorithms[route.algorithm].title

@@ -40,6 +40,11 @@ const stateFor = (module: ModuleId, view: "single" | "race", isModuleStart: bool
     dpAlgorithm: "lcs",
     dpA: "KITTEN",
     dpB: "SITTING",
+    dpItems: [
+      { weight: 3, value: 4 },
+      { weight: 4, value: 5 },
+    ],
+    dpCapacity: 7,
     fourierAlgorithm: "epicycles",
     fourierCircles: 25,
     fourierShape: "custom",
@@ -62,8 +67,8 @@ describe("module engines", () => {
           expect(routeFromPath(path)).toEqual(route);
           const location = readLocation(path, engines[module].search(state));
           expect(location.module).toBe(module);
-          // Fourier and dynamic programming have no race: their pages are single view whatever the store's view says.
-          expect(location.view ?? "single").toBe(module === "fourier" || module === "dp" ? "single" : view);
+          // Fourier has no race: its pages are single view whatever the store's view says.
+          expect(location.view ?? "single").toBe(module === "fourier" ? "single" : view);
           expect(location.speed).toBe("2x");
         }
       }
@@ -89,6 +94,7 @@ describe("module engines", () => {
       ["structures", { structurePreset: "random" }],
       ["dp", { dpA: "SUNDAY" }],
       ["dp", { dpB: "SATURDAY" }],
+      ["dp", { dpAlgorithm: "knapsack", dpCapacity: 9 }],
     ];
     for (const [module, change] of changes) {
       const state = stateFor(module, "single", false);

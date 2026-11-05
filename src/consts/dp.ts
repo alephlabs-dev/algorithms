@@ -1,4 +1,4 @@
-import type { DpAlgorithm } from "@/dp";
+import type { DpAlgorithm, Method } from "@/dp";
 
 type DpDetails = {
   title: string;
@@ -6,7 +6,7 @@ type DpDetails = {
   short: string;
   shortDescription: string;
   longDescription: string;
-  /** Time and space for words of length m and n. */
+  /** Time and space for the inputs. */
   cost: string;
   /** What a cell holds. */
   cell: string;
@@ -34,4 +34,21 @@ export const dpProblems: Record<DpAlgorithm, DpDetails> = {
     cost: "O(m·n) time and space",
     cell: "letters shared by two prefixes",
   },
+  knapsack: {
+    title: "0/1 Knapsack",
+    short: "Knapsack",
+    shortDescription:
+      "The most value that fits in a bag of limited weight, taking each item once or not at all, decided one smaller bag at a time.",
+    longDescription:
+      "You have a bag that holds a set weight and some items, each with a weight and a value. Which ones should go in? Grabbing the most valuable first, or the best value per kilo, can both go wrong; trying every subset means 2ⁿ of them. Dynamic programming asks a smaller question in each cell: K[i][w] is the most value you can get from the first i items in a bag of capacity w. With no items it's 0. For item i there are two choices. Leave it, and the best is whatever the first i − 1 items managed with the same room: the cell above. Or, if it fits, take it: its value plus the best the first i − 1 items managed in the room left over, w − its weight, which is the cell above and that many columns to the left. The cell keeps the better. The bottom-right corner is the answer, and walking back up, every place the value changes from the cell above is an item that was taken. The table has (n + 1) × (W + 1) cells, so it's quick when the capacity is a small number; the same idea schedules jobs, budgets and cargo.",
+    cost: "O(n·W) time and space",
+    cell: "best value from the first i items in room w",
+  },
+};
+
+/** The race's three ways to solve the knapsack. */
+export const dpMethods: Record<Method, { title: string; short: string }> = {
+  table: { title: "Table (bottom-up)", short: "Table" },
+  memo: { title: "Memoized recursion", short: "Memoized" },
+  recursion: { title: "Plain recursion", short: "Recursion" },
 };
