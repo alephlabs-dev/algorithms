@@ -1,26 +1,9 @@
 import type { Timeline } from "@/algorithms/timeline";
-import { seededRandom } from "@/utils/random";
+import { shuffled } from "./choices";
 import type { Question } from "./questions";
 
 /** Which end of what's left a pass fills: the front with the smallest value, the back with the largest. */
 type End = "front" | "back";
-
-/**
- * The answer is always the smallest or largest option, so sorted buttons would
- * give it away. Shuffle them instead, seeded by the run's values and the frame,
- * so the same run always shows the same order.
- */
-const shuffled = (options: number[], run: Timeline, at: number) => {
-  let seed = at;
-  for (const v of run.values) seed = Math.imul(seed ^ v, 0x9e3779b1) >>> 0;
-  const random = seededRandom(seed);
-  const out = [...options];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(random() * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  return out;
-};
 
 /**
  * Selection, bubble and cocktail work in passes, each one putting a single value

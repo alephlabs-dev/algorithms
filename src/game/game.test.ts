@@ -3,7 +3,7 @@ import { sortAlgorithms } from "@/algorithms";
 import { Timeline } from "@/algorithms/timeline";
 import { DpRun, KnapsackRun, EXAMPLE_CAPACITY, EXAMPLE_ITEMS } from "@/dp";
 import { presetOperations, recordStructure, type StructureAlgorithm } from "@/structures";
-import type { InputOrder } from "@/types";
+import type { Algorithm, InputOrder } from "@/types";
 import { generateItems } from "@/utils/generateItems";
 import { seededRandom } from "@/utils/random";
 import { dpQuestions, sortQuestions, structureQuestions } from ".";
@@ -44,8 +44,10 @@ describe("guess mode questions for sorting", () => {
     },
   );
 
-  it("other algorithms ask nothing yet", () => {
-    expect(sortQuestions(new Timeline(sortAlgorithms.merge, input), "merge")).toEqual([]);
+  it.each(Object.keys(sortAlgorithms) as Algorithm[])("%s has its questions registered: it asks something", (algorithm) => {
+    // Every sorting algorithm now has a builder; one that lost its registration would silently ask nothing.
+    const questions = sortQuestions(new Timeline(sortAlgorithms[algorithm], input), algorithm);
+    expect(questions.length).toBeGreaterThan(0);
   });
 });
 

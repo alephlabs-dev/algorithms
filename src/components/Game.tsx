@@ -211,7 +211,7 @@ export const GameLayer = () => {
                         onClick={() => answer(option)}
                         aria-keyshortcuts={String(k + 1)}
                       >
-                        {option}
+                        {question.optionLabels?.[k] ?? option}
                       </button>
                     ))}
                   </div>
