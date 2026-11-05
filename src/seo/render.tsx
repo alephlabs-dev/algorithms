@@ -33,7 +33,7 @@ export const sitemap = (lastModified: string): string => {
   // Spanish pages are listed once their module is translated.
   const pages = [
     ...allRoutes.map((route) => ({ route, path: pathIn(route, "en") })),
-    ...allRoutes.filter(isTranslated).map((route) => ({ route, path: pathIn(route, "es") })),
+    ...allRoutes.filter((route) => isTranslated(route)).map((route) => ({ route, path: pathIn(route, "es") })),
   ];
   const urls = pages
     .map(({ route, path }) => {

@@ -197,15 +197,24 @@ export const moduleOf = (route: Route): "sorting" | "pathfinding" | "graphs" | "
   return route.kind === "pathfinding" || route.kind === "path" || route.kind === "pathRace" ? "pathfinding" : "sorting";
 };
 
+export type ModuleName = NonNullable<ReturnType<typeof moduleOf>>;
+
 /**
  * Modules whose text is in Spanish. Their /es pages are indexed and linked
- * with hreflang; the others exist under /es in English, marked noindex,
- * until their sub-issue of #36 adds them here.
+ * with hreflang. A new module that isn't translated yet still gets /es pages,
+ * in English and marked noindex, until it's added here.
  */
-const TRANSLATED: ReadonlySet<NonNullable<ReturnType<typeof moduleOf>>> = new Set(["sorting", "pathfinding", "graphs", "structures", "dp"]);
+export const TRANSLATED_MODULES: ReadonlySet<ModuleName> = new Set([
+  "sorting",
+  "pathfinding",
+  "graphs",
+  "structures",
+  "dp",
+  "fourier",
+]);
 
 /** Whether a page has a Spanish version worth indexing. The landing page does. */
-export const isTranslated = (route: Route): boolean => {
+export const isTranslated = (route: Route, translated: ReadonlySet<ModuleName> = TRANSLATED_MODULES): boolean => {
   const module = moduleOf(route);
-  return module === null || TRANSLATED.has(module);
+  return module === null || translated.has(module);
 };

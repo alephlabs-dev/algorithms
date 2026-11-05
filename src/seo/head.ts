@@ -1,5 +1,5 @@
 import { lang, LANGS } from "@/i18n";
-import { isTranslated, pathIn, SITE_URL, type Route } from "@/routes";
+import { isTranslated, pathIn, SITE_URL, TRANSLATED_MODULES, type ModuleName, type Route } from "@/routes";
 import { pageMeta, structuredData } from "./pages";
 
 const absolute = (path: string) => SITE_URL + (path === "/" ? "/" : path);
@@ -8,8 +8,8 @@ const absolute = (path: string) => SITE_URL + (path === "/" ? "/" : path);
  * The page in every language, for hreflang. Only pages with a Spanish
  * version list one; English is also the default for other languages.
  */
-const alternates = (route: Route): { hreflang: string; href: string }[] =>
-  isTranslated(route)
+const alternates = (route: Route, translated = TRANSLATED_MODULES): { hreflang: string; href: string }[] =>
+  isTranslated(route, translated)
     ? [
         ...LANGS.map((language) => ({ hreflang: language, href: absolute(pathIn(route, language)) })),
         { hreflang: "x-default", href: absolute(pathIn(route, "en")) },
@@ -17,7 +17,7 @@ const alternates = (route: Route): { hreflang: string; href: string }[] =>
     : [];
 
 /** A Spanish page whose module isn't translated yet is English text: keep it out of search. */
-const noindex = (route: Route) => lang !== "en" && !isTranslated(route);
+const noindex = (route: Route, translated = TRANSLATED_MODULES) => lang !== "en" && !isTranslated(route, translated);
 
 const escapeAttr = (value: string) =>
   value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -42,7 +42,7 @@ const metaContent = (route: Route): [selector: string, content: string][] => {
  * Build time: rewrites the head of index.html for a page. index.html holds
  * the home page's tags; every one listed here must exist there.
  */
-export const renderHead = (html: string, route: Route): string => {
+export const renderHead = (html: string, route: Route, translated: ReadonlySet<ModuleName> = TRANSLATED_MODULES): string => {
   const meta = pageMeta(route);
   let out = html.replace(/<title>[^<]*<\/title>/, `<title>${escapeAttr(meta.title)}</title>`);
   for (const [selector, content] of metaContent(route)) {
@@ -57,8 +57,8 @@ export const renderHead = (html: string, route: Route): string => {
   );
   out = out.replace(/<html lang="[^"]*">/, `<html lang="${lang}">`);
   const extra = [
-    ...alternates(route).map((link) => `<link rel="alternate" hreflang="${link.hreflang}" href="${link.href}" />`),
-    ...(noindex(route) ? ['<meta name="robots" content="noindex" />'] : []),
+    ...alternates(route, translated).map((link) => `<link rel="alternate" hreflang="${link.hreflang}" href="${link.href}" />`),
+    ...(noindex(route, translated) ? ['<meta name="robots" content="noindex" />'] : []),
   ];
   if (extra.length) out = out.replace("</head>", `    ${extra.join("\n    ")}\n  </head>`);
   return out;
