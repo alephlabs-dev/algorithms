@@ -4,6 +4,7 @@ import type { HashFrame, StructureRun, TreeFrame } from "@/structures";
 import type { Algorithm } from "@/types";
 import { narrateDp } from "@/utils/narrateDp";
 import { choicesAround } from "./choices";
+import { heapQuestions, mergeQuestions } from "./sortMergeHeap";
 import { quickQuestions, shellQuestions } from "./sortPartitions";
 import { bubbleQuestions, cocktailQuestions, selectionQuestions } from "./sortPasses";
 import { radixQuestions } from "./sortRadix";
@@ -33,7 +34,14 @@ export type Question =
   /** Tap the spot in the tree where the value will land. */
   | (Base & { kind: "slot"; value: number; slots: Slot[]; answer: string })
   /** Pick one of a few numbers (a cell's value, a bucket, a count of swaps). */
-  | (Base & { kind: "choice"; options: number[]; answer: number; cell?: { i: number; j: number } })
+  | (Base & {
+      kind: "choice";
+      options: number[];
+      answer: number;
+      cell?: { i: number; j: number };
+      /** What each option's button says, when the bare number can't (heap sort's "4 stays"). */
+      optionLabels?: string[];
+    })
   | (Base & { kind: "yesno"; answer: boolean });
 
 export type Answer = string | number | boolean;
@@ -226,6 +234,8 @@ const sortBuilders: Partial<Record<Algorithm, (run: Timeline) => Question[]>> = 
   cocktail: cocktailQuestions,
   shell: shellQuestions,
   quick: quickQuestions,
+  merge: mergeQuestions,
+  heap: heapQuestions,
   radix: radixQuestions,
 };
 
