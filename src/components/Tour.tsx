@@ -13,8 +13,8 @@ const MARGIN = 12; // keeps the bubble off the window edges
 const findAnchor = (name: string) =>
   [...document.querySelectorAll<HTMLElement>(`[data-tour="${name}"]`)].find((el) => el.getClientRects().length > 0);
 
-/** Moves the light onto the step's element and puts the bubble where it fits best. */
-const usePlacement = (anchor: string) => {
+/** Moves the light onto the step's element (the first of `anchors` on screen) and puts the bubble where it fits best. */
+const usePlacement = (anchors: string) => {
   const holeRef = useRef<HTMLDivElement>(null);
   const bubbleRef = useRef<HTMLDivElement>(null);
 
@@ -24,7 +24,10 @@ const usePlacement = (anchor: string) => {
     if (!hole || !bubble) return;
 
     const place = () => {
-      const el = findAnchor(anchor);
+      const el = anchors
+        .split(" ")
+        .map(findAnchor)
+        .find((found) => found);
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const b = bubble.getBoundingClientRect();
@@ -67,7 +70,7 @@ const usePlacement = (anchor: string) => {
       window.clearInterval(interval);
       window.removeEventListener("resize", place);
     };
-  }, [anchor]);
+  }, [anchors]);
 
   return { holeRef, bubbleRef };
 };
@@ -82,7 +85,10 @@ const TourDialog = ({ steps }: { steps: TourStep[] }) => {
   const phone = useMediaQuery("(max-width: 767px)");
   const step = steps[index];
   const isLast = index === steps.length - 1;
-  const { holeRef, bubbleRef } = usePlacement((phone && step.phoneAnchor) || step.anchor);
+  // On phones, the step's element if it's on screen there, else where it moved to (usually the settings).
+  const { holeRef, bubbleRef } = usePlacement(
+    phone && step.phoneAnchor ? `${step.anchor} ${step.phoneAnchor}` : step.anchor,
+  );
   const nextRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
 

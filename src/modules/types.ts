@@ -14,7 +14,7 @@ export type AlgorithmGroup = { label?: string; hint?: string; items: AlgorithmCh
 export type TourStep = {
   /** Matches `data-tour="…"` on the element to light up (the first visible one). */
   anchor: string;
-  /** Where to point instead on phones, when the anchor lives in a sheet there. */
+  /** Where to point on phones when the anchor isn't on screen there (it lives in a sheet). */
   phoneAnchor?: string;
   title: string;
   text: (context: { theme: Theme; wide: boolean; phone: boolean }) => ReactNode;

@@ -5,6 +5,7 @@ import { inputOrders } from "@/consts/inputOrders";
 import { MAX_MOBILE_SIZE, sizes } from "@/consts/sizesMap";
 import { useStore } from "@/store";
 import type { DisplayMode, InputOrder } from "@/types";
+import { ItemsControls } from "../Dp/DpStage";
 import { DpStartPicker } from "../Dp/DpTools";
 import { CirclesPicker, ShapeGrid } from "../Fourier/FourierTools";
 import { StructurePresetButtons, StructureSizePicker } from "../Structures/StructureTools";
@@ -123,9 +124,14 @@ export const StructureSettings = () => (
 export const DpSettings = () => {
   const bag = useStore((s) => s.dpAlgorithm === "knapsack" || s.view === "race");
   return bag ? (
-    <Field label="Example" help="Change the bag and the items with the bar under the table.">
-      <DpStartPicker />
-    </Field>
+    <div className="flex flex-col gap-6">
+      <Field label="Bag and items" help="Items are named A, B, C… in order, each with its weight and value.">
+        <ItemsControls className="flex flex-wrap items-center gap-x-5 gap-y-3" />
+      </Field>
+      <Field label="Example">
+        <DpStartPicker />
+      </Field>
+    </div>
   ) : (
     <Field label="Example words" help="Or type any two words under the table, up to 10 letters each.">
       <DpStartPicker />
