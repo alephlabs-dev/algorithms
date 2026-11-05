@@ -163,6 +163,69 @@ const pathText = localized({
   },
 });
 
+const graphText = localized({
+  en: {
+    badge: {
+      distance: "Its distance from the start",
+      order: "When it was visited",
+      key: "The cheapest edge that would add it to the tree",
+      group: "The group it's in, named by one of its nodes",
+      indegree: "Edges still coming in; once placed, its place in the order",
+    },
+    moduleTitle: "Graph algorithms",
+    moduleIntro:
+      "A graph is a set of nodes joined by edges: cities and roads, people and friendships, pages and links. Watch six classic algorithms walk one, build its lightest tree or put it in order, with every step shown.",
+    all: "All graph algorithms",
+    makeYourOwn: "Make your own",
+    makeIntro:
+      "Drag nodes to move them, tap two nodes to join or split them, and double-tap a node to start from it. Or pick a ready-made network, tree, grid or DAG (a directed graph without loops).",
+    keepsIn: "Keeps the nodes to visit in",
+    badgeRow: "The badge on each node",
+    usesWeights: "Uses edge weights",
+    cheapestRoute: "Yes: the cheapest route, not the fewest edges",
+    sameEdge: "No: every edge counts the same",
+    time: "Time",
+    atAGlance: "At a glance",
+    compare: "Compare",
+    runAnother: "Run another algorithm on the same graph:",
+    orRace: (race: Link) => <>Or {race("race them")} side by side.</>,
+    raceTitle: "Graph algorithm race",
+    raceIntro: "Put two to four graph algorithms side by side on the same graph and see which one has the least to do.",
+    raceTip:
+      "Breadth-first and depth-first search look at the same edges in a different order. Prim grows one tree from the start while Kruskal merges many small ones; on a graph with lots of edges, Kruskal spends its steps skipping the ones that would close a loop.",
+  },
+  es: {
+    badge: {
+      distance: "Su distancia desde el inicio",
+      order: "Cuándo se visitó",
+      key: "La arista más barata que lo sumaría al árbol",
+      group: "El grupo en el que está, con el nombre de uno de sus nodos",
+      indegree: "Las aristas que todavía le entran; una vez ubicado, su lugar en el orden",
+    },
+    moduleTitle: "Algoritmos de grafos",
+    moduleIntro:
+      "Un grafo es un conjunto de nodos unidos por aristas: ciudades y rutas, personas y amistades, páginas y enlaces. Mira seis algoritmos clásicos recorrer uno, construir su árbol más liviano u ordenarlo, con cada paso a la vista.",
+    all: "Todos los algoritmos de grafos",
+    makeYourOwn: "Arma el tuyo",
+    makeIntro:
+      "Arrastra los nodos para moverlos, toca dos nodos para unirlos o separarlos y toca dos veces un nodo para empezar desde él. O elige una red, un árbol, una malla o un DAG (un grafo dirigido sin ciclos) ya hechos.",
+    keepsIn: "Guarda los nodos por visitar en",
+    badgeRow: "La etiqueta de cada nodo",
+    usesWeights: "Usa el peso de las aristas",
+    cheapestRoute: "Sí: la ruta más barata, no la de menos aristas",
+    sameEdge: "No: todas las aristas cuentan igual",
+    time: "Tiempo",
+    atAGlance: "De un vistazo",
+    compare: "Compara",
+    runAnother: "Ejecuta otro algoritmo en el mismo grafo:",
+    orRace: (race) => <>O {race("hazlos competir")} lado a lado.</>,
+    raceTitle: "Carrera de algoritmos de grafos",
+    raceIntro: "Pon de dos a cuatro algoritmos de grafos lado a lado en el mismo grafo y mira cuál tiene menos trabajo.",
+    raceTip:
+      "La búsqueda en anchura y la búsqueda en profundidad miran las mismas aristas en otro orden. Prim hace crecer un árbol desde el inicio mientras Kruskal une muchos pequeños; en un grafo con muchas aristas, Kruskal gasta sus pasos descartando las que cerrarían un ciclo.",
+  },
+});
+
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
   <section className="flex flex-col gap-4">
     <h2 className="text-xl font-semibold">{title}</h2>
@@ -309,7 +372,7 @@ const PathArticle = ({ algorithm, onNavigate }: { algorithm: PathAlgorithm; onNa
         <h1 className="text-display font-semibold">{title}</h1>
         <p className="text-lg text-foreground/80">{shortDescription}</p>
       </header>
-      <Section title={text.howItWorks(title)}>
+      <Section title={text.howItWorks(pathAlgorithms[algorithm].named)}>
         <p className="leading-relaxed text-foreground/80">{longDescription}</p>
       </Section>
       <Section title={pathText.atAGlance}>
@@ -435,13 +498,7 @@ const PathRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) =
 
 const graphOrder = Object.keys(graphAlgorithms) as GraphAlgorithm[];
 
-const BADGE_MEANING = {
-  distance: "Its distance from the start",
-  order: "When it was visited",
-  key: "The cheapest edge that would add it to the tree",
-  group: "The group it's in, named by one of its nodes",
-  indegree: "Edges still coming in; once placed, its place in the order",
-};
+const BADGE_MEANING = graphText.badge;
 
 /** The graph algorithms, linking to their pages. */
 const GraphIndex = ({ current, onNavigate }: { current?: GraphAlgorithm; onNavigate?: Props["onNavigate"] }) => (
@@ -463,13 +520,10 @@ const GraphIndex = ({ current, onNavigate }: { current?: GraphAlgorithm; onNavig
 const GraphsArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
   <>
     <header className="flex flex-col gap-3">
-      <h1 className="text-display font-semibold">Graph algorithms</h1>
-      <p className="text-lg text-foreground/80">
-        A graph is a set of nodes joined by edges: cities and roads, people and friendships, pages and links. Watch
-        six classic algorithms walk one, build its lightest tree or put it in order, with every step shown.
-      </p>
+      <h1 className="text-display font-semibold">{graphText.moduleTitle}</h1>
+      <p className="text-lg text-foreground/80">{graphText.moduleIntro}</p>
     </header>
-    <Section title="All graph algorithms">
+    <Section title={graphText.all}>
       <ul className="flex flex-col divide-y divide-edge">
         {graphOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
@@ -484,20 +538,17 @@ const GraphsArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => 
         ))}
       </ul>
     </Section>
-    <Section title="Race them">
+    <Section title={text.raceThem}>
       <p className="leading-relaxed text-foreground/80">
         {GRAPH_RACE_DESCRIPTION}{" "}
         <PageLink to={{ kind: "graphRace" }} onNavigate={onNavigate}>
-          Start a race
+          {text.startRace}
         </PageLink>
         .
       </p>
     </Section>
-    <Section title="Make your own">
-      <p className="leading-relaxed text-foreground/80">
-        Drag nodes to move them, tap two nodes to join or split them, and double-tap a node to start from it. Or pick
-        a ready-made network, tree, grid or DAG (a directed graph without loops).
-      </p>
+    <Section title={graphText.makeYourOwn}>
+      <p className="leading-relaxed text-foreground/80">{graphText.makeIntro}</p>
     </Section>
   </>
 );
@@ -506,10 +557,10 @@ const GraphArticle = ({ algorithm, onNavigate }: { algorithm: GraphAlgorithm; on
   const { title, shortDescription, longDescription, structure, label, weighted, timeComplexity } =
     graphAlgorithms[algorithm];
   const rows: [string, string][] = [
-    ["Keeps the nodes to visit in", structure],
-    ["The badge on each node", BADGE_MEANING[label]],
-    ["Uses edge weights", weighted ? "Yes: the cheapest route, not the fewest edges" : "No: every edge counts the same"],
-    ["Time", timeComplexity],
+    [graphText.keepsIn, structure],
+    [graphText.badgeRow, BADGE_MEANING[label]],
+    [graphText.usesWeights, weighted ? graphText.cheapestRoute : graphText.sameEdge],
+    [graphText.time, timeComplexity],
   ];
   return (
     <>
@@ -517,10 +568,10 @@ const GraphArticle = ({ algorithm, onNavigate }: { algorithm: GraphAlgorithm; on
         <h1 className="text-display font-semibold">{title}</h1>
         <p className="text-lg text-foreground/80">{shortDescription}</p>
       </header>
-      <Section title={`How ${title} works`}>
+      <Section title={text.howItWorks(graphAlgorithms[algorithm].named)}>
         <p className="leading-relaxed text-foreground/80">{longDescription}</p>
       </Section>
-      <Section title="At a glance">
+      <Section title={graphText.atAGlance}>
         <table className="w-full max-w-lg text-sm">
           <tbody>
             {rows.map(([name, value]) => (
@@ -534,20 +585,20 @@ const GraphArticle = ({ algorithm, onNavigate }: { algorithm: GraphAlgorithm; on
           </tbody>
         </table>
       </Section>
-      <Section title="Pseudocode">
+      <Section title={text.pseudocode}>
         <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
           {graphPseudocode[algorithm].join("\n")}
         </pre>
       </Section>
-      <Section title="Compare">
-        <p className="leading-relaxed text-foreground/80">Run another algorithm on the same graph:</p>
+      <Section title={graphText.compare}>
+        <p className="leading-relaxed text-foreground/80">{graphText.runAnother}</p>
         <GraphIndex current={algorithm} onNavigate={onNavigate} />
         <p className="text-foreground/80">
-          Or{" "}
-          <PageLink to={{ kind: "graphRace" }} onNavigate={onNavigate}>
-            race them
-          </PageLink>{" "}
-          side by side.
+          {graphText.orRace((children) => (
+            <PageLink to={{ kind: "graphRace" }} onNavigate={onNavigate}>
+              {children}
+            </PageLink>
+          ))}
         </p>
       </Section>
     </>
@@ -557,20 +608,14 @@ const GraphArticle = ({ algorithm, onNavigate }: { algorithm: GraphAlgorithm; on
 const GraphRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
   <>
     <header className="flex flex-col gap-3">
-      <h1 className="text-display font-semibold">Graph algorithm race</h1>
-      <p className="text-lg text-foreground/80">
-        Put two to four graph algorithms side by side on the same graph and see which one has the least to do.
-      </p>
+      <h1 className="text-display font-semibold">{graphText.raceTitle}</h1>
+      <p className="text-lg text-foreground/80">{graphText.raceIntro}</p>
     </header>
-    <Section title="How the race works">
+    <Section title={text.howRaceWorks}>
       <p className="leading-relaxed text-foreground/80">{GRAPH_RACE_DESCRIPTION}</p>
-      <p className="leading-relaxed text-foreground/80">
-        Breadth-first and depth-first search look at the same edges in a different order. Prim grows one tree from the
-        start while Kruskal merges many small ones; on a graph with lots of edges, Kruskal spends its steps skipping
-        the ones that would close a loop.
-      </p>
+      <p className="leading-relaxed text-foreground/80">{graphText.raceTip}</p>
     </Section>
-    <Section title="Learn each algorithm">
+    <Section title={text.learnEach}>
       <GraphIndex onNavigate={onNavigate} />
     </Section>
   </>

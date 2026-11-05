@@ -8,6 +8,57 @@ import { count } from "@/utils/count";
 import { FactLine } from "../ui/fact-line";
 import { PresetButtons } from "../ui/preset-buttons";
 import { SegmentedControl } from "../ui/segmented";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    tools: "Graph tools",
+    size: "Graph size",
+    waiting: "Waiting",
+    done: "Done",
+    inTree: "In the tree",
+    skipped: "Skipped",
+    keptEdge: "Kept edge",
+    wouldLoop: "Skipped: would loop",
+    ready: "Ready",
+    placed: "Placed",
+    crossedOut: "Crossed out",
+    start: "Start",
+    onStack: "On the stack",
+    couldJoin: "Could join",
+    inStructure: (structure: string) => `In the ${structure.toLowerCase()}`,
+    visited: "Visited",
+    treeEdge: "Tree edge",
+    legend: "Legend",
+    stats: (visited: number, total: number, examined: number) => `${visited}/${count(total, "node")} · ${count(examined, "edge")}`,
+    usesWeights: "uses weights",
+    ignoresWeights: "ignores weights",
+  },
+  es: {
+    tools: "Herramientas del grafo",
+    size: "Tamaño del grafo",
+    waiting: "En espera",
+    done: "Listo",
+    inTree: "En el árbol",
+    skipped: "Descartada",
+    keptEdge: "Arista elegida",
+    wouldLoop: "Descartada: cerraría un ciclo",
+    ready: "Listo",
+    placed: "Ubicado",
+    crossedOut: "Tachada",
+    start: "Inicio",
+    onStack: "En la pila",
+    couldJoin: "Podría unirse",
+    inStructure: (structure) => `En la ${structure.toLowerCase()}`,
+    visited: "Visitado",
+    treeEdge: "Arista del árbol",
+    legend: "Leyenda",
+    stats: (visited, total, examined) => `${visited}/${count(total, "nodo")} · ${count(examined, "arista")}`,
+    usesWeights: "usa pesos",
+    ignoresWeights: "ignora los pesos",
+  },
+});
+
 
 /** Ready-made layouts, one tap each. */
 export const GraphPresetButtons = ({ className }: { className?: string }) => {
@@ -20,7 +71,7 @@ export const GraphTools = ({ className }: { className?: string }) => (
   <div
     data-tour="tools"
     role="toolbar"
-    aria-label="Graph tools"
+    aria-label={text.tools}
     className={cn("flex flex-wrap items-center gap-x-3 gap-y-2 self-start", className)}
   >
     <GraphPresetButtons />
@@ -31,7 +82,7 @@ export const GraphSizePicker = () => {
   const { size, setSize } = useStore(useShallow((s) => ({ size: s.graphSize, setSize: s.setGraphSize })));
   return (
     <SegmentedControl<GraphSize>
-      label="Graph size"
+      label={text.size}
       options={(Object.keys(graphSizeLabels) as GraphSize[]).map((value) => ({
         value,
         label: graphSizeLabels[value].split(" ")[0],
@@ -61,47 +112,47 @@ export const GraphLegend = ({ className, stacked }: { className?: string; stacke
   const { algorithm, isRace } = useStore(
     useShallow((s) => ({ algorithm: s.graphAlgorithm, isRace: s.view === "race" })),
   );
-  const structure = graphAlgorithms[algorithm].structure.toLowerCase();
+  const structure = graphAlgorithms[algorithm].structure;
   // Race lanes mix algorithms: words that fit them all.
   const items = isRace ? (
     <>
-      <Swatch className="bg-secondary" label="Waiting" />
-      <Swatch className="bg-secondary/45" label="Done" />
-      <Line className="bg-primary" label="In the tree" />
+      <Swatch className="bg-secondary" label={text.waiting} />
+      <Swatch className="bg-secondary/45" label={text.done} />
+      <Line className="bg-primary" label={text.inTree} />
       <Line
         className="bg-[repeating-linear-gradient(90deg,var(--color-line)_0_4px,transparent_4px_7px)]"
-        label="Skipped"
+        label={text.skipped}
       />
     </>
   ) : algorithm === "kruskal" ? (
     <>
-      <Swatch className="bg-secondary/45" label="In the tree" />
-      <Line className="bg-primary" label="Kept edge" />
+      <Swatch className="bg-secondary/45" label={text.inTree} />
+      <Line className="bg-primary" label={text.keptEdge} />
       <Line
         className="bg-[repeating-linear-gradient(90deg,var(--color-line)_0_4px,transparent_4px_7px)]"
-        label="Skipped: would loop"
+        label={text.wouldLoop}
       />
     </>
   ) : algorithm === "topo" ? (
     <>
-      <Swatch className="bg-secondary" label="Ready" />
-      <Swatch className="bg-secondary/45" label="Placed" />
-      <Line className="bg-primary" label="Crossed out" />
+      <Swatch className="bg-secondary" label={text.ready} />
+      <Swatch className="bg-secondary/45" label={text.placed} />
+      <Line className="bg-primary" label={text.crossedOut} />
     </>
   ) : (
     <>
-      <Swatch className="bg-background ring-2 ring-primary" label="Start" />
+      <Swatch className="bg-background ring-2 ring-primary" label={text.start} />
       <Swatch
         className="bg-secondary"
-        label={algorithm === "dfs" ? "On the stack" : algorithm === "prim" ? "Could join" : `In the ${structure}`}
+        label={algorithm === "dfs" ? text.onStack : algorithm === "prim" ? text.couldJoin : text.inStructure(structure)}
       />
-      <Swatch className="bg-secondary/45" label={algorithm === "prim" ? "In the tree" : "Visited"} />
-      <Line className="bg-primary" label="Tree edge" />
+      <Swatch className="bg-secondary/45" label={algorithm === "prim" ? text.inTree : text.visited} />
+      <Line className="bg-primary" label={text.treeEdge} />
     </>
   );
   return (
     <ul
-      aria-label="Legend"
+      aria-label={text.legend}
       className={cn(
         "flex text-xs text-foreground md:text-sm",
         stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
@@ -120,7 +171,7 @@ export const GraphStatsInline = ({ className }: { className?: string }) => {
   );
   return (
     <p className={cn("whitespace-nowrap font-mono text-xs text-foreground/80", className)}>
-      {stats.visited}/{count(total, "node")} · {count(stats.examined, "edge")}
+      {text.stats(stats.visited, total, stats.examined)}
     </p>
   );
 };
@@ -129,5 +180,5 @@ export const GraphStatsInline = ({ className }: { className?: string }) => {
 export const GraphFacts = () => {
   const algorithm = useStore((s) => s.graphAlgorithm);
   const { structure, timeComplexity, weighted } = graphAlgorithms[algorithm];
-  return <FactLine facts={[structure, weighted ? "uses weights" : "ignores weights", timeComplexity]} />;
+  return <FactLine facts={[structure, weighted ? text.usesWeights : text.ignoresWeights, timeComplexity]} />;
 };

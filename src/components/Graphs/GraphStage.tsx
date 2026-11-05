@@ -16,6 +16,52 @@ import { selectLastIndex, useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";
 import { moveDuration } from "@/utils/speed";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    done: (n: number) => `Done: ${count(n, "node")} visited.`,
+    soFar: (n: number) => `${count(n, "node")} visited so far.`,
+    hint: "Drag a node to move it, tap two nodes to join them, double-tap a node to start there.",
+    picked: (name: string) => `${name} picked: tap another node to join or split them.`,
+    canvas: (title: string, nodes: number, edges: number, start: string, status: string, hint: string) =>
+      `${title} on a graph of ${count(nodes, "node")} and ${count(edges, "edge")}, starting at ${start}. ${status} ${hint}`,
+    strip: { queue: "Queue", stack: "Stack", priority: "Open", ready: "Ready", edges: "Edges" },
+    order: {
+      queue: "front first",
+      stack: "bottom to top",
+      priority: "closest first",
+      ready: "nothing left coming in",
+      edges: "lightest first",
+    },
+    empty: "empty",
+    finished: "Done",
+    summary: (nodes: number, edges: number) => `${count(nodes, "node")} · ${count(edges, "edge")} looked at`,
+    tryOther: (name: string) => `Try ${name}`,
+  },
+  es: {
+    done: (n) => `Listo: ${count(n, "nodo")} ${n === 1 ? "visitado" : "visitados"}.`,
+    soFar: (n) => `${count(n, "nodo")} ${n === 1 ? "visitado" : "visitados"} hasta ahora.`,
+    hint: "Arrastra un nodo para moverlo, toca dos nodos para unirlos y toca dos veces un nodo para empezar ahí.",
+    picked: (name) => `${name} elegido: toca otro nodo para unirlos o separarlos.`,
+    canvas: (title, nodes, edges, start, status, hint) =>
+      `${title} en un grafo de ${count(nodes, "nodo")} y ${count(edges, "arista")}, empezando en ${start}. ${status} ${hint}`,
+    strip: { queue: "Cola", stack: "Pila", priority: "Abiertos", ready: "Listos", edges: "Aristas" },
+    order: {
+      queue: "el frente primero",
+      stack: "de abajo hacia arriba",
+      priority: "el más cercano primero",
+      ready: "sin aristas de entrada",
+      edges: "la más liviana primero",
+    },
+    // Works after any of the names above, whatever their gender and number.
+    empty: "nada",
+    finished: "Listo",
+    summary: (nodes, edges) => `${count(nodes, "nodo")} · ${count(edges, "arista")} ${edges === 1 ? "revisada" : "revisadas"}`,
+    tryOther: (name) => `Prueba ${name}`,
+  },
+});
+
 
 const DRAG_THRESHOLD = 5; // px a pointer moves before a press on a node becomes a drag
 const DOUBLE_TAP_MS = 320;
@@ -140,20 +186,18 @@ export const GraphCanvas = ({ frame, algorithm }: { frame: GraphFrame; algorithm
     setSelected(null);
   };
 
-  const status = frame.done
-    ? `Done: ${count(frame.stats.visited, "node")} visited.`
-    : `${count(frame.stats.visited, "node")} visited so far.`;
+  const status = frame.done ? text.done(frame.stats.visited) : text.soFar(frame.stats.visited);
   const hint =
     selected === null
-      ? "Drag a node to move it, tap two nodes to join them, double-tap a node to start there."
-      : `${nodeName(selected)} picked: tap another node to join or split them.`;
+      ? text.hint
+      : text.picked(nodeName(selected));
 
   return (
     <div ref={wrapperRef} className="relative min-h-0 w-full flex-1">
       <canvas
           ref={canvasRef}
           role="img"
-          aria-label={`${title} on a graph of ${count(graph.nodes.length, "node")} and ${count(graph.edges.length, "edge")}, starting at ${nodeName(graph.start)}. ${status} ${hint}`}
+          aria-label={text.canvas(title, graph.nodes.length, graph.edges.length, nodeName(graph.start), status, hint)}
           className="absolute inset-0 h-full w-full touch-none select-none"
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -178,14 +222,8 @@ export const GraphStage = () => {
   );
 };
 
-const STRIP_NAME = { queue: "Queue", stack: "Stack", priority: "Open", ready: "Ready", edges: "Edges" };
-const STRIP_ORDER = {
-  queue: "front first",
-  stack: "bottom to top",
-  priority: "closest first",
-  ready: "nothing left coming in",
-  edges: "lightest first",
-};
+const STRIP_NAME = text.strip;
+const STRIP_ORDER = text.order;
 
 /**
  * The queue, stack or priority queue under the graph: the one thing that
@@ -234,7 +272,7 @@ const StructureStrip = () => {
   return (
     <div
       data-tour="structure"
-      aria-label={`${STRIP_NAME[structure]}, ${STRIP_ORDER[structure]}: ${items.length ? items.map((i) => i.name).join(", ") : "empty"}`}
+      aria-label={`${STRIP_NAME[structure]}, ${STRIP_ORDER[structure]}: ${items.length ? items.map((i) => i.name).join(", ") : text.empty}`}
       className="flex min-h-11 items-center gap-3 rounded-2xl border border-edge bg-surface py-2 pl-4 pr-2"
     >
       <span className="shrink-0 font-mono text-xs text-foreground/70">
@@ -249,7 +287,7 @@ const StructureStrip = () => {
           fade,
         )}
       >
-        {items.length === 0 && <li className="font-mono text-xs text-foreground/50">empty</li>}
+        {items.length === 0 && <li className="font-mono text-xs text-foreground/50">{text.empty}</li>}
         {items.map((item) => (
           <li
             key={item.key}
@@ -292,12 +330,12 @@ const GraphFinishSummary = ({ className }: { className?: string }) => {
     <div role="status" className={className}>
       {finished && (
         <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-edge bg-surface/90 px-5 py-2 text-sm shadow-lg backdrop-blur-sm animate-in fade-in slide-in-from-top-2 duration-300 motion-reduce:animate-none">
-          <span className="font-semibold text-primary">Done</span>
+          <span className="font-semibold text-primary">{text.finished}</span>
           <span className={cn("hidden font-mono text-xs text-foreground/80 sm:inline")}>
-            {count(stats.visited, "node")} · {count(stats.examined, "edge")} looked at
+            {text.summary(stats.visited, stats.examined)}
           </span>
           <button type="button" onClick={() => setGraphAlgorithm(next)} className={linkClass}>
-            Try {graphAlgorithms[next].short}
+            {text.tryOther(graphAlgorithms[next].short)}
           </button>
         </div>
       )}

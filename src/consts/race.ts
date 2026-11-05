@@ -8,8 +8,10 @@ export const RACE_DESCRIPTION = localized({
 export const STRUCTURE_RACE_DESCRIPTION =
   "The same values, in the same order, into a plain binary search tree and an AVL tree. Each tick, both take one step. Feed them ascending values to see why balancing exists.";
 
-export const GRAPH_RACE_DESCRIPTION =
-  "Same graph, same clock. Each tick, every algorithm takes one step, so the first to finish is the one with the least to do. Prim and Kruskal always end with trees of the same weight, by different routes.";
+export const GRAPH_RACE_DESCRIPTION = localized({
+  en: "Same graph, same clock. Each tick, every algorithm takes one step, so the first to finish is the one with the least to do. Prim and Kruskal always end with trees of the same weight, by different routes.",
+  es: "Mismo grafo, mismo reloj. En cada tic, cada algoritmo da un paso, así que el primero en terminar es el que tiene menos trabajo. Prim y Kruskal siempre terminan con árboles del mismo peso, por caminos distintos.",
+});
 
 export const PATH_RACE_DESCRIPTION = localized({
   en: "Same grid, same clock. Each tick, every search examines one cell, so the first to reach the target is the one that looked at the fewest cells. Then compare the paths they found.",

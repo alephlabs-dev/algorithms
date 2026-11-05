@@ -7,6 +7,41 @@ import { count } from "@/utils/count";
 import { ordinal } from "@/utils/ordinal";
 import { GraphCanvas } from "../Graphs/GraphStage";
 import { PlaceBadge, ResultsOverlay } from "./RaceParts";
+import { localized } from "@/i18n";
+
+const text = localized({
+  en: {
+    weight: (w: number) => `weight ${w}`,
+    inOrder: "in order",
+    loop: "a loop",
+    nodes: (n: number) => count(n, "node"),
+    finished: (place: string) => `, finished ${place}`,
+    steps: (n: string) => `${n} steps`,
+    sameTree: (weight: number, prim: string, kruskal: string) =>
+      `Prim and Kruskal both found a tree of weight ${weight}: Prim in ${prim} steps, Kruskal in ${kruskal}.`,
+    least: (name: string, steps: string) => `${name} had the least to do: ${steps} steps.`,
+    place: "Place",
+    algorithm: "Algorithm",
+    stepsHeader: "Steps",
+    result: "Result",
+  },
+  es: {
+    weight: (w) => `peso ${w}`,
+    inOrder: "en orden",
+    loop: "un ciclo",
+    nodes: (n) => count(n, "nodo"),
+    finished: (place) => `, terminó ${place}`,
+    steps: (n) => `${n} pasos`,
+    sameTree: (weight, prim, kruskal) =>
+      `Prim y Kruskal encontraron un árbol de peso ${weight}: Prim en ${prim} pasos, Kruskal en ${kruskal}.`,
+    least: (name, steps) => `${name} tuvo menos trabajo: ${steps} pasos.`,
+    place: "Lugar",
+    algorithm: "Algoritmo",
+    stepsHeader: "Pasos",
+    result: "Resultado",
+  },
+});
+
 
 const format = (n: number) => n.toLocaleString("en-US");
 
@@ -20,12 +55,12 @@ const treeWeight = (timeline: GraphTimeline, frame: GraphFrame) =>
 /** What a finished run came up with, in a few words. */
 const outcome = (algorithm: GraphAlgorithm, timeline: GraphTimeline) => {
   const end = timeline.frameAt(Infinity);
-  if (algorithm === "prim" || algorithm === "kruskal") return `weight ${treeWeight(timeline, end)}`;
+  if (algorithm === "prim" || algorithm === "kruskal") return text.weight(treeWeight(timeline, end));
   if (algorithm === "topo") {
     const left = end.states.filter((s) => s !== DONE).length;
-    return left === 0 ? "in order" : "a loop";
+    return left === 0 ? text.inOrder : text.loop;
   }
-  return `${count(end.stats.visited, "node")}`;
+  return text.nodes(end.stats.visited);
 };
 
 type LaneProps = {
@@ -43,7 +78,7 @@ const GraphRaceLane = ({ algorithm, timeline, clock, place, className }: LanePro
   const { title, short } = graphAlgorithms[algorithm];
   return (
     <section
-      aria-label={`${title}${finished ? `, finished ${ordinal(place)}` : ""}`}
+      aria-label={`${title}${finished ? text.finished(ordinal(place)) : ""}`}
       className={cn(
         "flex min-h-0 min-w-0 flex-col gap-1 rounded-3xl border border-edge bg-surface p-2 ring-1 ring-transparent transition-shadow md:p-3",
         { "ring-primary": finished && place === 1 },
@@ -58,7 +93,7 @@ const GraphRaceLane = ({ algorithm, timeline, clock, place, className }: LanePro
         </h3>
         {finished && <PlaceBadge place={place} />}
         <span className="ml-auto whitespace-nowrap font-mono text-foreground/70">
-          {finished ? outcome(algorithm, timeline) : `${format(Math.min(clock, last))} steps`}
+          {finished ? outcome(algorithm, timeline) : text.steps(format(Math.min(clock, last)))}
         </span>
       </header>
       <GraphCanvas frame={frame} algorithm={algorithm} />
@@ -76,14 +111,13 @@ const Verdict = ({ rows }: { rows: Row[] }) => {
     const weight = treeWeight(prim.timeline, prim.timeline.frameAt(Infinity));
     return (
       <p className="text-sm text-foreground/80">
-        Prim and Kruskal both found a tree of weight {weight}: Prim in {format(prim.timeline.length - 1)} steps, Kruskal
-        in {format(kruskal.timeline.length - 1)}.
+        {text.sameTree(weight, format(prim.timeline.length - 1), format(kruskal.timeline.length - 1))}
       </p>
     );
   }
   return (
     <p className="text-sm text-foreground/80">
-      {graphAlgorithms[rows[0].algorithm].short} had the least to do: {format(rows[0].timeline.length - 1)} steps.
+      {text.least(graphAlgorithms[rows[0].algorithm].short, format(rows[0].timeline.length - 1))}
     </p>
   );
 };
@@ -93,10 +127,10 @@ const GraphRaceResults = ({ rows, onReplay }: { rows: Row[]; onReplay: () => voi
     <table className="w-full text-sm">
       <thead>
         <tr className="text-left text-xs text-foreground/60">
-          <th className="pb-2 font-normal">Place</th>
-          <th className="pb-2 font-normal">Algorithm</th>
-          <th className="pb-2 text-right font-normal">Steps</th>
-          <th className="pb-2 text-right font-normal">Result</th>
+          <th className="pb-2 font-normal">{text.place}</th>
+          <th className="pb-2 font-normal">{text.algorithm}</th>
+          <th className="pb-2 text-right font-normal">{text.stepsHeader}</th>
+          <th className="pb-2 text-right font-normal">{text.result}</th>
         </tr>
       </thead>
       <tbody>
