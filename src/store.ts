@@ -283,6 +283,13 @@ export const selectLastIndex = (state: StoreState) => engines[state.module].last
 export const gameQuestionsOf = (state: StoreState): Question[] =>
   state.isGameOn && state.view === "single" ? (engines[state.module].game?.(state) ?? []) : [];
 
+/** Guess mode is on and can play the run on stage. */
+export const selectGuessPlaying = (state: StoreState) =>
+  state.isGameOn &&
+  state.view === "single" &&
+  engines[state.module].game !== undefined &&
+  !engines[state.module].gameUnavailable?.(state);
+
 /** The first unanswered question between the current frame and `target`: playback stops before it. */
 const nextQuestion = (state: StoreState, target: number) =>
   gameQuestionsOf(state).find((q) => q.at > state.frameIndex && q.at <= target && !isAnswered(q)) ?? null;

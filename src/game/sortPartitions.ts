@@ -26,14 +26,14 @@ export const quickQuestions = (run: Timeline): Question[] => {
       // Asked with the partition lit and its pivot marked, before the first comparison.
       at: lit + 1,
       run,
-      prompt: `How many values in the lit part are smaller than the pivot, ${value}?`,
+      prompt: `How many values in this partition are smaller than the pivot, ${value}?`,
       options: choicesAround(smaller, [], 0, size - 1),
       answer: smaller,
       labels: [pivot],
       explain: (right) =>
         `${right ? "Right" : `It's ${smaller}`}: ${
           smaller === 0
-            ? `nothing here is smaller than ${value}, so it lands first in the lit part.`
+            ? `nothing here is smaller than ${value}, so it lands first in this partition.`
             : `${smaller} value${smaller === 1 ? " goes" : "s go"} before ${value}, so it lands right after ${smaller === 1 ? "it" : "them"}.`
         }`,
     });

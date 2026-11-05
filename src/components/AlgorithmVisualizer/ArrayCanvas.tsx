@@ -17,10 +17,12 @@ type Props = {
   annotate?: boolean;
   /** Items to label with their values anyway (the open guess question's). */
   labels?: readonly number[];
+  /** Every bar shows its value (guess mode). */
+  labelAll?: boolean;
 };
 
 /** A canvas that draws one frame and animates into the next. Fills its parent. */
-export const ArrayCanvas = ({ frame, values, mode, celebrate, runId, label, annotate = false, labels }: Props) => {
+export const ArrayCanvas = ({ frame, values, mode, celebrate, runId, label, annotate = false, labels, labelAll = false }: Props) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<BarsRenderer | null>(null);
@@ -54,8 +56,9 @@ export const ArrayCanvas = ({ frame, values, mode, celebrate, runId, label, anno
       runId,
       annotate,
       labels,
+      labelAll,
     });
-  }, [frame, values, mode, speed, isScrubbing, celebrate, runId, annotate, labels]);
+  }, [frame, values, mode, speed, isScrubbing, celebrate, runId, annotate, labels, labelAll]);
 
   return (
     <div ref={wrapperRef} className="relative w-full flex-1 min-h-0">

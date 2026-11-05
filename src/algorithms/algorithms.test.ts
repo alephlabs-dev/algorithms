@@ -123,6 +123,19 @@ describe.each(Object.entries(sortAlgorithms))("%s sort", (name, algorithm) => {
   });
 });
 
+describe("heap sort highlights", () => {
+  it("starts each sift-down with nothing lit as compared (the last pair doesn't linger)", () => {
+    const timeline = new Timeline(sortAlgorithms.heap, [7, 3, 9, 1, 5, 8, 2, 10, 4, 6]);
+    // Lines 2 and 6 of the pseudocode are "sift_down(...)": a new sift-down begins.
+    const starts = Array.from({ length: timeline.length }, (_, k) => k).filter((k) => {
+      const step = timeline.stepAt(k);
+      return step?.type === "highlight" && (step.line === 2 || step.line === 6);
+    });
+    expect(starts.length).toBeGreaterThan(5);
+    for (const k of starts) expect(timeline.frameAt(k).active).toEqual([]);
+  });
+});
+
 describe("step kinds", () => {
   it("labels every frame after the first, and tells line-only steps apart", () => {
     const timeline = new Timeline(sortAlgorithms.heap, [5, 3, 8, 1, 9, 2]);

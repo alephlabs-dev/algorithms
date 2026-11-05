@@ -19,6 +19,8 @@ export type RenderInput = {
   annotate?: boolean;
   /** Items labelled with their values whatever they're doing (guess mode's question names them). */
   labels?: readonly number[];
+  /** Every bar shows its value (guess mode: a question is answered by comparing values). */
+  labelAll?: boolean;
 };
 
 type Spring = { value: number; velocity: number };
@@ -53,7 +55,9 @@ const DIMMED_ALPHA = 0.6;
 // green as it passes. Same length for 10 bars or 400.
 const SWEEP_DURATION = 0.9;
 const MIN_HOP_DURATION = 0.08; // below this, moves are too quick for an arc to read
-const MIN_LABEL_WIDTH = 14; // narrower bars can't fit a value above them
+// A value goes over its bar only if its text fits the bar's slot; a smaller size is tried before giving up.
+const LABEL_SIZES = [12, 10];
+const labelFont = (px: number) => `600 ${px}px "JetBrains Mono Variable", ui-monospace, monospace`;
 
 // Relative luminance (WCAG), 0 for black to 1 for white.
 const luminance = (rgb: RGB) => {
@@ -427,31 +431,43 @@ export class BarsRenderer {
       ctx.stroke();
     }
 
-    if (input.annotate && isBars && barWidth >= MIN_LABEL_WIDTH) this.drawLabels(slot, offsetX, gap, barWidth, liftPx);
+    if (input.annotate && isBars) this.drawLabels(slot, offsetX, gap, barWidth, liftPx);
   }
 
-  /** Values above the compared bars, and "pivot" above the pivot, like callouts on a figure. */
+  /**
+   * Values above the compared bars, and "pivot" above the pivot, like callouts on a figure.
+   * With `labelAll`, every bar gets its value; the ones in play stay in the accent color.
+   */
   private drawLabels(slot: number, offsetX: number, gap: number, barWidth: number, liftPx: number) {
     const { ctx, height, input, colors } = this;
     if (!input) return;
-    ctx.font = `600 12px "JetBrains Mono Variable", ui-monospace, monospace`;
+    const widest = String(Math.max(...input.values));
+    const size = LABEL_SIZES.find((px) => {
+      ctx.font = labelFont(px);
+      return ctx.measureText(widest).width <= slot - 2;
+    });
+    if (size === undefined) return;
+    ctx.font = labelFont(size);
     ctx.textAlign = "center";
     ctx.textBaseline = "alphabetic";
     const named = new Set(input.labels);
     this.items.forEach((item, id) => {
       const isPivot = id === input.frame.pivot;
       const lifted = isPivot ? Math.max(item.lift.value, this.pivotLine.alpha.value) : item.lift.value;
-      const strength = named.has(id) ? 1 : lifted;
+      const inPlay = named.has(id) || lifted >= 0.05;
+      const strength = named.has(id) ? 1 : input.labelAll ? Math.max(lifted, 0.75) : lifted;
       if (strength < 0.05) return;
       const value = input.values[id];
       const top = height - this.barHeight(value) * item.grow.value - item.lift.value * liftPx - item.arc;
       const x = offsetX + item.x * slot + gap / 2 + barWidth / 2;
       ctx.globalAlpha = strength * item.alpha.value;
-      ctx.fillStyle = isPivot ? colors.foreground : colors.secondary;
+      ctx.fillStyle = isPivot ? colors.foreground : inPlay ? colors.secondary : colors.muted;
       ctx.fillText(String(value), x, top - 8);
       if (isPivot) {
+        // Wider than its bar: kept inside the canvas when the pivot is at either end.
+        const half = ctx.measureText("pivot").width / 2;
         ctx.fillStyle = colors.muted;
-        ctx.fillText("pivot", x, top - 24);
+        ctx.fillText("pivot", Math.min(Math.max(x, half), this.width - half), top - 24);
       }
     });
     ctx.globalAlpha = 1;
