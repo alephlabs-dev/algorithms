@@ -64,8 +64,37 @@ const pathText = localized({
     name: (title, short) => (/^[A-Z]{2,4}$/.test(short) ? `${title} (${short})` : title),
     algorithmTitle: (name) => `${name}: búsqueda de caminos visualizada · Aleph Labs`,
     algorithmDescription: (title) =>
-      `Mira cómo ${title} encuentra un camino: dibuja paredes y barro en una cuadrícula y síguela paso a paso, con el pseudocódigo y cada paso explicado.`,
+      `Mira cómo ${title} encuentra un camino: dibuja paredes y barro en una cuadrícula y sigue cada paso, con el pseudocódigo y su explicación.`,
     section: "Búsqueda de caminos",
+  },
+});
+
+const graphText = localized({
+  en: {
+    moduleTitle: "Graph Algorithm Visualizer: BFS, Dijkstra, Prim, Kruskal Step by Step · Aleph Labs",
+    moduleDescription:
+      "Watch BFS, DFS, Dijkstra, Prim, Kruskal and topological sort on a graph you can reshape, with the queue, the stack and every distance shown as they change.",
+    algorithmTitle: (name: string) => `${name} on a Graph, Visualized · Aleph Labs`,
+    algorithmDescription: (title: string, structure: string) =>
+      `See how ${title} walks a graph: drag nodes, join them, pick the start, then follow its ${structure.toLowerCase()} step by step with the pseudocode.`,
+    raceTitle: "Graph Algorithm Race: Prim vs Kruskal, BFS vs DFS · Aleph Labs",
+    raceDescription:
+      "Race BFS, DFS, Dijkstra, Prim, Kruskal and topological sort on the same graph, one step per tick. See which has the least to do, and how Prim and Kruskal reach the same tree.",
+    section: "Graphs",
+    onAGraph: (title: string) => `${title} on a graph`,
+  },
+  es: {
+    moduleTitle: "Visualizador de algoritmos de grafos: BFS, Dijkstra, Prim y Kruskal paso a paso · Aleph Labs",
+    moduleDescription:
+      "Mira BFS, DFS, Dijkstra, Prim, Kruskal y el orden topológico sobre un grafo que puedes modificar, con la cola, la pila y cada distancia a la vista mientras cambian.",
+    algorithmTitle: (name) => `${name} en un grafo, visualizado · Aleph Labs`,
+    algorithmDescription: (title, structure) =>
+      `Mira cómo ${title} recorre un grafo: arrastra nodos, únelos, elige el inicio y sigue cada paso con el pseudocódigo (${structure.toLowerCase()}).`,
+    raceTitle: "Carrera de algoritmos de grafos: Prim contra Kruskal, BFS contra DFS · Aleph Labs",
+    raceDescription:
+      "Haz competir a BFS, DFS, Dijkstra, Prim, Kruskal y el orden topológico en el mismo grafo, un paso por tic. Mira cuál tiene menos trabajo y cómo Prim y Kruskal llegan al mismo árbol.",
+    section: "Grafos",
+    onAGraph: (title) => `${title} en un grafo`,
   },
 });
 
@@ -127,9 +156,8 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "Graph Algorithm Visualizer: BFS, Dijkstra, Prim, Kruskal Step by Step · Aleph Labs",
-      description:
-        "Watch BFS, DFS, Dijkstra, Prim, Kruskal and topological sort on a graph you can reshape, with the queue, the stack and every distance shown as they change.",
+      title: graphText.moduleTitle,
+      description: graphText.moduleDescription,
     };
   }
   if (route.kind === "graph") {
@@ -139,8 +167,8 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: `${name} on a Graph, Visualized · Aleph Labs`,
-      description: `See how ${title} walks a graph: drag nodes, join them, pick the start, then follow its ${structure.toLowerCase()} step by step with the pseudocode.`,
+      title: graphText.algorithmTitle(name),
+      description: graphText.algorithmDescription(graphAlgorithms[route.algorithm].named, structure),
     };
   }
   if (route.kind === "structures") {
@@ -195,9 +223,8 @@ export const pageMeta = (route: Route): PageMeta => {
     return {
       path,
       url,
-      title: "Graph Algorithm Race: Prim vs Kruskal, BFS vs DFS · Aleph Labs",
-      description:
-        "Race BFS, DFS, Dijkstra, Prim, Kruskal and topological sort on the same graph, one step per tick. See which has the least to do, and how Prim and Kruskal reach the same tree.",
+      title: graphText.raceTitle,
+      description: graphText.raceDescription,
     };
   }
   if (route.kind === "race") {
@@ -249,7 +276,7 @@ export const pageMeta = (route: Route): PageMeta => {
       path,
       url,
       title: pathText.algorithmTitle(pathText.name(title, short)),
-      description: pathText.algorithmDescription(title),
+      description: pathText.algorithmDescription(pathAlgorithms[route.algorithm].named),
     };
   }
   const { title, timeComplexity } = sortingAlgorithms[route.algorithm];
@@ -284,7 +311,7 @@ export const structuredData = (route: Route): object[] => {
   const sectionNames = {
     sorting: sortingText.section,
     pathfinding: pathText.section,
-    graphs: "Graphs",
+    graphs: graphText.section,
     fourier: "Fourier series",
     structures: "Data structures",
     dp: "Dynamic programming",
@@ -299,16 +326,15 @@ export const structuredData = (route: Route): object[] => {
   } as const;
   const section = { name: sectionNames[module], url: `${SITE_URL}${href(sectionRoutes[module])}` };
   const name =
-    route.kind === "race" || route.kind === "pathRace"
+    route.kind === "race" || route.kind === "pathRace" || route.kind === "graphRace"
       ? sortingText.race
-      : route.kind === "graphRace" ||
-    route.kind === "structureRace" ||
+      : route.kind === "structureRace" ||
     route.kind === "dpRace"
       ? "Race"
       : route.kind === "path"
         ? pathAlgorithms[route.algorithm].title
         : route.kind === "graph"
-          ? `${graphAlgorithms[route.algorithm].title} on a graph`
+          ? graphText.onAGraph(graphAlgorithms[route.algorithm].title)
           : route.kind === "series"
             ? fourierSeries[route.algorithm].title
             : route.kind === "structure"

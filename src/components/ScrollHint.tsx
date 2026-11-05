@@ -69,13 +69,13 @@ const labelFor = (route: Route) => {
     case "series":
       return text.series(fourierSeries[route.algorithm].title);
     case "graph":
-      return text.algorithm(graphAlgorithms[route.algorithm].title);
+      return text.algorithm(graphAlgorithms[route.algorithm].named);
     case "race":
     case "pathRace":
     case "graphRace":
       return text.race;
     case "path":
-      return text.algorithm(pathAlgorithms[route.algorithm].title);
+      return text.algorithm(pathAlgorithms[route.algorithm].named);
     case "algorithm":
       return text.algorithm(sortingAlgorithms[route.algorithm].title);
   }

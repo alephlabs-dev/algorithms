@@ -3,6 +3,8 @@ import type { PathAlgorithm } from "@/pathfinding";
 
 type PathAlgorithmText = {
   title: string;
+  /** How the name reads mid-sentence ("How … works"), when that differs from the title. */
+  named?: string;
   /** Short name for tight spots (pickers on phones). */
   short: string;
   shortDescription: string;
@@ -19,7 +21,7 @@ type PathAlgorithmData = {
   timeComplexity: string;
 };
 
-type PathAlgorithmDetails = PathAlgorithmText & PathAlgorithmData;
+type PathAlgorithmDetails = PathAlgorithmText & PathAlgorithmData & { named: string };
 
 // Key order is the order shown in the UI.
 const data: Record<PathAlgorithm, PathAlgorithmData> = {
@@ -83,6 +85,7 @@ const text = localized<Record<PathAlgorithm, PathAlgorithmText> & { worstCase: s
     worstCase: "en el peor caso",
     bfs: {
       title: "Búsqueda en anchura",
+      named: "la búsqueda en anchura",
       short: "BFS",
       shortDescription:
         "Explora en anillos alrededor del inicio, así que el primer camino que encuentra es el de menos pasos. No tiene en cuenta cuánto cuesta cada celda.",
@@ -92,6 +95,7 @@ const text = localized<Record<PathAlgorithm, PathAlgorithmText> & { worstCase: s
     },
     dfs: {
       title: "Búsqueda en profundidad",
+      named: "la búsqueda en profundidad",
       short: "DFS",
       shortDescription:
         "Sigue un pasillo hasta el final antes de retroceder. Siempre encuentra un camino si existe, pero casi nunca el más corto.",
@@ -101,6 +105,7 @@ const text = localized<Record<PathAlgorithm, PathAlgorithmText> & { worstCase: s
     },
     dijkstra: {
       title: "Algoritmo de Dijkstra",
+      named: "el algoritmo de Dijkstra",
       short: "Dijkstra",
       shortDescription:
         "Siempre expande la celda más barata alcanzada hasta ahora, así que encuentra el camino de menor costo y rodea el barro cuando eso sale más barato.",
@@ -110,6 +115,7 @@ const text = localized<Record<PathAlgorithm, PathAlgorithmText> & { worstCase: s
     },
     astar: {
       title: "Búsqueda A*",
+      named: "la búsqueda A*",
       short: "A*",
       shortDescription:
         "Dijkstra con sentido de la orientación: ordena las celdas por costo acumulado más distancia restante, así que va hacia el destino y aun así encuentra el camino más barato.",
@@ -119,6 +125,7 @@ const text = localized<Record<PathAlgorithm, PathAlgorithmText> & { worstCase: s
     },
     greedy: {
       title: "Búsqueda voraz primero el mejor",
+      named: "la búsqueda voraz primero el mejor",
       short: "Voraz",
       shortDescription:
         "Siempre avanza hacia la celda que parece más cercana al destino. Rápida en terreno abierto, pero las paredes y el barro la engañan fácilmente.",
@@ -132,7 +139,12 @@ const text = localized<Record<PathAlgorithm, PathAlgorithmText> & { worstCase: s
 export const pathAlgorithms = Object.fromEntries(
   (Object.keys(data) as PathAlgorithm[]).map((id) => [
     id,
-    { ...text[id], ...data[id], timeComplexity: data[id].timeComplexity.replace("worst case", text.worstCase) },
+    {
+      ...text[id],
+      ...data[id],
+      named: text[id].named ?? text[id].title,
+      timeComplexity: data[id].timeComplexity.replace("worst case", text.worstCase),
+    },
   ])
 ) as Record<PathAlgorithm, PathAlgorithmDetails>;
 
