@@ -26,6 +26,7 @@ const DrawerContent = ({
   ...props
 }: ComponentProps<typeof DrawerPrimitive.Content>) => (
   <DrawerPrimitive.Portal>
+    {/* eslint-disable-next-line house/no-raw-colors -- Dims the page; whether dimming gets a theme token is UX.md open question 6. */}
     <DrawerPrimitive.Overlay className="fixed inset-0 z-50 bg-black/80" />
     <DrawerPrimitive.Content
       className={cn(

@@ -68,6 +68,7 @@ export const ShortcutsHelp = () => {
         ref={dialogRef}
         onClose={() => setOpen(false)}
         onClick={(event) => event.target === dialogRef.current && setOpen(false)}
+        // eslint-disable-next-line house/no-raw-colors -- Dims the page; whether dimming gets a theme token is UX.md open question 6.
         className="m-auto w-full max-w-sm rounded-3xl border border-edge bg-surface p-6 text-foreground shadow-xl backdrop:bg-black/60"
       >
         <h2 className="mb-4 text-xl font-semibold">{text.title}</h2>

@@ -91,8 +91,6 @@ export type Module = ModuleId;
 export type Brush = "wall" | "mud";
 export type Theme = "dark" | "light";
 
-const THEME_COLORS: Record<Theme, string> = { dark: "#0b0f0d", light: "#f2f5f9" };
-
 // Each module has its own tour, remembered separately (sorting keeps its original key).
 const TOUR_KEYS: Record<Module, string> = {
   sorting: "tour-done",
@@ -633,7 +631,9 @@ export const useStore = create<StoreState>((set, get) => {
 
     setTheme: (theme) => {
       document.documentElement.dataset.theme = theme;
-      document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", THEME_COLORS[theme]);
+      // The browser's toolbar takes the page background, read from the theme now that it's applied.
+      const background = getComputedStyle(document.documentElement).getPropertyValue("--color-background").trim();
+      document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", background);
       try {
         localStorage.setItem("theme", theme);
       } catch {
