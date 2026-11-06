@@ -13,6 +13,8 @@ export type BoardCell = {
    * attacker: the piece that rules a square out. ghost: just taken back.
    */
   tone?: "placed" | "focus" | "conflict" | "attacker" | "ghost";
+  /** Part of the puzzle from the start: drawn in ink, bold, whatever its tone. */
+  given?: boolean;
   /** A soft dot: ruled out for now (a square a queen attacks). */
   shade?: boolean;
 };
@@ -29,6 +31,10 @@ export type BoardInput = {
   /** Labels down the side and across the top. */
   rowLabels?: string[];
   colLabels?: string[];
+  /** Plain squares instead of a checkerboard (a Sudoku grid). */
+  plain?: boolean;
+  /** Thicker lines between boxes of this many squares (3 for a Sudoku). */
+  box?: number;
 };
 
 const mix = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
@@ -83,6 +89,7 @@ export class BoardRenderer {
       conflict: hexToRgb(colors.conflict),
       ghost: hexToRgb(colors.dim),
       label: hexToRgb(colors.muted),
+      ink: hexToRgb(colors.foreground),
       outline: hexToRgb(colors.outline),
       background,
     };
@@ -112,7 +119,7 @@ export class BoardRenderer {
     for (let row = 0; row < input.rows; row++) {
       for (let col = 0; col < input.cols; col++) {
         const { x, y } = at(row, col);
-        ctx.fillStyle = css((row + col) % 2 === 0 ? p.light : p.dark);
+        ctx.fillStyle = css(input.plain || (row + col) % 2 === 0 ? p.light : p.dark);
         ctx.fillRect(x, y, size, size);
         const cell = input.cells[row * input.cols + col];
         if (cell?.shade && !cell.piece) {
@@ -121,6 +128,25 @@ export class BoardRenderer {
           ctx.arc(x + size / 2, y + size / 2, Math.max(1.5, size * 0.07), 0, Math.PI * 2);
           ctx.fill();
         }
+      }
+    }
+
+    // A plain grid needs its lines: thin between squares, thick between boxes.
+    if (input.plain) {
+      for (let k = 0; k <= Math.max(input.rows, input.cols); k++) {
+        const thick = input.box !== undefined && k % input.box === 0;
+        ctx.strokeStyle = css(thick ? p.label : p.dark);
+        ctx.lineWidth = thick ? Math.max(2, size * 0.06) : 1;
+        ctx.beginPath();
+        if (k <= input.cols) {
+          ctx.moveTo(left + k * size, top);
+          ctx.lineTo(left + k * size, top + boardH);
+        }
+        if (k <= input.rows) {
+          ctx.moveTo(left, top + k * size);
+          ctx.lineTo(left + boardW, top + k * size);
+        }
+        ctx.stroke();
       }
     }
 
@@ -136,17 +162,23 @@ export class BoardRenderer {
       ctx.strokeRect(x + ctx.lineWidth / 2, y + ctx.lineWidth / 2, w - ctx.lineWidth, h - ctx.lineWidth);
     }
 
-    // Lines under the pieces, so each end sits behind its piece.
+    // Lines from square to square, kept clear of what sits on them (a digit next door would be struck through).
     for (const line of input.lines) {
       const a = at(line.from.row, line.from.col);
       const b = at(line.to.row, line.to.col);
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const length = Math.hypot(dx, dy);
+      const gap = Math.min(size * 0.38, length / 2);
+      const ux = length ? dx / length : 0;
+      const uy = length ? dy / length : 0;
       ctx.strokeStyle = css(p.conflict);
       ctx.lineWidth = Math.max(2, size * 0.06);
       ctx.lineCap = "round";
       ctx.setLineDash([size * 0.14, size * 0.1]);
       ctx.beginPath();
-      ctx.moveTo(a.x + size / 2, a.y + size / 2);
-      ctx.lineTo(b.x + size / 2, b.y + size / 2);
+      ctx.moveTo(a.x + size / 2 + ux * gap, a.y + size / 2 + uy * gap);
+      ctx.lineTo(b.x + size / 2 - ux * gap, b.y + size / 2 - uy * gap);
       ctx.stroke();
       ctx.setLineDash([]);
     }
@@ -171,9 +203,10 @@ export class BoardRenderer {
         }
         if (!cell.piece) continue;
         // The attacker stays a placed queen; only its ring says it's the one ruling the square out.
-        const color = tone === "conflict" ? p.conflict : tone === "ghost" ? p.ghost : p.placed;
+        const color =
+          tone === "conflict" ? p.conflict : tone === "ghost" ? p.ghost : cell.given ? p.ink : p.placed;
         if (cell.piece.kind === "queen") this.queen(x, y, size, color, tone === "ghost" || tone === "conflict", p.background);
-        else this.text(cell.piece.value, x, y, size, color);
+        else this.text(cell.piece.value, x, y, size, color, cell.given ? 700 : 500);
       }
     }
 
@@ -223,10 +256,10 @@ export class BoardRenderer {
     ctx.stroke();
   }
 
-  private text(value: string, x: number, y: number, size: number, color: RGB) {
+  private text(value: string, x: number, y: number, size: number, color: RGB, weight: number) {
     const { ctx } = this;
     ctx.fillStyle = css(color);
-    ctx.font = `600 ${Math.round(size * 0.5)}px "JetBrains Mono Variable", ui-monospace, monospace`;
+    ctx.font = `${weight} ${Math.round(size * 0.55)}px "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(value, x + size / 2, y + size / 2);

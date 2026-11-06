@@ -158,4 +158,14 @@ describe("url state", () => {
     expect(readLocation("/backtracking/n-queens", "?n=3").backtracking).toEqual({});
     expect(readLocation("/backtracking/n-queens", "?n=9").backtracking).toEqual({});
   });
+
+  it("round-trips a Sudoku puzzle, and ignores puzzles it doesn't have", () => {
+    const search = toBacktrackingSearch({ puzzle: "hard" });
+    expect(readLocation("/es/backtracking/sudoku", search)).toMatchObject({
+      module: "backtracking",
+      backtrackingProblem: "sudoku",
+      backtracking: { puzzle: "hard" },
+    });
+    expect(readLocation("/backtracking/sudoku", "?puzzle=evil").backtracking).toEqual({});
+  });
 });

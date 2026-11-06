@@ -50,6 +50,7 @@ const stateFor = (module: ModuleId, view: "single" | "race", isModuleStart: bool
     dpCapacity: 7,
     backtrackingProblem: "queens",
     queensN: 5,
+    sudokuPuzzle: "easy",
     fourierAlgorithm: "epicycles",
     fourierCircles: 25,
     fourierShape: "custom",
@@ -107,6 +108,15 @@ describe("module engines", () => {
       const state = stateFor(module, "single", false);
       expect(engines[module].search({ ...state, ...change } as StoreState)).not.toBe(engines[module].search(state));
     }
+  });
+
+  it("puts the Sudoku puzzle in its link", () => {
+    const sudoku = { ...stateFor("backtracking", "single", false), backtrackingProblem: "sudoku" } as StoreState;
+    const route = engines.backtracking.route(sudoku);
+    expect(routePath(route)).toBe("/backtracking/sudoku");
+    const hard = engines.backtracking.search({ ...sudoku, sudokuPuzzle: "hard" } as StoreState);
+    expect(hard).not.toBe(engines.backtracking.search(sudoku));
+    expect(readLocation(routePath(route), hard).backtracking).toEqual({ puzzle: "hard" });
   });
 
   it("sorting has guess mode with 10 or 20 items, and none with more", () => {

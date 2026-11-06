@@ -1,5 +1,5 @@
 import { useShallow } from "zustand/react/shallow";
-import { MAX_QUEENS, MIN_QUEENS } from "@/backtracking";
+import { MAX_QUEENS, MIN_QUEENS, runOf, type SudokuPuzzle } from "@/backtracking";
 import { backtrackingProblems, QUEENS_SOLUTIONS } from "@/consts/backtracking";
 import { localized } from "@/i18n";
 import { useStore } from "@/store";
@@ -22,6 +22,12 @@ const text = localized({
       `${count(choices, "choice")}, ${count(conflicts, "conflict")}, ${count(backtracks, "backtrack")}`,
     solutions: (n: number, solutions: number) => `${n} queens: ${count(solutions, "solution")}`,
     whatConflictsSave: "conflicts rule out most of the Nᴺ boards",
+    puzzle: "Puzzle",
+    puzzles: { easy: "Easy", hard: "Hard" } as Record<SudokuPuzzle, string>,
+    given: "Given",
+    digitPlaced: "Digit placed",
+    emptyCells: (n: number) => `${n} empty cells · 1 solution`,
+    whatConflictsSaveSudoku: "conflicts rule out almost all 9ᵐ grids",
   },
   es: {
     queens: "Reinas",
@@ -36,6 +42,12 @@ const text = localized({
       `${count(choices, "elección", "elecciones")}, ${count(conflicts, "conflicto")}, ${count(backtracks, "vuelta atrás", "vueltas atrás")}`,
     solutions: (n, solutions) => `${n} reinas: ${count(solutions, "solución", "soluciones")}`,
     whatConflictsSave: "los conflictos descartan casi todos los Nᴺ tableros",
+    puzzle: "Sudoku",
+    puzzles: { easy: "Fácil", hard: "Difícil" },
+    given: "Pista",
+    digitPlaced: "Dígito colocado",
+    emptyCells: (n) => `${n} casillas vacías · 1 solución`,
+    whatConflictsSaveSudoku: "los conflictos descartan casi todas las 9ᵐ cuadrículas",
   },
 });
 
@@ -60,20 +72,44 @@ export const QueensPicker = ({ className }: { className?: string }) => {
   );
 };
 
-/** Above the stage: the board size. */
-export const BacktrackingTools = ({ className }: { className?: string }) => (
-  <div
-    data-tour="tools"
-    role="toolbar"
-    aria-label={text.tools}
-    className={cn("flex flex-wrap items-center gap-x-4 gap-y-2 self-start", className)}
-  >
-    <div className="flex items-center gap-2">
-      <span className="text-sm text-foreground/70">{text.queens}</span>
-      <QueensPicker className="w-60" />
+/** Which Sudoku: easy or hard. */
+export const SudokuPuzzlePicker = ({ className }: { className?: string }) => {
+  const { puzzle, setPuzzle } = useStore(useShallow((s) => ({ puzzle: s.sudokuPuzzle, setPuzzle: s.setSudokuPuzzle })));
+  return (
+    <SegmentedControl<SudokuPuzzle>
+      label={text.puzzle}
+      options={(["easy", "hard"] as const).map((value) => ({ value, label: text.puzzles[value] }))}
+      value={puzzle}
+      onChange={(value) => value !== puzzle && setPuzzle(value)}
+      compact
+      className={className}
+    />
+  );
+};
+
+/** The setting each problem has: the board size, or the puzzle. */
+export const BacktrackingPicker = ({ className }: { className?: string }) => {
+  const sudoku = useStore((s) => s.backtrackingProblem === "sudoku");
+  return sudoku ? <SudokuPuzzlePicker className={className} /> : <QueensPicker className={className} />;
+};
+
+/** Above the stage: the board size, or the puzzle. */
+export const BacktrackingTools = ({ className }: { className?: string }) => {
+  const sudoku = useStore((s) => s.backtrackingProblem === "sudoku");
+  return (
+    <div
+      data-tour="tools"
+      role="toolbar"
+      aria-label={text.tools}
+      className={cn("flex flex-wrap items-center gap-x-4 gap-y-2 self-start", className)}
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-foreground/70">{sudoku ? text.puzzle : text.queens}</span>
+        <BacktrackingPicker className={sudoku ? "w-48" : "w-60"} />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const Item = ({ className, label }: { className: string; label: string }) => (
   <li className="flex items-center gap-2">
@@ -82,27 +118,48 @@ const Item = ({ className, label }: { className: string; label: string }) => (
   </li>
 );
 
-/** What the marks on the board mean. */
-export const BacktrackingLegend = ({ className, stacked }: { className?: string; stacked?: boolean }) => (
-  <ul
-    aria-label={text.legend}
-    className={cn(
-      "flex text-xs text-foreground md:text-sm",
-      stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
-      className,
-    )}
-  >
-    <Item className="bg-primary" label={text.placed} />
-    <li className="flex items-center gap-2">
-      <span aria-hidden className="grid h-3 w-3 shrink-0 place-items-center rounded-sm bg-edge">
-        <span className="h-1 w-1 rounded-full bg-muted" />
-      </span>
-      {text.attacked}
-    </li>
-    <Item className="border-2 border-conflict bg-conflict/30" label={text.conflict} />
-    <Item className="border-2 border-conflict" label={text.deadEnd} />
-  </ul>
+const Digit = ({ className, label }: { className: string; label: string }) => (
+  <li className="flex items-center gap-2">
+    <span aria-hidden className={cn("w-3 shrink-0 text-center font-mono leading-none", className)}>
+      7
+    </span>
+    {label}
+  </li>
 );
+
+/** What the marks on the board mean. */
+export const BacktrackingLegend = ({ className, stacked }: { className?: string; stacked?: boolean }) => {
+  const sudoku = useStore((s) => s.backtrackingProblem === "sudoku");
+  return (
+    <ul
+      aria-label={text.legend}
+      className={cn(
+        "flex text-xs text-foreground md:text-sm",
+        stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
+        className,
+      )}
+    >
+      {sudoku ? (
+        <>
+          <Digit className="font-bold text-foreground" label={text.given} />
+          <Digit className="text-primary" label={text.digitPlaced} />
+        </>
+      ) : (
+        <>
+          <Item className="bg-primary" label={text.placed} />
+          <li className="flex items-center gap-2">
+            <span aria-hidden className="grid h-3 w-3 shrink-0 place-items-center rounded-sm bg-edge">
+              <span className="h-1 w-1 rounded-full bg-muted" />
+            </span>
+            {text.attacked}
+          </li>
+        </>
+      )}
+      <Item className="border-2 border-conflict bg-conflict/30" label={text.conflict} />
+      <Item className="border-2 border-conflict" label={text.deadEnd} />
+    </ul>
+  );
+};
 
 /**
  * Choices, conflicts and backtracks so far, for the dock. In words they don't fit beside the
@@ -112,7 +169,7 @@ export const BacktrackingLegend = ({ className, stacked }: { className?: string;
 export const BacktrackingStatsInline = ({ className }: { className?: string }) => {
   const { choices, conflicts, backtracks } = useStore(
     useShallow((s) => {
-      const frame = s.queensRun.frameAt(s.frameIndex);
+      const frame = runOf(s).frameAt(s.frameIndex);
       return { choices: frame.choices, conflicts: frame.conflicts, backtracks: frame.backtracks };
     }),
   );
@@ -133,10 +190,14 @@ export const BacktrackingStatsInline = ({ className }: { className?: string }) =
   );
 };
 
-/** Cost, how many solutions the board has, and what conflicts save. */
+/** Cost, how many solutions the puzzle has, and what conflicts save. */
 export const BacktrackingFacts = () => {
-  const { problem, n } = useStore(useShallow((s) => ({ problem: s.backtrackingProblem, n: s.queensN })));
-  return (
-    <FactLine facts={[backtrackingProblems[problem].cost, text.solutions(n, QUEENS_SOLUTIONS[n]), text.whatConflictsSave]} />
+  const { problem, n, run } = useStore(
+    useShallow((s) => ({ problem: s.backtrackingProblem, n: s.queensN, run: s.sudokuRun })),
   );
+  const facts =
+    problem === "sudoku"
+      ? [text.emptyCells(run.givens.filter((given) => !given).length), text.whatConflictsSaveSudoku]
+      : [text.solutions(n, QUEENS_SOLUTIONS[n]), text.whatConflictsSave];
+  return <FactLine facts={[backtrackingProblems[problem].cost, ...facts]} />;
 };

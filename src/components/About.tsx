@@ -8,7 +8,7 @@ import { DP_RACE_DESCRIPTION, STRUCTURE_RACE_DESCRIPTION } from "@/consts/race";
 import { structures } from "@/consts/structures";
 import { structurePseudocode, type StructureAlgorithm } from "@/structures";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
-import { queensPseudocode, type BacktrackingProblem } from "@/backtracking";
+import { queensPseudocode, sudokuPseudocode, type BacktrackingProblem } from "@/backtracking";
 import { fourierPseudocode, type FourierAlgorithm } from "@/fourier";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { graphPseudocode, type GraphAlgorithm } from "@/graphs";
@@ -357,7 +357,7 @@ const backtrackingText = localized({
   en: {
     moduleTitle: "Backtracking",
     moduleIntro:
-      "Some puzzles are solved by making one choice at a time and taking the last one back as soon as it can't work. Watch every choice, every conflict and every dead end as backtracking places queens on a chessboard.",
+      "Some puzzles are solved by making one choice at a time and taking the last one back as soon as it can't work. Watch every choice, every conflict and every dead end as backtracking places queens on a chessboard and fills in a Sudoku.",
     all: "Problems",
     why: "Why take choices back?",
     whyText:
@@ -368,7 +368,7 @@ const backtrackingText = localized({
   es: {
     moduleTitle: "Backtracking",
     moduleIntro:
-      "Algunos problemas se resuelven haciendo una elección a la vez y deshaciendo la última en cuanto deja de servir. Mira cada elección, cada conflicto y cada callejón sin salida mientras el backtracking coloca reinas en un tablero de ajedrez.",
+      "Algunos problemas se resuelven haciendo una elección a la vez y deshaciendo la última en cuanto deja de servir. Mira cada elección, cada conflicto y cada callejón sin salida mientras el backtracking coloca reinas en un tablero de ajedrez y llena un sudoku.",
     all: "Problemas",
     why: "¿Por qué deshacer elecciones?",
     whyText:
@@ -882,7 +882,7 @@ const BacktrackingProblemArticle = ({ algorithm }: { algorithm: BacktrackingProb
       </Section>
       <Section title={text.pseudocode}>
         <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
-          {queensPseudocode.join("\n")}
+          {(algorithm === "sudoku" ? sudokuPseudocode : queensPseudocode).join("\n")}
         </pre>
       </Section>
       <Section title={backtrackingText.facts}>

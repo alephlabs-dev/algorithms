@@ -1,4 +1,6 @@
 export * from "./types";
 export { attacker, attacks, QUEENS_LINE, QueensRun } from "./queens";
-export { queensPseudocode } from "./pseudocode";
-export { queensBoard } from "./board";
+export { queensPseudocode, sudokuPseudocode } from "./pseudocode";
+export { queensBoard, sudokuBoard } from "./board";
+export { clash, SUDOKU_LINE, SUDOKU_PUZZLES, SudokuRun } from "./sudoku";
+export { runOf } from "./run";

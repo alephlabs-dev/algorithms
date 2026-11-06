@@ -5,7 +5,7 @@
  * back and the next value is tried there.
  */
 
-export type BacktrackingProblem = "queens";
+export type BacktrackingProblem = "queens" | "sudoku";
 
 export const MIN_QUEENS = 4;
 export const MAX_QUEENS = 8;
@@ -34,4 +34,47 @@ export type QueensFrame = {
   conflicts: number;
   backtracks: number;
   line: number | null;
+};
+
+/** Sudoku's preset puzzles. */
+export type SudokuPuzzle = "easy" | "hard";
+
+/** Which rule a digit breaks: it's already in the cell's row, column or 3×3 box. */
+export type SudokuRule = "row" | "column" | "box";
+
+export type SudokuEvent =
+  | { type: "start" }
+  /** `digit` placed at (row, col): no row, column or box has it yet. */
+  | { type: "choice"; row: number; col: number; digit: number }
+  /** `digit` is already at `by`, in the same `rule`, so it's skipped. */
+  | { type: "conflict"; row: number; col: number; digit: number; by: Square; rule: SudokuRule }
+  /** No digit is left to try at (row, col). */
+  | { type: "deadEnd"; row: number; col: number }
+  /** `digit` is taken back from (row, col), so the next digit can be tried there. */
+  | { type: "backtrack"; row: number; col: number; digit: number }
+  /** Every cell is filled. */
+  | { type: "done" };
+
+export type SudokuFrame = {
+  event: SudokuEvent;
+  /** The 81 cells, row by row: a digit, or 0 for empty. Givens included. */
+  grid: number[];
+  /** The choices that stand, oldest first, as cell indexes. */
+  stack: number[];
+  choices: number;
+  conflicts: number;
+  backtracks: number;
+  line: number | null;
+};
+
+/** What playback, the counters and the code card need from any problem's run. */
+export type BacktrackingRun = {
+  readonly length: number;
+  frameAt(index: number): {
+    event: { type: QueensEvent["type"] };
+    line: number | null;
+    choices: number;
+    conflicts: number;
+    backtracks: number;
+  };
 };

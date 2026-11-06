@@ -166,16 +166,16 @@ const fourierText = localized({
 
 const backtrackingText = localized({
   en: {
-    moduleTitle: "Backtracking Visualizer: N-Queens Step by Step · Aleph Labs",
+    moduleTitle: "Backtracking Visualizer: N-Queens and Sudoku Step by Step · Aleph Labs",
     moduleDescription:
-      "Watch backtracking place N queens on a chessboard: every choice, every conflict, every dead end and every queen taken back, step by step with the pseudocode.",
+      "Watch backtracking place N queens on a chessboard and fill in a Sudoku: every choice, every conflict, every dead end and every backtrack, step by step with the pseudocode.",
     problemTitle: (title: string) => `${title} Backtracking, Visualized Step by Step · Aleph Labs`,
     section: "Backtracking",
   },
   es: {
-    moduleTitle: "Visualizador de backtracking: N reinas paso a paso · Aleph Labs",
+    moduleTitle: "Visualizador de backtracking: N reinas y sudoku paso a paso · Aleph Labs",
     moduleDescription:
-      "Mira cómo el backtracking coloca N reinas en un tablero: cada elección, cada conflicto, cada callejón sin salida y cada reina que se quita, paso a paso con el pseudocódigo.",
+      "Mira cómo el backtracking coloca N reinas en un tablero y llena un sudoku: cada elección, cada conflicto, cada callejón sin salida y cada vuelta atrás, paso a paso con el pseudocódigo.",
     problemTitle: (title) => `${title} con backtracking, visualizado paso a paso · Aleph Labs`,
     section: "Backtracking",
   },
