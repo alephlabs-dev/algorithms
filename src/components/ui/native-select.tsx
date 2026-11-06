@@ -2,6 +2,18 @@ import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { Fragment } from "react";
 import { cn } from "@/utils/cn";
 
+/** The closed field's look: reads as "tap to change". Also the phone's racers field. */
+export const fieldClass =
+  "flex h-12 w-full min-w-0 items-center rounded-full border border-edge bg-surface pl-5 pr-10 text-left text-lg font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
+
+/** Our chevron at the field's right end; the field needs `relative` around it. */
+export const FieldChevron = () => (
+  <ChevronDownIcon
+    aria-hidden
+    className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground/70"
+  />
+);
+
 export type NativeSelectGroup = {
   /** Shown as an <optgroup>; without it the options sit at the top level. */
   label?: string;
@@ -29,9 +41,9 @@ export const NativeSelect = ({ label, value, onChange, groups, className, "data-
       aria-label={label}
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      className="h-12 w-full min-w-0 appearance-none truncate rounded-full border border-edge bg-surface pl-5 pr-10 text-left text-lg font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+      className={cn(fieldClass, "appearance-none truncate")}
     >
-      {groups.map((group, k) => {
+      {groups.map((group, index) => {
         const options = group.options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
@@ -42,13 +54,10 @@ export const NativeSelect = ({ label, value, onChange, groups, className, "data-
             {options}
           </optgroup>
         ) : (
-          <Fragment key={k}>{options}</Fragment>
+          <Fragment key={index}>{options}</Fragment>
         );
       })}
     </select>
-    <ChevronDownIcon
-      aria-hidden
-      className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground/70"
-    />
+    <FieldChevron />
   </div>
 );

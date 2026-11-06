@@ -1,4 +1,4 @@
-import { ChevronDownIcon, InfoCircledIcon, MixerHorizontalIcon } from "@radix-ui/react-icons";
+import { InfoCircledIcon, MixerHorizontalIcon } from "@radix-ui/react-icons";
 import type { ReactNode } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useModuleUI, useSettingsSummary } from "@/modules";
@@ -13,7 +13,7 @@ import { SettingsPanel } from "./Settings/ModuleSettings";
 import { StageInfo } from "./StageInfo";
 import { Button } from "./ui/button";
 import { Drawer, DrawerClose, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
-import { NativeSelect } from "./ui/native-select";
+import { FieldChevron, fieldClass, NativeSelect } from "./ui/native-select";
 import { SegmentedControl } from "./ui/segmented";
 import { ViewSwitch } from "./ViewSwitch";
 import { GameToggle } from "./Game";
@@ -86,39 +86,33 @@ const SettingsButton = () => {
   );
 };
 
-// The racers field reads as "tap to change", like ui/NativeSelect.
-const fieldClass =
-  "flex h-12 w-full min-w-0 items-center rounded-full border border-edge bg-surface pl-5 pr-10 text-left text-lg font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
-
-const FieldChevron = () => (
-  <ChevronDownIcon
-    aria-hidden
-    className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground/70"
-  />
-);
-
 /** Up to this many algorithms show inline on phones (UX.md rule 11). */
 const INLINE_MAX = 5;
 
-/** The module's algorithms, and whether they show inline as segments or in a select. */
-const useAlgorithmPicker = () => {
-  const { algorithms, current, pick, namesTooLongForSegments } = useModuleUI();
-  const value = useStore(current);
-  const items = algorithms.flatMap((group) => group.items);
-  const inline = items.length <= INLINE_MAX && !namesTooLongForSegments;
-  return { algorithms, items, value, pick, inline };
+/** Whether the module's algorithms show inline as segments, or in a select. */
+const useInline = () => {
+  const { algorithms, namesTooLongForSegments } = useModuleUI();
+  const count = algorithms.reduce((sum, group) => sum + group.items.length, 0);
+  return count <= INLINE_MAX && !namesTooLongForSegments;
+};
+
+/** The algorithm on stage, and how to pick another. */
+const usePick = () => {
+  const { current, pick } = useModuleUI();
+  return { value: useStore(current), pick };
 };
 
 /** Every algorithm at once, one row of equal segments, each with its short name. */
 const AlgorithmSegments = () => {
-  const { items, value, pick } = useAlgorithmPicker();
+  const { algorithms } = useModuleUI();
+  const { value, pick } = usePick();
   return (
     <div data-tour="picker">
       <SegmentedControl
         label={text.algorithm}
         value={value}
         onChange={pick}
-        options={items.map((item) => ({
+        options={algorithms.flatMap((group) => group.items).map((item) => ({
           value: item.id,
           label: (
             <span data-segment-label className="whitespace-nowrap">
@@ -135,7 +129,8 @@ const AlgorithmSegments = () => {
 
 /** Too many algorithms, or names too long for segments: phones open their own picker. */
 const AlgorithmSelect = () => {
-  const { algorithms, value, pick } = useAlgorithmPicker();
+  const { algorithms } = useModuleUI();
+  const { value, pick } = usePick();
   return (
     <NativeSelect
       data-tour="picker"
@@ -202,7 +197,7 @@ const ViewRow = () => {
 export const MobileTopBar = ({ className }: { className?: string }) => {
   const { about } = useModuleUI();
   const title = useStore((s) => about(s).title);
-  const { inline } = useAlgorithmPicker();
+  const inline = useInline();
   return (
     <div className={cn("flex flex-col gap-3", className)}>
       <ViewRow />

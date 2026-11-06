@@ -55,7 +55,8 @@ export type ModuleUI = {
   /**
    * Phones show 5 or fewer algorithms inline as one row of segments (UX.md rule 11).
    * True when their short names don't fit that row at 393px in some language, so the
-   * module keeps the select instead. `e2e/algorithm-picker.spec.ts` measures it.
+   * module keeps the select instead. Measured by hand; `e2e/algorithm-picker.spec.ts`
+   * checks that the modules shown as segments do fit.
    */
   namesTooLongForSegments?: boolean;
   /** The algorithm on stage, by id. */
