@@ -29,7 +29,7 @@ Leave room around things. When a screen gets crowded, show less on it, not small
 
 Secondary content isn't laid out next to the primary one. It sits behind one of these and comes out when asked for.
 
-- **In this app:** drawers/sheets are `src/components/ui/drawer.tsx`; popovers are `src/components/ui/popover.ts` with Radix Popover; tab-like switches are `src/components/ui/segmented.tsx` (for example Visualize / Race in `src/components/ViewSwitch.tsx`). `src/components/ui/slider.tsx` exists, but today it only scrubs playback (`src/components/Controls/Progress.tsx`), no setting uses it. There's no collapsible-section component yet.
+- **In this app:** drawers/sheets are `src/components/ui/drawer.tsx`; popovers are `src/components/ui/popover.ts` with Radix Popover; tab-like switches are `src/components/ui/segmented.tsx` (for example Visualize / Race in `src/components/ViewSwitch.tsx`). `src/components/ui/slider.tsx` exists, but today it only scrubs playback (`src/components/Controls/Progress.tsx`), no setting uses it. Collapsible sections are `src/components/ui/disclosure.tsx` (the explanations under the stage, `Explanation` in `src/components/About.tsx`).
 - **Example:** on phones the pseudocode opens from a drawer (`src/components/Pseudocode.tsx`), and on desktop the longer explanation of a module opens from the ⓘ button as a popover (`AboutButton` in `src/components/TopBar.tsx`).
 
 ## 5. Every screen has a clear flow: where the user clicks and in what order
@@ -50,7 +50,7 @@ Every color comes from the theme. No hex, `rgb()`, `hsl()` or `oklch()` values i
 
 Never controls with the browser's default look. Every control lives in `src/components/ui/`; those components may use the native element inside, always with our own styles and theme colors.
 
-- **In this app:** `src/components/ui/` holds `button`, `segmented`, `slider`, `drawer`, `popover`, `preset-buttons`, `list-item`, `badge`, `section-label`, `fact-line`, `tooltip`.
+- **In this app:** `src/components/ui/` holds `button`, `segmented`, `slider`, `drawer`, `popover`, `preset-buttons`, `list-item`, `badge`, `section-label`, `fact-line`, `tooltip`, `disclosure`.
 - **Example:** the speed control (`src/components/Controls/SpeedControl.tsx`) is our `SegmentedControl` (role `radiogroup`), not a native `<select>` or radio buttons.
 
 ## 8. Secondary content on phones and tablets

@@ -20,6 +20,7 @@ import { localized } from "@/i18n";
 import type { Route } from "@/routes";
 import type { Algorithm } from "@/types";
 import { PageLink } from "./PageLink";
+import { Disclosure } from "./ui/disclosure";
 
 /**
  * The page's written content, below the visualizer: what search engines index
@@ -378,11 +379,20 @@ const backtrackingText = localized({
   },
 });
 
+/**
+ * Two kinds of section. A `Section` is always open: summaries (the at-a-glance
+ * table) and navigation (lists of pages, the call to race). An `Explanation`
+ * is the longer reading (how it works, pseudocode, why…) and starts closed.
+ */
 const Section = ({ title, children }: { title: string; children: ReactNode }) => (
   <section className="flex flex-col gap-4">
     <h2 className="text-xl font-semibold">{title}</h2>
     {children}
   </section>
+);
+
+const Explanation = ({ title, children }: { title: string; children: ReactNode }) => (
+  <Disclosure title={title}>{children}</Disclosure>
 );
 
 const ComplexityTable = ({ algorithm }: { algorithm: Algorithm }) => {
@@ -444,18 +454,18 @@ const AlgorithmArticle = ({ algorithm, onNavigate }: { algorithm: Algorithm; onN
         <h1 className="text-display font-semibold">{title}</h1>
         <p className="text-lg text-foreground/80">{shortDescription}</p>
       </header>
-      <Section title={text.howItWorks(title)}>
+      <Explanation title={text.howItWorks(title)}>
         <p className="leading-relaxed text-foreground/80">{longDescription}</p>
-      </Section>
+      </Explanation>
       <Section title={text.complexity}>
         <ComplexityTable algorithm={algorithm} />
       </Section>
-      <Section title={text.pseudocode}>
+      <Explanation title={text.pseudocode}>
         <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
           {pseudocode[algorithm].join("\n")}
         </pre>
         <p className="text-sm text-foreground/70">{text.pseudocodeNote}</p>
-      </Section>
+      </Explanation>
       <Section title={text.compare}>
         <AlgorithmIndex current={algorithm} onNavigate={onNavigate} />
         <p className="text-foreground/80">
@@ -524,17 +534,17 @@ const PathArticle = ({ algorithm, onNavigate }: { algorithm: PathAlgorithm; onNa
         <h1 className="text-display font-semibold">{title}</h1>
         <p className="text-lg text-foreground/80">{shortDescription}</p>
       </header>
-      <Section title={text.howItWorks(pathAlgorithms[algorithm].named)}>
+      <Explanation title={text.howItWorks(pathAlgorithms[algorithm].named)}>
         <p className="leading-relaxed text-foreground/80">{longDescription}</p>
-      </Section>
+      </Explanation>
       <Section title={pathText.atAGlance}>
         <PathTable algorithm={algorithm} />
       </Section>
-      <Section title={text.pseudocode}>
+      <Explanation title={text.pseudocode}>
         <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
           {pathPseudocode[algorithm].join("\n")}
         </pre>
-      </Section>
+      </Explanation>
       <Section title={pathText.tryIt}>
         <p className="leading-relaxed text-foreground/80">{pathText.tryIntro(MUD_COST)}</p>
         <PathIndex current={algorithm} onNavigate={onNavigate} />
@@ -622,10 +632,10 @@ const RaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
       <h1 className="text-display font-semibold">{text.raceTitle}</h1>
       <p className="text-lg text-foreground/80">{text.raceIntro}</p>
     </header>
-    <Section title={text.howRaceWorks}>
+    <Explanation title={text.howRaceWorks}>
       <p className="leading-relaxed text-foreground/80">{RACE_DESCRIPTION}</p>
       <p className="leading-relaxed text-foreground/80">{text.raceTip}</p>
-    </Section>
+    </Explanation>
     <Section title={text.learnEach}>
       <AlgorithmIndex onNavigate={onNavigate} />
     </Section>
@@ -638,10 +648,10 @@ const PathRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) =
       <h1 className="text-display font-semibold">{pathText.raceTitle}</h1>
       <p className="text-lg text-foreground/80">{pathText.raceIntro}</p>
     </header>
-    <Section title={text.howRaceWorks}>
+    <Explanation title={text.howRaceWorks}>
       <p className="leading-relaxed text-foreground/80">{PATH_RACE_DESCRIPTION}</p>
       <p className="leading-relaxed text-foreground/80">{pathText.raceTip}</p>
-    </Section>
+    </Explanation>
     <Section title={pathText.learnEach}>
       <PathIndex onNavigate={onNavigate} />
     </Section>
@@ -699,9 +709,9 @@ const GraphsArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => 
         .
       </p>
     </Section>
-    <Section title={graphText.makeYourOwn}>
+    <Explanation title={graphText.makeYourOwn}>
       <p className="leading-relaxed text-foreground/80">{graphText.makeIntro}</p>
-    </Section>
+    </Explanation>
   </>
 );
 
@@ -720,9 +730,9 @@ const GraphArticle = ({ algorithm, onNavigate }: { algorithm: GraphAlgorithm; on
         <h1 className="text-display font-semibold">{title}</h1>
         <p className="text-lg text-foreground/80">{shortDescription}</p>
       </header>
-      <Section title={text.howItWorks(graphAlgorithms[algorithm].named)}>
+      <Explanation title={text.howItWorks(graphAlgorithms[algorithm].named)}>
         <p className="leading-relaxed text-foreground/80">{longDescription}</p>
-      </Section>
+      </Explanation>
       <Section title={graphText.atAGlance}>
         <table className="w-full max-w-lg text-sm">
           <tbody>
@@ -737,11 +747,11 @@ const GraphArticle = ({ algorithm, onNavigate }: { algorithm: GraphAlgorithm; on
           </tbody>
         </table>
       </Section>
-      <Section title={text.pseudocode}>
+      <Explanation title={text.pseudocode}>
         <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
           {graphPseudocode[algorithm].join("\n")}
         </pre>
-      </Section>
+      </Explanation>
       <Section title={graphText.compare}>
         <p className="leading-relaxed text-foreground/80">{graphText.runAnother}</p>
         <GraphIndex current={algorithm} onNavigate={onNavigate} />
@@ -763,10 +773,10 @@ const GraphRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) 
       <h1 className="text-display font-semibold">{graphText.raceTitle}</h1>
       <p className="text-lg text-foreground/80">{graphText.raceIntro}</p>
     </header>
-    <Section title={text.howRaceWorks}>
+    <Explanation title={text.howRaceWorks}>
       <p className="leading-relaxed text-foreground/80">{GRAPH_RACE_DESCRIPTION}</p>
       <p className="leading-relaxed text-foreground/80">{graphText.raceTip}</p>
-    </Section>
+    </Explanation>
     <Section title={text.learnEach}>
       <GraphIndex onNavigate={onNavigate} />
     </Section>
@@ -796,9 +806,9 @@ const FourierArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) =>
         ))}
       </ul>
     </Section>
-    <Section title={fourierText.whyCircles}>
+    <Explanation title={fourierText.whyCircles}>
       <p className="leading-relaxed text-foreground/80">{fourierText.whyText}</p>
-    </Section>
+    </Explanation>
   </>
 );
 
@@ -810,17 +820,17 @@ const SeriesArticle = ({ algorithm, onNavigate }: { algorithm: FourierAlgorithm;
         <h1 className="text-display font-semibold">{title}</h1>
         <p className="text-lg text-foreground/80">{shortDescription}</p>
       </header>
-      <Section title={fourierText.howItWorks}>
+      <Explanation title={fourierText.howItWorks}>
         <p className="leading-relaxed text-foreground/80">{longDescription}</p>
-      </Section>
+      </Explanation>
       <Section title={fourierText.theSeries}>
         <p className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[15px]">{formula}</p>
       </Section>
-      <Section title={text.pseudocode}>
+      <Explanation title={text.pseudocode}>
         <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
           {fourierPseudocode[algorithm].join("\n")}
         </pre>
-      </Section>
+      </Explanation>
       <Section title={fourierText.more}>
         <ul className="tap-rows flex flex-wrap gap-x-6 gap-y-2">
           {seriesOrder.map((other) => (
@@ -863,9 +873,9 @@ const BacktrackingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] 
         ))}
       </ul>
     </Section>
-    <Section title={backtrackingText.why}>
+    <Explanation title={backtrackingText.why}>
       <p className="leading-relaxed text-foreground/80">{backtrackingText.whyText}</p>
-    </Section>
+    </Explanation>
   </>
 );
 
@@ -877,14 +887,14 @@ const BacktrackingProblemArticle = ({ algorithm }: { algorithm: BacktrackingProb
         <h1 className="text-display font-semibold">{title}</h1>
         <p className="text-lg text-foreground/80">{shortDescription}</p>
       </header>
-      <Section title={backtrackingText.howItWorks}>
+      <Explanation title={backtrackingText.howItWorks}>
         <p className="leading-relaxed text-foreground/80">{longDescription}</p>
-      </Section>
-      <Section title={text.pseudocode}>
+      </Explanation>
+      <Explanation title={text.pseudocode}>
         <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
           {(algorithm === "sudoku" ? sudokuPseudocode : queensPseudocode).join("\n")}
         </pre>
-      </Section>
+      </Explanation>
       <Section title={backtrackingText.facts}>
         <p className="font-mono text-sm text-foreground/75">{cost}</p>
       </Section>
@@ -955,9 +965,9 @@ const StructureArticle = ({ algorithm, onNavigate }: { algorithm: StructureAlgor
         <h1 className="text-display font-semibold">{title}</h1>
         <p className="text-lg text-foreground/80">{shortDescription}</p>
       </header>
-      <Section title={structureText.howItWorks(named)}>
+      <Explanation title={structureText.howItWorks(named)}>
         <p className="leading-relaxed text-foreground/80">{longDescription}</p>
-      </Section>
+      </Explanation>
       <Section title={structureText.atAGlance}>
         <table className="w-full max-w-lg text-sm">
           <tbody>
@@ -977,11 +987,11 @@ const StructureArticle = ({ algorithm, onNavigate }: { algorithm: StructureAlgor
           </tbody>
         </table>
       </Section>
-      <Section title={text.pseudocode}>
+      <Explanation title={text.pseudocode}>
         <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
           {structurePseudocode[algorithm].join("\n")}
         </pre>
-      </Section>
+      </Explanation>
       <Section title={structureText.compare}>
         <StructureIndex current={algorithm} onNavigate={onNavigate} />
         <p className="text-foreground/80">
@@ -1002,10 +1012,10 @@ const StructureRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"]
       <h1 className="text-display font-semibold">{structureText.raceTitle}</h1>
       <p className="text-lg text-foreground/80">{structureText.raceIntro}</p>
     </header>
-    <Section title={structureText.whyBalancing}>
+    <Explanation title={structureText.whyBalancing}>
       <p className="leading-relaxed text-foreground/80">{STRUCTURE_RACE_DESCRIPTION}</p>
       <p className="leading-relaxed text-foreground/80">{structureText.raceTip}</p>
-    </Section>
+    </Explanation>
     <Section title={structureText.learnEach}>
       <StructureIndex onNavigate={onNavigate} />
     </Section>
@@ -1045,9 +1055,9 @@ const DpArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
         .
       </p>
     </Section>
-    <Section title={dpText.whyTable}>
+    <Explanation title={dpText.whyTable}>
       <p className="leading-relaxed text-foreground/80">{dpText.whyTableText}</p>
-    </Section>
+    </Explanation>
   </>
 );
 
@@ -1057,10 +1067,10 @@ const DpRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => 
       <h1 className="text-display font-semibold">{dpText.raceTitle}</h1>
       <p className="text-lg text-foreground/80">{dpText.raceIntro}</p>
     </header>
-    <Section title={dpText.whatMemoSaves}>
+    <Explanation title={dpText.whatMemoSaves}>
       <p className="leading-relaxed text-foreground/80">{DP_RACE_DESCRIPTION}</p>
       <p className="leading-relaxed text-foreground/80">{dpText.raceTip}</p>
-    </Section>
+    </Explanation>
     <Section title={dpText.theProblems}>
       <ul className="tap-rows flex flex-wrap gap-x-6 gap-y-2">
         {dpOrder.map((algorithm) => (
@@ -1084,9 +1094,9 @@ const DpProblemArticle = ({ algorithm, onNavigate }: { algorithm: DpAlgorithm; o
         <h1 className="text-display font-semibold">{title}</h1>
         <p className="text-lg text-foreground/80">{shortDescription}</p>
       </header>
-      <Section title={dpText.howItWorks}>
+      <Explanation title={dpText.howItWorks}>
         <p className="leading-relaxed text-foreground/80">{longDescription}</p>
-      </Section>
+      </Explanation>
       <Section title={dpText.atAGlance}>
         <table className="w-full max-w-lg text-sm">
           <tbody>
@@ -1106,11 +1116,11 @@ const DpProblemArticle = ({ algorithm, onNavigate }: { algorithm: DpAlgorithm; o
           </tbody>
         </table>
       </Section>
-      <Section title={text.pseudocode}>
+      <Explanation title={text.pseudocode}>
         <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
           {dpPseudocode[algorithm].join("\n")}
         </pre>
-      </Section>
+      </Explanation>
       <Section title={dpText.compare}>
         <p className="text-foreground/80">
           {dpText.compareLine(
