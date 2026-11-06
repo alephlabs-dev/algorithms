@@ -5,9 +5,6 @@
       "Bash(git push -f*)",
       "Bash(git push origin main*)",
       "Bash(git commit --no-verify*)",
-      "Bash(*--update-snapshots*)",
-      "Bash(*playwright test -u*)",
-      "Bash(make baselines*)",
       "Read(./.env)",
       "Read(./.env.*)"
     ]
@@ -16,16 +13,12 @@
     "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit|NotebookEdit",
-        "hooks": [
-          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/mark-dirty.sh", "timeout": 5 }
-        ]
+        "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/mark-dirty.sh", "timeout": 5 }]
       }
     ],
     "Stop": [
       {
-        "hooks": [
-          { "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/verify.sh", "timeout": 300 }
-        ]
+        "hooks": [{ "type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/verify.sh", "timeout": 300 }]
       }
     ]
   }
