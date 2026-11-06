@@ -182,12 +182,14 @@ export const Field = ({
   </div>
 );
 
-// Each module's settings, stacked for the settings sheet and menu. Help is plain text since tooltips don't work on touch.
+// Each module's settings, stacked for the settings sheet and panel. Where the panel
+// replaces a module's tools row (iPad landscape and desktop), the same controls carry
+// its "tools" tour anchor. Help is plain text since tooltips don't work on touch.
 
 /** Data structures' settings: how many values the tree starts with, in which order. */
 export const StructureSettings = () => (
   <div className="flex flex-col gap-6">
-    <Field label={text.startingValues} help={text.startingValuesHelp}>
+    <Field label={text.startingValues} help={text.startingValuesHelp} tour="tools">
       <StructurePresetButtons />
     </Field>
     <Field label={text.howMany} help={text.howManyHelp}>
@@ -204,12 +206,12 @@ export const DpSettings = () => {
       <Field label={text.bag} help={text.bagHelp}>
         <ItemsControls className="flex flex-wrap items-center gap-x-5 gap-y-3" />
       </Field>
-      <Field label={text.example}>
+      <Field label={text.example} tour="tools">
         <DpStartPicker />
       </Field>
     </div>
   ) : (
-    <Field label={text.exampleWords} help={text.exampleWordsHelp}>
+    <Field label={text.exampleWords} help={text.exampleWordsHelp} tour="tools">
       <DpStartPicker />
     </Field>
   );
@@ -219,7 +221,7 @@ export const DpSettings = () => {
 export const FourierSettings = () => {
   const wave = useStore((s) => s.fourierAlgorithm !== "epicycles");
   return (
-    <div className="flex flex-col gap-6">
+    <div data-tour="tools" className="flex flex-col gap-6">
       <Field label={text.circles} help={text.circlesHelp}>
         <CirclesPicker />
       </Field>
@@ -236,7 +238,7 @@ export const FourierSettings = () => {
 export const BacktrackingSettings = () => {
   const sudoku = useStore((s) => s.backtrackingProblem === "sudoku");
   return (
-    <div className="flex flex-col gap-6">
+    <div data-tour="tools" className="flex flex-col gap-6">
       <Field label={sudoku ? text.puzzle : text.queens} help={sudoku ? text.puzzleHelp : text.queensHelp}>
         <BacktrackingPicker />
       </Field>
@@ -255,7 +257,7 @@ export const GraphSettings = () => (
     <Field label={text.size} help={text.freshLayout}>
       <GraphSizePicker />
     </Field>
-    <Field label={text.layout} help={text.graphLayoutHelp}>
+    <Field label={text.layout} help={text.graphLayoutHelp} tour="tools">
       <GraphPresetButtons />
     </Field>
   </div>
@@ -267,12 +269,14 @@ export const PathSettings = () => (
     <Field label={text.gridSize} help={text.freshLayout}>
       <GridSizePicker />
     </Field>
-    <Field label={text.brush} help={text.brushHelp}>
-      <BrushPicker />
-    </Field>
-    <Field label={text.layout}>
-      <PresetButtons />
-    </Field>
+    <div data-tour="tools" className="flex flex-col gap-6">
+      <Field label={text.brush} help={text.brushHelp}>
+        <BrushPicker />
+      </Field>
+      <Field label={text.layout}>
+        <PresetButtons />
+      </Field>
+    </div>
   </div>
 );
 
