@@ -61,7 +61,10 @@ export const readUrlState = (search: string): Partial<UrlState> => {
 
   const speed = params.get("speed");
   if (isOneOf(speedPresets, speed)) state.speed = speed;
-  else if (speed && droppedPresets[speed]) state.speed = droppedPresets[speed];
+  else {
+    const kept = droppedPresets.get(speed ?? "");
+    if (kept) state.speed = kept;
+  }
 
   const seed = parseInt(params.get("seed") ?? "", 36);
   if (Number.isInteger(seed) && seed >= 0 && seed < 2 ** 32) state.seed = seed;

@@ -89,6 +89,8 @@ describe("url state", () => {
 
   it("ignores a speed that was never a preset", () => {
     expect(readUrlState("?speed=3x")).toEqual({});
+    expect(readUrlState("?speed=constructor")).toEqual({});
+    expect(readUrlState("?speed=toString")).toEqual({});
   });
 
   it("keeps the valid values when some are wrong", () => {

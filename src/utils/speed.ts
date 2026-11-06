@@ -54,9 +54,14 @@ const multipliers: Record<SpeedPreset, number> = { "0.5x": 0.5, "1x": 1, "2x": 2
 
 /**
  * Presets links used to carry, and the nearest kept one. "max" is from before
- * the presets were all multiples.
+ * the presets were all multiples. A Map, so names like "constructor" from a
+ * link never match an inherited key.
  */
-export const droppedPresets: Partial<Record<string, SpeedPreset>> = { "0.25x": "0.5x", "16x": "8x", max: "8x" };
+export const droppedPresets: ReadonlyMap<string, SpeedPreset> = new Map([
+  ["0.25x", "0.5x"],
+  ["16x", "8x"],
+  ["max", "8x"],
+]);
 
 export const presetLabels = Object.fromEntries(
   speedPresets.map((p) => [p, `${multipliers[p]}×`])
