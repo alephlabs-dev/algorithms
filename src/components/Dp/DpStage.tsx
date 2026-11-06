@@ -90,7 +90,7 @@ const DpCanvas = () => {
 };
 
 const inputClass =
-  "h-10 w-full min-w-0 rounded-full border border-line/70 bg-background px-3 font-mono text-sm uppercase text-foreground placeholder:normal-case placeholder:text-foreground/50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary sm:px-4";
+  "h-10 pointer-coarse:h-11 w-full min-w-0 rounded-full border border-line/70 bg-background px-3 font-mono text-sm uppercase text-foreground placeholder:normal-case placeholder:text-foreground/50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary sm:px-4";
 
 /** Two words in, and the table starts over. Remounted (by key) when the words change elsewhere. */
 const WordsBar = ({ a, b }: { a: string; b: string }) => {
@@ -135,7 +135,7 @@ const WordsBar = ({ a, b }: { a: string; b: string }) => {
         type="button"
         variant="ghost"
         size="icon"
-        className="h-10 w-9 shrink-0 sm:w-10"
+        className="h-10 w-9 shrink-0 sm:w-10 pointer-coarse:h-11"
         onClick={() => {
           setFirst(second);
           setSecond(first);
@@ -157,7 +157,7 @@ const WordsBar = ({ a, b }: { a: string; b: string }) => {
           className={inputClass}
         />
       </label>
-      <Button type="submit" size="sm" variant="primary" className="h-10 shrink-0 px-3 sm:px-4">
+      <Button type="submit" size="sm" variant="primary" className="h-10 shrink-0 px-3 sm:px-4 pointer-coarse:h-11">
         {copy.compare}
       </Button>
       {error && (

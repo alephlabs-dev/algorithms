@@ -130,7 +130,7 @@ export const SegmentedControl = <T extends string | number>({
             onKeyDown={onKeyDown}
             style={index === options.length - 1 && lastSpan > 1 ? { gridColumn: `span ${lastSpan}` } : undefined}
             className={cn(
-              "relative flex items-center justify-center gap-1.5 px-2 text-sm leading-tight text-foreground/80 transition-colors hover:bg-accent hover:text-foreground disabled:opacity-40 disabled:hover:bg-transparent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary [&_svg]:size-4",
+              "tap-target relative flex items-center justify-center gap-1.5 px-2 text-sm leading-tight text-foreground/80 transition-colors hover:bg-accent hover:text-foreground disabled:opacity-40 disabled:hover:bg-transparent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary [&_svg]:size-4",
               compact ? "min-h-10 lg:min-h-9" : "min-h-10",
               rounded,
               "transition-colors duration-200",

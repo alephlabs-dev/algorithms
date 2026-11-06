@@ -313,7 +313,7 @@ const NEXT: Record<GraphAlgorithm, GraphAlgorithm> = {
 };
 
 const linkClass =
-  "rounded-full text-sm font-semibold underline decoration-line underline-offset-4 hover:decoration-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
+  "tap-target relative rounded-full text-sm font-semibold underline decoration-line underline-offset-4 hover:decoration-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
 
 /** Over the graph when a run ends: what it took, and what to compare it with. */
 const GraphFinishSummary = ({ className }: { className?: string }) => {

@@ -124,6 +124,7 @@ const TourDialog = ({ steps }: { steps: TourStep[] }) => {
       <div
         ref={holeRef}
         aria-hidden
+        // eslint-disable-next-line house/no-raw-colors -- Dims the page; whether dimming gets a theme token is UX.md open question 6.
         className="pointer-events-none absolute left-0 top-0 shadow-[0_0_0_200vmax_rgb(0_0_0/0.65)] transition-[transform,width,height,border-radius] duration-500 ease-[cubic-bezier(0.3,1.1,0.4,1)] motion-reduce:transition-none [:root[data-theme=light]_&]:shadow-[0_0_0_200vmax_rgb(19_41_75/0.45)]"
       />
       <div

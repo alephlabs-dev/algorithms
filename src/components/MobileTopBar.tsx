@@ -104,6 +104,7 @@ const AlgorithmField = () => {
   const value = useStore(current);
   return (
     <div data-tour="picker" className="relative min-w-0 flex-1">
+      {/* eslint-disable house/no-native-controls -- native on purpose so phones open their own picker; UX.md open question 4. */}
       <select
         aria-label={text.algorithm}
         value={value}
@@ -125,6 +126,7 @@ const AlgorithmField = () => {
           );
         })}
       </select>
+      {/* eslint-enable house/no-native-controls */}
       <FieldChevron />
     </div>
   );

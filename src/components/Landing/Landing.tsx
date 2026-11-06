@@ -96,7 +96,7 @@ export const Landing = ({ onNavigate, actions }: Props) => {
         <PageLink
           to={{ kind: "home" }}
           onNavigate={onNavigate}
-          className="flex items-center gap-2 rounded-full text-base font-semibold sm:gap-2.5 sm:text-lg focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+          className="tap-target relative flex items-center gap-2 rounded-full text-base font-semibold sm:gap-2.5 sm:text-lg focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
         >
           <span
             aria-hidden
@@ -113,13 +113,13 @@ export const Landing = ({ onNavigate, actions }: Props) => {
         <nav aria-label={text.site} className="flex items-center sm:gap-1">
           <a
             href="#modules"
-            className="rounded-full px-3 py-2.5 text-[15px] sm:px-4 transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+            className="tap-target relative rounded-full px-3 py-2.5 text-[15px] sm:px-4 transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
           >
             {text.modules}
           </a>
           <a
             href={GITHUB}
-            className="grid h-10 w-10 place-items-center rounded-full border border-edge text-[15px] transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary sm:inline-flex sm:h-auto sm:w-auto sm:px-4 sm:py-2.5"
+            className="tap-target relative grid h-10 w-10 place-items-center rounded-full border border-edge text-[15px] transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary sm:inline-flex sm:h-auto sm:w-auto sm:px-4 sm:py-2.5"
           >
             {/* Phones get the mark alone, so the whole header fits on one row. */}
             <GitHubLogoIcon aria-hidden className="h-4 w-4 sm:hidden" />
@@ -228,7 +228,7 @@ export const Landing = ({ onNavigate, actions }: Props) => {
 
       <footer className="flex flex-wrap justify-between gap-4 border-t border-edge pt-6 text-sm text-foreground/60">
         <span>{text.madeBy}</span>
-        <a href={GITHUB} className="underline decoration-line underline-offset-4 hover:text-foreground">
+        <a href={GITHUB} className="tap-target relative underline decoration-line underline-offset-4 hover:text-foreground">
           {text.github}
         </a>
       </footer>

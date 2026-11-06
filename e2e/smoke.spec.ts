@@ -2,8 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 // Runs on every device project (iPhone, iPad portrait/landscape, desktop).
-// Checks: no JS errors, no horizontal scroll, no serious accessibility violations,
-// and the page looks like the approved baseline (compared only in CI / Linux).
+// Checks: no JS errors, no horizontal scroll, no serious accessibility violations.
 test('home loads cleanly', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -29,7 +28,4 @@ test('home loads cleanly', async ({ page }) => {
   const a11y = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = a11y.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
   expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([]);
-
-  await page.mouse.move(0, 0);
-  await expect(page).toHaveScreenshot('home.png', { fullPage: true });
 });

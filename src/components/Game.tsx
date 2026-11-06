@@ -151,7 +151,7 @@ export const GameToggle = ({ compact }: { compact?: boolean }) => {
 };
 
 const optionClass =
-  "h-10 min-w-12 rounded-full border border-line/70 px-4 font-mono text-sm font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
+  "tap-target relative h-10 min-w-12 rounded-full border border-line/70 px-4 font-mono text-sm font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
 
 /**
  * Guess mode under the stage: the question waiting for an answer, or how the
@@ -231,7 +231,7 @@ export const GameLayer = () => {
                 <button
                   type="button"
                   onClick={reset}
-                  className="shrink-0 rounded-full p-1 text-foreground/60 hover:bg-accent hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+                  className="tap-target relative shrink-0 rounded-full p-1 text-foreground/60 hover:bg-accent hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
                   aria-label={text.reset(score.right, score.asked)}
                   title={text.resetTitle}
                 >
@@ -265,13 +265,13 @@ export const GameLayer = () => {
                   <div
                     role="group"
                     aria-label={text.spots}
-                    className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none]"
+                    className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] pointer-coarse:-my-1.5 pointer-coarse:py-1.5"
                   >
                     {question.slots.map((slot) => (
                       <button
                         key={slot.key}
                         type="button"
-                        className="h-8 shrink-0 whitespace-nowrap rounded-full border border-line/70 px-3 text-xs text-foreground/85 transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+                        className="tap-target relative h-8 shrink-0 whitespace-nowrap rounded-full border border-line/70 px-3 text-xs text-foreground/85 transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
                         onClick={() => answer(slot.key)}
                       >
                         {slot.label}
