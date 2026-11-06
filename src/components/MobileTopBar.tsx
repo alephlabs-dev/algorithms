@@ -140,7 +140,7 @@ const AlgorithmSelect = () => {
       className="flex-1"
       groups={algorithms.map((group) => ({
         label: group.label && `${group.label} · ${group.hint}`,
-        options: group.items.map((item) => ({ value: item.id, label: item.title })),
+        options: group.items.map((item) => ({ value: item.id, label: item.title, short: item.short })),
       }))}
     />
   );

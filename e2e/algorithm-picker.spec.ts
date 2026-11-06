@@ -4,14 +4,15 @@ import { test, expect, type Locator, type Page } from '@playwright/test';
 // modules whose algorithms fit as one row of segments at 393px show them inline; the rest keep
 // ui/NativeSelect, a styled trigger over a native <select> so phones open their own picker.
 
-type Picker = 'segments' | 'select';
+// 'too long': 5 or fewer algorithms, but flagged namesTooLongForSegments, so a select.
+type Picker = 'segments' | 'select' | 'too long';
 const modules: { route: string; tourKey: string; picker: Picker; tour: string | null }[] = [
   { route: '/sorting/insertion-sort', tourKey: 'tour-done', picker: 'select', tour: 'Pick an algorithm' },
   { route: '/graphs', tourKey: 'tour-done-graphs', picker: 'select', tour: 'Pick an algorithm' },
   { route: '/pathfinding', tourKey: 'tour-done-pathfinding', picker: 'segments', tour: 'Pick a search' },
-  { route: '/structures', tourKey: 'tour-done-structures', picker: 'select', tour: 'Pick a structure' },
+  { route: '/structures', tourKey: 'tour-done-structures', picker: 'too long', tour: 'Pick a structure' },
   { route: '/fourier', tourKey: 'tour-done-fourier', picker: 'segments', tour: 'Pick a series' },
-  { route: '/dynamic-programming', tourKey: 'tour-done-dp', picker: 'select', tour: 'Pick a problem' },
+  { route: '/dynamic-programming', tourKey: 'tour-done-dp', picker: 'too long', tour: 'Pick a problem' },
   { route: '/backtracking', tourKey: 'tour-done-backtracking', picker: 'segments', tour: null },
 ];
 const languages = [
@@ -41,6 +42,40 @@ const overflowing = (group: Locator) =>
       })
       .filter(Boolean),
   );
+
+/**
+ * The select's short names laid out as the inline row would be: a copy of the page's own
+ * segmented control (the view switch), one segment per name, as wide as the bar. Returns
+ * the names that overflow their segment.
+ */
+const overflowingAsSegments = async (page: Page, select: Locator) => {
+  await select.evaluate((el) => {
+    const bar = el.closest('[data-tour="picker"]')!.parentElement!.parentElement!;
+    const source = [...document.querySelectorAll<HTMLElement>('[data-tour="race"] [role="radiogroup"]')].find((g) =>
+      g.checkVisibility(),
+    )!;
+    const shorts = [...(el as HTMLSelectElement).options].map((o) => o.dataset.short ?? o.text);
+    const row = source.cloneNode(false) as HTMLElement;
+    row.dataset.measure = '';
+    row.setAttribute('aria-label', 'measure');
+    row.style.gridTemplateColumns = `repeat(${shorts.length}, minmax(0, 1fr))`;
+    const template = source.querySelector('[role="radio"][aria-checked="false"]')!;
+    for (const short of shorts) {
+      const segment = template.cloneNode(false) as HTMLElement;
+      const label = document.createElement('span');
+      label.dataset.segmentLabel = '';
+      label.className = 'whitespace-nowrap';
+      label.textContent = short;
+      segment.append(label);
+      row.append(segment);
+    }
+    bar.append(row);
+  });
+  const row = page.locator('[data-measure]');
+  const result = await overflowing(row);
+  await row.evaluate((el) => el.remove());
+  return result;
+};
 
 for (const m of modules) {
   for (const l of languages) {
@@ -73,6 +108,25 @@ for (const m of modules) {
         await select.selectOption(other);
         await expect(select).toHaveValue(other);
       }
+    });
+  }
+
+  // The flag holds while some name, in some language, doesn't fit its segment.
+  if (m.picker === 'too long') {
+    test(`${m.route} names really overflow segments at 393px`, async ({ page }) => {
+      test.skip(page.viewportSize()?.width !== 393, 'measured at 393px (iPhone)');
+      await page.addInitScript((key) => localStorage.setItem(key, 'true'), m.tourKey);
+      const overflows: string[] = [];
+      for (const l of languages) {
+        await page.goto(`${l.prefix}${m.route}`);
+        const select = page.getByRole('combobox', { name: l.name, exact: true });
+        await expect(select).toBeVisible();
+        overflows.push(...(await overflowingAsSegments(page, select)).map((o) => `${l.lang} ${o}`));
+      }
+      expect(
+        overflows,
+        `every short name fits as a segment in English and Spanish: remove namesTooLongForSegments from ${m.route}`,
+      ).not.toEqual([]);
     });
   }
 

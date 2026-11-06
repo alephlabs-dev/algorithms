@@ -17,7 +17,8 @@ export const FieldChevron = () => (
 export type NativeSelectGroup = {
   /** Shown as an <optgroup>; without it the options sit at the top level. */
   label?: string;
-  options: { value: string; label: string }[];
+  /** `short`: a shorter name, kept on the option as data-short (e2e measures whether shorts would fit as segments). */
+  options: { value: string; label: string; short?: string }[];
 };
 
 type Props = {
@@ -45,7 +46,7 @@ export const NativeSelect = ({ label, value, onChange, groups, className, "data-
     >
       {groups.map((group, index) => {
         const options = group.options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option key={option.value} value={option.value} data-short={option.short}>
             {option.label}
           </option>
         ));
