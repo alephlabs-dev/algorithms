@@ -46,12 +46,43 @@ Every color comes from the theme. No hex, `rgb()`, `hsl()` or `oklch()` values i
 - **In this app:** the theme is the `--color-*` tokens in `src/index.css`, with a light-theme block under `:root[data-theme="light"]`, used as Tailwind classes (`bg-surface`, `text-foreground`, `border-edge`, …). Canvas renderers read the same tokens through `src/canvas/theme.ts` (`readColors`).
 - **Example:** the sorted-section highlight on the sorting stage is `--color-tertiary` (yellow in dark, blue in light), read by `src/canvas/barsRenderer.ts` through `readColors`, so it switches with the theme.
 
-## 7. Only our own components, never native browser controls
+## 7. Never controls with the browser's default look
 
-Controls come from `src/components/ui/`, styled like the rest of the app. No native `<select>`, checkboxes, radios, range inputs or other browser controls.
+Never controls with the browser's default look. Every control lives in `src/components/ui/`; those components may use the native element inside, always with our own styles and theme colors.
 
 - **In this app:** `src/components/ui/` holds `button`, `segmented`, `slider`, `drawer`, `popover`, `preset-buttons`, `list-item`, `badge`, `section-label`, `fact-line`, `tooltip`.
-- **Example:** the array size in the sorting settings (`src/components/Settings/SettingsPanel.tsx`) is our `SegmentedControl` (role `radiogroup`), not a native `<select>` or radio buttons.
+- **Example:** the speed control (`src/components/Controls/SpeedControl.tsx`) is our `SegmentedControl` (role `radiogroup`), not a native `<select>` or radio buttons.
+
+## 8. Secondary content on phones and tablets
+
+- Controls used during playback (speed, size, play) never cover the stage: inline below it, or a non-modal bottom sheet at most half the screen, with the stage still visible and animating.
+- One-off choices (the algorithm) use a modal sheet that closes on selection and has a close button. Never stack sheets.
+- Tabs or segmented controls (2–4 items) only switch between similar content. A separate route only for long, independent content.
+- iPad landscape and desktop: settings live in a fixed side panel.
+
+## 9. Collapsible sections
+
+- Only explanatory content (How X works, About), never controls. Closed on entry, no nesting, several can be open, opening one doesn't scroll the page.
+- Built with `ui/Disclosure`: a heading containing a button with `aria-expanded` and `aria-controls`.
+
+## 10. Choosing a control
+
+- Up to 5 named values: segmented. More than 5 ordered numeric values where approximate is fine: a slider with fixed steps, its value always visible beside it (never under the finger), live effect. An exact value in a small range: a stepper.
+- Speed is segmented with 4–5 fixed values; array size is a stepped slider.
+
+## 11. Algorithm picker
+
+- `ui/NativeSelect`: a styled closed trigger (`appearance: none`, theme colors, our own icon) over a native `<select>`.
+- Modules with 5 or fewer algorithms show all options inline instead.
+
+## 12. Text fields
+
+- `ui/TextField` wraps a native `<input>`: visible label above, optional hint, error linked with `aria-describedby`, font size at least 16px on touch devices. Never block zoom in the viewport meta.
+- Numbers: `type="text"` with `inputmode="numeric"` or `"decimal"`; the component validates.
+
+## 13. Overlays
+
+- Every backdrop behind a modal sheet, drawer or dialog uses the `--color-scrim` token (light: black at 32–40%, dark: black at 50–60%). Non-modal sheets have no backdrop.
 
 ## Checked automatically
 
@@ -61,13 +92,6 @@ Controls come from `src/components/ui/`, styled like the rest of the app. No nat
 - **Native controls (lint):** native form controls are only allowed inside `src/components/ui/`.
 - **Raw colors (lint):** color literals and Tailwind default palette classes are only allowed in the theme.
 
-## Open questions
+## Sources
 
-These need a decision before the rules above can be applied to them.
-
-1. **Tab or drawer on iPhone:** when does secondary content go in a tab, and when in a drawer/sheet? Today phones use drawers (pseudocode, settings, module switcher) and segmented controls for views (Visualize / Race).
-2. **Collapsible sections:** rule 4 lists them, but the app has no collapsible-section component. Should one be added to `src/components/ui/`, and where should it be used first, for example the explanation under the stage?
-3. **Sliders for settings:** rule 4 lists sliders for settings, but today every setting is a segmented control or preset buttons (array size, speed, grid size). Which settings, if any, should be sliders?
-4. **Native select on phones:** the algorithm picker in `src/components/MobileTopBar.tsx` is a native `<select>` on purpose, so phones open their own picker (the iOS wheel). Rule 7 forbids it. Replace it with our own picker (drawer list?), or allow this one exception?
-5. **Text and number entry:** the operation value in data structures (`src/components/Structures/StructureStage.tsx`) and the words in dynamic programming (`src/components/Dp/DpStage.tsx`) are native `<input>`s, styled as pills. There's no text-field component in `src/components/ui/`. Add one, or treat styled text/number inputs as allowed?
-6. **Overlays and shadows:** the drawer overlay, the shortcuts dialog backdrop and the tour's spotlight dim the page with black or navy at some opacity. Should the theme get a token for that (a scrim color), so rule 6 covers it too?
+Apple Human Interface Guidelines, Material 3, Nielsen Norman Group, GOV.UK Design System, WAI-ARIA Authoring Practices Guide.
