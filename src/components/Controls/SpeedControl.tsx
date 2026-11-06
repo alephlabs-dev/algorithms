@@ -45,9 +45,9 @@ export const SpeedControl = ({ className }: { className?: string }) => {
         value={preset}
         onChange={setPreset}
         compact
-        className="w-80 xl:w-96"
+        className="w-64 xl:w-72"
       />
-          </div>
+    </div>
   );
 };
 

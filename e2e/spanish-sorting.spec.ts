@@ -6,7 +6,7 @@ test('sorting in Spanish speaks Spanish and switches back to English', async ({ 
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
-  await page.goto('/es/sorting/insertion-sort?size=10&speed=16x');
+  await page.goto('/es/sorting/insertion-sort?size=10&speed=8x');
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   await expect(page).toHaveTitle(/Insertion Sort paso a paso/);
