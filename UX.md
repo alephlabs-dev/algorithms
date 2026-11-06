@@ -56,9 +56,10 @@ Never controls with the browser's default look. Every control lives in `src/comp
 ## 8. Secondary content on phones and tablets
 
 - Controls used during playback (speed, size, play) never cover the stage: inline below it, or a non-modal bottom sheet at most half the screen, with the stage still visible and animating.
-- One-off choices (the algorithm) use a modal sheet that closes on selection and has a close button. Never stack sheets.
-- Tabs or segmented controls (2–4 items) only switch between similar content. A separate route only for long, independent content.
+- Choices that don't fit inline open in a modal sheet with a close button. Never stack sheets.
+- Tabs or segmented controls only switch between similar content. A separate route only for long, independent content.
 - iPad landscape and desktop: settings live in a fixed side panel.
+- Which control a choice uses is rule 10; the algorithm picker is rule 11.
 
 ## 9. Collapsible sections
 
@@ -67,11 +68,12 @@ Never controls with the browser's default look. Every control lives in `src/comp
 
 ## 10. Choosing a control
 
-- Up to 5 named values: segmented. More than 5 ordered numeric values where approximate is fine: a slider with fixed steps, its value always visible beside it (never under the finger), live effect. An exact value in a small range: a stepper.
+- Up to 5 named values: segmented. More than 5 ordered numeric values where approximate is fine: a slider with fixed steps, its value always visible beside it (never under the finger), live effect. An exact value in a small range, picked a step at a time: a stepper. A value the learner types (a number to insert, a word): a text field (rule 12).
 - Speed is segmented with 4–5 fixed values; array size is a stepped slider.
 
 ## 11. Algorithm picker
 
+- Desktop and iPad landscape: the picker pill in the top bar opens a popover with the algorithms (`PickerPill` in `src/components/TopBar.tsx`). The rest of this rule is phones and tablets.
 - `ui/NativeSelect`: a styled closed trigger (`appearance: none`, theme colors, our own icon) over a native `<select>`.
 - Modules with 5 or fewer algorithms show all options inline instead: one row of equal segments with their short names, on its own line. If a module's names don't fit that row at 393px in every language, it keeps the `NativeSelect`; never invent shorter names (`namesTooLongForSegments` in the module, measured by `e2e/algorithm-picker.spec.ts`).
 
