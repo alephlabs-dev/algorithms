@@ -209,7 +209,7 @@ const OperationBar = () => {
         type="button"
         variant="ghost"
         size="icon"
-        className="h-10 w-9 shrink-0 sm:w-10"
+        className="h-10 w-9 shrink-0 sm:w-10 pointer-coarse:h-11"
         onClick={pickRandom}
         aria-label={copy.random}
         title={copy.random}
@@ -222,7 +222,7 @@ const OperationBar = () => {
           type={action.kind === "insert" ? "submit" : "button"}
           size="sm"
           variant={action.kind === "insert" ? "primary" : "secondary"}
-          className="h-10 shrink-0 px-2.5 sm:px-4"
+          className="h-10 shrink-0 px-2.5 sm:px-4 pointer-coarse:h-11"
           onClick={action.kind === "insert" ? undefined : () => run(action.kind)}
         >
           {action.label}
@@ -233,7 +233,7 @@ const OperationBar = () => {
           type="button"
           size="sm"
           variant="secondary"
-          className="h-10 shrink-0 px-2.5 sm:px-4"
+          className="h-10 shrink-0 px-2.5 sm:px-4 pointer-coarse:h-11"
           disabled={min === null}
           onClick={() => {
             setError(null);

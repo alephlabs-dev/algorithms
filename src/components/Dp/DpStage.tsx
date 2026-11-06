@@ -135,7 +135,7 @@ const WordsBar = ({ a, b }: { a: string; b: string }) => {
         type="button"
         variant="ghost"
         size="icon"
-        className="h-10 w-9 shrink-0 sm:w-10"
+        className="h-10 w-9 shrink-0 sm:w-10 pointer-coarse:h-11"
         onClick={() => {
           setFirst(second);
           setSecond(first);
@@ -157,7 +157,7 @@ const WordsBar = ({ a, b }: { a: string; b: string }) => {
           className={inputClass}
         />
       </label>
-      <Button type="submit" size="sm" variant="primary" className="h-10 shrink-0 px-3 sm:px-4">
+      <Button type="submit" size="sm" variant="primary" className="h-10 shrink-0 px-3 sm:px-4 pointer-coarse:h-11">
         {copy.compare}
       </Button>
       {error && (
