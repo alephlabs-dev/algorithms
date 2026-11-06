@@ -344,7 +344,7 @@ const fitGridSize = (size: GridSize, view: View, isMobile: boolean) => {
   return view === "race" && gridSizes.indexOf(size) > gridSizes.indexOf(cap) ? cap : size;
 };
 
-/** Numbers mode only fits so many tiles, and phones only so many bars. */
+/** The biggest size on offer (see sizesFor). */
 const maxSizeFor = (displayMode: DisplayMode, isMobile: boolean) => {
   const offered = sizesFor(displayMode, isMobile);
   return offered[offered.length - 1];

@@ -16,7 +16,7 @@ import { displayModes } from "./consts/displayModes";
 import { inputOrders } from "./consts/inputOrders";
 import { sizes } from "./consts/sizesMap";
 import type { Algorithm, DisplayMode, InputOrder, Size } from "./types";
-import { DEFAULT_PRESET, nearestPreset, speedPresets, type SpeedPreset } from "./utils/speed";
+import { DEFAULT_PRESET, droppedPresets, speedPresets, type SpeedPreset } from "./utils/speed";
 
 // Kept in sync with MIN_RACERS / MAX_RACERS in the store (not imported to avoid a cycle).
 const MIN_RACERS = 2;
@@ -60,9 +60,8 @@ export const readUrlState = (search: string): Partial<UrlState> => {
   if (isOneOf(displayModes, displayMode)) state.displayMode = displayMode;
 
   const speed = params.get("speed");
-  // Links from before the presets were all multiples said "max", the fastest one.
-  const preset = speed === "max" ? speedPresets[speedPresets.length - 1] : nearestPreset(speed ?? "");
-  if (preset) state.speed = preset;
+  if (isOneOf(speedPresets, speed)) state.speed = speed;
+  else if (speed && droppedPresets[speed]) state.speed = droppedPresets[speed];
 
   const seed = parseInt(params.get("seed") ?? "", 36);
   if (Number.isInteger(seed) && seed >= 0 && seed < 2 ** 32) state.seed = seed;

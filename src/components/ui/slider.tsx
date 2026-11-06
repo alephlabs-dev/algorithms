@@ -39,7 +39,7 @@ type StepSliderProps<T extends number> = {
   className?: string;
 };
 
-// The thumb is 14px wide and Radix keeps it inside the track, so its centre runs from 7px to 100% − 7px.
+// The thumb is 14px wide (h-3.5 w-3.5 in Slider above) and Radix keeps it inside the track, so its centre runs from 7px to 100% − 7px.
 const tickLeft = (fraction: number) => `calc(7px + ${fraction} * (100% - 14px))`;
 
 /**
@@ -50,7 +50,7 @@ const StepSlider = <T extends number>({ label, values, value, onChange, valueTex
   const index = Math.max(0, values.indexOf(value));
   const last = values.length - 1;
   return (
-    <div className={cn("flex items-center gap-4 pb-2", className)}>
+    <div className={cn("flex items-center gap-4 pb-3", className)}>
       <div className="relative flex grow items-center">
         <Slider
           aria-label={label}
@@ -65,7 +65,7 @@ const StepSlider = <T extends number>({ label, values, value, onChange, valueTex
         />
         {/* One tick per step, so the stops are visible before dragging. */}
         {last > 0 && (
-          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-full mt-1.5 h-1">
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-full mt-2 h-1">
             {values.map((v, i) => (
               <span
                 key={v}

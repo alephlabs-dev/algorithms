@@ -2,7 +2,7 @@ import { BarChartIcon } from "@radix-ui/react-icons";
 import type { ReactNode } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { inputOrders } from "@/consts/inputOrders";
-import { NUMBERS_LIMIT, sizesFor } from "@/consts/sizesMap";
+import { sizesFor } from "@/consts/sizesMap";
 import { useStore } from "@/store";
 import type { DisplayMode, InputOrder } from "@/types";
 import { ItemsControls } from "../Dp/DpStage";
@@ -273,7 +273,7 @@ export const SortingSettings = () => {
   const s = useSettings();
   return (
     <div className="flex flex-col gap-6">
-      <Field label={text.arraySize} help={sizeHelp(s.isMobile ? NUMBERS_LIMIT.mobile : NUMBERS_LIMIT.desktop)}>
+      <Field label={text.arraySize} help={sizeHelp(Math.max(...sizesFor("numbers", s.isMobile)))}>
         <SizePicker />
       </Field>
       <Field label={text.input}>

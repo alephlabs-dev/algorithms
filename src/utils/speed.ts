@@ -53,15 +53,10 @@ export const DEFAULT_PRESET: SpeedPreset = "1x";
 const multipliers: Record<SpeedPreset, number> = { "0.5x": 0.5, "1x": 1, "2x": 2, "4x": 4, "8x": 8 };
 
 /**
- * The kept preset closest to a multiplier like "16x", for links made when
- * there were more presets. Null when it isn't a multiplier.
+ * Presets links used to carry, and the nearest kept one. "max" is from before
+ * the presets were all multiples.
  */
-export const nearestPreset = (value: string): SpeedPreset | null => {
-  const multiplier = /^(\d+(?:\.\d+)?)x$/.exec(value)?.[1];
-  if (!multiplier || Number(multiplier) <= 0) return null;
-  const distance = (p: SpeedPreset) => Math.abs(Math.log2(multipliers[p] / Number(multiplier)));
-  return speedPresets.reduce((best, p) => (distance(p) < distance(best) ? p : best));
-};
+export const droppedPresets: Partial<Record<string, SpeedPreset>> = { "0.25x": "0.5x", "16x": "8x", max: "8x" };
 
 export const presetLabels = Object.fromEntries(
   speedPresets.map((p) => [p, `${multipliers[p]}×`])
