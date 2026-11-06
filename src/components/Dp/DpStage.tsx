@@ -7,18 +7,18 @@ import { cleanWord, MAX_CAPACITY, MAX_ITEMS, MAX_WORD, randomItems } from "@/dp"
 import { newSeed, seededRandom } from "@/utils/random";
 import { useElementSize } from "@/hooks/useElementSize";
 import { selectGameQuestion, useStore } from "@/store";
+import { cn } from "@/utils/cn";
 import { Button } from "../ui/button";
+import { besideField, TextField } from "../ui/text-field";
 import { localized } from "@/i18n";
 
 const copy = localized({
   en: {
-    twoWords: (max: number) => `Two words of letters, up to ${max} each`,
+    oneWord: (max: number) => `Letters only, up to ${max}`,
     words: "Words",
-    first: "First word (down the side)",
-    firstShort: "First word",
+    first: "First word",
     swap: "Swap the words",
-    second: "Second word (across the top)",
-    secondShort: "Second word",
+    second: "Second word",
     compare: "Compare",
     less: (label: string) => `Less ${label.toLowerCase()}`,
     more: (label: string) => `More ${label.toLowerCase()}`,
@@ -28,13 +28,11 @@ const copy = localized({
     newItems: "New items",
   },
   es: {
-    twoWords: (max) => `Dos palabras solo con letras, de hasta ${max} cada una`,
+    oneWord: (max) => `Solo letras, hasta ${max}`,
     words: "Palabras",
-    first: "Primera palabra (en el costado)",
-    firstShort: "Primera palabra",
+    first: "Palabra 1",
     swap: "Intercambiar las palabras",
-    second: "Segunda palabra (arriba)",
-    secondShort: "Segunda palabra",
+    second: "Palabra 2",
     compare: "Comparar",
     less: (label) => `${label}: menos`,
     more: (label) => `${label}: más`,
@@ -89,25 +87,19 @@ const DpCanvas = () => {
   );
 };
 
-const inputClass =
-  "h-10 pointer-coarse:h-11 w-full min-w-0 rounded-full border border-line/70 bg-background px-3 font-mono text-sm uppercase text-foreground placeholder:normal-case placeholder:text-foreground/50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary sm:px-4";
-
 /** Two words in, and the table starts over. Remounted (by key) when the words change elsewhere. */
 const WordsBar = ({ a, b }: { a: string; b: string }) => {
   const setWords = useStore((s) => s.setDpWords);
   const [first, setFirst] = useState(a);
   const [second, setSecond] = useState(b);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{ first: boolean; second: boolean }>({ first: false, second: false });
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
     const x = cleanWord(first);
     const y = cleanWord(second);
-    if (!x || !y) {
-      setError(copy.twoWords(MAX_WORD));
-      return;
-    }
-    setError(null);
+    setErrors({ first: !x, second: !y });
+    if (!x || !y) return;
     setWords(x, y);
     useStore.getState().play();
   };
@@ -117,54 +109,56 @@ const WordsBar = ({ a, b }: { a: string; b: string }) => {
       data-tour="words"
       onSubmit={submit}
       aria-label={copy.words}
-      className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-edge bg-surface px-2 py-2 sm:gap-2 sm:px-3"
+      className="flex flex-wrap items-start gap-1.5 rounded-2xl border border-edge bg-surface px-2 py-2 sm:gap-2 sm:px-3"
     >
-      <label className="flex min-w-16 flex-1 items-center sm:max-w-44">
-        <span className="sr-only">{copy.first}</span>
-        <input
-          value={first}
-          maxLength={MAX_WORD}
-          onChange={(e) => setFirst(e.target.value)}
-          placeholder={copy.firstShort}
-          autoCapitalize="characters"
-          spellCheck={false}
-          className={inputClass}
-        />
-      </label>
+      <TextField
+        label={copy.first}
+        value={first}
+        maxLength={MAX_WORD}
+        onChange={(e) => {
+          setFirst(e.target.value);
+          setErrors((was) => ({ ...was, first: false }));
+        }}
+        error={errors.first ? copy.oneWord(MAX_WORD) : null}
+        autoCapitalize="characters"
+        autoComplete="off"
+        spellCheck={false}
+        className="min-w-16 flex-1 sm:max-w-44"
+        inputClassName="font-mono uppercase"
+      />
       <Button
         type="button"
         variant="ghost"
         size="icon"
-        className="h-10 w-9 shrink-0 sm:w-10 pointer-coarse:h-11"
+        className={cn(besideField, "h-10 w-9 shrink-0 sm:w-10 pointer-coarse:h-11")}
         onClick={() => {
           setFirst(second);
           setSecond(first);
+          setErrors({ first: errors.second, second: errors.first });
         }}
         aria-label={copy.swap}
         title={copy.swap}
       >
         <WidthIcon />
       </Button>
-      <label className="flex min-w-16 flex-1 items-center sm:max-w-44">
-        <span className="sr-only">{copy.second}</span>
-        <input
-          value={second}
-          maxLength={MAX_WORD}
-          onChange={(e) => setSecond(e.target.value)}
-          placeholder={copy.secondShort}
-          autoCapitalize="characters"
-          spellCheck={false}
-          className={inputClass}
-        />
-      </label>
-      <Button type="submit" size="sm" variant="primary" className="h-10 shrink-0 px-3 sm:px-4 pointer-coarse:h-11">
+      <TextField
+        label={copy.second}
+        value={second}
+        maxLength={MAX_WORD}
+        onChange={(e) => {
+          setSecond(e.target.value);
+          setErrors((was) => ({ ...was, second: false }));
+        }}
+        error={errors.second ? copy.oneWord(MAX_WORD) : null}
+        autoCapitalize="characters"
+        autoComplete="off"
+        spellCheck={false}
+        className="min-w-16 flex-1 sm:max-w-44"
+        inputClassName="font-mono uppercase"
+      />
+      <Button type="submit" size="sm" variant="primary" className={cn(besideField, "h-10 shrink-0 px-3 sm:px-4 pointer-coarse:h-11")}>
         {copy.compare}
       </Button>
-      {error && (
-        <span role="alert" className="basis-full px-1 text-xs text-foreground/70 sm:basis-auto">
-          {error}
-        </span>
-      )}
     </form>
   );
 };

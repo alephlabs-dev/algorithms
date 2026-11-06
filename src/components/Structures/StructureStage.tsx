@@ -18,6 +18,8 @@ import { count } from "@/utils/count";
 import { moveDuration } from "@/utils/speed";
 import { cn } from "@/utils/cn";
 import { Button } from "../ui/button";
+import { parseWholeNumber } from "../ui/number";
+import { besideField, TextField } from "../ui/text-field";
 import { localized } from "@/i18n";
 
 const copy = localized({
@@ -160,8 +162,8 @@ const OperationBar = () => {
   const min = heap && last.shape === "tree" && last.nodes.length ? last.nodes[0].value : null;
 
   const run = (kind: OperationKind) => {
-    const value = Number(text);
-    if (!Number.isInteger(value) || value < MIN_VALUE || value > MAX_VALUE) {
+    const value = parseWholeNumber(text, MIN_VALUE, MAX_VALUE);
+    if (value === null) {
       setError(copy.wholeNumber(MIN_VALUE, MAX_VALUE));
       return;
     }
@@ -188,28 +190,26 @@ const OperationBar = () => {
       data-tour="structure"
       onSubmit={submit}
       aria-label={copy.operations}
-      className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-edge bg-surface px-2 py-2 sm:gap-2 sm:px-3"
+      className="flex flex-wrap items-start gap-1.5 rounded-2xl border border-edge bg-surface px-2 py-2 sm:gap-2 sm:px-3"
     >
-      <label className="flex min-w-11 flex-1 items-center sm:flex-none">
-        <span className="sr-only">{copy.value}</span>
-        <input
-          type="number"
-          inputMode="numeric"
-          min={MIN_VALUE}
-          max={MAX_VALUE}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder={copy.value}
-          aria-invalid={error !== null}
-          aria-describedby={error ? "operation-error" : undefined}
-          className="h-10 pointer-coarse:h-11 w-full min-w-11 rounded-full border border-line/70 bg-background px-2.5 text-center font-mono sm:w-24 sm:text-left sm:px-4 text-sm text-foreground placeholder:text-foreground/50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
-        />
-      </label>
+      <TextField
+        label={copy.value}
+        number={{ min: MIN_VALUE, max: MAX_VALUE, message: copy.wholeNumber(MIN_VALUE, MAX_VALUE) }}
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value);
+          setError(null);
+        }}
+        error={error}
+        autoComplete="off"
+        className="min-w-11 flex-1 sm:w-40 sm:flex-none"
+        inputClassName="px-2.5 text-center font-mono sm:text-left"
+      />
       <Button
         type="button"
         variant="ghost"
         size="icon"
-        className="h-10 w-9 shrink-0 sm:w-10 pointer-coarse:h-11"
+        className={cn(besideField, "h-10 w-9 shrink-0 sm:w-10 pointer-coarse:h-11")}
         onClick={pickRandom}
         aria-label={copy.random}
         title={copy.random}
@@ -222,7 +222,7 @@ const OperationBar = () => {
           type={action.kind === "insert" ? "submit" : "button"}
           size="sm"
           variant={action.kind === "insert" ? "primary" : "secondary"}
-          className="h-10 shrink-0 px-2.5 sm:px-4 pointer-coarse:h-11"
+          className={cn(besideField, "h-10 shrink-0 px-2.5 sm:px-4 pointer-coarse:h-11")}
           onClick={action.kind === "insert" ? undefined : () => run(action.kind)}
         >
           {action.label}
@@ -233,7 +233,7 @@ const OperationBar = () => {
           type="button"
           size="sm"
           variant="secondary"
-          className="h-10 shrink-0 px-2.5 sm:px-4 pointer-coarse:h-11"
+          className={cn(besideField, "h-10 shrink-0 px-2.5 sm:px-4 pointer-coarse:h-11")}
           disabled={min === null}
           onClick={() => {
             setError(null);
@@ -243,11 +243,6 @@ const OperationBar = () => {
         >
           {copy.popMin}
         </Button>
-      )}
-      {error && (
-        <span id="operation-error" role="alert" className="basis-full px-1 text-xs text-foreground/70 sm:basis-auto">
-          {error}
-        </span>
       )}
     </form>
   );

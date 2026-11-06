@@ -50,7 +50,7 @@ Every color comes from the theme. No hex, `rgb()`, `hsl()` or `oklch()` values i
 
 Never controls with the browser's default look. Every control lives in `src/components/ui/`; those components may use the native element inside, always with our own styles and theme colors.
 
-- **In this app:** `src/components/ui/` holds `button`, `segmented`, `slider`, `drawer`, `popover`, `preset-buttons`, `list-item`, `badge`, `section-label`, `fact-line`, `tooltip`, `disclosure`.
+- **In this app:** `src/components/ui/` holds `button`, `segmented`, `slider`, `drawer`, `popover`, `preset-buttons`, `list-item`, `badge`, `section-label`, `fact-line`, `tooltip`, `disclosure`, `text-field`.
 - **Example:** the speed control (`src/components/Controls/SpeedControl.tsx`) is our `SegmentedControl` (role `radiogroup`), not a native `<select>` or radio buttons.
 
 ## 8. Secondary content on phones and tablets
