@@ -1,3 +1,4 @@
+import { backtrackingProblems } from "@/consts/backtracking";
 import { dpProblems } from "@/consts/dp";
 import { fourierSeries } from "@/consts/fourierSeries";
 import { structures } from "@/consts/structures";
@@ -160,6 +161,23 @@ const fourierText = localized({
     epicyclesTitle: "Epiciclos de Fourier: dibuja cualquier forma con círculos · Aleph Labs",
     seriesTitle: (title) => `${title}: serie de Fourier visualizada con círculos · Aleph Labs`,
     section: "Series de Fourier",
+  },
+});
+
+const backtrackingText = localized({
+  en: {
+    moduleTitle: "Backtracking Visualizer: N-Queens Step by Step · Aleph Labs",
+    moduleDescription:
+      "Watch backtracking place N queens on a chessboard: every choice, every conflict, every dead end and every queen taken back, step by step with the pseudocode.",
+    problemTitle: (title: string) => `${title} Backtracking, Visualized Step by Step · Aleph Labs`,
+    section: "Backtracking",
+  },
+  es: {
+    moduleTitle: "Visualizador de backtracking: N reinas paso a paso · Aleph Labs",
+    moduleDescription:
+      "Mira cómo el backtracking coloca N reinas en un tablero: cada elección, cada conflicto, cada callejón sin salida y cada reina que se quita, paso a paso con el pseudocódigo.",
+    problemTitle: (title) => `${title} con backtracking, visualizado paso a paso · Aleph Labs`,
+    section: "Backtracking",
   },
 });
 
@@ -328,6 +346,23 @@ export const pageMeta = (route: Route): PageMeta => {
       description: shortDescription.slice(0, 200),
     };
   }
+  if (route.kind === "backtracking") {
+    return {
+      path,
+      url,
+      title: backtrackingText.moduleTitle,
+      description: backtrackingText.moduleDescription,
+    };
+  }
+  if (route.kind === "backtrackingProblem") {
+    const { title, shortDescription } = backtrackingProblems[route.algorithm];
+    return {
+      path,
+      url,
+      title: backtrackingText.problemTitle(title),
+      description: shortDescription.slice(0, 200),
+    };
+  }
   if (route.kind === "path") {
     const { title, short } = pathAlgorithms[route.algorithm];
     return {
@@ -373,6 +408,7 @@ export const structuredData = (route: Route): object[] => {
     fourier: fourierText.section,
     structures: structureText.section,
     dp: dpText.section,
+    backtracking: backtrackingText.section,
   };
   const sectionRoutes = {
     sorting: { kind: "sorting" },
@@ -381,6 +417,7 @@ export const structuredData = (route: Route): object[] => {
     fourier: { kind: "fourier" },
     structures: { kind: "structures" },
     dp: { kind: "dp" },
+    backtracking: { kind: "backtracking" },
   } as const;
   const section = { name: sectionNames[module], url: `${SITE_URL}${href(sectionRoutes[module])}` };
   const name =
@@ -400,6 +437,8 @@ export const structuredData = (route: Route): object[] => {
               ? structures[route.algorithm].title
             : route.kind === "dpProblem"
               ? dpProblems[route.algorithm].title
+            : route.kind === "backtrackingProblem"
+              ? backtrackingProblems[route.algorithm].title
         : route.kind === "algorithm"
           ? sortingAlgorithms[route.algorithm].title
           : null;

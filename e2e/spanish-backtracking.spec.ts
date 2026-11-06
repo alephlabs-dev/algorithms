@@ -1,0 +1,24 @@
+import { test, expect } from '@playwright/test';
+
+// Runs on every device project. The Spanish N-Queens page: names, steps and the choices strip.
+test('N-Queens in Spanish places queens and explains each step in Spanish', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.addInitScript(() => localStorage.setItem('tour-done-backtracking', 'true'));
+  await page.goto('/es/backtracking/n-queens?n=6');
+
+  await expect(page.locator('html')).toHaveAttribute('lang', 'es');
+  await expect(page.getByRole('heading', { level: 1, name: 'N reinas' })).toBeAttached();
+  await expect(
+    page.getByText('6 reinas en un tablero de 6×6, una por fila. Presiona play: cada fila prueba sus columnas desde la izquierda.').filter({ visible: true }).first(),
+  ).toBeVisible();
+
+  await page.getByRole('button', { name: 'Paso siguiente' }).click();
+  await expect(
+    page.getByText('Fila 1, columna 1 es segura, así que va una reina ahí. Sigue la fila 2.').filter({ visible: true }).first(),
+  ).toBeVisible();
+  // The choice stands in the strip: row 1's queen is in column 1.
+  await expect(page.getByRole('listitem', { name: 'Fila 1: columna 1' })).toBeVisible();
+  await expect(page).toHaveURL(/\/es\/backtracking\/n-queens\?n=6/);
+  expect(errors).toEqual([]);
+});

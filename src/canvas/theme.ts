@@ -15,6 +15,7 @@ export type CanvasColors = {
   dim: string;
   edge: string;
   mud: string;
+  conflict: string;
 };
 
 const variables: Record<keyof CanvasColors, string> = {
@@ -29,6 +30,7 @@ const variables: Record<keyof CanvasColors, string> = {
   dim: "--color-dim",
   edge: "--color-edge",
   mud: "--color-mud",
+  conflict: "--color-conflict",
 };
 
 // The build's CSS minifier rewrites colors in their shortest form ("gold" for #ffd700, #fff).

@@ -52,6 +52,7 @@ import {
   type Item,
   type TableRun,
 } from "./dp";
+import { DEFAULT_QUEENS, MAX_QUEENS, MIN_QUEENS, QueensRun, type BacktrackingProblem } from "./backtracking";
 import { engines, type ModuleId } from "./modules/engine";
 import { forgetAnswers, isAnswered, markAnswered, NEW_SCORE, type Answer, type GameScore, type Question } from "./game";
 import {
@@ -90,6 +91,7 @@ const TOUR_KEYS: Record<Module, string> = {
   fourier: "tour-done-fourier",
   structures: "tour-done-structures",
   dp: "tour-done-dp",
+  backtracking: "tour-done-backtracking",
 };
 
 export const tourDone = (module: Module) => {
@@ -158,6 +160,11 @@ export type StoreState = {
   dpRun: TableRun;
   /** Race view: the knapsack solved three ways, every subproblem each one touches. */
   dpRaceRuns: KnapsackWork[];
+  backtrackingProblem: BacktrackingProblem;
+  /** N-Queens: the board's size, and how many queens go on it. */
+  queensN: number;
+  /** The search for the first solution, frame by frame. */
+  queensRun: QueensRun;
   /** Bumped when the graph is replaced wholesale, so nodes don't glide between layouts. */
   graphId: number;
   /** Searches racing on the grid, in the picker's order. */
@@ -246,6 +253,9 @@ export type StoreState = {
   setDpWords: (a: string, b: string) => void;
   /** New knapsack items and capacity; the table starts over. */
   setDpItems: (items: Item[], capacity: number) => void;
+  setBacktrackingProblem: (problem: BacktrackingProblem) => void;
+  /** A new board size; the search starts over. */
+  setQueensN: (n: number) => void;
   togglePathRacer: (algorithm: PathAlgorithm) => void;
   /** Switch to the pathfinding race with `algorithm` among the racers. */
   pathRaceWith: (algorithm: PathAlgorithm) => void;
@@ -483,6 +493,7 @@ const initial = (() => {
   const dpRaceStart = module === "dp" && view === "race";
   const dpItems = (url.dp.items && decodeItems(url.dp.items)) || (dpRaceStart ? RACE_ITEMS : EXAMPLE_ITEMS);
   const dpCapacity = url.dp.capacity ?? (dpRaceStart ? RACE_CAPACITY : EXAMPLE_CAPACITY);
+  const queensN = url.backtracking.n ?? DEFAULT_QUEENS;
   const fourierAlgorithm = url.fourierAlgorithm ?? "square";
   const fourierShape = url.fourier.shape ?? "heart";
   const fourierPath = url.fourier.path ? decodePath(url.fourier.path) : null;
@@ -521,6 +532,9 @@ const initial = (() => {
     dpCapacity,
     dpRun: dpRunFor(dpAlgorithm, dpA, dpB, dpItems, dpCapacity),
     dpRaceRuns: dpRaceRunsFor(module === "dp" ? view : "single", dpItems, dpCapacity),
+    backtrackingProblem: url.backtrackingProblem ?? ("queens" as BacktrackingProblem),
+    queensN,
+    queensRun: new QueensRun(queensN),
     structureAlgorithm,
     structurePreset,
     structureSize,
@@ -797,6 +811,11 @@ export const useStore = create<StoreState>((set, get) => {
         const next = wordPairs[(at + 1) % wordPairs.length];
         setDpWords(next.a, next.b);
       }
+      else if (module === "backtracking") {
+        // "New" moves to the next board size, wrapping back to the smallest.
+        const { queensN, setQueensN } = get();
+        setQueensN(queensN >= MAX_QUEENS ? MIN_QUEENS : queensN + 1);
+      }
       else if (module === "fourier") {
         // "New" adds circles, wrapping back to the fewest: the quickest way to see the series converge.
         const { fourierAlgorithm, fourierCircles, setFourierCircles } = get();
@@ -932,6 +951,29 @@ export const useStore = create<StoreState>((set, get) => {
         frameIndex: 0,
         isPlaying: false,
       }));
+      applyAutoSpeed();
+    },
+
+    setBacktrackingProblem: (problem) => {
+      set((state) => ({
+        module: "backtracking",
+        view: "single",
+        isModuleStart: false,
+        backtrackingProblem: problem,
+        queensRun: new QueensRun(state.queensN),
+        dpRaceRuns: [],
+        raceTimelines: [],
+        pathRaceTimelines: [],
+        graphRaceTimelines: [],
+        structureRaceRuns: [],
+        frameIndex: 0,
+        isPlaying: false,
+      }));
+      applyAutoSpeed();
+    },
+
+    setQueensN: (queensN) => {
+      set({ queensN, queensRun: new QueensRun(queensN), frameIndex: 0, isPlaying: false });
       applyAutoSpeed();
     },
 

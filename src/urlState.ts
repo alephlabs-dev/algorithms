@@ -4,6 +4,7 @@ import { pathSearches } from "./pathfinding/searches";
 import type { FourierAlgorithm, FourierShape } from "./fourier/types";
 import { structurePresets, structureSizes, type StructurePreset, type StructureSize } from "./structures/presets";
 import type { StructureAlgorithm } from "./structures/types";
+import { MAX_QUEENS, MIN_QUEENS, type BacktrackingProblem } from "./backtracking/types";
 import { isWord } from "./dp/presets";
 import type { DpAlgorithm } from "./dp/types";
 import { graphPresets, graphSizes, type GraphPreset, type GraphSize } from "./graphs/graph";
@@ -234,6 +235,21 @@ export const toDpSearch = (state: DpUrlState & { speed?: SpeedPreset }) =>
     ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
   }).toString();
 
+/** A backtracking run as a link carries it: the board size. */
+export type BacktrackingUrlState = { n?: number };
+
+const readBacktrackingParams = (params: URLSearchParams): BacktrackingUrlState => {
+  const n = Number(params.get("n"));
+  return Number.isInteger(n) && n >= MIN_QUEENS && n <= MAX_QUEENS ? { n } : {};
+};
+
+export const toBacktrackingSearch = (state: { n: number; speed?: SpeedPreset }) =>
+  "?" +
+  new URLSearchParams({
+    n: String(state.n),
+    ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
+  }).toString();
+
 /** Settings from a full location: the page (path) wins over legacy query parameters. */
 export const readLocation = (
   pathname: string,
@@ -241,7 +257,7 @@ export const readLocation = (
 ): Partial<UrlState> & {
   isLanding: boolean;
   isModuleStart: boolean;
-  module: "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp";
+  module: "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | "backtracking";
   pathAlgorithm?: PathAlgorithm;
   path: PathUrlState;
   graphAlgorithm?: GraphAlgorithm;
@@ -252,9 +268,27 @@ export const readLocation = (
   structure: StructureUrlState;
   dpAlgorithm?: DpAlgorithm;
   dp: DpUrlState;
+  backtrackingProblem?: BacktrackingProblem;
+  backtracking: BacktrackingUrlState;
 } => {
   const state = readUrlState(search);
   const route = routeFromPath(pathname);
+  if (route?.kind === "backtracking" || route?.kind === "backtrackingProblem") {
+    return {
+      ...state,
+      isLanding: false,
+      isModuleStart: route.kind === "backtracking",
+      module: "backtracking",
+      view: "single",
+      ...(route.kind === "backtrackingProblem" && { backtrackingProblem: route.algorithm }),
+      path: {},
+      graph: {},
+      fourier: {},
+      structure: {},
+      dp: {},
+      backtracking: readBacktrackingParams(new URLSearchParams(search)),
+    };
+  }
   if (route?.kind === "dp" || route?.kind === "dpProblem" || route?.kind === "dpRace") {
     return {
       ...state,
@@ -268,6 +302,7 @@ export const readLocation = (
       fourier: {},
       structure: {},
       dp: readDpParams(new URLSearchParams(search)),
+      backtracking: {},
     };
   }
   if (route?.kind === "structures" || route?.kind === "structure" || route?.kind === "structureRace") {
@@ -283,6 +318,7 @@ export const readLocation = (
       fourier: {},
       structure: readStructureParams(new URLSearchParams(search)),
       dp: {},
+      backtracking: {},
     };
   }
   if (route?.kind === "fourier" || route?.kind === "series") {
@@ -298,6 +334,7 @@ export const readLocation = (
       fourier: readFourierParams(new URLSearchParams(search)),
       structure: {},
       dp: {},
+      backtracking: {},
     };
   }
   if (route?.kind === "graph" || route?.kind === "graphs" || route?.kind === "graphRace") {
@@ -313,6 +350,7 @@ export const readLocation = (
       fourier: {},
       structure: {},
       dp: {},
+      backtracking: {},
     };
   }
   if (route?.kind === "path" || route?.kind === "pathRace" || route?.kind === "pathfinding") {
@@ -328,6 +366,7 @@ export const readLocation = (
       fourier: {},
       structure: {},
       dp: {},
+      backtracking: {},
     };
   }
   if (route?.kind === "algorithm") {
@@ -339,7 +378,7 @@ export const readLocation = (
   // Old links put the algorithm in the query string of the home page (/?algo=quick): they open that algorithm.
   const legacy = state.algorithm !== undefined || state.view !== undefined;
   const isLanding = (route === null || route.kind === "home") && !legacy;
-  return { ...state, isLanding, isModuleStart: route?.kind === "sorting", module: "sorting", path: {}, graph: {}, fourier: {}, structure: {}, dp: {} };
+  return { ...state, isLanding, isModuleStart: route?.kind === "sorting", module: "sorting", path: {}, graph: {}, fourier: {}, structure: {}, dp: {}, backtracking: {} };
 };
 
 /** The query string for the settings that aren't part of the path. */

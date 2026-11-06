@@ -2,11 +2,13 @@ import type { ReactNode } from "react";
 import { pseudocode } from "@/algorithms";
 import { dpProblems } from "@/consts/dp";
 import { dpPseudocode, type DpAlgorithm } from "@/dp";
+import { backtrackingProblems } from "@/consts/backtracking";
 import { fourierSeries } from "@/consts/fourierSeries";
 import { DP_RACE_DESCRIPTION, STRUCTURE_RACE_DESCRIPTION } from "@/consts/race";
 import { structures } from "@/consts/structures";
 import { structurePseudocode, type StructureAlgorithm } from "@/structures";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
+import { queensPseudocode, type BacktrackingProblem } from "@/backtracking";
 import { fourierPseudocode, type FourierAlgorithm } from "@/fourier";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { graphPseudocode, type GraphAlgorithm } from "@/graphs";
@@ -348,6 +350,31 @@ const fourierText = localized({
     howItWorks: "Cómo funciona",
     theSeries: "La serie",
     more: "Más series",
+  },
+});
+
+const backtrackingText = localized({
+  en: {
+    moduleTitle: "Backtracking",
+    moduleIntro:
+      "Some puzzles are solved by making one choice at a time and taking the last one back as soon as it can't work. Watch every choice, every conflict and every dead end as backtracking places queens on a chessboard.",
+    all: "Problems",
+    why: "Why take choices back?",
+    whyText:
+      "Trying every complete arrangement of a puzzle is hopeless: eight queens alone can sit on a board in over sixteen million ways, one per row. Backtracking builds an arrangement piece by piece instead, and checks each piece the moment it's placed. A piece that breaks a rule is skipped on the spot, so every arrangement that would have started with it is never looked at. When no piece fits, the last one is taken back and its next option is tried. It's how Sudoku solvers, crossword fillers, timetable planners and parsers work.",
+    howItWorks: "How it works",
+    facts: "In short",
+  },
+  es: {
+    moduleTitle: "Backtracking",
+    moduleIntro:
+      "Algunos problemas se resuelven haciendo una elección a la vez y deshaciendo la última en cuanto deja de servir. Mira cada elección, cada conflicto y cada callejón sin salida mientras el backtracking coloca reinas en un tablero de ajedrez.",
+    all: "Problemas",
+    why: "¿Por qué deshacer elecciones?",
+    whyText:
+      "Probar todas las disposiciones completas de un problema no tiene esperanza: solo ocho reinas, una por fila, se pueden colocar de más de dieciséis millones de formas. El backtracking construye una disposición pieza a pieza y comprueba cada pieza en cuanto la coloca. Una pieza que rompe una regla se salta en el acto, así que nunca se mira ninguna disposición que hubiera empezado con ella. Cuando no cabe ninguna pieza, se quita la última y se prueba su siguiente opción. Así funcionan los programas que resuelven sudokus, llenan crucigramas, arman horarios o analizan código.",
+    howItWorks: "Cómo funciona",
+    facts: "En resumen",
   },
 });
 
@@ -813,6 +840,58 @@ const SeriesArticle = ({ algorithm, onNavigate }: { algorithm: FourierAlgorithm;
   );
 };
 
+const problemOrder = Object.keys(backtrackingProblems) as BacktrackingProblem[];
+
+const BacktrackingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
+  <>
+    <header className="flex flex-col gap-3">
+      <h1 className="text-display font-semibold">{backtrackingText.moduleTitle}</h1>
+      <p className="text-lg text-foreground/80">{backtrackingText.moduleIntro}</p>
+    </header>
+    <Section title={backtrackingText.all}>
+      <ul className="flex flex-col divide-y divide-edge">
+        {problemOrder.map((algorithm) => (
+          <li key={algorithm} className="flex flex-col gap-1 py-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+              <PageLink to={{ kind: "backtrackingProblem", algorithm }} onNavigate={onNavigate}>
+                {backtrackingProblems[algorithm].title}
+              </PageLink>
+              <span className="font-mono text-xs text-foreground/60">{backtrackingProblems[algorithm].cost}</span>
+            </div>
+            <p className="text-sm text-foreground/75">{backtrackingProblems[algorithm].shortDescription}</p>
+          </li>
+        ))}
+      </ul>
+    </Section>
+    <Section title={backtrackingText.why}>
+      <p className="leading-relaxed text-foreground/80">{backtrackingText.whyText}</p>
+    </Section>
+  </>
+);
+
+const BacktrackingProblemArticle = ({ algorithm }: { algorithm: BacktrackingProblem }) => {
+  const { title, shortDescription, longDescription, cost } = backtrackingProblems[algorithm];
+  return (
+    <>
+      <header className="flex flex-col gap-3">
+        <h1 className="text-display font-semibold">{title}</h1>
+        <p className="text-lg text-foreground/80">{shortDescription}</p>
+      </header>
+      <Section title={backtrackingText.howItWorks}>
+        <p className="leading-relaxed text-foreground/80">{longDescription}</p>
+      </Section>
+      <Section title={text.pseudocode}>
+        <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
+          {queensPseudocode.join("\n")}
+        </pre>
+      </Section>
+      <Section title={backtrackingText.facts}>
+        <p className="font-mono text-sm text-foreground/75">{cost}</p>
+      </Section>
+    </>
+  );
+};
+
 const structureOrder = Object.keys(structures) as StructureAlgorithm[];
 
 const StructureIndex = ({ current, onNavigate }: { current?: StructureAlgorithm; onNavigate?: Props["onNavigate"] }) => (
@@ -1069,6 +1148,8 @@ export const About = ({ route, onNavigate }: Props) => (
     {route.kind === "dp" && <DpArticle onNavigate={onNavigate} />}
     {route.kind === "dpProblem" && <DpProblemArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
     {route.kind === "dpRace" && <DpRaceArticle onNavigate={onNavigate} />}
+    {route.kind === "backtracking" && <BacktrackingArticle onNavigate={onNavigate} />}
+    {route.kind === "backtrackingProblem" && <BacktrackingProblemArticle algorithm={route.algorithm} />}
     <footer className="border-t border-edge pt-6 text-sm text-foreground/60">
       <PageLink
         to={{ kind: "home" }}

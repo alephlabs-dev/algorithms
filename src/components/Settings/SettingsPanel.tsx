@@ -7,6 +7,7 @@ import { useStore } from "@/store";
 import type { DisplayMode, InputOrder } from "@/types";
 import { ItemsControls } from "../Dp/DpStage";
 import { DpStartPicker } from "../Dp/DpTools";
+import { QueensPicker } from "../Backtracking/BacktrackingTools";
 import { CirclesPicker, ShapeGrid } from "../Fourier/FourierTools";
 import { StructurePresetButtons, StructureSizePicker } from "../Structures/StructureTools";
 import { GraphPresetButtons, GraphSizePicker } from "../Graphs/GraphTools";
@@ -37,6 +38,8 @@ const text = localized({
     exampleWordsHelp: "Or type any two words under the table, up to 10 letters each.",
     circles: "Circles",
     circlesHelp: "More circles, closer to the goal. Jumps and corners need the most.",
+    queens: "Queens",
+    queensHelp: "The board is as wide as the number of queens. Bigger boards take many more steps.",
     drawing: "Drawing",
     drawingHelp: "“Draw your own” turns the stage into a canvas: draw a shape in one stroke.",
     size: "Size",
@@ -68,6 +71,8 @@ const text = localized({
     exampleWordsHelp: "O escribe dos palabras cualesquiera bajo la tabla, de hasta 10 letras cada una.",
     circles: "Círculos",
     circlesHelp: "Más círculos, más cerca del objetivo. Los saltos y las esquinas necesitan más.",
+    queens: "Reinas",
+    queensHelp: "El tablero es tan ancho como el número de reinas. Los tableros grandes llevan muchos más pasos.",
     drawing: "Dibujo",
     drawingHelp: "“Dibuja el tuyo” convierte el escenario en un lienzo: dibuja una figura de un solo trazo.",
     size: "Tamaño",
@@ -220,6 +225,15 @@ export const FourierSettings = () => {
     </div>
   );
 };
+
+/** Backtracking's settings: the board size. */
+export const BacktrackingSettings = () => (
+  <div className="flex flex-col gap-6">
+    <Field label={text.queens} help={text.queensHelp}>
+      <QueensPicker />
+    </Field>
+  </div>
+);
 
 /** Graphs' settings: how many nodes and what kind of layout "new layout" makes. */
 export const GraphSettings = () => (

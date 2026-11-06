@@ -606,3 +606,62 @@ export const dpTour = localized<TourStep[]>({
     },
   ],
 });
+
+export const backtrackingTour = localized<TourStep[]>({
+  en: [
+    {
+      anchor: "bars",
+      title: "The board",
+      text: () =>
+        "One queen per row, tried column by column from the left. A red square is a conflict: a queen above already attacks it, along the dashed line.",
+    },
+    {
+      anchor: "choices",
+      title: "The choices that stand",
+      text: () =>
+        "The column of each row's queen. It grows with every queen placed, and shrinks when a row has nowhere left to go and the search backtracks.",
+    },
+    {
+      anchor: "narration",
+      title: "Follow along",
+      text: ({ wide }) =>
+        wide
+          ? "The code it's running, and each step in plain words."
+          : "Each step in plain words. Tap it to see the code.",
+    },
+    {
+      anchor: "tools",
+      phoneAnchor: "settings",
+      title: "How many queens",
+      text: ({ phone }) =>
+        `${phone ? "In settings: from" : "From"} 4 to 8. Six already has dead ends; eight takes over a thousand steps.`,
+    },
+  ],
+  es: [
+    {
+      anchor: "bars",
+      title: "El tablero",
+      text: () =>
+        "Una reina por fila, probando columna por columna desde la izquierda. Una casilla roja es un conflicto: una reina de arriba ya la ataca, por la línea discontinua.",
+    },
+    {
+      anchor: "choices",
+      title: "Las elecciones en pie",
+      text: () =>
+        "La columna de la reina de cada fila. Crece con cada reina colocada y se acorta cuando una fila se queda sin salida y la búsqueda vuelve atrás.",
+    },
+    {
+      anchor: "narration",
+      title: "Síguelo",
+      text: ({ wide }) =>
+        wide ? "El código que ejecuta y cada paso en palabras simples." : "Cada paso en palabras simples. Tócalo para ver el código.",
+    },
+    {
+      anchor: "tools",
+      phoneAnchor: "settings",
+      title: "Cuántas reinas",
+      text: ({ phone }) =>
+        `${phone ? "En los ajustes: de" : "De"} 4 a 8. Con seis ya hay callejones sin salida; con ocho son más de mil pasos.`,
+    },
+  ],
+});
