@@ -12,6 +12,7 @@ import { TopBar } from "./components/TopBar";
 import { Tour } from "./components/Tour";
 import { useMediaQuery } from "./hooks/useMediaQuery";
 import { useModuleUI } from "./modules";
+import { href } from "./routes";
 import { MOBILE_QUERY, PORTRAIT_QUERY, useStore } from "./store";
 import { navigate, routeFor } from "./urlSync";
 import { GameLayer } from "./components/Game";
@@ -89,7 +90,8 @@ function App() {
         <Tour />
       </main>
       {/* Below the stage: the page's written content, also prerendered for search engines. */}
-      <About route={route} onNavigate={navigate} />
+      {/* Keyed by page, so each page's explanations start closed. */}
+      <About key={href(route)} route={route} onNavigate={navigate} />
     </>
   );
 }

@@ -8,6 +8,7 @@ import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import type { Route } from "@/routes";
 import { cn } from "@/utils/cn";
+import { openFirstDisclosure } from "./ui/open-disclosure";
 import { localized } from "@/i18n";
 
 const text = localized({
@@ -82,6 +83,22 @@ const labelFor = (route: Route) => {
 };
 
 /**
+ * A module's start page says "About …": the hint just takes you to the article.
+ * Every other page's hint names the article's first explanation ("How X works",
+ * "Why balancing matters"), so it opens that one too.
+ */
+const MODULE_START_PAGES = new Set<Route["kind"]>([
+  "home",
+  "sorting",
+  "pathfinding",
+  "graphs",
+  "fourier",
+  "structures",
+  "dp",
+  "backtracking",
+]);
+
+/**
  * Under the dock: says there's more to read below the stage, and takes you
  * there. Fades away once the page has been scrolled.
  */
@@ -101,8 +118,11 @@ export const ScrollHint = ({ route, className }: { route: Route; className?: str
       tabIndex={scrolled ? -1 : undefined}
       aria-hidden={scrolled || undefined}
       onClick={() => {
+        const about = document.getElementById("about");
+        if (!about) return;
+        if (!MODULE_START_PAGES.has(route.kind)) openFirstDisclosure(about);
         const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        document.getElementById("about")?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+        about.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
       }}
       className={cn(
         "tap-target relative mx-auto flex shrink-0 items-center gap-1.5 rounded-full px-3 text-xs text-foreground/60 transition-[color,opacity] duration-300 hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
