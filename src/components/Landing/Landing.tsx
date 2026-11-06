@@ -108,7 +108,8 @@ export const Landing = ({ onNavigate, actions }: Props) => {
           <span className="max-[374px]:sr-only">{text.brand}</span>{" "}
           <span className="hidden font-normal text-foreground/60 sm:inline">{text.by}</span>
         </PageLink>
-        {/* One link to the module list below, not one per module: the list is the menu (#85). */}
+        {/* One link to the module list below, not one per module: the list is the menu (#85).
+            The nav is "Site", since a landmark named "Modules" around a link named "Modules" reads twice. */}
         <nav aria-label={text.site} className="flex items-center sm:gap-1">
           <a
             href="#modules"
@@ -121,7 +122,7 @@ export const Landing = ({ onNavigate, actions }: Props) => {
             className="grid h-10 w-10 place-items-center rounded-full border border-edge text-[15px] transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary sm:inline-flex sm:h-auto sm:w-auto sm:px-4 sm:py-2.5"
           >
             {/* Phones get the mark alone, so the whole header fits on one row. */}
-            <GitHubLogoIcon aria-hidden className="h-[18px] w-[18px] sm:hidden" />
+            <GitHubLogoIcon aria-hidden className="h-4 w-4 sm:hidden" />
             <span className="sr-only sm:not-sr-only">GitHub</span>
           </a>
           {actions}
