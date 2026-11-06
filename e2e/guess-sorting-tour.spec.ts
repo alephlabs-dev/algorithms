@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { openSettings } from './settings';
 
 // Runs on every device project. How first-time visitors find Guess mode in sorting:
 // the tour has a step about it, and the toggle says "New" until Guess is tried.
@@ -62,7 +63,7 @@ test('the sorting Guess toggle says "New" until Guess is tried', async ({ page }
   await expect(toggle).toHaveAccessibleName(/^Guess mode:/);
 });
 
-test('with 40 items the toggle hides "New" until Guess can actually be tried', async ({ page }) => {
+test('with 40 items the toggle hides "New" until Guess can actually be tried', async ({ page }, testInfo) => {
   await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
   await page.goto('/sorting/insertion-sort?size=40');
 
@@ -73,7 +74,7 @@ test('with 40 items the toggle hides "New" until Guess can actually be tried', a
   await expect(page.getByText('Guess works with 10 or 20 items.')).toBeVisible();
   await page.keyboard.press('Escape');
 
-  await page.getByRole('button', { name: /^Settings:/ }).click();
+  await openSettings(page, testInfo);
   const size = page.getByRole('slider', { name: 'Array size' });
   await size.focus();
   await size.press('Home');
