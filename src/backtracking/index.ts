@@ -1,6 +1,6 @@
 export * from "./types";
 export { attacker, attacks, QUEENS_LINE, QueensRun } from "./queens";
-export { queensPseudocode, sudokuPseudocode } from "./pseudocode";
+export { queensPseudocode, sudokuPseudocode, sudokuPseudocodeFor } from "./pseudocode";
 export { queensBoard, sudokuBoard } from "./board";
-export { conflictWith, SUDOKU_LINE, SUDOKU_PUZZLES, SudokuRun } from "./sudoku";
+export { conflictWith, optionsAt, rowOrderRun, SUDOKU_LINE, SUDOKU_PUZZLES, SudokuRun } from "./sudoku";
 export { runOf } from "./run";

@@ -39,6 +39,14 @@ export const sudokuBoard = (frame: SudokuFrame, run: SudokuRun): BoardInput => {
       : { piece: { kind: "text", value: String(digit) }, tone: "placed", given: run.givens[k] },
   );
   const cell = (row: number, col: number) => cells[row * 9 + col];
+  // Fewest options first: each empty cell shows how many digits fit; the fewest are lit.
+  if (frame.options) {
+    const counts = frame.options.filter((n): n is number => n !== null);
+    const fewest = Math.min(...counts);
+    frame.options.forEach((n, k) => {
+      if (n !== null) cells[k].note = { text: String(n), lit: n === fewest };
+    });
+  }
 
   const lines: BoardInput["lines"] = [];
   let deadEnd: BoardInput["deadEnd"] = null;

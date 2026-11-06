@@ -6,8 +6,8 @@ import {
   BacktrackingTools,
 } from "@/components/Backtracking/BacktrackingTools";
 import { BacktrackingSettings } from "@/components/Settings/SettingsPanel";
-import { queensPseudocode, runOf, sudokuPseudocode, type BacktrackingProblem } from "@/backtracking";
-import { backtrackingProblems, sudokuPuzzleNames } from "@/consts/backtracking";
+import { queensPseudocode, runOf, sudokuPseudocodeFor, type BacktrackingProblem } from "@/backtracking";
+import { backtrackingProblems, fillOrderNames, sudokuPuzzleNames } from "@/consts/backtracking";
 import { localized } from "@/i18n";
 import { useStore, type StoreState } from "@/store";
 import { count } from "@/utils/count";
@@ -44,23 +44,25 @@ const problems: Record<
   {
     settingsSummary: ModuleUI["settingsSummary"];
     summary: (s: StoreState) => string;
-    pseudocode: string[];
+    pseudocode: (s: StoreState) => string[];
     narrate: (s: StoreState, index: number) => string;
   }
 > = {
   queens: {
     settingsSummary: (s) => ({ main: String(s.queensN), detail: text.queensWord, mono: true, label: text.queens(s.queensN) }),
     summary: (s) => text.summary(s.queensN),
-    pseudocode: queensPseudocode,
+    pseudocode: () => queensPseudocode,
     narrate: (s, index) => narrateBacktracking(s.queensRun, index),
   },
   sudoku: {
     settingsSummary: (s) => {
       const name = sudokuPuzzleNames[s.sudokuPuzzle];
-      return { main: name, detail: text.puzzleWord, label: text.puzzleLabel(name) };
+      const detail = s.sudokuOrder === "mrv" ? "MRV" : text.puzzleWord;
+      return { main: name, detail, label: `${text.puzzleLabel(name)}, ${fillOrderNames[s.sudokuOrder]}` };
     },
-    summary: (s) => text.sudokuSummary(sudokuPuzzleNames[s.sudokuPuzzle]),
-    pseudocode: sudokuPseudocode,
+    summary: (s) =>
+      text.sudokuSummary(sudokuPuzzleNames[s.sudokuPuzzle]) + (s.sudokuOrder === "mrv" ? " · MRV" : ""),
+    pseudocode: (s) => sudokuPseudocodeFor(s.sudokuOrder),
     narrate: (s, index) => narrateSudoku(s.sudokuRun, index),
   },
 };
@@ -96,7 +98,7 @@ export const backtrackingUI: ModuleUI = {
   summary: (s) => problems[s.backtrackingProblem].summary(s),
 
   code: {
-    lines: (s) => problems[s.backtrackingProblem].pseudocode,
+    lines: (s) => problems[s.backtrackingProblem].pseudocode(s),
     line: (s) => runOf(s).frameAt(s.frameIndex).line,
     narrate: (s, index) => problems[s.backtrackingProblem].narrate(s, index),
   },

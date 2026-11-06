@@ -34,6 +34,10 @@ _Avoid_: Clash, prune, failure
 A slot where no value is left to try, which forces a backtrack.
 _Avoid_: Failure, stuck
 
+**Fill order**:
+Which empty slot a problem fills next: row by row, in reading order, or fewest options first (MRV), the slot with the fewest values left that fit.
+_Avoid_: Heuristic, strategy, search order
+
 **Backtrack**:
 Undoing the most recent choice that still stands, so the next value can be tried there.
 _Avoid_: Undo, rollback, retreat

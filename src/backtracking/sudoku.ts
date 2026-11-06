@@ -1,4 +1,4 @@
-import type { Square, SudokuEvent, SudokuFrame, SudokuPuzzle, SudokuRule } from "./types";
+import type { FillOrder, Square, SudokuEvent, SudokuFrame, SudokuPuzzle, SudokuRule } from "./types";
 
 /**
  * Wikipedia's Sudoku with its digits renamed. Renaming changes the order the digits are
@@ -39,16 +39,29 @@ export const conflictWith = (grid: number[], row: number, col: number, digit: nu
   return null;
 };
 
+/** How many digits fit at `cell` right now. */
+export const optionsAt = (grid: number[], cell: number) => {
+  let n = 0;
+  for (let digit = 1; digit <= 9; digit++) if (!conflictWith(grid, Math.floor(cell / 9), cell % 9, digit)) n++;
+  return n;
+};
+
 /**
- * Fills a Sudoku's empty cells row by row, trying 1 to 9 in each, and stops
- * at the solution, recording a frame per choice, conflict, dead end and backtrack.
+ * Fills a Sudoku's empty cells, trying 1 to 9 in each, and stops at the
+ * solution, recording a frame per choice, conflict, dead end and backtrack.
+ * Row order takes the empty cells left to right, top to bottom; fewest options
+ * first (MRV) takes the cell with the fewest digits that fit, the first in
+ * reading order on a tie.
  */
 export class SudokuRun {
   readonly frames: SudokuFrame[] = [];
   /** The givens: true where the puzzle has a digit. */
   readonly givens: boolean[];
 
-  constructor(readonly puzzle: string) {
+  constructor(
+    readonly puzzle: string,
+    readonly order: FillOrder = "rows",
+  ) {
     const grid = [...puzzle].map((ch) => (ch === "." ? 0 : Number(ch)));
     this.givens = grid.map((digit) => digit !== 0);
     const empty = grid.flatMap((digit, k) => (digit === 0 ? [k] : []));
@@ -56,11 +69,13 @@ export class SudokuRun {
     let choices = 0;
     let conflicts = 0;
     let backtracks = 0;
+    const options = () => (order === "mrv" ? grid.map((digit, cell) => (digit === 0 ? optionsAt(grid, cell) : null)) : null);
     const frame = (event: SudokuEvent) =>
       this.frames.push({
         event,
         grid: grid.slice(),
         stack: stack.slice(),
+        options: options(),
         choices,
         conflicts,
         backtracks,
@@ -68,9 +83,20 @@ export class SudokuRun {
       });
 
     frame({ type: "start" });
-    const solve = (k: number): boolean => {
-      if (k === empty.length) return true;
-      const cell = empty[k];
+    const nextCell = (): number | null => {
+      if (order === "rows") return empty.find((cell) => grid[cell] === 0) ?? null;
+      let best: number | null = null;
+      let fewest = 10;
+      for (const cell of empty) {
+        if (grid[cell] !== 0) continue;
+        const n = optionsAt(grid, cell);
+        if (n < fewest) [best, fewest] = [cell, n];
+      }
+      return best;
+    };
+    const solve = (): boolean => {
+      const cell = nextCell();
+      if (cell === null) return true;
       const row = Math.floor(cell / 9);
       const col = cell % 9;
       for (let digit = 1; digit <= 9; digit++) {
@@ -84,7 +110,7 @@ export class SudokuRun {
         stack.push(cell);
         choices++;
         frame({ type: "choice", row, col, digit });
-        if (solve(k + 1)) return true;
+        if (solve()) return true;
         grid[cell] = 0;
         stack.pop();
         backtracks++;
@@ -93,7 +119,7 @@ export class SudokuRun {
       frame({ type: "deadEnd", row, col });
       return false;
     };
-    solve(0);
+    solve();
     frame({ type: "done" });
   }
 
@@ -111,3 +137,11 @@ export class SudokuRun {
     return this.frames[Math.min(index, this.frames.length - 1)];
   }
 }
+
+// The row-by-row run of a puzzle, to compare fewest options first against; recorded once per puzzle.
+const rowOrderRuns = new Map<string, SudokuRun>();
+export const rowOrderRun = (puzzle: string) => {
+  let run = rowOrderRuns.get(puzzle);
+  if (!run) rowOrderRuns.set(puzzle, (run = new SudokuRun(puzzle)));
+  return run;
+};

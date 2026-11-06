@@ -36,6 +36,9 @@ export type QueensFrame = {
   line: number | null;
 };
 
+/** Which empty cell a Sudoku fills next: the first in reading order, or the one with the fewest options (MRV). */
+export type FillOrder = "rows" | "mrv";
+
 /** Sudoku's preset puzzles. */
 export type SudokuPuzzle = "easy" | "hard";
 
@@ -61,6 +64,8 @@ export type SudokuFrame = {
   grid: number[];
   /** The choices that stand, oldest first, as cell indexes. */
   stack: number[];
+  /** Fewest options first: how many digits fit in each empty cell right now (null for filled cells). Null in row order. */
+  options: (number | null)[] | null;
   choices: number;
   conflicts: number;
   backtracks: number;

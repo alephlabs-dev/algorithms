@@ -1,3 +1,5 @@
+import type { FillOrder } from "./types";
+
 // Line numbers are QUEENS_LINE in queens.ts.
 export const queensPseudocode = [
   "solve(row):",
@@ -22,3 +24,12 @@ export const sudokuPseudocode = [
   "      remove(cell, d)",
   "  return false",
 ];
+
+// Fewest options first changes only how the cell is picked.
+const fewestOptionsPseudocode = sudokuPseudocode.map((line, k) =>
+  k === 1 ? "  cell = cell with fewest options" : line,
+);
+
+/** Sudoku's pseudocode for a fill order. The same array every time, so the code card can select it. */
+export const sudokuPseudocodeFor = (order: FillOrder) =>
+  order === "mrv" ? fewestOptionsPseudocode : sudokuPseudocode;

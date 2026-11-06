@@ -7,7 +7,7 @@ import { useStore } from "@/store";
 import type { DisplayMode, InputOrder } from "@/types";
 import { ItemsControls } from "../Dp/DpStage";
 import { DpStartPicker } from "../Dp/DpTools";
-import { BacktrackingPicker } from "../Backtracking/BacktrackingTools";
+import { BacktrackingPicker, FillOrderPicker } from "../Backtracking/BacktrackingTools";
 import { CirclesPicker, ShapeGrid } from "../Fourier/FourierTools";
 import { StructurePresetButtons, StructureSizePicker } from "../Structures/StructureTools";
 import { GraphPresetButtons, GraphSizePicker } from "../Graphs/GraphTools";
@@ -40,6 +40,8 @@ const text = localized({
     circlesHelp: "More circles, closer to the goal. Jumps and corners need the most.",
     queens: "Queens",
     queensHelp: "The board is as wide as the number of queens. Bigger boards take many more steps.",
+    order: "Order",
+    orderHelp: "Which empty cell goes next. Fewest options first picks the cell with the fewest digits that fit.",
     puzzle: "Puzzle",
     puzzleHelp: "The same grid with its digits renamed: the hard one takes about seven times as many steps.",
     drawing: "Drawing",
@@ -75,6 +77,8 @@ const text = localized({
     circlesHelp: "Más círculos, más cerca del objetivo. Los saltos y las esquinas necesitan más.",
     queens: "Reinas",
     queensHelp: "El tablero es tan ancho como el número de reinas. Los tableros grandes llevan muchos más pasos.",
+    order: "Orden",
+    orderHelp: "Qué casilla vacía va primero. Menos opciones primero elige la casilla a la que le caben menos dígitos.",
     puzzle: "Sudoku",
     puzzleHelp: "La misma cuadrícula con los dígitos cambiados: el difícil lleva unas siete veces más pasos.",
     drawing: "Dibujo",
@@ -238,6 +242,11 @@ export const BacktrackingSettings = () => {
       <Field label={sudoku ? text.puzzle : text.queens} help={sudoku ? text.puzzleHelp : text.queensHelp}>
         <BacktrackingPicker />
       </Field>
+      {sudoku && (
+        <Field label={text.order} help={text.orderHelp}>
+          <FillOrderPicker />
+        </Field>
+      )}
     </div>
   );
 };
