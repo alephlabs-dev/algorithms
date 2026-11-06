@@ -6,7 +6,7 @@ import { useModuleUI } from "@/modules";
 import { useStore } from "@/store";
 import { navigate } from "@/urlSync";
 import { cn } from "@/utils/cn";
-import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
+import { Drawer, DrawerSheet, DrawerTrigger } from "./ui/drawer";
 import { ListItem } from "./ui/list-item";
 import { popoverClass } from "./ui/popover";
 import { SectionLabel } from "./ui/section-label";
@@ -119,12 +119,9 @@ export const ModuleButton = () => {
       <DrawerTrigger aria-label={text.modulePill(title)} className={logoClass}>
         <AlephMark />
       </DrawerTrigger>
-      <DrawerContent aria-describedby={undefined}>
-        <div className="flex max-h-[85dvh] flex-col gap-4 overflow-y-auto p-6 pb-10 text-foreground">
-          <DrawerTitle className="text-xl font-semibold">{text.modules}</DrawerTitle>
-          <ModuleList onPick={() => setOpen(false)} />
-        </div>
-      </DrawerContent>
+      <DrawerSheet title={text.modules}>
+        <ModuleList onPick={() => setOpen(false)} />
+      </DrawerSheet>
     </Drawer>
   );
 };

@@ -1,13 +1,14 @@
 import { MixerHorizontalIcon } from "@radix-ui/react-icons";
-import * as Popover from "@radix-ui/react-popover";
-import { useModuleUI, useSettingsSummary } from "@/modules";
+import { useModuleUI } from "@/modules";
 import { cn } from "@/utils/cn";
-import { popoverClass } from "../ui/popover";
+import { SpeedField } from "../Controls/SpeedControl";
+import { BottomSheet } from "../ui/bottom-sheet";
+import { SectionLabel } from "../ui/section-label";
 import { localized } from "@/i18n";
 
 const text = localized({
-  en: { settings: (label: string) => `Settings: ${label}. Change` },
-  es: { settings: (label) => `Ajustes: ${label}. Cambiar` },
+  en: { settings: "Settings" },
+  es: { settings: "Ajustes" },
 });
 
 /** The settings of the module on stage. */
@@ -16,37 +17,29 @@ export const SettingsPanel = () => {
   return <Settings />;
 };
 
+/** iPad landscape and desktop: the settings in a fixed panel beside the stage (UX.md rule 8). */
+export const SettingsAside = ({ className }: { className?: string }) => (
+  <section
+    data-tour="settings"
+    aria-label={text.settings}
+    className={cn("flex min-h-0 flex-col gap-4 overflow-y-auto rounded-3xl border border-edge bg-surface p-5", className)}
+  >
+    <SectionLabel className="flex items-center gap-2">
+      <MixerHorizontalIcon className="h-4 w-4" /> {text.settings}
+    </SectionLabel>
+    <SettingsPanel />
+  </section>
+);
+
 /**
- * Desktop and tablet: one pill in the dock that reads like the settings
- * ("40 · Random") and opens all of them.
+ * Phones and upright tablets: the settings in a non-modal sheet under the
+ * stage. It covers the dock, so the speed comes along.
  */
-export const SettingsMenu = ({ className }: { className?: string }) => {
-  const { main, detail, mono, label } = useSettingsSummary();
-  return (
-    <Popover.Root>
-      <Popover.Trigger
-        data-tour="settings"
-        aria-label={text.settings(label)}
-        className={cn(
-          "flex h-11 shrink-0 items-center gap-2 rounded-full border border-edge px-4 text-sm text-foreground transition-colors hover:bg-accent data-[state=open]:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
-          className,
-        )}
-      >
-        <MixerHorizontalIcon className="h-4 w-4 text-foreground/70" />
-        <span className={mono ? "font-mono" : undefined}>{main}</span>
-        <span className="text-foreground/40">·</span>
-        <span className="whitespace-nowrap">{detail}</span>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          side="top"
-          align="end"
-          sideOffset={12}
-          className={cn(popoverClass, "max-h-[var(--radix-popover-content-available-height)] w-96 overflow-y-auto p-6")}
-        >
-          <SettingsPanel />
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
-  );
-};
+export const SettingsSheet = () => (
+  <BottomSheet id="settings" title={text.settings} icon={<MixerHorizontalIcon className="h-5 w-5" />}>
+    <div className="flex flex-col gap-6">
+      <SpeedField />
+      <SettingsPanel />
+    </div>
+  </BottomSheet>
+);

@@ -166,8 +166,19 @@ const DisplayPicker = () => {
   );
 };
 
-const Field = ({ label, help, children }: { label: string; help?: string; children: ReactNode }) => (
-  <div className="flex flex-col gap-2">
+/** One setting with its name above and help below. `tour` lets a tour step point at it. */
+export const Field = ({
+  label,
+  help,
+  tour,
+  children,
+}: {
+  label: string;
+  help?: string;
+  tour?: string;
+  children: ReactNode;
+}) => (
+  <div data-tour={tour} className="flex flex-col gap-2">
     <h3 className="text-sm font-semibold text-foreground">{label}</h3>
     {children}
     {help && <p className="text-xs text-foreground/70">{help}</p>}

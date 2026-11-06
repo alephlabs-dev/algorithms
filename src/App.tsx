@@ -4,8 +4,10 @@ import { About } from "./components/About";
 import { Controls } from "./components/Controls";
 import { Landing } from "./components/Landing/Landing";
 import { MobileRaceBar, MobileTopBar } from "./components/MobileTopBar";
-import { NowCard, StepCaption } from "./components/Pseudocode";
+import { CodeSheet, NowCard, StepCaption } from "./components/Pseudocode";
 import { ScrollHint } from "./components/ScrollHint";
+import { SettingsAside, SettingsSheet } from "./components/Settings/ModuleSettings";
+import { useSheets } from "./components/ui/sheets";
 import { LanguageButton } from "./components/LanguageSwitch";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { TopBar } from "./components/TopBar";
@@ -16,6 +18,27 @@ import { href } from "./routes";
 import { MOBILE_QUERY, PORTRAIT_QUERY, useStore } from "./store";
 import { navigate, routeFor } from "./urlSync";
 import { GameLayer } from "./components/Game";
+
+// Settings get a side panel from here up, and the pseudocode a card from XL up (UX.md rule 8).
+const PANEL_QUERY = "(min-width: 1024px)";
+const CARD_QUERY = "(min-width: 1280px)";
+
+/** The non-modal sheet on screen, if any: each one only exists where its panel or card doesn't. */
+const useSheet = () => {
+  const open = useSheets((s) => s.open);
+  const panel = useMediaQuery(PANEL_QUERY);
+  const card = useMediaQuery(CARD_QUERY);
+  const isTourOpen = useStore((s) => s.isTourOpen);
+
+  // The tour points at the dock and the top bar, so it starts with no sheet in the way.
+  useEffect(() => {
+    if (isTourOpen) useSheets.getState().close();
+  }, [isTourOpen]);
+
+  if (open === "settings" && !panel) return <SettingsSheet />;
+  if (open === "code" && !card) return <CodeSheet />;
+  return null;
+};
 
 /**
  * One stage, edge to edge: a slim bar on top that names what's playing, the
@@ -33,6 +56,7 @@ function App() {
   const setIsPortrait = useStore((s) => s.setIsPortrait);
   const isPortrait = useMediaQuery(PORTRAIT_QUERY);
   const route = useStore(useShallow(routeFor));
+  const sheet = useSheet();
 
   useEffect(() => {
     setIsMobile(isMobile);
@@ -85,8 +109,9 @@ function App() {
             <RaceStage />
           </>
         )}
-        <Controls />
-        <ScrollHint route={route} className="-my-2 h-6 lg:-my-3" />
+        {/* Covered by an open sheet, but still mounted: it drives playback. */}
+        <Controls className={sheet ? "hidden" : undefined} />
+        {sheet ?? <ScrollHint route={route} className="-my-2 h-6 lg:-my-3" />}
         <Tour />
       </main>
       {/* Below the stage: the page's written content, also prerendered for search engines. */}

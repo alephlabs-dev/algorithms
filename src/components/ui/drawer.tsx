@@ -1,15 +1,26 @@
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
 
 import { cn } from "@/utils/cn";
+import { CloseButton } from "./bottom-sheet";
+import { useSheets } from "./sheets";
 
 // Explicit prop types keep these exports nameable in declaration output.
 
+/** A modal sheet. Opening it closes the non-modal one, so sheets never stack. */
 const Drawer = ({
   shouldScaleBackground = true,
+  onOpenChange,
   ...props
 }: ComponentProps<typeof DrawerPrimitive.Root>) => (
-  <DrawerPrimitive.Root shouldScaleBackground={shouldScaleBackground} {...props} />
+  <DrawerPrimitive.Root
+    shouldScaleBackground={shouldScaleBackground}
+    onOpenChange={(open) => {
+      if (open) useSheets.getState().close();
+      onOpenChange?.(open);
+    }}
+    {...props}
+  />
 );
 
 const DrawerTrigger = (props: ComponentProps<typeof DrawerPrimitive.Trigger>) => (
@@ -26,7 +37,6 @@ const DrawerContent = ({
   ...props
 }: ComponentProps<typeof DrawerPrimitive.Content>) => (
   <DrawerPrimitive.Portal>
-    {/* Renders nothing when the drawer is non-modal (modal={false}): those have no backdrop. */}
     <DrawerPrimitive.Overlay className="fixed inset-0 z-50 bg-scrim" />
     <DrawerPrimitive.Content
       className={cn(
@@ -51,4 +61,19 @@ const DrawerTitle = ({
   />
 );
 
-export { Drawer, DrawerTrigger, DrawerClose, DrawerContent, DrawerTitle };
+/** A modal sheet's content: its title with a ✕ beside it, then what scrolls. */
+const DrawerSheet = ({ title, children }: { title: ReactNode; children: ReactNode }) => (
+  <DrawerContent aria-describedby={undefined}>
+    <div className="flex max-h-[85dvh] flex-col gap-4 overflow-y-auto p-6 pt-2 pb-10 text-foreground">
+      <div className="flex items-center justify-between gap-4">
+        <DrawerTitle className="flex items-center gap-2 text-xl font-semibold">{title}</DrawerTitle>
+        <DrawerClose asChild>
+          <CloseButton />
+        </DrawerClose>
+      </div>
+      {children}
+    </div>
+  </DrawerContent>
+);
+
+export { Drawer, DrawerTrigger, DrawerClose, DrawerContent, DrawerTitle, DrawerSheet };
