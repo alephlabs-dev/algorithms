@@ -139,6 +139,9 @@ export const StructureCanvas = ({
   );
 };
 
+/** What the value field takes, checked by the field on blur and by the bar on submit. */
+const VALUE = { min: MIN_VALUE, max: MAX_VALUE, message: copy.wholeNumber(MIN_VALUE, MAX_VALUE) };
+
 const ACTIONS: { kind: OperationKind; label: string }[] = (["insert", "search", "delete"] as const).map((kind) => ({
   kind,
   label: copy.actions[kind],
@@ -162,9 +165,9 @@ const OperationBar = () => {
   const min = heap && last.shape === "tree" && last.nodes.length ? last.nodes[0].value : null;
 
   const run = (kind: OperationKind) => {
-    const value = parseWholeNumber(text, MIN_VALUE, MAX_VALUE);
+    const value = parseWholeNumber(text, VALUE.min, VALUE.max);
     if (value === null) {
-      setError(copy.wholeNumber(MIN_VALUE, MAX_VALUE));
+      setError(VALUE.message);
       return;
     }
     setError(null);
@@ -194,7 +197,7 @@ const OperationBar = () => {
     >
       <TextField
         label={copy.value}
-        number={{ min: MIN_VALUE, max: MAX_VALUE, message: copy.wholeNumber(MIN_VALUE, MAX_VALUE) }}
+        number={VALUE}
         value={text}
         onChange={(e) => {
           setText(e.target.value);

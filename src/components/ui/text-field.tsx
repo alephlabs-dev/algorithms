@@ -44,9 +44,9 @@ export const TextField = ({
   const hintId = `${id}-hint`;
   const errorId = `${id}-error`;
   // Only check once the learner has left the field, not on every key.
-  const [left, setLeft] = useState(false);
+  const [blurred, setBlurred] = useState(false);
   const ownError =
-    number && left && value.trim() !== "" && parseWholeNumber(value, number.min, number.max) === null
+    number && blurred && value.trim() !== "" && parseWholeNumber(value, number.min, number.max) === null
       ? number.message
       : null;
   const shown = error ?? ownError;
@@ -57,11 +57,6 @@ export const TextField = ({
       <label htmlFor={id} className="px-1 text-xs leading-4 font-medium text-foreground/70">
         {label}
       </label>
-      {hint && (
-        <p id={hintId} className="px-1 text-xs leading-4 text-pretty text-foreground/60">
-          {hint}
-        </p>
-      )}
       <input
         {...props}
         id={id}
@@ -71,11 +66,11 @@ export const TextField = ({
         aria-invalid={shown ? true : undefined}
         aria-describedby={describedBy}
         onChange={(event) => {
-          if (ownError) setLeft(false);
+          if (ownError) setBlurred(false);
           onChange?.(event);
         }}
         onBlur={(event) => {
-          setLeft(true);
+          setBlurred(true);
           onBlur?.(event);
         }}
         className={cn(
@@ -84,6 +79,12 @@ export const TextField = ({
           inputClassName,
         )}
       />
+      {/* The hint goes under the input, so controls beside the field line up the same with or without one. */}
+      {hint && (
+        <p id={hintId} className="px-1 text-xs leading-4 text-pretty text-foreground/60">
+          {hint}
+        </p>
+      )}
       {shown && (
         <p id={errorId} role="alert" className="px-1 text-xs leading-4 text-pretty text-foreground/80">
           {shown}
