@@ -233,7 +233,7 @@ export const BacktrackingFacts = () => {
     problem === "sudoku"
       ? [
           text.emptyCells(run.emptyCount),
-          rows ? text.rowsTook(rows.length - 2, rows.frameAt(rows.length).backtracks) : text.whatConflictsSaveSudoku,
+          rows ? text.rowsTook(rows.steps, rows.backtracks) : text.whatConflictsSaveSudoku,
         ]
       : [text.solutions(n, QUEENS_SOLUTIONS[n]), text.whatConflictsSave];
   return <FactLine facts={[backtrackingProblems[problem].cost, ...facts]} />;

@@ -64,7 +64,8 @@ const sudokuText = localized({
     choice: (where: string, digit: number) => `${where}: the ${digit} fits.`,
     rule: { row: "its row", column: "its column", box: "its box" } as Record<SudokuRule, string>,
     conflict: (where: string, digit: number, rule: string) => `${where}: the ${digit} is already in ${rule}. A conflict, so skip it.`,
-    deadEnd: (where: string) => `${where} has no digit left to try: a dead end. Back to the cell before.`,
+    deadEnd: (row: number, col: number) =>
+      `Row ${row}, column ${col} has no digit left to try: a dead end. Back to the cell before.`,
     backtrack: (row: number, col: number, digit: number, more: boolean) =>
       `Backtrack: take the ${digit} out of row ${row}, column ${col}.${more ? " Try the next digit." : " It was the last digit."}`,
     done: (choices: number, conflicts: number, backtracks: number) =>
@@ -82,7 +83,8 @@ const sudokuText = localized({
     choice: (where, digit) => `${where}: cabe el ${digit}.`,
     rule: { row: "su fila", column: "su columna", box: "su caja" },
     conflict: (where, digit, rule) => `${where}: el ${digit} ya está en ${rule}. Un conflicto: se salta.`,
-    deadEnd: (where) => `${where}: no le quedan dígitos por probar, un callejón sin salida. Vuelve a la casilla anterior.`,
+    deadEnd: (row, col) =>
+      `A la fila ${row}, columna ${col} no le quedan dígitos por probar: un callejón sin salida. Vuelve a la casilla anterior.`,
     backtrack: (row, col, digit, more) =>
       `Vuelta atrás: se quita el ${digit} de la fila ${row}, columna ${col}.${more ? " Se prueba el siguiente dígito." : " Era el último dígito."}`,
     done: (choices, conflicts, backtracks) =>
@@ -101,9 +103,10 @@ export const narrateSudoku = (run: SudokuRun, index: number): string => {
     const done = sudokuText.done(frame.choices, frame.conflicts, frame.backtracks);
     if (run.order !== "mrv") return done;
     const rows = rowOrderRun(run.puzzle);
-    return done + sudokuText.rowsTook(rows.length - 2, rows.frameAt(rows.length).backtracks);
+    return done + sudokuText.rowsTook(rows.steps, rows.backtracks);
   }
   if (event.type === "backtrack") return sudokuText.backtrack(event.row + 1, event.col + 1, event.digit, event.digit < 9);
+  if (event.type === "deadEnd") return sudokuText.deadEnd(event.row + 1, event.col + 1);
 
   // Fewest options first: the first try in a cell says why that cell was picked.
   let where = sudokuText.cell(event.row + 1, event.col + 1);
@@ -113,6 +116,5 @@ export const narrateSudoku = (run: SudokuRun, index: number): string => {
   if (run.order === "mrv" && picked && options != null) where = sudokuText.fewest(where, options);
 
   if (event.type === "choice") return sudokuText.choice(where, event.digit);
-  if (event.type === "conflict") return sudokuText.conflict(where, event.digit, sudokuText.rule[event.rule]);
-  return sudokuText.deadEnd(where);
+  return sudokuText.conflict(where, event.digit, sudokuText.rule[event.rule]);
 };

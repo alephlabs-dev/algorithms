@@ -35,8 +35,13 @@ describe("SudokuRun", () => {
     expect(run.frames[7]).toMatchObject({ stack: [2], choices: 1, conflicts: 6 });
   });
 
-  it.each(["easy", "hard"] as const)("keeps its counters in step with the board on the %s puzzle", (id) => {
-    const run = new SudokuRun(SUDOKU_PUZZLES[id]);
+  it.each([
+    ["easy", "rows"],
+    ["hard", "rows"],
+    ["easy", "mrv"],
+    ["hard", "mrv"],
+  ] as const)("keeps its counters in step with the board on the %s puzzle, filled %s", (id, order) => {
+    const run = new SudokuRun(SUDOKU_PUZZLES[id], order);
     const givens = run.givens.filter(Boolean).length;
     const seen = { choice: 0, conflict: 0, backtrack: 0 };
     for (let k = 0; k < run.length; k++) {
@@ -55,8 +60,8 @@ describe("SudokuRun", () => {
     const easy = new SudokuRun(SUDOKU_PUZZLES.easy);
     const hard = new SudokuRun(SUDOKU_PUZZLES.hard);
     // Steps are the frames between start and done.
-    expect([easy.length - 2, easy.frameAt(easy.length).backtracks]).toEqual([435, 16]);
-    expect([hard.length - 2, hard.frameAt(hard.length).backtracks]).toEqual([3167, 265]);
+    expect([easy.steps, easy.backtracks]).toEqual([435, 16]);
+    expect([hard.steps, hard.backtracks]).toEqual([3167, 265]);
   });
 
   it("lights up the pseudocode line each kind of step runs", () => {
@@ -122,12 +127,20 @@ describe("SudokuRun", () => {
       expect(sudokuPseudocodeFor("rows")).toEqual(sudokuPseudocode);
     });
 
+    it("shows, on every frame, how many digits fit in each empty cell", () => {
+      const run = new SudokuRun(SUDOKU_PUZZLES.hard, "mrv");
+      for (const frame of run.frames)
+        frame.grid.forEach((digit, cell) =>
+          expect(frame.options![cell]).toBe(digit === 0 ? optionsAt(frame.grid, cell) : null),
+        );
+    });
+
     it("takes far fewer steps, and no backtracks, on both puzzles", () => {
       // Counted with a separate script when #87 was specified.
       const easy = new SudokuRun(SUDOKU_PUZZLES.easy, "mrv");
       const hard = new SudokuRun(SUDOKU_PUZZLES.hard, "mrv");
-      expect([easy.length - 2, easy.frameAt(easy.length).backtracks]).toEqual([259, 0]);
-      expect([hard.length - 2, hard.frameAt(hard.length).backtracks]).toEqual([252, 0]);
+      expect([easy.steps, easy.backtracks]).toEqual([259, 0]);
+      expect([hard.steps, hard.backtracks]).toEqual([252, 0]);
     });
   });
 });

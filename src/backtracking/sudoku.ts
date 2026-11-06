@@ -40,7 +40,7 @@ export const conflictWith = (grid: number[], row: number, col: number, digit: nu
 };
 
 /** How many digits fit at `cell` right now. */
-export const optionsAt = (grid: number[], cell: number) => {
+const optionsAt = (grid: number[], cell: number) => {
   let n = 0;
   for (let digit = 1; digit <= 9; digit++) if (!conflictWith(grid, Math.floor(cell / 9), cell % 9, digit)) n++;
   return n;
@@ -125,6 +125,16 @@ export class SudokuRun {
 
   get length() {
     return this.frames.length;
+  }
+
+  /** How many steps the search takes: every frame between the start and the solution. */
+  get steps() {
+    return this.frames.length - 2;
+  }
+
+  /** How many backtracks the whole search makes. */
+  get backtracks() {
+    return this.frames[this.frames.length - 1].backtracks;
   }
 
   /** How many cells the puzzle leaves to fill. */
