@@ -126,3 +126,10 @@ body {
     border-color: var(--color-gray-200, currentcolor);
   }
 }
+
+/* In-page links (the landing's "Modules") glide there, or jump when motion is reduced. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}

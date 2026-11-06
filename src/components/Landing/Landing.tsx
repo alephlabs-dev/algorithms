@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { modules } from "@/consts/modules";
 import { localized } from "@/i18n";
 import type { Route } from "@/routes";
@@ -24,9 +25,8 @@ const text = localized({
   en: {
     brand: "Algorithms",
     by: "by Aleph Labs",
-    /** Shorter names for the header, where they share one row; English fits as is. */
-    navNames: {} as Partial<Record<string, string>>,
     modules: "Modules",
+    site: "Site",
     eyebrow: "OPEN SOURCE · STEP BY STEP · FREE",
     headline: "Watch algorithms think.",
     intro:
@@ -50,8 +50,8 @@ const text = localized({
   es: {
     brand: "Algoritmos",
     by: "por Aleph Labs",
-    navNames: { pathfinding: "Caminos", fourier: "Fourier", structures: "Estructuras", dp: "Prog. dinámica" },
     modules: "Módulos",
+    site: "Sitio",
     eyebrow: "CÓDIGO ABIERTO · PASO A PASO · GRATIS",
     headline: "Mira pensar a los algoritmos.",
     intro:
@@ -92,11 +92,11 @@ export const Landing = ({ onNavigate, actions }: Props) => {
   const open = modules.filter((m) => m.route);
   return (
     <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-24 px-4 pb-16 text-foreground md:px-8 lg:gap-32">
-      <header className="flex flex-wrap items-center justify-between gap-4 pt-5 md:pt-7">
+      <header className="flex flex-wrap items-center justify-between gap-2 pt-5 sm:gap-4 md:pt-7">
         <PageLink
           to={{ kind: "home" }}
           onNavigate={onNavigate}
-          className="flex items-center gap-2.5 rounded-full text-lg font-semibold focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+          className="flex items-center gap-2 rounded-full text-base font-semibold sm:gap-2.5 sm:text-lg focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
         >
           <span
             aria-hidden
@@ -104,25 +104,26 @@ export const Landing = ({ onNavigate, actions }: Props) => {
           >
             <AlephMark />
           </span>
-          {text.brand} <span className="hidden font-normal text-foreground/60 sm:inline">{text.by}</span>
+          {/* The narrowest phones keep only the mark, so the header stays on one row. */}
+          <span className="max-[374px]:sr-only">{text.brand}</span>{" "}
+          <span className="hidden font-normal text-foreground/60 sm:inline">{text.by}</span>
         </PageLink>
-        {/* Wraps instead of running off narrow screens once the links outgrow one row (#85). */}
-        <nav aria-label={text.modules} className="flex flex-wrap items-center justify-end gap-1">
-          {open.map((m) => (
-            <PageLink
-              key={m.id}
-              to={m.route!}
-              onNavigate={onNavigate}
-              className="hidden rounded-full px-4 py-2.5 text-[15px] transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary sm:inline-flex"
-            >
-              {text.navNames[m.id] ?? m.title}
-            </PageLink>
-          ))}
+        {/* One link to the module list below, not one per module: the list is the menu (#85).
+            The nav is "Site", since a landmark named "Modules" around a link named "Modules" reads twice. */}
+        <nav aria-label={text.site} className="flex items-center sm:gap-1">
+          <a
+            href="#modules"
+            className="rounded-full px-3 py-2.5 text-[15px] sm:px-4 transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            {text.modules}
+          </a>
           <a
             href={GITHUB}
-            className="rounded-full border border-edge px-4 py-2.5 text-[15px] transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+            className="grid h-10 w-10 place-items-center rounded-full border border-edge text-[15px] transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary sm:inline-flex sm:h-auto sm:w-auto sm:px-4 sm:py-2.5"
           >
-            GitHub
+            {/* Phones get the mark alone, so the whole header fits on one row. */}
+            <GitHubLogoIcon aria-hidden className="h-4 w-4 sm:hidden" />
+            <span className="sr-only sm:not-sr-only">GitHub</span>
           </a>
           {actions}
         </nav>
@@ -163,7 +164,7 @@ export const Landing = ({ onNavigate, actions }: Props) => {
 
       <section aria-labelledby="modules" className="flex flex-col">
         <div className="flex flex-wrap items-baseline justify-between gap-4 border-b border-foreground/80 pb-4">
-          <h2 id="modules" className="text-3xl font-semibold tracking-[-0.02em] md:text-4xl">
+          <h2 id="modules" className="scroll-mt-6 text-3xl font-semibold tracking-[-0.02em] md:text-4xl">
             {text.modules}
           </h2>
           <span className="font-mono text-xs text-foreground/60">
