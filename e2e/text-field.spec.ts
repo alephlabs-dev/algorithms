@@ -48,9 +48,12 @@ test('each DP word says on its own when it is missing', async ({ page }) => {
   await page.goto('/dynamic-programming/edit-distance');
 
   const words = page.getByRole('form', { name: 'Words' });
-  const first = words.getByRole('textbox', { name: 'First word' });
-  const second = words.getByRole('textbox', { name: 'Second word' });
-  await expect(words.getByText('First word', { exact: true })).toBeVisible();
+  // A short visible label; screen readers also hear which side of the table the word goes on.
+  const first = words.getByRole('textbox', { name: 'First word (down the side)', exact: true });
+  const second = words.getByRole('textbox', { name: 'Second word (across the top)', exact: true });
+  await expect(first).toBeVisible();
+  await expect(second).toBeVisible();
+  await expect(words.locator('label', { hasText: 'First word' })).toBeVisible();
   if (await coarse(page)) expect(await fontSize(first), 'font size on touch').toBeGreaterThanOrEqual(16);
 
   await first.fill('');

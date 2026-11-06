@@ -2,9 +2,6 @@ import { useId, useState, type ComponentProps, type ReactNode } from "react";
 import { cn } from "@/utils/cn";
 import { parseWholeNumber } from "./number";
 
-/** Lines up a control beside a TextField (in a row with items-start) with its input: the label's 16px and the 4px gap. */
-export const besideField = "mt-5";
-
 /** A whole number from min to max, and what to say when the field holds something else. */
 type WholeNumber = { min: number; max: number; message: string };
 
@@ -19,6 +16,8 @@ type TextFieldProps = Omit<
   error?: string | null;
   /** Makes it a number field: text with a numeric keypad, checked when the learner leaves it. */
   number?: WholeNumber;
+  /** Controls beside the input (buttons acting on it), in the same row under the label. */
+  end?: ReactNode;
   className?: string;
   inputClassName?: string;
 };
@@ -26,13 +25,15 @@ type TextFieldProps = Omit<
 /**
  * A text field (UX.md rule 12): a native <input> with its label above, an
  * optional hint and an error linked through aria-describedby. 16px text on
- * touch screens, so iOS doesn't zoom in on focus.
+ * touch screens, so iOS doesn't zoom in on focus. Buttons that act on the
+ * field go in `end`, so they line up with the input.
  */
 export const TextField = ({
   label,
   hint,
   error,
   number,
+  end,
   value,
   className,
   inputClassName,
@@ -57,36 +58,39 @@ export const TextField = ({
       <label htmlFor={id} className="px-1 text-xs leading-4 font-medium text-foreground/70">
         {label}
       </label>
-      <input
-        {...props}
-        id={id}
-        type="text"
-        inputMode={number ? "numeric" : undefined}
-        value={value}
-        aria-invalid={shown ? true : undefined}
-        aria-describedby={describedBy}
-        onChange={(event) => {
-          if (ownError) setBlurred(false);
-          onChange?.(event);
-        }}
-        onBlur={(event) => {
-          setBlurred(true);
-          onBlur?.(event);
-        }}
-        className={cn(
-          "h-10 w-full min-w-11 rounded-full border border-line/70 bg-background px-3 text-sm text-foreground placeholder:text-foreground/50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary sm:px-4 pointer-coarse:h-11 pointer-coarse:text-base",
-          shown && "border-foreground",
-          inputClassName,
-        )}
-      />
-      {/* The hint goes under the input, so controls beside the field line up the same with or without one. */}
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        <input
+          {...props}
+          id={id}
+          type="text"
+          inputMode={number ? "numeric" : undefined}
+          value={value}
+          aria-invalid={shown ? true : undefined}
+          aria-describedby={describedBy}
+          onChange={(event) => {
+            if (ownError) setBlurred(false);
+            onChange?.(event);
+          }}
+          onBlur={(event) => {
+            setBlurred(true);
+            onBlur?.(event);
+          }}
+          className={cn(
+            "h-10 w-full min-w-11 flex-1 rounded-full border border-line/70 bg-background px-3 text-sm text-foreground placeholder:text-foreground/50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary sm:px-4 pointer-coarse:h-11 pointer-coarse:text-base",
+            shown && "border-foreground",
+            inputClassName,
+          )}
+        />
+        {end}
+      </div>
+      {/* Hint and error wrap to the field's width instead of widening it (contain-inline-size). */}
       {hint && (
-        <p id={hintId} className="px-1 text-xs leading-4 text-pretty text-foreground/60">
+        <p id={hintId} className="px-1 text-xs leading-4 text-pretty text-foreground/60 contain-inline-size">
           {hint}
         </p>
       )}
       {shown && (
-        <p id={errorId} role="alert" className="px-1 text-xs leading-4 text-pretty text-foreground/80">
+        <p id={errorId} role="alert" className="px-1 text-xs leading-4 text-pretty text-foreground/80 contain-inline-size">
           {shown}
         </p>
       )}

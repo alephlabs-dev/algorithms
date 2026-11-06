@@ -19,7 +19,7 @@ import { moveDuration } from "@/utils/speed";
 import { cn } from "@/utils/cn";
 import { Button } from "../ui/button";
 import { parseWholeNumber } from "../ui/number";
-import { besideField, TextField } from "../ui/text-field";
+import { TextField } from "../ui/text-field";
 import { localized } from "@/i18n";
 
 const copy = localized({
@@ -193,7 +193,7 @@ const OperationBar = () => {
       data-tour="structure"
       onSubmit={submit}
       aria-label={copy.operations}
-      className="flex flex-wrap items-start gap-1.5 rounded-2xl border border-edge bg-surface px-2 py-2 sm:gap-2 sm:px-3"
+      className="rounded-2xl border border-edge bg-surface px-2 py-2 sm:px-3"
     >
       <TextField
         label={copy.value}
@@ -205,48 +205,51 @@ const OperationBar = () => {
         }}
         error={error}
         autoComplete="off"
-        className="min-w-11 flex-1 sm:w-40 sm:flex-none"
-        inputClassName="px-2.5 text-center font-mono sm:text-left"
+        inputClassName="w-0 px-2.5 text-center font-mono sm:w-40 sm:flex-none sm:text-left"
+        end={
+          <>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-10 w-9 shrink-0 sm:w-10 pointer-coarse:h-11"
+            onClick={pickRandom}
+            aria-label={copy.random}
+            title={copy.random}
+          >
+            <ShuffleIcon />
+          </Button>
+          {ACTIONS.filter((action) => !heap || action.kind !== "delete").map((action) => (
+            <Button
+              key={action.kind}
+              type={action.kind === "insert" ? "submit" : "button"}
+              size="sm"
+              variant={action.kind === "insert" ? "primary" : "secondary"}
+              className="h-10 shrink-0 px-2.5 sm:px-4 pointer-coarse:h-11"
+              onClick={action.kind === "insert" ? undefined : () => run(action.kind)}
+            >
+              {action.label}
+            </Button>
+          ))}
+          {heap && (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              className="h-10 shrink-0 px-2.5 sm:px-4 pointer-coarse:h-11"
+              disabled={min === null}
+              onClick={() => {
+                setError(null);
+                if (min !== null) runOperation({ kind: "delete", value: min });
+              }}
+              title={copy.popTitle}
+            >
+              {copy.popMin}
+            </Button>
+          )}
+          </>
+        }
       />
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className={cn(besideField, "h-10 w-9 shrink-0 sm:w-10 pointer-coarse:h-11")}
-        onClick={pickRandom}
-        aria-label={copy.random}
-        title={copy.random}
-      >
-        <ShuffleIcon />
-      </Button>
-      {ACTIONS.filter((action) => !heap || action.kind !== "delete").map((action) => (
-        <Button
-          key={action.kind}
-          type={action.kind === "insert" ? "submit" : "button"}
-          size="sm"
-          variant={action.kind === "insert" ? "primary" : "secondary"}
-          className={cn(besideField, "h-10 shrink-0 px-2.5 sm:px-4 pointer-coarse:h-11")}
-          onClick={action.kind === "insert" ? undefined : () => run(action.kind)}
-        >
-          {action.label}
-        </Button>
-      ))}
-      {heap && (
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          className={cn(besideField, "h-10 shrink-0 px-2.5 sm:px-4 pointer-coarse:h-11")}
-          disabled={min === null}
-          onClick={() => {
-            setError(null);
-            if (min !== null) runOperation({ kind: "delete", value: min });
-          }}
-          title={copy.popTitle}
-        >
-          {copy.popMin}
-        </Button>
-      )}
     </form>
   );
 };
