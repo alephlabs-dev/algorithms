@@ -180,7 +180,7 @@ export const engines: Record<ModuleId, ModuleEngine> = {
     search: (s) =>
       toBacktrackingSearch(
         s.backtrackingProblem === "sudoku"
-          ? { puzzle: s.sudokuPuzzle, speed: s.speedPreset }
+          ? { puzzle: s.sudokuPuzzle, order: s.sudokuOrder, speed: s.speedPreset }
           : { n: s.queensN, speed: s.speedPreset },
       ),
   },

@@ -43,3 +43,21 @@ test('Sudoku in Spanish fills the grid and explains each step in Spanish', async
   await expect(page).toHaveURL(/\/es\/backtracking\/sudoku\?puzzle=easy/);
   expect(errors).toEqual([]);
 });
+
+// Runs on every device project. Fewest options first: the first try in a cell says why that cell goes next.
+test('Sudoku with fewest options first explains why each cell goes next, in Spanish', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.addInitScript(() => localStorage.setItem('tour-done-backtracking', 'true'));
+  await page.goto('/es/backtracking/sudoku?puzzle=hard&order=mrv');
+
+  await expect(
+    page.getByText('51 casillas vacías. Presiona play: va primero la casilla a la que le caben menos dígitos, y los prueba del 1 al 9.').filter({ visible: true }).first(),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Paso siguiente' }).click();
+  await expect(
+    page.getByText(/^Fila \d, columna \d, la casilla con menos opciones \(1\): /).filter({ visible: true }).first(),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/\/es\/backtracking\/sudoku\?puzzle=hard&order=mrv/);
+  expect(errors).toEqual([]);
+});

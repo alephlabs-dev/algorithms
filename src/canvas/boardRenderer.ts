@@ -15,6 +15,8 @@ export type BoardCell = {
   tone?: "placed" | "focus" | "conflict" | "attacker" | "ghost";
   /** Part of the puzzle from the start: drawn in ink, bold, whatever its tone. */
   given?: boolean;
+  /** A small note in a corner, such as how many digits still fit; `lit` draws it in the focus color. */
+  note?: { text: string; lit?: boolean };
   /** A soft dot: ruled out for now (a square a queen attacks). */
   shade?: boolean;
 };
@@ -127,6 +129,14 @@ export class BoardRenderer {
           ctx.beginPath();
           ctx.arc(x + size / 2, y + size / 2, Math.max(1.5, size * 0.07), 0, Math.PI * 2);
           ctx.fill();
+        }
+        if (cell?.note && !cell.piece) {
+          ctx.fillStyle = css(cell.note.lit ? p.placed : p.label);
+          ctx.font = `${cell.note.lit ? 700 : 500} ${Math.max(8, Math.round(size * 0.24))}px "JetBrains Mono Variable", ui-monospace, monospace`;
+          // Bottom right: lines along a row or column run by the top and left edges.
+          ctx.textAlign = "right";
+          ctx.textBaseline = "bottom";
+          ctx.fillText(cell.note.text, x + size * 0.9, y + size * 0.94);
         }
       }
     }

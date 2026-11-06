@@ -168,4 +168,12 @@ describe("url state", () => {
     });
     expect(readLocation("/backtracking/sudoku", "?puzzle=evil").backtracking).toEqual({});
   });
+
+  it("round-trips the fill order, and ignores orders it doesn't have", () => {
+    const search = toBacktrackingSearch({ puzzle: "hard", order: "mrv" });
+    expect(readLocation("/backtracking/sudoku", search).backtracking).toEqual({ puzzle: "hard", order: "mrv" });
+    // Row by row is the default and stays out of the link.
+    expect(toBacktrackingSearch({ puzzle: "hard", order: "rows" })).toBe("?puzzle=hard");
+    expect(readLocation("/backtracking/sudoku", "?order=random").backtracking).toEqual({});
+  });
 });

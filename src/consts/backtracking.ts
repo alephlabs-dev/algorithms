@@ -1,5 +1,5 @@
 import { localized } from "@/i18n";
-import type { BacktrackingProblem, SudokuPuzzle } from "@/backtracking";
+import type { BacktrackingProblem, FillOrder, SudokuPuzzle } from "@/backtracking";
 
 type ProblemText = {
   title: string;
@@ -70,4 +70,10 @@ export const QUEENS_SOLUTIONS: Record<number, number> = { 4: 2, 5: 10, 6: 4, 7: 
 export const sudokuPuzzleNames = localized<Record<SudokuPuzzle, string>>({
   en: { easy: "Easy", hard: "Hard" },
   es: { easy: "Fácil", hard: "Difícil" },
+});
+
+/** The fill orders' names, in the picker and the settings button. */
+export const fillOrderNames = localized<Record<FillOrder, string>>({
+  en: { rows: "Row by row", mrv: "Fewest options" },
+  es: { rows: "Por filas", mrv: "Menos opciones" },
 });

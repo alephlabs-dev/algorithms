@@ -5,7 +5,7 @@ import type { FourierAlgorithm, FourierShape } from "./fourier/types";
 import { structurePresets, structureSizes, type StructurePreset, type StructureSize } from "./structures/presets";
 import type { StructureAlgorithm } from "./structures/types";
 import { SUDOKU_PUZZLES } from "./backtracking/sudoku";
-import { MAX_QUEENS, MIN_QUEENS, type BacktrackingProblem, type SudokuPuzzle } from "./backtracking/types";
+import { MAX_QUEENS, MIN_QUEENS, type BacktrackingProblem, type FillOrder, type SudokuPuzzle } from "./backtracking/types";
 import { isWord } from "./dp/presets";
 import type { DpAlgorithm } from "./dp/types";
 import { graphPresets, graphSizes, type GraphPreset, type GraphSize } from "./graphs/graph";
@@ -237,7 +237,7 @@ export const toDpSearch = (state: DpUrlState & { speed?: SpeedPreset }) =>
   }).toString();
 
 /** A backtracking run as a link carries it: the board size (N-Queens) or the puzzle (Sudoku). */
-export type BacktrackingUrlState = { n?: number; puzzle?: SudokuPuzzle };
+export type BacktrackingUrlState = { n?: number; puzzle?: SudokuPuzzle; order?: FillOrder };
 
 const sudokuPuzzles = Object.keys(SUDOKU_PUZZLES) as SudokuPuzzle[];
 
@@ -247,6 +247,7 @@ const readBacktrackingParams = (params: URLSearchParams): BacktrackingUrlState =
   if (Number.isInteger(n) && n >= MIN_QUEENS && n <= MAX_QUEENS) state.n = n;
   const puzzle = params.get("puzzle");
   if (isOneOf(sudokuPuzzles, puzzle)) state.puzzle = puzzle;
+  if (params.get("order") === "mrv") state.order = "mrv";
   return state;
 };
 
@@ -255,6 +256,8 @@ export const toBacktrackingSearch = (state: BacktrackingUrlState & { speed?: Spe
   new URLSearchParams({
     ...(state.n !== undefined && { n: String(state.n) }),
     ...(state.puzzle && { puzzle: state.puzzle }),
+    // Row by row is the default, so only fewest options first travels in the link.
+    ...(state.order === "mrv" && { order: state.order }),
     ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
   }).toString();
 

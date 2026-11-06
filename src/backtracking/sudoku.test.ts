@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SUDOKU_PUZZLES, SudokuRun, sudokuPseudocode } from ".";
+import { SUDOKU_PUZZLES, SudokuRun, sudokuPseudocode, sudokuPseudocodeFor } from ".";
 
 // Wikipedia's Sudoku and its published solution. The module's puzzles are this one with the digits renamed.
 const WIKIPEDIA = "53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79";
@@ -35,8 +35,13 @@ describe("SudokuRun", () => {
     expect(run.frames[7]).toMatchObject({ stack: [2], choices: 1, conflicts: 6 });
   });
 
-  it.each(["easy", "hard"] as const)("keeps its counters in step with the board on the %s puzzle", (id) => {
-    const run = new SudokuRun(SUDOKU_PUZZLES[id]);
+  it.each([
+    ["easy", "rows"],
+    ["hard", "rows"],
+    ["easy", "mrv"],
+    ["hard", "mrv"],
+  ] as const)("keeps its counters in step with the board on the %s puzzle, filled %s", (id, order) => {
+    const run = new SudokuRun(SUDOKU_PUZZLES[id], order);
     const givens = run.givens.filter(Boolean).length;
     const seen = { choice: 0, conflict: 0, backtrack: 0 };
     for (let k = 0; k < run.length; k++) {
@@ -55,8 +60,8 @@ describe("SudokuRun", () => {
     const easy = new SudokuRun(SUDOKU_PUZZLES.easy);
     const hard = new SudokuRun(SUDOKU_PUZZLES.hard);
     // Steps are the frames between start and done.
-    expect([easy.length - 2, easy.frameAt(easy.length).backtracks]).toEqual([435, 16]);
-    expect([hard.length - 2, hard.frameAt(hard.length).backtracks]).toEqual([3167, 265]);
+    expect([easy.steps, easy.backtracks]).toEqual([435, 16]);
+    expect([hard.steps, hard.backtracks]).toEqual([3167, 265]);
   });
 
   it("lights up the pseudocode line each kind of step runs", () => {
@@ -71,5 +76,71 @@ describe("SudokuRun", () => {
     expect(lineFor("backtrack")).toContain("remove(cell, d)");
     expect(lineFor("deadEnd")).toContain("return false");
     expect(lineFor("done")).toContain("if none: return true");
+  });
+
+  describe("fewest options first (MRV)", () => {
+    /** How many digits fit at `cell` on `grid`, counted here by the rules. */
+    const optionsAt = (grid: number[], cell: number) => {
+      const row = Math.floor(cell / 9);
+      const col = cell % 9;
+      let n = 0;
+      for (let d = 1; d <= 9; d++) {
+        let fits = true;
+        for (let k = 0; k < 9; k++) if (grid[row * 9 + k] === d || grid[k * 9 + col] === d) fits = false;
+        const top = row - (row % 3);
+        const left = col - (col % 3);
+        for (let r = top; r < top + 3; r++) for (let c = left; c < left + 3; c++) if (grid[r * 9 + c] === d) fits = false;
+        if (fits) n++;
+      }
+      return n;
+    };
+
+    it.each(["easy", "hard"] as const)("solves the %s puzzle the same as row by row", (id) => {
+      const puzzle = SUDOKU_PUZZLES[id];
+      const run = new SudokuRun(puzzle, "mrv");
+      expect(run.frameAt(run.length).grid.join("")).toBe(solvedLike(puzzle));
+    });
+
+    it.each(["easy", "hard"] as const)("always fills a cell with the fewest options on the %s puzzle", (id) => {
+      const run = new SudokuRun(SUDOKU_PUZZLES[id], "mrv");
+      // A cell is picked right after the start and after every choice; its first try names it.
+      for (let k = 1; k < run.length; k++) {
+        const before = run.frames[k - 1];
+        if (before.event.type !== "start" && before.event.type !== "choice") continue;
+        const event = run.frames[k].event;
+        if (event.type === "done" || event.type === "start") continue;
+        const empty = before.grid.flatMap((digit, cell) => (digit === 0 ? [cell] : []));
+        const fewest = Math.min(...empty.map((cell) => optionsAt(before.grid, cell)));
+        const first = empty.find((cell) => optionsAt(before.grid, cell) === fewest);
+        expect(event.row * 9 + event.col).toBe(first);
+      }
+    });
+
+    it("says how it picks the cell, and lights up the same lines as row by row", () => {
+      const lines = sudokuPseudocodeFor("mrv");
+      expect(lines[1]).toContain("cell = cell with fewest options");
+      const run = new SudokuRun(SUDOKU_PUZZLES.hard, "mrv");
+      const lineFor = (type: string) => lines[run.frames.find((f) => f.event.type === type)!.line!];
+      expect(lineFor("conflict")).toContain("if fits(cell, d)");
+      expect(lineFor("choice")).toContain("place(cell, d)");
+      expect(lineFor("done")).toContain("if none: return true");
+      expect(sudokuPseudocodeFor("rows")).toEqual(sudokuPseudocode);
+    });
+
+    it("shows, on every frame, how many digits fit in each empty cell", () => {
+      const run = new SudokuRun(SUDOKU_PUZZLES.hard, "mrv");
+      for (const frame of run.frames)
+        frame.grid.forEach((digit, cell) =>
+          expect(frame.options![cell]).toBe(digit === 0 ? optionsAt(frame.grid, cell) : null),
+        );
+    });
+
+    it("takes far fewer steps, and no backtracks, on both puzzles", () => {
+      // Counted with a separate script when #87 was specified.
+      const easy = new SudokuRun(SUDOKU_PUZZLES.easy, "mrv");
+      const hard = new SudokuRun(SUDOKU_PUZZLES.hard, "mrv");
+      expect([easy.steps, easy.backtracks]).toEqual([259, 0]);
+      expect([hard.steps, hard.backtracks]).toEqual([252, 0]);
+    });
   });
 });

@@ -1,6 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
-import { MAX_QUEENS, MIN_QUEENS, runOf, type SudokuPuzzle } from "@/backtracking";
-import { backtrackingProblems, QUEENS_SOLUTIONS, sudokuPuzzleNames } from "@/consts/backtracking";
+import { MAX_QUEENS, MIN_QUEENS, rowOrderRun, runOf, type FillOrder, type SudokuPuzzle } from "@/backtracking";
+import { backtrackingProblems, fillOrderNames, QUEENS_SOLUTIONS, sudokuPuzzleNames } from "@/consts/backtracking";
 import { localized } from "@/i18n";
 import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
@@ -27,6 +27,10 @@ const text = localized({
     digitPlaced: "Digit placed",
     emptyCells: (n: number) => `${n} empty cells · 1 solution`,
     whatConflictsSaveSudoku: "conflicts rule out almost all 9ᵐ grids",
+    order: "Order",
+    optionsLeft: "Digits that fit",
+    rowsTook: (steps: number, backtracks: number) =>
+      `row by row: ${count(steps, "step")}, ${count(backtracks, "backtrack")}`,
   },
   es: {
     queens: "Reinas",
@@ -46,6 +50,10 @@ const text = localized({
     digitPlaced: "Dígito colocado",
     emptyCells: (n) => `${n} casillas vacías · 1 solución`,
     whatConflictsSaveSudoku: "los conflictos descartan casi todas las 9ᵐ cuadrículas",
+    order: "Orden",
+    optionsLeft: "Dígitos que caben",
+    rowsTook: (steps, backtracks) =>
+      `por filas: ${count(steps, "paso")}, ${count(backtracks, "vuelta atrás", "vueltas atrás")}`,
   },
 });
 
@@ -85,6 +93,25 @@ export const SudokuPuzzlePicker = ({ className }: { className?: string }) => {
   );
 };
 
+/** Which empty cell goes next: row by row, or fewest options first. */
+export const FillOrderPicker = ({ className }: { className?: string }) => {
+  const { order, setOrder } = useStore(useShallow((s) => ({ order: s.sudokuOrder, setOrder: s.setSudokuOrder })));
+  return (
+    <SegmentedControl<FillOrder>
+      label={text.order}
+      options={(["rows", "mrv"] as const).map((value) => ({
+        value,
+        label: fillOrderNames[value],
+        title: value === "mrv" ? `${fillOrderNames.mrv} (MRV)` : fillOrderNames.rows,
+      }))}
+      value={order}
+      onChange={(value) => value !== order && setOrder(value)}
+      compact
+      className={className}
+    />
+  );
+};
+
 /** The setting each problem has: the board size, or the puzzle. */
 export const BacktrackingPicker = ({ className }: { className?: string }) => {
   const sudoku = useStore((s) => s.backtrackingProblem === "sudoku");
@@ -105,6 +132,12 @@ export const BacktrackingTools = ({ className }: { className?: string }) => {
         <span className="text-sm text-foreground/70">{sudoku ? text.puzzle : text.queens}</span>
         <BacktrackingPicker className={sudoku ? "w-48" : "w-60"} />
       </div>
+      {sudoku && (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-foreground/70">{text.order}</span>
+          <FillOrderPicker className="w-72" />
+        </div>
+      )}
     </div>
   );
 };
@@ -128,6 +161,7 @@ const Digit = ({ className, label }: { className: string; label: string }) => (
 /** What the marks on the board mean. */
 export const BacktrackingLegend = ({ className, stacked }: { className?: string; stacked?: boolean }) => {
   const sudoku = useStore((s) => s.backtrackingProblem === "sudoku");
+  const fewest = useStore((s) => s.backtrackingProblem === "sudoku" && s.sudokuOrder === "mrv");
   return (
     <ul
       aria-label={text.legend}
@@ -141,6 +175,7 @@ export const BacktrackingLegend = ({ className, stacked }: { className?: string;
         <>
           <Digit className="font-bold text-foreground" label={text.given} />
           <Digit className="text-primary" label={text.digitPlaced} />
+          {fewest && <Digit className="text-[10px] text-muted" label={text.optionsLeft} />}
         </>
       ) : (
         <>
@@ -188,14 +223,18 @@ export const BacktrackingStatsInline = ({ className }: { className?: string }) =
   );
 };
 
-/** Cost, how many solutions the puzzle has, and what conflicts save. */
+/** Cost, how many solutions the puzzle has, and what conflicts save; under fewest options first, what row by row took. */
 export const BacktrackingFacts = () => {
   const { problem, n, run } = useStore(
     useShallow((s) => ({ problem: s.backtrackingProblem, n: s.queensN, run: s.sudokuRun })),
   );
+  const rows = run.order === "mrv" ? rowOrderRun(run.puzzle) : null;
   const facts =
     problem === "sudoku"
-      ? [text.emptyCells(run.emptyCount), text.whatConflictsSaveSudoku]
+      ? [
+          text.emptyCells(run.emptyCount),
+          rows ? text.rowsTook(rows.steps, rows.backtracks) : text.whatConflictsSaveSudoku,
+        ]
       : [text.solutions(n, QUEENS_SOLUTIONS[n]), text.whatConflictsSave];
   return <FactLine facts={[backtrackingProblems[problem].cost, ...facts]} />;
 };
