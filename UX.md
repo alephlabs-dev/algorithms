@@ -50,7 +50,7 @@ Every color comes from the theme. No hex, `rgb()`, `hsl()` or `oklch()` values i
 
 Never controls with the browser's default look. Every control lives in `src/components/ui/`; those components may use the native element inside, always with our own styles and theme colors.
 
-- **In this app:** `src/components/ui/` holds `button`, `segmented`, `slider`, `drawer`, `popover`, `preset-buttons`, `list-item`, `badge`, `section-label`, `fact-line`, `tooltip`, `disclosure`, `text-field`.
+- **In this app:** `src/components/ui/` holds `button`, `segmented`, `slider`, `drawer`, `popover`, `preset-buttons`, `list-item`, `badge`, `section-label`, `fact-line`, `tooltip`, `disclosure`, `text-field`, `native-select`.
 - **Example:** the speed control (`src/components/Controls/SpeedControl.tsx`) is our `SegmentedControl` (role `radiogroup`), not a native `<select>` or radio buttons.
 
 ## 8. Secondary content on phones and tablets
@@ -73,7 +73,7 @@ Never controls with the browser's default look. Every control lives in `src/comp
 ## 11. Algorithm picker
 
 - `ui/NativeSelect`: a styled closed trigger (`appearance: none`, theme colors, our own icon) over a native `<select>`.
-- Modules with 5 or fewer algorithms show all options inline instead.
+- Modules with 5 or fewer algorithms show all options inline instead: one row of equal segments with their short names, on its own line. If a module's names don't fit that row at 393px in every language, it keeps the `NativeSelect`; never invent shorter names (`namesTooLongForSegments` in the module, measured by `e2e/algorithm-picker.spec.ts`).
 
 ## 12. Text fields
 

@@ -1,5 +1,5 @@
 import { ChevronDownIcon, InfoCircledIcon, MixerHorizontalIcon } from "@radix-ui/react-icons";
-import { Fragment, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useModuleUI, useSettingsSummary } from "@/modules";
 import { MAX_RACERS, useStore } from "@/store";
@@ -13,6 +13,8 @@ import { SettingsPanel } from "./Settings/ModuleSettings";
 import { StageInfo } from "./StageInfo";
 import { Button } from "./ui/button";
 import { Drawer, DrawerClose, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
+import { NativeSelect } from "./ui/native-select";
+import { SegmentedControl } from "./ui/segmented";
 import { ViewSwitch } from "./ViewSwitch";
 import { GameToggle } from "./Game";
 import { localized } from "@/i18n";
@@ -84,7 +86,7 @@ const SettingsButton = () => {
   );
 };
 
-// Shared look for the two field-style pickers: they read as "tap to change".
+// The racers field reads as "tap to change", like ui/NativeSelect.
 const fieldClass =
   "flex h-12 w-full min-w-0 items-center rounded-full border border-edge bg-surface pl-5 pr-10 text-left text-lg font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
 
@@ -95,40 +97,57 @@ const FieldChevron = () => (
   />
 );
 
-/**
- * A native select styled as a field, so phones open their own picker (the
- * iOS wheel, the Android list), with this module's algorithms only.
- */
-const AlgorithmField = () => {
-  const { algorithms, current, pick } = useModuleUI();
+/** Up to this many algorithms show inline on phones (UX.md rule 11). */
+const INLINE_MAX = 5;
+
+/** The module's algorithms, and whether they show inline as segments or in a select. */
+const useAlgorithmPicker = () => {
+  const { algorithms, current, pick, namesTooLongForSegments } = useModuleUI();
   const value = useStore(current);
+  const items = algorithms.flatMap((group) => group.items);
+  const inline = items.length <= INLINE_MAX && !namesTooLongForSegments;
+  return { algorithms, items, value, pick, inline };
+};
+
+/** Every algorithm at once, one row of equal segments, each with its short name. */
+const AlgorithmSegments = () => {
+  const { items, value, pick } = useAlgorithmPicker();
   return (
-    <div data-tour="picker" className="relative min-w-0 flex-1">
-      {/* eslint-disable house/no-native-controls -- native on purpose so phones open their own picker; UX.md open question 4. */}
-      <select
-        aria-label={text.algorithm}
+    <div data-tour="picker">
+      <SegmentedControl
+        label={text.algorithm}
         value={value}
-        onChange={(event) => pick(event.target.value)}
-        className={cn(fieldClass, "appearance-none truncate")}
-      >
-        {algorithms.map((group, k) => {
-          const options = group.items.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.title}
-            </option>
-          ));
-          return group.label ? (
-            <optgroup key={group.label} label={`${group.label} · ${group.hint}`}>
-              {options}
-            </optgroup>
-          ) : (
-            <Fragment key={k}>{options}</Fragment>
-          );
-        })}
-      </select>
-      {/* eslint-enable house/no-native-controls */}
-      <FieldChevron />
+        onChange={pick}
+        options={items.map((item) => ({
+          value: item.id,
+          label: (
+            <span data-segment-label className="whitespace-nowrap">
+              {item.short}
+            </span>
+          ),
+          // Screen readers also hear the full name, after the one on screen.
+          title: item.short === item.title ? undefined : `${item.short}, ${item.title}`,
+        }))}
+      />
     </div>
+  );
+};
+
+/** Too many algorithms, or names too long for segments: phones open their own picker. */
+const AlgorithmSelect = () => {
+  const { algorithms, value, pick } = useAlgorithmPicker();
+  return (
+    <NativeSelect
+      data-tour="picker"
+      label={text.algorithm}
+      value={value}
+      onChange={pick}
+      className="flex-1"
+      groups={algorithms.map((group) => ({
+        label: group.label && `${group.label} · ${group.hint}`,
+        options: group.items.map((item) => ({ value: item.id, label: item.title })),
+      }))}
+    />
   );
 };
 
@@ -183,11 +202,13 @@ const ViewRow = () => {
 export const MobileTopBar = ({ className }: { className?: string }) => {
   const { about } = useModuleUI();
   const title = useStore((s) => about(s).title);
+  const { inline } = useAlgorithmPicker();
   return (
     <div className={cn("flex flex-col gap-3", className)}>
       <ViewRow />
-      <div className="flex items-center gap-1">
-        <AlgorithmField />
+      {inline && <AlgorithmSegments />}
+      <div className={cn("flex items-center gap-1", inline && "justify-end")}>
+        {!inline && <AlgorithmSelect />}
         <InfoButton label={title}>
           <StageInfo compact />
           <DrawerClose asChild>

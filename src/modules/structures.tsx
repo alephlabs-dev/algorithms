@@ -62,6 +62,8 @@ export const structuresUI: ModuleUI = {
   },
   newRunLabel: text.newRun,
 
+  // "Hash chaining", "Encadenamiento" don't fit a fifth of a phone's row.
+  namesTooLongForSegments: true,
   algorithms: (
     [
       ["Trees", "O(height)"],
