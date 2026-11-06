@@ -1,5 +1,5 @@
 import { localized } from "@/i18n";
-import type { BacktrackingProblem } from "@/backtracking";
+import type { BacktrackingProblem, SudokuPuzzle } from "@/backtracking";
 
 type ProblemText = {
   title: string;
@@ -65,3 +65,9 @@ export const backtrackingProblems: Record<BacktrackingProblem, ProblemText> = te
 
 /** How many ways there are to place N queens, for the board sizes the module offers. */
 export const QUEENS_SOLUTIONS: Record<number, number> = { 4: 2, 5: 10, 6: 4, 7: 40, 8: 92 };
+
+/** The Sudoku puzzles' names, in the picker and the settings button. */
+export const sudokuPuzzleNames = localized<Record<SudokuPuzzle, string>>({
+  en: { easy: "Easy", hard: "Hard" },
+  es: { easy: "Fácil", hard: "Difícil" },
+});

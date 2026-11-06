@@ -1,5 +1,5 @@
 import { runOf } from "@/backtracking";
-import type { QueensEvent } from "@/backtracking/types";
+import type { BacktrackingEventType } from "@/backtracking/types";
 import { localized } from "@/i18n";
 import { encodePath } from "@/fourier/shapes";
 import { encodeGraph } from "@/graphs/graph";
@@ -187,7 +187,7 @@ export const engines: Record<ModuleId, ModuleEngine> = {
 };
 
 /** Conflicts flick past; a queen or digit placed or taken back gets the full beat, a dead end a longer one. */
-const BACKTRACKING_STEP_WEIGHT: Record<QueensEvent["type"], number> = {
+const BACKTRACKING_STEP_WEIGHT: Record<BacktrackingEventType, number> = {
   start: 0.7,
   conflict: 0.4,
   choice: 1,

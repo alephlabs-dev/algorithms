@@ -634,7 +634,7 @@ export const backtrackingTour = localized<TourStep[]>({
       phoneAnchor: "settings",
       title: "Your board",
       text: ({ phone }) =>
-        `${phone ? "In settings: from" : "From"} 4 to 8 queens, or an easy or hard Sudoku. Bigger boards take far more steps.`,
+        `${phone ? "In settings: from" : "From"} 4 to 8 queens, or an easy or hard Sudoku. Bigger boards and harder puzzles take far more steps.`,
     },
   ],
   es: [
@@ -661,7 +661,7 @@ export const backtrackingTour = localized<TourStep[]>({
       phoneAnchor: "settings",
       title: "Tu tablero",
       text: ({ phone }) =>
-        `${phone ? "En los ajustes: de" : "De"} 4 a 8 reinas, o un sudoku fácil o difícil. Los tableros grandes llevan muchos más pasos.`,
+        `${phone ? "En los ajustes: de" : "De"} 4 a 8 reinas, o un sudoku fácil o difícil. Los tableros grandes y los sudokus difíciles llevan muchos más pasos.`,
     },
   ],
 });

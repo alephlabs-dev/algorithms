@@ -4,6 +4,7 @@ import { pathSearches } from "./pathfinding/searches";
 import type { FourierAlgorithm, FourierShape } from "./fourier/types";
 import { structurePresets, structureSizes, type StructurePreset, type StructureSize } from "./structures/presets";
 import type { StructureAlgorithm } from "./structures/types";
+import { SUDOKU_PUZZLES } from "./backtracking/sudoku";
 import { MAX_QUEENS, MIN_QUEENS, type BacktrackingProblem, type SudokuPuzzle } from "./backtracking/types";
 import { isWord } from "./dp/presets";
 import type { DpAlgorithm } from "./dp/types";
@@ -238,7 +239,7 @@ export const toDpSearch = (state: DpUrlState & { speed?: SpeedPreset }) =>
 /** A backtracking run as a link carries it: the board size (N-Queens) or the puzzle (Sudoku). */
 export type BacktrackingUrlState = { n?: number; puzzle?: SudokuPuzzle };
 
-const sudokuPuzzles: SudokuPuzzle[] = ["easy", "hard"];
+const sudokuPuzzles = Object.keys(SUDOKU_PUZZLES) as SudokuPuzzle[];
 
 const readBacktrackingParams = (params: URLSearchParams): BacktrackingUrlState => {
   const state: BacktrackingUrlState = {};

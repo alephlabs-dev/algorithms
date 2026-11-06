@@ -31,7 +31,7 @@ const text = localized({
     rowEmpty: (row) => `Fila ${row}: aún sin reina`,
     cell: (row, col) => `F${row} C${col}`,
     cellIn: (row, col, digit) => `Fila ${row}, columna ${col}: ${digit}`,
-    more: (n) => `${n} más`,
+    more: (n) => `+${n} más`,
     none: "Ninguna aún",
     deadEndAt: (row, col) => `Fila ${row}, columna ${col}: sin dígitos`,
     takenBack: (row, col, digit) => `Fila ${row}, columna ${col}: se quita el ${digit}`,
@@ -153,13 +153,12 @@ const SudokuStage = () => {
   const frame = run.frameAt(frameIndex);
   const board = useMemo(() => sudokuBoard(frame, run), [frame, run]);
   const { event, stack, grid } = frame;
-  const empty = run.givens.filter((given) => !given).length;
   const latest = stack.slice(-SHOWN_SIDEWAYS);
   const hidden = (shown: number) => Math.max(0, stack.length - shown);
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col gap-3 landscape:flex-row">
-      <Board board={board} label={text.grid(stack.length, empty)} />
+      <Board board={board} label={text.grid(stack.length, run.emptyCount)} />
       <Strip>
         <ol className="flex items-center gap-1.5 landscape:flex-col landscape:items-stretch">
           {stack.length === 0 && event.type !== "deadEnd" && event.type !== "backtrack" && (
@@ -188,7 +187,7 @@ const SudokuStage = () => {
                 className={cn(slotClass, standing, newest && "ring-2 ring-foreground/70", sidewaysOnly && "hidden landscape:flex")}
               >
                 <span aria-hidden className="text-foreground/60">
-                  {text.cell(row, col)}
+                  {text.cell(row, col)} →
                 </span>
                 <span aria-hidden className="font-semibold">
                   {grid[cell]}

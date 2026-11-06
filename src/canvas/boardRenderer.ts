@@ -162,7 +162,7 @@ export class BoardRenderer {
       ctx.strokeRect(x + ctx.lineWidth / 2, y + ctx.lineWidth / 2, w - ctx.lineWidth, h - ctx.lineWidth);
     }
 
-    // Lines from square to square, kept clear of what sits on them (a digit next door would be struck through).
+    // Lines from square to square, kept clear of what sits on them.
     for (const line of input.lines) {
       const a = at(line.from.row, line.from.col);
       const b = at(line.to.row, line.to.col);
@@ -177,8 +177,18 @@ export class BoardRenderer {
       ctx.lineCap = "round";
       ctx.setLineDash([size * 0.14, size * 0.1]);
       ctx.beginPath();
-      ctx.moveTo(a.x + size / 2 + ux * gap, a.y + size / 2 + uy * gap);
-      ctx.lineTo(b.x + size / 2 - ux * gap, b.y + size / 2 - uy * gap);
+      // On a grid of digits, a line along a row or column runs by the squares' edge, clear of the digits between.
+      const edge = size * 0.12;
+      if (input.plain && line.from.row === line.to.row) {
+        ctx.moveTo(a.x + size / 2, a.y + edge);
+        ctx.lineTo(b.x + size / 2, b.y + edge);
+      } else if (input.plain && line.from.col === line.to.col) {
+        ctx.moveTo(a.x + edge, a.y + size / 2);
+        ctx.lineTo(b.x + edge, b.y + size / 2);
+      } else {
+        ctx.moveTo(a.x + size / 2 + ux * gap, a.y + size / 2 + uy * gap);
+        ctx.lineTo(b.x + size / 2 - ux * gap, b.y + size / 2 - uy * gap);
+      }
       ctx.stroke();
       ctx.setLineDash([]);
     }

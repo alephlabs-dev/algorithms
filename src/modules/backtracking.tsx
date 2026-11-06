@@ -6,10 +6,10 @@ import {
   BacktrackingTools,
 } from "@/components/Backtracking/BacktrackingTools";
 import { BacktrackingSettings } from "@/components/Settings/SettingsPanel";
-import { queensPseudocode, runOf, sudokuPseudocode, type BacktrackingProblem, type SudokuPuzzle } from "@/backtracking";
-import { backtrackingProblems } from "@/consts/backtracking";
+import { queensPseudocode, runOf, sudokuPseudocode, type BacktrackingProblem } from "@/backtracking";
+import { backtrackingProblems, sudokuPuzzleNames } from "@/consts/backtracking";
 import { localized } from "@/i18n";
-import { useStore } from "@/store";
+import { useStore, type StoreState } from "@/store";
 import { count } from "@/utils/count";
 import { narrateBacktracking, narrateSudoku } from "@/utils/narrateBacktracking";
 import { backtrackingTour } from "./tours";
@@ -23,7 +23,6 @@ const text = localized({
     newRun: "Next board",
     summary: (n: number) => `${n}×${n} board · O(N!) worst case`,
     puzzleWord: "puzzle",
-    puzzles: { easy: "Easy", hard: "Hard" } as Record<SudokuPuzzle, string>,
     puzzleLabel: (name: string) => `${name} puzzle`,
     sudokuSummary: (name: string) => `${name} · 9×9 · O(9ᵐ) worst case`,
   },
@@ -34,11 +33,37 @@ const text = localized({
     newRun: "Siguiente tablero",
     summary: (n) => `Tablero de ${n}×${n} · O(N!) en el peor caso`,
     puzzleWord: "sudoku",
-    puzzles: { easy: "Fácil", hard: "Difícil" },
     puzzleLabel: (name) => `Sudoku ${name.toLowerCase()}`,
     sudokuSummary: (name) => `${name} · 9×9 · O(9ᵐ) en el peor caso`,
   },
 });
+
+/** What differs between the problems, in one place: their settings, pseudocode and words. */
+const problems: Record<
+  BacktrackingProblem,
+  {
+    settingsSummary: ModuleUI["settingsSummary"];
+    summary: (s: StoreState) => string;
+    pseudocode: string[];
+    narrate: (s: StoreState, index: number) => string;
+  }
+> = {
+  queens: {
+    settingsSummary: (s) => ({ main: String(s.queensN), detail: text.queensWord, mono: true, label: text.queens(s.queensN) }),
+    summary: (s) => text.summary(s.queensN),
+    pseudocode: queensPseudocode,
+    narrate: (s, index) => narrateBacktracking(s.queensRun, index),
+  },
+  sudoku: {
+    settingsSummary: (s) => {
+      const name = sudokuPuzzleNames[s.sudokuPuzzle];
+      return { main: name, detail: text.puzzleWord, label: text.puzzleLabel(name) };
+    },
+    summary: (s) => text.sudokuSummary(sudokuPuzzleNames[s.sudokuPuzzle]),
+    pseudocode: sudokuPseudocode,
+    narrate: (s, index) => narrateSudoku(s.sudokuRun, index),
+  },
+};
 
 export const backtrackingUI: ModuleUI = {
   id: "backtracking",
@@ -51,14 +76,7 @@ export const backtrackingUI: ModuleUI = {
   Settings: BacktrackingSettings,
   Facts: BacktrackingFacts,
 
-  settingsSummary: (s) =>
-    s.backtrackingProblem === "sudoku"
-      ? {
-          main: text.puzzles[s.sudokuPuzzle],
-          detail: text.puzzleWord,
-          label: text.puzzleLabel(text.puzzles[s.sudokuPuzzle]),
-        }
-      : { main: String(s.queensN), detail: text.queensWord, mono: true, label: text.queens(s.queensN) },
+  settingsSummary: (s) => problems[s.backtrackingProblem].settingsSummary(s),
   // The next board size, or the other puzzle.
   newRunLabel: text.newRun,
 
@@ -75,14 +93,12 @@ export const backtrackingUI: ModuleUI = {
   pick: (id) => useStore.getState().setBacktrackingProblem(id as BacktrackingProblem),
 
   about: (s) => backtrackingProblems[s.backtrackingProblem],
-  summary: (s) =>
-    s.backtrackingProblem === "sudoku" ? text.sudokuSummary(text.puzzles[s.sudokuPuzzle]) : text.summary(s.queensN),
+  summary: (s) => problems[s.backtrackingProblem].summary(s),
 
   code: {
-    lines: (s) => (s.backtrackingProblem === "sudoku" ? sudokuPseudocode : queensPseudocode),
+    lines: (s) => problems[s.backtrackingProblem].pseudocode,
     line: (s) => runOf(s).frameAt(s.frameIndex).line,
-    narrate: (s, index) =>
-      s.backtrackingProblem === "sudoku" ? narrateSudoku(s.sudokuRun, index) : narrateBacktracking(s.queensRun, index),
+    narrate: (s, index) => problems[s.backtrackingProblem].narrate(s, index),
   },
 
   tour: backtrackingTour,

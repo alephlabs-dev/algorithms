@@ -1,6 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
 import { MAX_QUEENS, MIN_QUEENS, runOf, type SudokuPuzzle } from "@/backtracking";
-import { backtrackingProblems, QUEENS_SOLUTIONS } from "@/consts/backtracking";
+import { backtrackingProblems, QUEENS_SOLUTIONS, sudokuPuzzleNames } from "@/consts/backtracking";
 import { localized } from "@/i18n";
 import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
@@ -23,7 +23,6 @@ const text = localized({
     solutions: (n: number, solutions: number) => `${n} queens: ${count(solutions, "solution")}`,
     whatConflictsSave: "conflicts rule out most of the Nᴺ boards",
     puzzle: "Puzzle",
-    puzzles: { easy: "Easy", hard: "Hard" } as Record<SudokuPuzzle, string>,
     given: "Given",
     digitPlaced: "Digit placed",
     emptyCells: (n: number) => `${n} empty cells · 1 solution`,
@@ -43,7 +42,6 @@ const text = localized({
     solutions: (n, solutions) => `${n} reinas: ${count(solutions, "solución", "soluciones")}`,
     whatConflictsSave: "los conflictos descartan casi todos los Nᴺ tableros",
     puzzle: "Sudoku",
-    puzzles: { easy: "Fácil", hard: "Difícil" },
     given: "Pista",
     digitPlaced: "Dígito colocado",
     emptyCells: (n) => `${n} casillas vacías · 1 solución`,
@@ -78,7 +76,7 @@ export const SudokuPuzzlePicker = ({ className }: { className?: string }) => {
   return (
     <SegmentedControl<SudokuPuzzle>
       label={text.puzzle}
-      options={(["easy", "hard"] as const).map((value) => ({ value, label: text.puzzles[value] }))}
+      options={(["easy", "hard"] as const).map((value) => ({ value, label: sudokuPuzzleNames[value] }))}
       value={puzzle}
       onChange={(value) => value !== puzzle && setPuzzle(value)}
       compact
@@ -197,7 +195,7 @@ export const BacktrackingFacts = () => {
   );
   const facts =
     problem === "sudoku"
-      ? [text.emptyCells(run.givens.filter((given) => !given).length), text.whatConflictsSaveSudoku]
+      ? [text.emptyCells(run.emptyCount), text.whatConflictsSaveSudoku]
       : [text.solutions(n, QUEENS_SOLUTIONS[n]), text.whatConflictsSave];
   return <FactLine facts={[backtrackingProblems[problem].cost, ...facts]} />;
 };

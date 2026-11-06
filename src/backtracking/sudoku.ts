@@ -28,7 +28,7 @@ const lineOf: Record<SudokuEvent["type"], number | null> = {
 };
 
 /** Where `digit` already is in the row, column or box of (row, col), checked in that order; null when it fits. */
-export const clash = (grid: number[], row: number, col: number, digit: number): { by: Square; rule: SudokuRule } | null => {
+export const conflictWith = (grid: number[], row: number, col: number, digit: number): { by: Square; rule: SudokuRule } | null => {
   for (let c = 0; c < 9; c++) if (c !== col && grid[row * 9 + c] === digit) return { by: { row, col: c }, rule: "row" };
   for (let r = 0; r < 9; r++) if (r !== row && grid[r * 9 + col] === digit) return { by: { row: r, col }, rule: "column" };
   const top = row - (row % 3);
@@ -74,10 +74,10 @@ export class SudokuRun {
       const row = Math.floor(cell / 9);
       const col = cell % 9;
       for (let digit = 1; digit <= 9; digit++) {
-        const found = clash(grid, row, col, digit);
-        if (found) {
+        const conflict = conflictWith(grid, row, col, digit);
+        if (conflict) {
           conflicts++;
-          frame({ type: "conflict", row, col, digit, ...found });
+          frame({ type: "conflict", row, col, digit, ...conflict });
           continue;
         }
         grid[cell] = digit;
@@ -99,6 +99,11 @@ export class SudokuRun {
 
   get length() {
     return this.frames.length;
+  }
+
+  /** How many cells the puzzle leaves to fill. */
+  get emptyCount() {
+    return this.givens.filter((given) => !given).length;
   }
 
   /** Frame `index`, or the last one past the end. */

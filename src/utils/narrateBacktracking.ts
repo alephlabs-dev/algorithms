@@ -90,7 +90,7 @@ export const narrateSudoku = (run: SudokuRun, index: number): string => {
   const { event } = frame;
   switch (event.type) {
     case "start":
-      return sudokuText.start(run.givens.filter((given) => !given).length);
+      return sudokuText.start(run.emptyCount);
     case "choice":
       return sudokuText.choice(event.row + 1, event.col + 1, event.digit);
     case "conflict":

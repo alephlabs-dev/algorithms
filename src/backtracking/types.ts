@@ -67,11 +67,14 @@ export type SudokuFrame = {
   line: number | null;
 };
 
+/** The kinds of step every problem records: the same for queens and digits. */
+export type BacktrackingEventType = QueensEvent["type"] & SudokuEvent["type"];
+
 /** What playback, the counters and the code card need from any problem's run. */
 export type BacktrackingRun = {
   readonly length: number;
   frameAt(index: number): {
-    event: { type: QueensEvent["type"] };
+    event: { type: BacktrackingEventType };
     line: number | null;
     choices: number;
     conflicts: number;
