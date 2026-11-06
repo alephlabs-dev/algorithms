@@ -1,4 +1,5 @@
-import type { QueensEvent } from "@/backtracking/types";
+import { runOf } from "@/backtracking";
+import type { BacktrackingEventType } from "@/backtracking/types";
 import { localized } from "@/i18n";
 import { encodePath } from "@/fourier/shapes";
 import { encodeGraph } from "@/graphs/graph";
@@ -170,17 +171,23 @@ export const engines: Record<ModuleId, ModuleEngine> = {
     game: (s) => questionsOf(s.dpRun, dpQuestions),
   },
   backtracking: {
-    lastIndex: (s) => s.queensRun.length - 1,
-    stepWeight: (s, index) => QUEENS_STEP_WEIGHT[s.queensRun.frames[index]?.event.type ?? "done"],
+    lastIndex: (s) => runOf(s).length - 1,
+    stepWeight: (s, index) => BACKTRACKING_STEP_WEIGHT[runOf(s).frameAt(index).event.type],
     pace: () => "backtracking",
     route: (s) =>
       s.isModuleStart ? { kind: "backtracking" } : { kind: "backtrackingProblem", algorithm: s.backtrackingProblem },
-    search: (s) => toBacktrackingSearch({ n: s.queensN, speed: s.speedPreset }),
+    // N-Queens links its board size; Sudoku its puzzle.
+    search: (s) =>
+      toBacktrackingSearch(
+        s.backtrackingProblem === "sudoku"
+          ? { puzzle: s.sudokuPuzzle, speed: s.speedPreset }
+          : { n: s.queensN, speed: s.speedPreset },
+      ),
   },
 };
 
-/** Conflicts flick past; a queen placed or taken back gets the full beat, a dead end a longer one. */
-const QUEENS_STEP_WEIGHT: Record<QueensEvent["type"], number> = {
+/** Conflicts flick past; a queen or digit placed or taken back gets the full beat, a dead end a longer one. */
+const BACKTRACKING_STEP_WEIGHT: Record<BacktrackingEventType, number> = {
   start: 0.7,
   conflict: 0.4,
   choice: 1,

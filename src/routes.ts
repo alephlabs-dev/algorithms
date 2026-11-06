@@ -69,6 +69,7 @@ export const dpSlugs: Record<DpAlgorithm, string> = {
 /** URL slug for each backtracking problem, e.g. /backtracking/n-queens. */
 export const backtrackingSlugs: Record<BacktrackingProblem, string> = {
   queens: "n-queens",
+  sudoku: "sudoku",
 };
 
 /** Every page the site has. Settings (size, input, speed, seed…) stay in the query string. */

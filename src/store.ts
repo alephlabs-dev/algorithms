@@ -52,7 +52,16 @@ import {
   type Item,
   type TableRun,
 } from "./dp";
-import { DEFAULT_QUEENS, MAX_QUEENS, MIN_QUEENS, QueensRun, type BacktrackingProblem } from "./backtracking";
+import {
+  DEFAULT_QUEENS,
+  MAX_QUEENS,
+  MIN_QUEENS,
+  QueensRun,
+  SUDOKU_PUZZLES,
+  SudokuRun,
+  type BacktrackingProblem,
+  type SudokuPuzzle,
+} from "./backtracking";
 import { engines, type ModuleId } from "./modules/engine";
 import { forgetAnswers, isAnswered, markAnswered, NEW_SCORE, type Answer, type GameScore, type Question } from "./game";
 import {
@@ -165,6 +174,9 @@ export type StoreState = {
   queensN: number;
   /** The search for the first solution, frame by frame. */
   queensRun: QueensRun;
+  /** Sudoku: which preset puzzle, and its search. */
+  sudokuPuzzle: SudokuPuzzle;
+  sudokuRun: SudokuRun;
   /** Bumped when the graph is replaced wholesale, so nodes don't glide between layouts. */
   graphId: number;
   /** Searches racing on the grid, in the picker's order. */
@@ -256,6 +268,7 @@ export type StoreState = {
   setBacktrackingProblem: (problem: BacktrackingProblem) => void;
   /** A new board size; the search starts over. */
   setQueensN: (n: number) => void;
+  setSudokuPuzzle: (puzzle: SudokuPuzzle) => void;
   togglePathRacer: (algorithm: PathAlgorithm) => void;
   /** Switch to the pathfinding race with `algorithm` among the racers. */
   pathRaceWith: (algorithm: PathAlgorithm) => void;
@@ -494,6 +507,7 @@ const initial = (() => {
   const dpItems = (url.dp.items && decodeItems(url.dp.items)) || (dpRaceStart ? RACE_ITEMS : EXAMPLE_ITEMS);
   const dpCapacity = url.dp.capacity ?? (dpRaceStart ? RACE_CAPACITY : EXAMPLE_CAPACITY);
   const queensN = url.backtracking.n ?? DEFAULT_QUEENS;
+  const sudokuPuzzle = url.backtracking.puzzle ?? "easy";
   const fourierAlgorithm = url.fourierAlgorithm ?? "square";
   const fourierShape = url.fourier.shape ?? "heart";
   const fourierPath = url.fourier.path ? decodePath(url.fourier.path) : null;
@@ -535,6 +549,8 @@ const initial = (() => {
     backtrackingProblem: url.backtrackingProblem ?? ("queens" as BacktrackingProblem),
     queensN,
     queensRun: new QueensRun(queensN),
+    sudokuPuzzle,
+    sudokuRun: new SudokuRun(SUDOKU_PUZZLES[sudokuPuzzle]),
     structureAlgorithm,
     structurePreset,
     structureSize,
@@ -812,9 +828,10 @@ export const useStore = create<StoreState>((set, get) => {
         setDpWords(next.a, next.b);
       }
       else if (module === "backtracking") {
-        // "New" moves to the next board size, wrapping back to the smallest.
-        const { queensN, setQueensN } = get();
-        setQueensN(queensN >= MAX_QUEENS ? MIN_QUEENS : queensN + 1);
+        // "New": the next board size (wrapping back to the smallest), or the other puzzle.
+        const { backtrackingProblem, queensN, setQueensN, sudokuPuzzle, setSudokuPuzzle } = get();
+        if (backtrackingProblem === "sudoku") setSudokuPuzzle(sudokuPuzzle === "easy" ? "hard" : "easy");
+        else setQueensN(queensN >= MAX_QUEENS ? MIN_QUEENS : queensN + 1);
       }
       else if (module === "fourier") {
         // "New" adds circles, wrapping back to the fewest: the quickest way to see the series converge.
@@ -961,6 +978,7 @@ export const useStore = create<StoreState>((set, get) => {
         isModuleStart: false,
         backtrackingProblem: problem,
         queensRun: new QueensRun(state.queensN),
+        sudokuRun: new SudokuRun(SUDOKU_PUZZLES[state.sudokuPuzzle]),
         dpRaceRuns: [],
         raceTimelines: [],
         pathRaceTimelines: [],
@@ -974,6 +992,11 @@ export const useStore = create<StoreState>((set, get) => {
 
     setQueensN: (queensN) => {
       set({ queensN, queensRun: new QueensRun(queensN), frameIndex: 0, isPlaying: false });
+      applyAutoSpeed();
+    },
+
+    setSudokuPuzzle: (sudokuPuzzle) => {
+      set({ sudokuPuzzle, sudokuRun: new SudokuRun(SUDOKU_PUZZLES[sudokuPuzzle]), frameIndex: 0, isPlaying: false });
       applyAutoSpeed();
     },
 

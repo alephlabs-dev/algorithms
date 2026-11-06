@@ -29,7 +29,7 @@ const text = localized({
       fourier: "Square, sawtooth and triangle waves built from circles, and circles on circles that draw any shape.",
       structures: "Search trees, AVL rotations, a min-heap and hash tables you insert into, search and delete from.",
       dp: "Edit distance, the longest common subsequence and the knapsack, one table cell at a time, and a race against plain recursion.",
-      backtracking: "N queens on a chessboard, placed one row at a time: every conflict, every dead end and every queen taken back.",
+      backtracking: "N queens on a chessboard and a Sudoku, filled one choice at a time: every conflict, every dead end and every choice taken back.",
     },
   },
   es: {
@@ -52,7 +52,7 @@ const text = localized({
       fourier: "Ondas cuadradas, de sierra y triangulares hechas con círculos, y círculos sobre círculos que dibujan cualquier forma.",
       structures: "Árboles de búsqueda, rotaciones AVL, un montículo mínimo y tablas hash donde insertas, buscas y borras.",
       dp: "Distancia de edición, la subsecuencia común más larga y la mochila, celda por celda, y una carrera contra la recursión simple.",
-      backtracking: "N reinas en un tablero de ajedrez, fila por fila: cada conflicto, cada callejón sin salida y cada reina que se quita.",
+      backtracking: "N reinas en un tablero de ajedrez y un sudoku, elección por elección: cada conflicto, cada callejón sin salida y cada elección que se deshace.",
     },
   },
 });

@@ -22,3 +22,24 @@ test('N-Queens in Spanish places queens and explains each step in Spanish', asyn
   await expect(page).toHaveURL(/\/es\/backtracking\/n-queens\?n=6/);
   expect(errors).toEqual([]);
 });
+
+// Runs on every device project. The Spanish Sudoku page: the first step names the rule the digit breaks.
+test('Sudoku in Spanish fills the grid and explains each step in Spanish', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.addInitScript(() => localStorage.setItem('tour-done-backtracking', 'true'));
+  await page.goto('/es/backtracking/sudoku?puzzle=easy');
+
+  await expect(page.locator('html')).toHaveAttribute('lang', 'es');
+  await expect(page.getByRole('heading', { level: 1, name: 'Sudoku' })).toBeAttached();
+  await expect(
+    page.getByText('51 casillas vacías. Presiona play: cada una, de izquierda a derecha y de arriba abajo, prueba los dígitos del 1 al 9.').filter({ visible: true }).first(),
+  ).toBeVisible();
+
+  await page.getByRole('button', { name: 'Paso siguiente' }).click();
+  await expect(
+    page.getByText('Fila 1, columna 3: el 1 ya está en su fila. Un conflicto: se salta.').filter({ visible: true }).first(),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/\/es\/backtracking\/sudoku\?puzzle=easy/);
+  expect(errors).toEqual([]);
+});

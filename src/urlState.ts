@@ -4,7 +4,8 @@ import { pathSearches } from "./pathfinding/searches";
 import type { FourierAlgorithm, FourierShape } from "./fourier/types";
 import { structurePresets, structureSizes, type StructurePreset, type StructureSize } from "./structures/presets";
 import type { StructureAlgorithm } from "./structures/types";
-import { MAX_QUEENS, MIN_QUEENS, type BacktrackingProblem } from "./backtracking/types";
+import { SUDOKU_PUZZLES } from "./backtracking/sudoku";
+import { MAX_QUEENS, MIN_QUEENS, type BacktrackingProblem, type SudokuPuzzle } from "./backtracking/types";
 import { isWord } from "./dp/presets";
 import type { DpAlgorithm } from "./dp/types";
 import { graphPresets, graphSizes, type GraphPreset, type GraphSize } from "./graphs/graph";
@@ -235,18 +236,25 @@ export const toDpSearch = (state: DpUrlState & { speed?: SpeedPreset }) =>
     ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
   }).toString();
 
-/** A backtracking run as a link carries it: the board size. */
-export type BacktrackingUrlState = { n?: number };
+/** A backtracking run as a link carries it: the board size (N-Queens) or the puzzle (Sudoku). */
+export type BacktrackingUrlState = { n?: number; puzzle?: SudokuPuzzle };
+
+const sudokuPuzzles = Object.keys(SUDOKU_PUZZLES) as SudokuPuzzle[];
 
 const readBacktrackingParams = (params: URLSearchParams): BacktrackingUrlState => {
+  const state: BacktrackingUrlState = {};
   const n = Number(params.get("n"));
-  return Number.isInteger(n) && n >= MIN_QUEENS && n <= MAX_QUEENS ? { n } : {};
+  if (Number.isInteger(n) && n >= MIN_QUEENS && n <= MAX_QUEENS) state.n = n;
+  const puzzle = params.get("puzzle");
+  if (isOneOf(sudokuPuzzles, puzzle)) state.puzzle = puzzle;
+  return state;
 };
 
-export const toBacktrackingSearch = (state: { n: number; speed?: SpeedPreset }) =>
+export const toBacktrackingSearch = (state: BacktrackingUrlState & { speed?: SpeedPreset }) =>
   "?" +
   new URLSearchParams({
-    n: String(state.n),
+    ...(state.n !== undefined && { n: String(state.n) }),
+    ...(state.puzzle && { puzzle: state.puzzle }),
     ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
   }).toString();
 

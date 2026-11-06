@@ -1,6 +1,7 @@
 import type { BoardCell, BoardInput } from "@/canvas/boardRenderer";
 import { attacks } from "./queens";
-import type { QueensFrame } from "./types";
+import type { SudokuRun } from "./sudoku";
+import type { QueensFrame, SudokuFrame } from "./types";
 
 const QUEEN = { kind: "queen" } as const;
 
@@ -27,4 +28,29 @@ export const queensBoard = (frame: QueensFrame, n: number): BoardInput => {
 
   const labels = Array.from({ length: n }, (_, k) => String(k + 1));
   return { rows: n, cols: n, cells, lines, deadEnd, rowLabels: labels, colLabels: labels };
+};
+
+/** A Sudoku frame as the board draws it: givens in ink, digits placed in green, and what the step did. */
+export const sudokuBoard = (frame: SudokuFrame, run: SudokuRun): BoardInput => {
+  const { event, grid } = frame;
+  const cells: BoardCell[] = grid.map((digit, k) =>
+    digit === 0
+      ? {}
+      : { piece: { kind: "text", value: String(digit) }, tone: "placed", given: run.givens[k] },
+  );
+  const cell = (row: number, col: number) => cells[row * 9 + col];
+
+  const lines: BoardInput["lines"] = [];
+  let deadEnd: BoardInput["deadEnd"] = null;
+  if (event.type === "choice") cell(event.row, event.col).tone = "focus";
+  else if (event.type === "conflict") {
+    Object.assign(cell(event.row, event.col), { piece: { kind: "text", value: String(event.digit) }, tone: "conflict" });
+    cell(event.by.row, event.by.col).tone = "attacker";
+    lines.push({ from: { row: event.row, col: event.col }, to: event.by });
+  } else if (event.type === "deadEnd") deadEnd = { from: { row: event.row, col: event.col }, to: { row: event.row, col: event.col } };
+  else if (event.type === "backtrack")
+    Object.assign(cell(event.row, event.col), { piece: { kind: "text", value: String(event.digit) }, tone: "ghost" });
+
+  const labels = Array.from({ length: 9 }, (_, k) => String(k + 1));
+  return { rows: 9, cols: 9, cells, lines, deadEnd, rowLabels: labels, colLabels: labels, plain: true, box: 3 };
 };

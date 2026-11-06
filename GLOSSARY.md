@@ -18,6 +18,10 @@ _Avoid_: Step, event
 A puzzle the backtracking module solves, such as N-Queens or Sudoku. In this module the learner picks a problem, not an algorithm, because the algorithm is always backtracking.
 _Avoid_: Algorithm, puzzle type
 
+**Given**:
+A value the puzzle starts with, such as a Sudoku's printed digits. It is never tried or taken back, so it is not a choice.
+_Avoid_: Clue, hint, fixed cell
+
 **Choice**:
 Placing a value in a slot of a problem, such as a queen in a column of a row or a digit in a cell.
 _Avoid_: Move, placement, try

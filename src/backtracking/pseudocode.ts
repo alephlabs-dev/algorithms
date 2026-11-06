@@ -9,3 +9,16 @@ export const queensPseudocode = [
   "      remove(row, col)",
   "  return false",
 ];
+
+// Line numbers are SUDOKU_LINE in sudoku.ts. The same shape as the queens, one cell at a time.
+export const sudokuPseudocode = [
+  "solve():",
+  "  cell = next empty cell",
+  "  if none: return true",
+  "  for d in 1..9:",
+  "    if fits(cell, d):",
+  "      place(cell, d)",
+  "      if solve(): return true",
+  "      remove(cell, d)",
+  "  return false",
+];

@@ -1,4 +1,4 @@
-import type { QueensRun } from "@/backtracking";
+import type { QueensRun, SudokuRule, SudokuRun } from "@/backtracking";
 import { localized } from "@/i18n";
 import { count } from "./count";
 
@@ -50,5 +50,56 @@ export const narrateBacktracking = (run: QueensRun, index: number): string => {
       return text.backtrack(event.row + 1, event.col + 1, event.col < n - 1);
     case "done":
       return text.done(n, frame.choices, frame.conflicts, frame.backtracks);
+  }
+};
+
+const sudokuText = localized({
+  en: {
+    start: (empty: number) =>
+      `${empty} empty cells. Press play: each one, left to right and top to bottom, tries the digits from 1 to 9.`,
+    choice: (row: number, col: number, digit: number) => `Row ${row}, column ${col}: the ${digit} fits.`,
+    rule: { row: "its row", column: "its column", box: "its box" } as Record<SudokuRule, string>,
+    conflict: (row: number, col: number, digit: number, where: string) =>
+      `Row ${row}, column ${col}: the ${digit} is already in ${where}. A conflict, so skip it.`,
+    deadEnd: (row: number, col: number) =>
+      `Row ${row}, column ${col} has no digit left to try: a dead end. Back to the cell before.`,
+    backtrack: (row: number, col: number, digit: number, more: boolean) =>
+      `Backtrack: take the ${digit} out of row ${row}, column ${col}.${more ? " Try the next digit." : " It was the last digit."}`,
+    done: (choices: number, conflicts: number, backtracks: number) =>
+      `Solved: every row, column and box holds 1 to 9. It took ${count(choices, "choice")}, ${count(conflicts, "conflict")} and ${count(backtracks, "backtrack")}.`,
+  },
+  es: {
+    start: (empty) =>
+      `${empty} casillas vacías. Presiona play: cada una, de izquierda a derecha y de arriba abajo, prueba los dígitos del 1 al 9.`,
+    choice: (row, col, digit) => `Fila ${row}, columna ${col}: cabe el ${digit}.`,
+    rule: { row: "su fila", column: "su columna", box: "su caja" },
+    conflict: (row, col, digit, where) =>
+      `Fila ${row}, columna ${col}: el ${digit} ya está en ${where}. Un conflicto: se salta.`,
+    deadEnd: (row, col) =>
+      `A la fila ${row}, columna ${col} no le quedan dígitos por probar: un callejón sin salida. Vuelve a la casilla anterior.`,
+    backtrack: (row, col, digit, more) =>
+      `Vuelta atrás: se quita el ${digit} de la fila ${row}, columna ${col}.${more ? " Se prueba el siguiente dígito." : " Era el último dígito."}`,
+    done: (choices, conflicts, backtracks) =>
+      `Resuelto: cada fila, columna y caja tiene del 1 al 9. Hicieron falta ${count(choices, "elección", "elecciones")}, ${count(conflicts, "conflicto")} y ${count(backtracks, "vuelta atrás", "vueltas atrás")}.`,
+  },
+});
+
+/** A Sudoku step into frame `index`, in words. Rows and columns count from 1, as on the labels. */
+export const narrateSudoku = (run: SudokuRun, index: number): string => {
+  const frame = run.frameAt(index);
+  const { event } = frame;
+  switch (event.type) {
+    case "start":
+      return sudokuText.start(run.emptyCount);
+    case "choice":
+      return sudokuText.choice(event.row + 1, event.col + 1, event.digit);
+    case "conflict":
+      return sudokuText.conflict(event.row + 1, event.col + 1, event.digit, sudokuText.rule[event.rule]);
+    case "deadEnd":
+      return sudokuText.deadEnd(event.row + 1, event.col + 1);
+    case "backtrack":
+      return sudokuText.backtrack(event.row + 1, event.col + 1, event.digit, event.digit < 9);
+    case "done":
+      return sudokuText.done(frame.choices, frame.conflicts, frame.backtracks);
   }
 };

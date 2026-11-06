@@ -613,13 +613,13 @@ export const backtrackingTour = localized<TourStep[]>({
       anchor: "bars",
       title: "The board",
       text: () =>
-        "One queen per row, tried column by column from the left. A red square is a conflict: a queen above already attacks it, along the dashed line.",
+        "A queen per row, or a digit per empty cell, tried one after another. A red square is a conflict: the dashed line points at what rules it out.",
     },
     {
       anchor: "choices",
       title: "The choices that stand",
       text: () =>
-        "The column of each row's queen. It grows with every queen placed, and shrinks when a row has nowhere left to go and the search backtracks.",
+        "Each queen or digit placed so far. It grows with every choice, and shrinks when a square has nothing left to try and the search backtracks.",
     },
     {
       anchor: "narration",
@@ -632,9 +632,9 @@ export const backtrackingTour = localized<TourStep[]>({
     {
       anchor: "tools",
       phoneAnchor: "settings",
-      title: "How many queens",
+      title: "Your board",
       text: ({ phone }) =>
-        `${phone ? "In settings: from" : "From"} 4 to 8. Six already has dead ends; eight takes over a thousand steps.`,
+        `${phone ? "In settings: from" : "From"} 4 to 8 queens, or an easy or hard Sudoku. Bigger boards and harder puzzles take far more steps.`,
     },
   ],
   es: [
@@ -642,13 +642,13 @@ export const backtrackingTour = localized<TourStep[]>({
       anchor: "bars",
       title: "El tablero",
       text: () =>
-        "Una reina por fila, probando columna por columna desde la izquierda. Una casilla roja es un conflicto: una reina de arriba ya la ataca, por la línea discontinua.",
+        "Una reina por fila, o un dígito por casilla vacía, probados uno tras otro. Una casilla roja es un conflicto: la línea discontinua señala lo que la descarta.",
     },
     {
       anchor: "choices",
       title: "Las elecciones en pie",
       text: () =>
-        "La columna de la reina de cada fila. Crece con cada reina colocada y se acorta cuando una fila se queda sin salida y la búsqueda vuelve atrás.",
+        "Cada reina o dígito colocado hasta ahora. Crece con cada elección y se acorta cuando una casilla se queda sin nada que probar y la búsqueda vuelve atrás.",
     },
     {
       anchor: "narration",
@@ -659,9 +659,9 @@ export const backtrackingTour = localized<TourStep[]>({
     {
       anchor: "tools",
       phoneAnchor: "settings",
-      title: "Cuántas reinas",
+      title: "Tu tablero",
       text: ({ phone }) =>
-        `${phone ? "En los ajustes: de" : "De"} 4 a 8. Con seis ya hay callejones sin salida; con ocho son más de mil pasos.`,
+        `${phone ? "En los ajustes: de" : "De"} 4 a 8 reinas, o un sudoku fácil o difícil. Los tableros grandes y los sudokus difíciles llevan muchos más pasos.`,
     },
   ],
 });
