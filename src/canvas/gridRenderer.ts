@@ -222,7 +222,7 @@ export class GridRenderer {
       ctx.fill();
       // Mud gets a few dots, so it reads without relying on color alone.
       if (grid.cells[cell] === MUD && size >= 10 && frame.states[cell] !== ON_PATH) {
-        // eslint-disable-next-line house/no-raw-colors -- a shade over the mud color; UX.md open question 6.
+        // eslint-disable-next-line house/no-raw-colors -- translucent so the dots darken whatever color the mud cell has now (plain, visited, frontier); not a backdrop, so not --color-scrim.
         ctx.fillStyle = `rgb(0 0 0 / 0.18)`;
         const d = Math.max(1, s * 0.09);
         for (const [fx, fy] of [[0.3, 0.32], [0.68, 0.45], [0.42, 0.7]]) {

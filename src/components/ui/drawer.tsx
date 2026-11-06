@@ -26,8 +26,8 @@ const DrawerContent = ({
   ...props
 }: ComponentProps<typeof DrawerPrimitive.Content>) => (
   <DrawerPrimitive.Portal>
-    {/* eslint-disable-next-line house/no-raw-colors -- Dims the page; whether dimming gets a theme token is UX.md open question 6. */}
-    <DrawerPrimitive.Overlay className="fixed inset-0 z-50 bg-black/80" />
+    {/* Renders nothing when the drawer is non-modal (modal={false}): those have no backdrop. */}
+    <DrawerPrimitive.Overlay className="fixed inset-0 z-50 bg-scrim" />
     <DrawerPrimitive.Content
       className={cn(
         "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-3xl border border-edge bg-surface",
