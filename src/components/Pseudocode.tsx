@@ -133,7 +133,7 @@ export const StepCaption = ({ className }: { className?: string }) => {
       <DrawerTrigger asChild>
         <button
           className={cn(
-            "flex min-h-10 min-w-0 items-center gap-2 rounded-full px-3 py-1 text-left text-sm hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
+            "tap-target relative flex min-h-10 min-w-0 items-center gap-2 rounded-full px-3 py-1 text-left text-sm hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
             muted ? "text-foreground/60" : "text-foreground",
             className
           )}

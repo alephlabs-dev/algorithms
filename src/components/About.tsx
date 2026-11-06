@@ -418,7 +418,7 @@ const AlgorithmIndex = ({ current, onNavigate }: { current?: Algorithm; onNaviga
         <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground/60">
           {group.label} <span className="font-mono normal-case tracking-normal">{group.hint}</span>
         </h3>
-        <ul className="flex flex-col gap-1.5">
+        <ul className="tap-rows flex flex-col gap-1.5">
           {group.algorithms.map((algorithm) => (
             <li key={algorithm}>
               {algorithm === current ? (
@@ -474,7 +474,7 @@ const pathOrder = Object.keys(pathAlgorithms) as PathAlgorithm[];
 
 /** The pathfinding algorithms, linking to their pages. */
 const PathIndex = ({ current, onNavigate }: { current?: PathAlgorithm; onNavigate?: Props["onNavigate"] }) => (
-  <ul className="flex flex-wrap gap-x-6 gap-y-2">
+  <ul className="tap-rows flex flex-wrap gap-x-6 gap-y-2">
     {pathOrder.map((algorithm) => (
       <li key={algorithm}>
         {algorithm === current ? (
@@ -557,7 +557,7 @@ const SortingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) =>
       <p className="text-lg text-foreground/80">{text.sortingIntro}</p>
     </header>
     <Section title={text.allSorting}>
-      <ul className="flex flex-col divide-y divide-edge">
+      <ul className="tap-rows flex flex-col divide-y divide-edge">
         {(Object.keys(sortingAlgorithms) as Algorithm[]).map((algorithm) => {
           const { title, shortDescription, timeComplexity } = sortingAlgorithms[algorithm];
           return (
@@ -593,7 +593,7 @@ const PathfindingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }
       <p className="text-lg text-foreground/80">{pathText.moduleIntro}</p>
     </header>
     <Section title={pathText.all}>
-      <ul className="flex flex-col divide-y divide-edge">
+      <ul className="tap-rows flex flex-col divide-y divide-edge">
         {pathOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
             <PageLink to={{ kind: "path", algorithm }} onNavigate={onNavigate}>
@@ -654,7 +654,7 @@ const BADGE_MEANING = graphText.badge;
 
 /** The graph algorithms, linking to their pages. */
 const GraphIndex = ({ current, onNavigate }: { current?: GraphAlgorithm; onNavigate?: Props["onNavigate"] }) => (
-  <ul className="flex flex-wrap gap-x-6 gap-y-2">
+  <ul className="tap-rows flex flex-wrap gap-x-6 gap-y-2">
     {graphOrder.map((algorithm) => (
       <li key={algorithm}>
         {algorithm === current ? (
@@ -676,7 +676,7 @@ const GraphsArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => 
       <p className="text-lg text-foreground/80">{graphText.moduleIntro}</p>
     </header>
     <Section title={graphText.all}>
-      <ul className="flex flex-col divide-y divide-edge">
+      <ul className="tap-rows flex flex-col divide-y divide-edge">
         {graphOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4">
@@ -782,7 +782,7 @@ const FourierArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) =>
       <p className="text-lg text-foreground/80">{fourierText.moduleIntro}</p>
     </header>
     <Section title={fourierText.all}>
-      <ul className="flex flex-col divide-y divide-edge">
+      <ul className="tap-rows flex flex-col divide-y divide-edge">
         {seriesOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4">
@@ -822,7 +822,7 @@ const SeriesArticle = ({ algorithm, onNavigate }: { algorithm: FourierAlgorithm;
         </pre>
       </Section>
       <Section title={fourierText.more}>
-        <ul className="flex flex-wrap gap-x-6 gap-y-2">
+        <ul className="tap-rows flex flex-wrap gap-x-6 gap-y-2">
           {seriesOrder.map((other) => (
             <li key={other}>
               {other === algorithm ? (
@@ -849,7 +849,7 @@ const BacktrackingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] 
       <p className="text-lg text-foreground/80">{backtrackingText.moduleIntro}</p>
     </header>
     <Section title={backtrackingText.all}>
-      <ul className="flex flex-col divide-y divide-edge">
+      <ul className="tap-rows flex flex-col divide-y divide-edge">
         {problemOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4">
@@ -895,7 +895,7 @@ const BacktrackingProblemArticle = ({ algorithm }: { algorithm: BacktrackingProb
 const structureOrder = Object.keys(structures) as StructureAlgorithm[];
 
 const StructureIndex = ({ current, onNavigate }: { current?: StructureAlgorithm; onNavigate?: Props["onNavigate"] }) => (
-  <ul className="flex flex-wrap gap-x-6 gap-y-2">
+  <ul className="tap-rows flex flex-wrap gap-x-6 gap-y-2">
     {structureOrder.map((algorithm) => (
       <li key={algorithm}>
         {algorithm === current ? (
@@ -918,7 +918,7 @@ const StructuresArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] })
     </header>
     {(["Trees", "Heaps", "Hash tables"] as const).map((group) => (
       <Section key={group} title={structureText.groups[group]}>
-        <ul className="flex flex-col divide-y divide-edge">
+        <ul className="tap-rows flex flex-col divide-y divide-edge">
           {structureOrder
             .filter((algorithm) => structures[algorithm].group === group)
             .map((algorithm) => (
@@ -1022,7 +1022,7 @@ const DpArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
       <p className="text-lg text-foreground/80">{dpText.moduleIntro}</p>
     </header>
     <Section title={dpText.problems}>
-      <ul className="flex flex-col divide-y divide-edge">
+      <ul className="tap-rows flex flex-col divide-y divide-edge">
         {dpOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4">
@@ -1062,7 +1062,7 @@ const DpRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => 
       <p className="leading-relaxed text-foreground/80">{dpText.raceTip}</p>
     </Section>
     <Section title={dpText.theProblems}>
-      <ul className="flex flex-wrap gap-x-6 gap-y-2">
+      <ul className="tap-rows flex flex-wrap gap-x-6 gap-y-2">
         {dpOrder.map((algorithm) => (
           <li key={algorithm}>
             <PageLink to={{ kind: "dpProblem", algorithm }} onNavigate={onNavigate}>
@@ -1154,14 +1154,14 @@ export const About = ({ route, onNavigate }: Props) => (
       <PageLink
         to={{ kind: "home" }}
         onNavigate={onNavigate}
-        className="underline decoration-line underline-offset-4 hover:text-foreground"
+        className="tap-target relative underline decoration-line underline-offset-4 hover:text-foreground"
       >
         {text.allModules}
       </PageLink>{" "}
       · {text.madeBy} ·{" "}
       <a
         href="https://github.com/alephlabs-dev/algorithms"
-        className="underline decoration-line underline-offset-4 hover:text-foreground"
+        className="tap-target relative underline decoration-line underline-offset-4 hover:text-foreground"
       >
         {text.github}
       </a>

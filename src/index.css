@@ -133,3 +133,40 @@ body {
     scroll-behavior: smooth;
   }
 }
+
+/*
+  Touch targets (UX.md): on touch screens every control can be tapped across at least 44×44 px,
+  without changing how it looks. Desktop (a fine pointer) is untouched.
+*/
+
+/* An invisible hit area centred on the element. The element needs a position (relative, absolute…). */
+@utility tap-target {
+  @media (pointer: coarse) {
+    &::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: max(100%, 44px);
+      height: max(100%, 44px);
+      transform: translate(-50%, -50%);
+    }
+  }
+}
+
+/* On a list of links: each row is at least 44px tall, and its link covers the whole row. */
+@utility tap-rows {
+  @media (pointer: coarse) {
+    & > li {
+      position: relative;
+      display: grid;
+      align-items: center;
+      min-height: 44px;
+    }
+    & > li a::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+    }
+  }
+}

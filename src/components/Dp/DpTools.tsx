@@ -66,7 +66,7 @@ export const WordPairButtons = ({ className }: { className?: string }) => {
             aria-pressed={current}
             onClick={() => setWords(pair.a, pair.b)}
             className={cn(
-              "flex h-10 items-center rounded-full border px-4 text-sm transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
+              "tap-target relative flex h-10 items-center rounded-full border px-4 text-sm transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
               current
                 ? "border-foreground/60 bg-accent font-semibold text-foreground"
                 : "border-line/70 text-foreground/85 hover:bg-accent hover:text-foreground",
@@ -101,7 +101,7 @@ const ExampleBagButton = () => {
           : text.textbookTitle
       }
       className={cn(
-        "flex h-10 items-center rounded-full border px-4 text-sm transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
+        "tap-target relative flex h-10 items-center rounded-full border px-4 text-sm transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
         current
           ? "border-foreground/60 bg-accent font-semibold text-foreground"
           : "border-line/70 text-foreground/85 hover:bg-accent hover:text-foreground",

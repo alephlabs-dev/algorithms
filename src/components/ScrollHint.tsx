@@ -105,7 +105,7 @@ export const ScrollHint = ({ route, className }: { route: Route; className?: str
         document.getElementById("about")?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
       }}
       className={cn(
-        "mx-auto flex shrink-0 items-center gap-1.5 rounded-full px-3 text-xs text-foreground/60 transition-[color,opacity] duration-300 hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
+        "tap-target relative mx-auto flex shrink-0 items-center gap-1.5 rounded-full px-3 text-xs text-foreground/60 transition-[color,opacity] duration-300 hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
         scrolled && "pointer-events-none opacity-0",
         className,
       )}

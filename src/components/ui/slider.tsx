@@ -21,7 +21,7 @@ const Slider = React.forwardRef<
       <SliderPrimitive.Range className="absolute h-full bg-foreground" />
     </SliderPrimitive.Track>
     {/* Radix reads the accessible name from the thumb, which has role="slider". */}
-    <SliderPrimitive.Thumb aria-label={ariaLabel} aria-valuetext={ariaValueText} className="block h-3.5 w-3.5 rounded-full bg-foreground shadow-md ring-2 ring-background transition-transform duration-150 group-hover:scale-125 active:scale-125 motion-reduce:transition-none focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50" />
+    <SliderPrimitive.Thumb aria-label={ariaLabel} aria-valuetext={ariaValueText} className="tap-target relative block h-3.5 w-3.5 rounded-full bg-foreground shadow-md ring-2 ring-background transition-transform duration-150 group-hover:scale-125 active:scale-125 motion-reduce:transition-none focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50" />
   </SliderPrimitive.Root>
 ));
 Slider.displayName = SliderPrimitive.Root.displayName;

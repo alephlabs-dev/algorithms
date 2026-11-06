@@ -202,7 +202,7 @@ const OperationBar = () => {
           placeholder={copy.value}
           aria-invalid={error !== null}
           aria-describedby={error ? "operation-error" : undefined}
-          className="h-10 w-full min-w-11 rounded-full border border-line/70 bg-background px-2.5 text-center font-mono sm:w-24 sm:text-left sm:px-4 text-sm text-foreground placeholder:text-foreground/50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+          className="h-10 pointer-coarse:h-11 w-full min-w-11 rounded-full border border-line/70 bg-background px-2.5 text-center font-mono sm:w-24 sm:text-left sm:px-4 text-sm text-foreground placeholder:text-foreground/50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
         />
       </label>
       <Button

@@ -121,7 +121,7 @@ export const DrawingPicker = () => {
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger
         aria-label={text.drawing(shapeLabel(shape))}
-        className="flex h-10 items-center gap-2 rounded-full border border-line/70 pl-2 pr-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent data-[state=open]:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+        className="tap-target relative flex h-10 items-center gap-2 rounded-full border border-line/70 pl-2 pr-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent data-[state=open]:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
       >
         <ShapeThumb shape={shape} className="h-7 w-7" />
         {shapeLabel(shape)}

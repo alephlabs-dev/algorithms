@@ -55,7 +55,9 @@ Controls come from `src/components/ui/`, styled like the rest of the app. No nat
 
 ## Checked automatically
 
-- **Tap targets (iPhone and iPad e2e projects):** every visible button, link and form control is at least 44×44 px.
+- **Tap targets (iPhone and iPad e2e projects, `e2e/tap-targets.spec.ts`):** every visible button, link and form control is at least 44×44 px.
+  - **How:** grow the hit area, not the look, and only on touch screens (`@media (pointer: coarse)`). Use the `tap-target` utility in `src/index.css`: an invisible `::after` of at least 44×44 centred on the element, which needs a position (`relative`). For a list of links use `tap-rows` on the `<ul>`: each row is at least 44 px tall and its link covers the whole row. Grow the visible size only when there's no other way, such as text inputs, which can't have a `::after` (`pointer-coarse:h-11`).
+  - **Exception:** links inside running text, that is inside a `<p>`, are exempt. They can't grow without breaking the line spacing.
 - **Native controls (lint):** native form controls are only allowed inside `src/components/ui/`.
 - **Raw colors (lint):** color literals and Tailwind default palette classes are only allowed in the theme.
 

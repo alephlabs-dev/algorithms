@@ -37,7 +37,7 @@ export const PresetButtons = <T extends string>({
           aria-pressed={isCurrent}
           onClick={() => onPick(p.value)}
           className={cn(
-            "flex h-10 items-center gap-1.5 rounded-full border px-4 text-sm transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
+            "tap-target relative flex h-10 items-center gap-1.5 rounded-full border px-4 text-sm transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
             isCurrent
               ? "border-foreground/60 bg-accent font-semibold text-foreground"
               : "border-line/70 text-foreground/85 hover:bg-accent hover:text-foreground",

@@ -124,7 +124,7 @@ export const TourLink = (props: ComponentProps<"button">) => {
         props.onClick?.(event);
         openTour();
       }}
-      className="self-start rounded-full text-sm font-semibold underline decoration-line underline-offset-4 hover:decoration-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+      className="tap-target relative self-start rounded-full text-sm font-semibold underline decoration-line underline-offset-4 hover:decoration-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
     >
       {text.takeTour}
     </button>
