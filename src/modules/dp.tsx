@@ -80,6 +80,8 @@ export const dpUI: ModuleUI = {
   },
   newRunLabel: text.newRun,
 
+  // "Distancia de edición" doesn't fit a third of a phone's row.
+  namesTooLongForSegments: true,
   algorithms: [
     {
       label: text.twoWords,
