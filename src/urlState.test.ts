@@ -5,6 +5,7 @@ import type { PathAlgorithm } from "./pathfinding/types";
 import {
   readLocation,
   readUrlState,
+  toBacktrackingSearch,
   toDpSearch,
   toFourierSearch,
   toGraphSearch,
@@ -37,6 +38,7 @@ describe("url state", () => {
       fourier: {},
       structure: {},
       dp: {},
+      backtracking: {},
     });
     // The race page has no algorithm of its own (toEqual ignores undefined keys).
     expect(readLocation(routePath({ kind: "race" }), toSearch(state))).toEqual({
@@ -50,6 +52,7 @@ describe("url state", () => {
       fourier: {},
       structure: {},
       dp: {},
+      backtracking: {},
     });
   });
 
@@ -140,5 +143,19 @@ describe("url state", () => {
     expect(readLocation("/dynamic-programming/edit-distance", search).dp).toMatchObject({ a: "AÑO", b: "CAÑÓN" });
     expect(readLocation("/dynamic-programming/edit-distance", "?a=a%C3%B1o").dp).toMatchObject({ a: "AÑO" });
     expect(readLocation("/dynamic-programming/edit-distance", "?a=A1").dp.a).toBeUndefined();
+  });
+
+  it("round-trips an N-Queens board size, and ignores sizes out of range", () => {
+    const search = toBacktrackingSearch({ n: 7, speed: "2x" });
+    expect(readLocation("/backtracking/n-queens", search)).toMatchObject({
+      module: "backtracking",
+      isModuleStart: false,
+      backtrackingProblem: "queens",
+      speed: "2x",
+      backtracking: { n: 7 },
+    });
+    expect(readLocation("/backtracking", "").isModuleStart).toBe(true);
+    expect(readLocation("/backtracking/n-queens", "?n=3").backtracking).toEqual({});
+    expect(readLocation("/backtracking/n-queens", "?n=9").backtracking).toEqual({});
   });
 });

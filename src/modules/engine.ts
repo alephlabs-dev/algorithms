@@ -1,3 +1,4 @@
+import type { QueensEvent } from "@/backtracking/types";
 import { localized } from "@/i18n";
 import { encodePath } from "@/fourier/shapes";
 import { encodeGraph } from "@/graphs/graph";
@@ -10,12 +11,12 @@ import type { HashEvent, TreeEvent } from "@/structures/types";
 import { sizes } from "@/consts/sizesMap";
 import { encodeItems } from "@/dp/presets";
 import { dpQuestions, questionsOf, SORT_GUESS_MAX_SIZE, sortQuestions, structureQuestions, type Question } from "@/game";
-import { toDpSearch, toFourierSearch, toGraphSearch, toPathSearch, toSearch, toStructureSearch } from "@/urlState";
+import { toBacktrackingSearch, toDpSearch, toFourierSearch, toGraphSearch, toPathSearch, toSearch, toStructureSearch } from "@/urlState";
 import type { DpEvent } from "@/dp/types";
 import { GRAPH_STEP_WEIGHT, PATH_STEP_WEIGHT, STEP_WEIGHT, type Pace } from "@/utils/speed";
 
 /** The modules the app has. Each one declares its engine here and its interface in ./<id>.tsx. */
-export type ModuleId = "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp";
+export type ModuleId = "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | "backtracking";
 
 /**
  * What playback needs from a module, without React: how long a run is and
@@ -168,6 +169,24 @@ export const engines: Record<ModuleId, ModuleEngine> = {
         : toDpSearch({ a: s.dpA, b: s.dpB, speed: s.speedPreset }),
     game: (s) => questionsOf(s.dpRun, dpQuestions),
   },
+  backtracking: {
+    lastIndex: (s) => s.queensRun.length - 1,
+    stepWeight: (s, index) => QUEENS_STEP_WEIGHT[s.queensRun.frames[index]?.event.type ?? "done"],
+    pace: () => "backtracking",
+    route: (s) =>
+      s.isModuleStart ? { kind: "backtracking" } : { kind: "btProblem", algorithm: s.backtrackingProblem },
+    search: (s) => toBacktrackingSearch({ n: s.queensN, speed: s.speedPreset }),
+  },
+};
+
+/** Conflicts flick past; a queen placed or taken back gets the full beat, a dead end a longer one. */
+const QUEENS_STEP_WEIGHT: Record<QueensEvent["type"], number> = {
+  start: 0.7,
+  conflict: 0.4,
+  choice: 1,
+  deadEnd: 1.2,
+  backtrack: 1,
+  done: 0.5,
 };
 
 /** Cells fill briskly; the way back, the part that answers the question, gets a longer beat. */

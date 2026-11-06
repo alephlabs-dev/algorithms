@@ -5,7 +5,7 @@ import type { Route } from "@/routes";
 import { cn } from "@/utils/cn";
 import { PageLink } from "../PageLink";
 import { HeroDemo } from "./HeroDemo";
-import { DpThumb, FourierThumb, GraphThumb, PathThumb, SortingThumb, StructureThumb } from "./Thumbnails";
+import { DpThumb, FourierThumb, GraphThumb, PathThumb, QueensThumb, SortingThumb, StructureThumb } from "./Thumbnails";
 import { AlephMark } from "../ui/aleph-mark";
 
 type Props = {
@@ -81,6 +81,7 @@ const thumbs: Record<string, ReactNode> = {
   fourier: <FourierThumb className="h-24 w-full" />,
   structures: <StructureThumb className="h-20 w-full" />,
   dp: <DpThumb className="h-24 w-full" />,
+  backtracking: <QueensThumb className="h-24 w-full" />,
 };
 
 /**
@@ -105,7 +106,8 @@ export const Landing = ({ onNavigate, actions }: Props) => {
           </span>
           {text.brand} <span className="hidden font-normal text-foreground/60 sm:inline">{text.by}</span>
         </PageLink>
-        <nav aria-label={text.modules} className="flex items-center gap-1">
+        {/* Wraps instead of running off narrow screens once the links outgrow one row (#85). */}
+        <nav aria-label={text.modules} className="flex flex-wrap items-center justify-end gap-1">
           {open.map((m) => (
             <PageLink
               key={m.id}

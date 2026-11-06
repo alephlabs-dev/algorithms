@@ -1,3 +1,4 @@
+import type { BacktrackingProblem } from "./backtracking/types";
 import type { DpAlgorithm } from "./dp/types";
 import type { FourierAlgorithm } from "./fourier/types";
 import type { StructureAlgorithm } from "./structures/types";
@@ -65,6 +66,11 @@ export const dpSlugs: Record<DpAlgorithm, string> = {
   knapsack: "knapsack",
 };
 
+/** URL slug for each backtracking problem, e.g. /backtracking/n-queens. */
+export const backtrackingSlugs: Record<BacktrackingProblem, string> = {
+  queens: "n-queens",
+};
+
 /** Every page the site has. Settings (size, input, speed, seed…) stay in the query string. */
 export type Route =
   /** The landing page. */
@@ -86,7 +92,9 @@ export type Route =
   | { kind: "structureRace" }
   | { kind: "dp" }
   | { kind: "dpProblem"; algorithm: DpAlgorithm }
-  | { kind: "dpRace" };
+  | { kind: "dpRace" }
+  | { kind: "backtracking" }
+  | { kind: "btProblem"; algorithm: BacktrackingProblem };
 
 export const routePath = (route: Route): string => {
   if (route.kind === "home") return "/";
@@ -100,6 +108,8 @@ export const routePath = (route: Route): string => {
   if (route.kind === "structures") return "/structures";
   if (route.kind === "structure") return `/structures/${structureSlugs[route.algorithm]}`;
   if (route.kind === "structureRace") return "/structures/race";
+  if (route.kind === "backtracking") return "/backtracking";
+  if (route.kind === "btProblem") return `/backtracking/${backtrackingSlugs[route.algorithm]}`;
   if (route.kind === "dp") return "/dynamic-programming";
   if (route.kind === "dpRace") return "/dynamic-programming/race";
   if (route.kind === "dpProblem") return `/dynamic-programming/${dpSlugs[route.algorithm]}`;
@@ -130,6 +140,12 @@ export const routeFromPath = (pathname: string): Route | null => {
   if (path === "/fourier") return { kind: "fourier" };
   if (path === "/structures") return { kind: "structures" };
   if (path === "/structures/race") return { kind: "structureRace" };
+  if (path === "/backtracking") return { kind: "backtracking" };
+  const btMatch = /^\/backtracking\/([a-z-]+)$/.exec(path);
+  if (btMatch) {
+    const found = Object.entries(backtrackingSlugs).find(([, slug]) => slug === btMatch[1]);
+    return found ? { kind: "btProblem", algorithm: found[0] as BacktrackingProblem } : null;
+  }
   if (path === "/dynamic-programming") return { kind: "dp" };
   if (path === "/dynamic-programming/race") return { kind: "dpRace" };
   const dpMatch = /^\/dynamic-programming\/([a-z-]+)$/.exec(path);
@@ -185,11 +201,16 @@ export const allRoutes: Route[] = [
   { kind: "dp" },
   ...(Object.keys(dpSlugs) as DpAlgorithm[]).map((algorithm) => ({ kind: "dpProblem" as const, algorithm })),
   { kind: "dpRace" },
+  { kind: "backtracking" },
+  ...(Object.keys(backtrackingSlugs) as BacktrackingProblem[]).map((algorithm) => ({ kind: "btProblem" as const, algorithm })),
 ];
 
 /** Which module a page belongs to, if any (the landing page belongs to none). */
-export const moduleOf = (route: Route): "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | null => {
+export const moduleOf = (
+  route: Route,
+): "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | "backtracking" | null => {
   if (route.kind === "home") return null;
+  if (route.kind === "backtracking" || route.kind === "btProblem") return "backtracking";
   if (route.kind === "dp" || route.kind === "dpProblem" || route.kind === "dpRace") return "dp";
   if (route.kind === "structures" || route.kind === "structure" || route.kind === "structureRace") return "structures";
   if (route.kind === "fourier" || route.kind === "series") return "fourier";
@@ -211,6 +232,7 @@ export const TRANSLATED_MODULES: ReadonlySet<ModuleName> = new Set([
   "structures",
   "dp",
   "fourier",
+  "backtracking",
 ]);
 
 /** Whether a page has a Spanish version worth indexing. The landing page does. */

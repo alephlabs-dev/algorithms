@@ -1,3 +1,4 @@
+import { backtrackingProblems } from "./backtracking";
 import { dpProblems } from "./dp";
 import type { Route } from "@/routes";
 import { fourierSeries } from "./fourierSeries";
@@ -15,11 +16,13 @@ const text = localized({
     fourier: "Fourier series",
     structures: "Data structures",
     dp: "Dynamic programming",
+    backtracking: "Backtracking",
     algorithms: (n: number) => `${n} algorithms`,
     searches: (n: number) => `${n} searches`,
     series: (n: number) => `${n} series`,
     structureCount: (n: number) => `${n} structures`,
     problems: (n: number) => `${n} problems`,
+    problem: (n: number) => (n === 1 ? "1 problem" : `${n} problems`),
     summaries: {
       sorting: "Selection, Insertion, Bubble, Cocktail, Shell, Quick, Merge, Heap and Radix Sort.",
       pathfinding: "Breadth-first, depth-first, Dijkstra, A* and greedy search, on a grid you draw.",
@@ -27,6 +30,7 @@ const text = localized({
       fourier: "Square, sawtooth and triangle waves built from circles, and circles on circles that draw any shape.",
       structures: "Search trees, AVL rotations, a min-heap and hash tables you insert into, search and delete from.",
       dp: "Edit distance, the longest common subsequence and the knapsack, one table cell at a time, and a race against plain recursion.",
+      backtracking: "N queens on a chessboard, placed one row at a time: every conflict, every dead end and every queen taken back.",
     },
   },
   es: {
@@ -36,11 +40,13 @@ const text = localized({
     fourier: "Series de Fourier",
     structures: "Estructuras de datos",
     dp: "Programación dinámica",
+    backtracking: "Backtracking",
     algorithms: (n) => `${n} algoritmos`,
     searches: (n) => `${n} búsquedas`,
     series: (n) => `${n} series`,
     structureCount: (n) => `${n} estructuras`,
     problems: (n) => `${n} problemas`,
+    problem: (n) => (n === 1 ? "1 problema" : `${n} problemas`),
     summaries: {
       sorting: "Selection, Insertion, Bubble, Cocktail, Shell, Quick, Merge, Heap y Radix Sort.",
       pathfinding: "Búsqueda en anchura, en profundidad, Dijkstra, A* y búsqueda voraz, en una cuadrícula que tú dibujas.",
@@ -48,6 +54,7 @@ const text = localized({
       fourier: "Ondas cuadradas, de sierra y triangulares hechas con círculos, y círculos sobre círculos que dibujan cualquier forma.",
       structures: "Árboles de búsqueda, rotaciones AVL, un montículo mínimo y tablas hash donde insertas, buscas y borras.",
       dp: "Distancia de edición, la subsecuencia común más larga y la mochila, celda por celda, y una carrera contra la recursión simple.",
+      backtracking: "N reinas en un tablero de ajedrez, fila por fila: cada conflicto, cada callejón sin salida y cada reina que se quita.",
     },
   },
 });
@@ -105,5 +112,12 @@ export const modules: ModuleInfo[] = [
     summary: text.summaries.dp,
     count: text.problems(Object.keys(dpProblems).length),
     route: { kind: "dp" },
+  },
+  {
+    id: "backtracking",
+    title: text.backtracking,
+    summary: text.summaries.backtracking,
+    count: text.problem(Object.keys(backtrackingProblems).length),
+    route: { kind: "backtracking" },
   },
 ];
