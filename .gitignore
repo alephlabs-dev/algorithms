@@ -33,7 +33,3 @@ dist-ssr
 # Playwright
 test-results/
 playwright-report/
-e2e/**/*-darwin.png
-
-# pnpm store, if an install inside Docker ever puts it in the repo
-.pnpm-store/
