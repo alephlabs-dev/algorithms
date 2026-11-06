@@ -84,8 +84,9 @@ function App() {
               <div className="flex min-w-0 flex-1 flex-col gap-2 lg:px-4">
                 {/* Phones keep the module's tools in the settings sheet, so the stage gets the room; wide screens in the settings panel. */}
                 {Tools && <Tools className="-ml-1 hidden md:flex lg:hidden" />}
-                <div className="flex min-h-10 items-center justify-between gap-4 xl:hidden">
-                  <StepCaption className="-ml-3 flex-1" />
+                {/* The legend drops to its own line before it squeezes the step out (the settings panel narrows the stage). */}
+                <div className="flex min-h-10 flex-wrap items-center justify-between gap-x-4 gap-y-1 xl:hidden">
+                  <StepCaption className="-ml-3 min-w-64 flex-1" />
                   <Legend className="hidden shrink-0 md:flex" />
                 </div>
                 {/* Guess mode asks under the stage, so it never covers what it's asking about. */}
