@@ -82,8 +82,8 @@ function App() {
             <MobileTopBar className="lg:hidden" />
             <div className="flex min-h-0 flex-1 gap-8">
               <div className="flex min-w-0 flex-1 flex-col gap-2 lg:px-4">
-                {/* Phones keep the module's tools in the settings sheet, so the stage gets the room. */}
-                {Tools && <Tools className="-ml-1 hidden md:flex" />}
+                {/* Phones keep the module's tools in the settings sheet, so the stage gets the room; wide screens in the settings panel. */}
+                {Tools && <Tools className="-ml-1 hidden md:flex lg:hidden" />}
                 <div className="flex min-h-10 items-center justify-between gap-4 xl:hidden">
                   <StepCaption className="-ml-3 flex-1" />
                   <Legend className="hidden shrink-0 md:flex" />
@@ -94,19 +94,27 @@ function App() {
                   <GameLayer />
                 </div>
               </div>
-              {/* Never taller than the stage: the card scrolls inside if it has to. */}
-              <NowCard className="hidden max-h-full w-80 shrink-0 self-start xl:flex" />
+              {/* Settings whole, then the code card in the room they leave (collapsed when it doesn't fit), beside the stage. */}
+              <div className="hidden min-h-0 w-80 shrink-0 flex-col gap-4 lg:flex">
+                <SettingsAside className="max-h-full shrink-0" />
+                <NowCard className="hidden xl:flex" />
+              </div>
             </div>
           </>
         ) : (
           <>
             <MobileRaceBar className="lg:hidden" />
-            {/* A module with tools is one whose stage needs every bit of a phone's room: its legend waits for wider screens too. */}
-            <div className="-mb-1 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 lg:-mt-2">
-              {Tools && <Tools className="-ml-1 hidden md:flex" />}
-              <Legend className={Tools ? "hidden md:flex" : undefined} />
+            <div className="flex min-h-0 flex-1 gap-8">
+              <div className="flex min-w-0 flex-1 flex-col gap-3 lg:gap-4">
+                {/* A module with tools is one whose stage needs every bit of a phone's room: its legend waits for wider screens too. */}
+                <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 lg:-mt-2">
+                  {Tools && <Tools className="-ml-1 hidden md:flex lg:hidden" />}
+                  <Legend className={Tools ? "hidden md:flex" : undefined} />
+                </div>
+                <RaceStage />
+              </div>
+              <SettingsAside className="hidden max-h-full w-80 shrink-0 self-start lg:flex" />
             </div>
-            <RaceStage />
           </>
         )}
         {/* Covered by an open sheet, but still mounted: it drives playback. */}

@@ -12,7 +12,7 @@ import { CirclesPicker, ShapeGrid } from "../Fourier/FourierTools";
 import { StructurePresetButtons, StructureSizePicker } from "../Structures/StructureTools";
 import { GraphPresetButtons, GraphSizePicker } from "../Graphs/GraphTools";
 import { BrushPicker, GridSizePicker, PresetButtons } from "../Pathfinding/PathTools";
-import { ListItem } from "../ui/list-item";
+import { NativeSelect } from "../ui/native-select";
 import { SegmentedControl } from "../ui/segmented";
 import { StepSlider } from "../ui/slider";
 import { localized } from "@/i18n";
@@ -126,28 +126,25 @@ const SizePicker = () => {
   );
 };
 
-/** Each input order with what it's for, so the choice explains itself. */
-const InputList = () => {
+/** How the array starts out, as one closed field; the field's help says what the chosen order is for. */
+const InputPicker = () => {
   const s = useSettings();
   return (
-    <div role="radiogroup" aria-label={text.input} className="flex flex-col gap-1">
-      {(Object.keys(inputOrders) as InputOrder[]).map((order) => (
-        <ListItem
-          key={order}
-          role="radio"
-          aria-checked={order === s.inputOrder}
-          aria-pressed={undefined}
-          selected={order === s.inputOrder}
-          onClick={() => {
-            if (order !== s.inputOrder) s.setInputOrder(order);
-          }}
-          className="flex-col items-start gap-0.5 py-2"
-        >
-          <span>{inputOrders[order].label}</span>
-          <span className="text-xs font-normal text-foreground/60">{inputOrders[order].description}</span>
-        </ListItem>
-      ))}
-    </div>
+    <NativeSelect
+      label={text.input}
+      value={s.inputOrder}
+      onChange={(order) => {
+        if (order !== s.inputOrder) s.setInputOrder(order as InputOrder);
+      }}
+      groups={[
+        {
+          options: (Object.keys(inputOrders) as InputOrder[]).map((order) => ({
+            value: order,
+            label: inputOrders[order].label,
+          })),
+        },
+      ]}
+    />
   );
 };
 
@@ -287,8 +284,8 @@ export const SortingSettings = () => {
       <Field label={text.arraySize} help={sizeHelp(Math.max(...sizesFor("numbers", s.isMobile)))}>
         <SizePicker />
       </Field>
-      <Field label={text.input}>
-        <InputList />
+      <Field label={text.input} help={inputOrders[s.inputOrder].description}>
+        <InputPicker />
       </Field>
       {/* Race lanes always draw bars. */}
       {!s.isRace && (
