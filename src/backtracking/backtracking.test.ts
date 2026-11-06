@@ -52,4 +52,19 @@ describe("QueensRun", () => {
     expect(lineFor("deadEnd")).toContain("return false");
     expect(lineFor("done")).toContain("if row == N: return true");
   });
+
+  it.each([4, 5, 6, 7, 8])("keeps its counters in step with the board for %i queens", (n) => {
+    const run = new QueensRun(n);
+    const seen = { choice: 0, conflict: 0, backtrack: 0 };
+    for (let k = 0; k < run.length; k++) {
+      const frame = run.frameAt(k);
+      const type = frame.event.type;
+      if (type === "choice" || type === "conflict" || type === "backtrack") seen[type]++;
+      expect([frame.choices, frame.conflicts, frame.backtracks]).toEqual([seen.choice, seen.conflict, seen.backtrack]);
+      // Every queen on the board is a choice that hasn't been taken back.
+      expect(frame.queens).toHaveLength(frame.choices - frame.backtracks);
+    }
+    // Past the end, the last frame: the solution.
+    expect(run.frameAt(run.length + 5).queens).toEqual(run.solution);
+  });
 });

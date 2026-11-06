@@ -174,7 +174,7 @@ export const engines: Record<ModuleId, ModuleEngine> = {
     stepWeight: (s, index) => QUEENS_STEP_WEIGHT[s.queensRun.frames[index]?.event.type ?? "done"],
     pace: () => "backtracking",
     route: (s) =>
-      s.isModuleStart ? { kind: "backtracking" } : { kind: "btProblem", algorithm: s.backtrackingProblem },
+      s.isModuleStart ? { kind: "backtracking" } : { kind: "backtrackingProblem", algorithm: s.backtrackingProblem },
     search: (s) => toBacktrackingSearch({ n: s.queensN, speed: s.speedPreset }),
   },
 };

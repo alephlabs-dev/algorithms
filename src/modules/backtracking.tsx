@@ -68,7 +68,7 @@ export const backtrackingUI: ModuleUI = {
 
   code: {
     lines: () => queensPseudocode,
-    line: (s) => s.queensRun.frames[Math.min(s.frameIndex, s.queensRun.length - 1)].line,
+    line: (s) => s.queensRun.frameAt(s.frameIndex).line,
     narrate: (s, index) => narrateBacktracking(s.queensRun, index),
   },
 

@@ -287,14 +287,11 @@ export const DpThumb = ({ className }: { className?: string }) => {
 };
 
 // Six queens, the search paused on a conflict: four placed, a fifth square ruled out by the queen it's lined up with.
-const queensFrame = (() => {
-  const run = new QueensRun(6);
-  const frame = run.frames.find((f) => f.event.type === "conflict" && f.queens.length === 4)!;
-  return frame;
-})();
+const QUEENS = 6;
+const queensFrame = new QueensRun(QUEENS).frames.find((f) => f.event.type === "conflict" && f.queens.length === 4)!;
 
 export const QueensThumb = ({ className }: { className?: string }) => {
-  const n = 6;
+  const n = QUEENS;
   const cell = 12;
   const { queens, event } = queensFrame;
   const conflict = event.type === "conflict" ? event : null;

@@ -853,7 +853,7 @@ const BacktrackingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] 
         {problemOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-              <PageLink to={{ kind: "btProblem", algorithm }} onNavigate={onNavigate}>
+              <PageLink to={{ kind: "backtrackingProblem", algorithm }} onNavigate={onNavigate}>
                 {backtrackingProblems[algorithm].title}
               </PageLink>
               <span className="font-mono text-xs text-foreground/60">{backtrackingProblems[algorithm].cost}</span>
@@ -1149,7 +1149,7 @@ export const About = ({ route, onNavigate }: Props) => (
     {route.kind === "dpProblem" && <DpProblemArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
     {route.kind === "dpRace" && <DpRaceArticle onNavigate={onNavigate} />}
     {route.kind === "backtracking" && <BacktrackingArticle onNavigate={onNavigate} />}
-    {route.kind === "btProblem" && <BacktrackingProblemArticle algorithm={route.algorithm} />}
+    {route.kind === "backtrackingProblem" && <BacktrackingProblemArticle algorithm={route.algorithm} />}
     <footer className="border-t border-edge pt-6 text-sm text-foreground/60">
       <PageLink
         to={{ kind: "home" }}

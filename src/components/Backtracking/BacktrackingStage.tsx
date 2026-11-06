@@ -37,7 +37,7 @@ export const BacktrackingStage = () => {
   const { run, frameIndex, theme } = useStore(
     useShallow((s) => ({ run: s.queensRun, frameIndex: s.frameIndex, theme: s.theme })),
   );
-  const frame = run.frames[Math.min(frameIndex, run.length - 1)];
+  const frame = run.frameAt(frameIndex);
   const board = useMemo(() => queensBoard(frame, run.n), [frame, run.n]);
 
   useEffect(() => {
@@ -70,7 +70,7 @@ export const BacktrackingStage = () => {
           className="absolute inset-0 h-full w-full select-none"
         />
       </div>
-      <ChoiceStrip n={run.n} queens={frame.queens} activeRow={activeRow} stuck={event.type === "deadEnd"} />
+      <ChoiceStrip n={run.n} queens={frame.queens} activeRow={activeRow} deadEnd={event.type === "deadEnd"} />
     </div>
   );
 };
@@ -79,12 +79,12 @@ const ChoiceStrip = ({
   n,
   queens,
   activeRow,
-  stuck,
+  deadEnd,
 }: {
   n: number;
   queens: number[];
   activeRow: number | null;
-  stuck: boolean;
+  deadEnd: boolean;
 }) => (
   <section
     data-tour="choices"
@@ -104,8 +104,8 @@ const ChoiceStrip = ({
             className={cn(
               "flex min-w-0 flex-1 items-center justify-between gap-1 rounded-lg border px-2 py-1 font-mono text-xs landscape:flex-none",
               placed ? "border-primary/60 bg-primary/15 text-foreground" : "border-dashed border-line/60 text-foreground/40",
-              active && !stuck && "ring-2 ring-foreground/70",
-              active && stuck && "border-conflict bg-conflict/15 ring-2 ring-conflict",
+              active && !deadEnd && "ring-2 ring-foreground/70",
+              active && deadEnd && "border-conflict bg-conflict/15 ring-2 ring-conflict",
             )}
           >
             <span aria-hidden className="hidden text-foreground/60 landscape:inline">

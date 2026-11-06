@@ -23,7 +23,7 @@ Placing a value in a slot of a problem, such as a queen in a column of a row or 
 _Avoid_: Move, placement, try
 
 **Conflict**:
-A choice that breaks a constraint and is discarded on the spot, without going deeper.
+A value tried in a slot that breaks a constraint, so it is skipped on the spot instead of becoming a choice.
 _Avoid_: Clash, prune, failure
 
 **Dead end**:

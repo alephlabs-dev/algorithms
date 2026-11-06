@@ -94,7 +94,7 @@ export type Route =
   | { kind: "dpProblem"; algorithm: DpAlgorithm }
   | { kind: "dpRace" }
   | { kind: "backtracking" }
-  | { kind: "btProblem"; algorithm: BacktrackingProblem };
+  | { kind: "backtrackingProblem"; algorithm: BacktrackingProblem };
 
 export const routePath = (route: Route): string => {
   if (route.kind === "home") return "/";
@@ -109,7 +109,7 @@ export const routePath = (route: Route): string => {
   if (route.kind === "structure") return `/structures/${structureSlugs[route.algorithm]}`;
   if (route.kind === "structureRace") return "/structures/race";
   if (route.kind === "backtracking") return "/backtracking";
-  if (route.kind === "btProblem") return `/backtracking/${backtrackingSlugs[route.algorithm]}`;
+  if (route.kind === "backtrackingProblem") return `/backtracking/${backtrackingSlugs[route.algorithm]}`;
   if (route.kind === "dp") return "/dynamic-programming";
   if (route.kind === "dpRace") return "/dynamic-programming/race";
   if (route.kind === "dpProblem") return `/dynamic-programming/${dpSlugs[route.algorithm]}`;
@@ -144,7 +144,7 @@ export const routeFromPath = (pathname: string): Route | null => {
   const btMatch = /^\/backtracking\/([a-z-]+)$/.exec(path);
   if (btMatch) {
     const found = Object.entries(backtrackingSlugs).find(([, slug]) => slug === btMatch[1]);
-    return found ? { kind: "btProblem", algorithm: found[0] as BacktrackingProblem } : null;
+    return found ? { kind: "backtrackingProblem", algorithm: found[0] as BacktrackingProblem } : null;
   }
   if (path === "/dynamic-programming") return { kind: "dp" };
   if (path === "/dynamic-programming/race") return { kind: "dpRace" };
@@ -202,7 +202,7 @@ export const allRoutes: Route[] = [
   ...(Object.keys(dpSlugs) as DpAlgorithm[]).map((algorithm) => ({ kind: "dpProblem" as const, algorithm })),
   { kind: "dpRace" },
   { kind: "backtracking" },
-  ...(Object.keys(backtrackingSlugs) as BacktrackingProblem[]).map((algorithm) => ({ kind: "btProblem" as const, algorithm })),
+  ...(Object.keys(backtrackingSlugs) as BacktrackingProblem[]).map((algorithm) => ({ kind: "backtrackingProblem" as const, algorithm })),
 ];
 
 /** Which module a page belongs to, if any (the landing page belongs to none). */
@@ -210,7 +210,7 @@ export const moduleOf = (
   route: Route,
 ): "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | "backtracking" | null => {
   if (route.kind === "home") return null;
-  if (route.kind === "backtracking" || route.kind === "btProblem") return "backtracking";
+  if (route.kind === "backtracking" || route.kind === "backtrackingProblem") return "backtracking";
   if (route.kind === "dp" || route.kind === "dpProblem" || route.kind === "dpRace") return "dp";
   if (route.kind === "structures" || route.kind === "structure" || route.kind === "structureRace") return "structures";
   if (route.kind === "fourier" || route.kind === "series") return "fourier";

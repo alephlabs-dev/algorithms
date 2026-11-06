@@ -21,8 +21,7 @@ const text = localized({
     searches: (n: number) => `${n} searches`,
     series: (n: number) => `${n} series`,
     structureCount: (n: number) => `${n} structures`,
-    problems: (n: number) => `${n} problems`,
-    problem: (n: number) => (n === 1 ? "1 problem" : `${n} problems`),
+    problems: (n: number) => (n === 1 ? "1 problem" : `${n} problems`),
     summaries: {
       sorting: "Selection, Insertion, Bubble, Cocktail, Shell, Quick, Merge, Heap and Radix Sort.",
       pathfinding: "Breadth-first, depth-first, Dijkstra, A* and greedy search, on a grid you draw.",
@@ -45,8 +44,7 @@ const text = localized({
     searches: (n) => `${n} búsquedas`,
     series: (n) => `${n} series`,
     structureCount: (n) => `${n} estructuras`,
-    problems: (n) => `${n} problemas`,
-    problem: (n) => (n === 1 ? "1 problema" : `${n} problemas`),
+    problems: (n) => (n === 1 ? "1 problema" : `${n} problemas`),
     summaries: {
       sorting: "Selection, Insertion, Bubble, Cocktail, Shell, Quick, Merge, Heap y Radix Sort.",
       pathfinding: "Búsqueda en anchura, en profundidad, Dijkstra, A* y búsqueda voraz, en una cuadrícula que tú dibujas.",
@@ -117,7 +115,7 @@ export const modules: ModuleInfo[] = [
     id: "backtracking",
     title: text.backtracking,
     summary: text.summaries.backtracking,
-    count: text.problem(Object.keys(backtrackingProblems).length),
+    count: text.problems(Object.keys(backtrackingProblems).length),
     route: { kind: "backtracking" },
   },
 ];

@@ -1,9 +1,13 @@
 import { hexToRgb, readColors, type CanvasColors, type RGB } from "./theme";
 
-/** What a square shows: a piece or a digit on it, and how it's marked. */
+export type Square = { row: number; col: number };
+
+/** What sits on a square: a queen, or text such as a Sudoku digit. */
+export type BoardPiece = { kind: "queen" } | { kind: "text"; value: string };
+
+/** What a square shows: a piece on it, and how it's marked. */
 export type BoardCell = {
-  /** A queen, or text such as a Sudoku digit. */
-  piece?: "queen" | string;
+  piece?: BoardPiece;
   /**
    * placed: in place. focus: the piece that just moved. conflict: tried and broken a rule.
    * attacker: the piece that rules a square out. ghost: just taken back.
@@ -19,9 +23,9 @@ export type BoardInput = {
   /** Row by row. */
   cells: BoardCell[];
   /** Lines from square to square, such as from a conflict to the queen that attacks it. */
-  lines: { from: { row: number; col: number }; to: { row: number; col: number } }[];
-  /** A whole row marked as having nowhere left to go. */
-  stuckRow?: number | null;
+  lines: { from: Square; to: Square }[];
+  /** A block of squares with no value left to try: a row of N-Queens, a Sudoku cell. */
+  deadEnd?: { from: Square; to: Square } | null;
   /** Labels down the side and across the top. */
   rowLabels?: string[];
   colLabels?: string[];
@@ -120,13 +124,16 @@ export class BoardRenderer {
       }
     }
 
-    if (input.stuckRow !== null && input.stuckRow !== undefined) {
-      const { x, y } = at(input.stuckRow, 0);
+    if (input.deadEnd) {
+      const { from, to } = input.deadEnd;
+      const { x, y } = at(from.row, from.col);
+      const w = (to.col - from.col + 1) * size;
+      const h = (to.row - from.row + 1) * size;
       ctx.fillStyle = css(p.conflict, 0.18);
-      ctx.fillRect(x, y, boardW, size);
+      ctx.fillRect(x, y, w, h);
       ctx.strokeStyle = css(p.conflict);
       ctx.lineWidth = Math.max(2, size * 0.05);
-      ctx.strokeRect(x + ctx.lineWidth / 2, y + ctx.lineWidth / 2, boardW - ctx.lineWidth, size - ctx.lineWidth);
+      ctx.strokeRect(x + ctx.lineWidth / 2, y + ctx.lineWidth / 2, w - ctx.lineWidth, h - ctx.lineWidth);
     }
 
     // Lines under the pieces, so each end sits behind its piece.
@@ -165,8 +172,8 @@ export class BoardRenderer {
         if (!cell.piece) continue;
         // The attacker stays a placed queen; only its ring says it's the one ruling the square out.
         const color = tone === "conflict" ? p.conflict : tone === "ghost" ? p.ghost : p.placed;
-        if (cell.piece === "queen") this.queen(x, y, size, color, tone === "ghost" || tone === "conflict", p.background);
-        else this.text(cell.piece, x, y, size, color);
+        if (cell.piece.kind === "queen") this.queen(x, y, size, color, tone === "ghost" || tone === "conflict", p.background);
+        else this.text(cell.piece.value, x, y, size, color);
       }
     }
 

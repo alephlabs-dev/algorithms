@@ -1,8 +1,8 @@
 /**
  * Backtracking: fill a problem's slots one by one (a queen per row), trying
  * each value in turn. A value that breaks a rule is a conflict and is skipped;
- * a slot with no value left is a dead end, so the last choice is undone and
- * the next value is tried there.
+ * a slot with no value left is a dead end, so the last choice is taken
+ * back and the next value is tried there.
  */
 
 export type BacktrackingProblem = "queens";

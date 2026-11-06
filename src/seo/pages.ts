@@ -354,7 +354,7 @@ export const pageMeta = (route: Route): PageMeta => {
       description: backtrackingText.moduleDescription,
     };
   }
-  if (route.kind === "btProblem") {
+  if (route.kind === "backtrackingProblem") {
     const { title, shortDescription } = backtrackingProblems[route.algorithm];
     return {
       path,
@@ -437,7 +437,7 @@ export const structuredData = (route: Route): object[] => {
               ? structures[route.algorithm].title
             : route.kind === "dpProblem"
               ? dpProblems[route.algorithm].title
-            : route.kind === "btProblem"
+            : route.kind === "backtrackingProblem"
               ? backtrackingProblems[route.algorithm].title
         : route.kind === "algorithm"
           ? sortingAlgorithms[route.algorithm].title

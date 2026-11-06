@@ -41,8 +41,8 @@ const applyRoute = (route: Route) => {
     return;
   }
   const inPath = store.module === "pathfinding";
-  if (route.kind === "backtracking" || route.kind === "btProblem") {
-    const problem = route.kind === "btProblem" ? route.algorithm : store.backtrackingProblem;
+  if (route.kind === "backtracking" || route.kind === "backtrackingProblem") {
+    const problem = route.kind === "backtrackingProblem" ? route.algorithm : store.backtrackingProblem;
     if (store.module !== "backtracking" || store.backtrackingProblem !== problem) store.setBacktrackingProblem(problem);
   } else if (route.kind === "dp" || route.kind === "dpProblem") {
     const algorithm = route.kind === "dpProblem" ? route.algorithm : store.dpAlgorithm;

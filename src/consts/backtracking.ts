@@ -3,8 +3,8 @@ import type { BacktrackingProblem } from "@/backtracking";
 
 type ProblemText = {
   title: string;
-  /** How the name reads mid-sentence ("How … works"), when that differs from the title. */
-  named?: string;
+  /** How the name reads mid-sentence ("How … works"). */
+  named: string;
   /** Short name for tight spots (pickers on phones). */
   short: string;
   shortDescription: string;
@@ -12,8 +12,6 @@ type ProblemText = {
   /** Worst-case time and space. */
   cost: string;
 };
-
-type ProblemDetails = ProblemText & { named: string };
 
 // Key order is the order shown in the UI.
 const text = localized<Record<BacktrackingProblem, ProblemText>>({
@@ -43,9 +41,7 @@ const text = localized<Record<BacktrackingProblem, ProblemText>>({
   },
 });
 
-export const backtrackingProblems: Record<BacktrackingProblem, ProblemDetails> = Object.fromEntries(
-  Object.entries(text).map(([id, t]) => [id, { ...t, named: t.named ?? t.title.toLowerCase() }]),
-) as Record<BacktrackingProblem, ProblemDetails>;
+export const backtrackingProblems: Record<BacktrackingProblem, ProblemText> = text;
 
 /** How many ways there are to place N queens, for the board sizes the module offers. */
 export const QUEENS_SOLUTIONS: Record<number, number> = { 4: 2, 5: 10, 6: 4, 7: 40, 8: 92 };

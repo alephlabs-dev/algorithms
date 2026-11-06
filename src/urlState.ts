@@ -273,14 +273,14 @@ export const readLocation = (
 } => {
   const state = readUrlState(search);
   const route = routeFromPath(pathname);
-  if (route?.kind === "backtracking" || route?.kind === "btProblem") {
+  if (route?.kind === "backtracking" || route?.kind === "backtrackingProblem") {
     return {
       ...state,
       isLanding: false,
       isModuleStart: route.kind === "backtracking",
       module: "backtracking",
       view: "single",
-      ...(route.kind === "btProblem" && { backtrackingProblem: route.algorithm }),
+      ...(route.kind === "backtrackingProblem" && { backtrackingProblem: route.algorithm }),
       path: {},
       graph: {},
       fourier: {},

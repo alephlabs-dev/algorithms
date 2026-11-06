@@ -34,7 +34,7 @@ const text = localized({
 
 /** The step into frame `index`, in words. */
 export const narrateBacktracking = (run: QueensRun, index: number): string => {
-  const frame = run.frames[Math.min(index, run.length - 1)];
+  const frame = run.frameAt(index);
   const { event } = frame;
   const n = run.n;
   switch (event.type) {

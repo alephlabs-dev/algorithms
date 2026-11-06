@@ -21,7 +21,7 @@ const text = localized({
     allStats: (choices: number, conflicts: number, backtracks: number) =>
       `${count(choices, "choice")}, ${count(conflicts, "conflict")}, ${count(backtracks, "backtrack")}`,
     solutions: (n: number, solutions: number) => `${n} queens: ${count(solutions, "solution")}`,
-    pruning: "conflicts rule out most of the Nᴺ boards",
+    whatConflictsSave: "conflicts rule out most of the Nᴺ boards",
   },
   es: {
     queens: "Reinas",
@@ -35,7 +35,7 @@ const text = localized({
     allStats: (choices, conflicts, backtracks) =>
       `${count(choices, "elección", "elecciones")}, ${count(conflicts, "conflicto")}, ${count(backtracks, "vuelta atrás", "vueltas atrás")}`,
     solutions: (n, solutions) => `${n} reinas: ${count(solutions, "solución", "soluciones")}`,
-    pruning: "los conflictos descartan casi todos los Nᴺ tableros",
+    whatConflictsSave: "los conflictos descartan casi todos los Nᴺ tableros",
   },
 });
 
@@ -112,7 +112,7 @@ export const BacktrackingLegend = ({ className, stacked }: { className?: string;
 export const BacktrackingStatsInline = ({ className }: { className?: string }) => {
   const { choices, conflicts, backtracks } = useStore(
     useShallow((s) => {
-      const frame = s.queensRun.frames[Math.min(s.frameIndex, s.queensRun.length - 1)];
+      const frame = s.queensRun.frameAt(s.frameIndex);
       return { choices: frame.choices, conflicts: frame.conflicts, backtracks: frame.backtracks };
     }),
   );
@@ -137,6 +137,6 @@ export const BacktrackingStatsInline = ({ className }: { className?: string }) =
 export const BacktrackingFacts = () => {
   const { problem, n } = useStore(useShallow((s) => ({ problem: s.backtrackingProblem, n: s.queensN })));
   return (
-    <FactLine facts={[backtrackingProblems[problem].cost, text.solutions(n, QUEENS_SOLUTIONS[n]), text.pruning]} />
+    <FactLine facts={[backtrackingProblems[problem].cost, text.solutions(n, QUEENS_SOLUTIONS[n]), text.whatConflictsSave]} />
   );
 };

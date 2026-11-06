@@ -18,12 +18,14 @@ const lineOf: Record<QueensEvent["type"], number | null> = {
   done: QUEENS_LINE.solved,
 };
 
+/** Whether a queen at `queen` attacks `square`: same column, or on a diagonal. Rows are one queen each. */
+export const attacks = (queen: Square, square: Square) =>
+  queen.row !== square.row &&
+  (queen.col === square.col || Math.abs(queen.col - square.col) === Math.abs(queen.row - square.row));
+
 /** The queen above (row, col) that attacks it, the topmost one first; null when it's safe. */
 export const attacker = (queens: number[], row: number, col: number): Square | null => {
-  for (let r = 0; r < row; r++) {
-    const c = queens[r];
-    if (c === col || Math.abs(c - col) === row - r) return { row: r, col: c };
-  }
+  for (let r = 0; r < row; r++) if (attacks({ row: r, col: queens[r] }, { row, col })) return { row: r, col: queens[r] };
   return null;
 };
 
@@ -72,5 +74,10 @@ export class QueensRun {
 
   get length() {
     return this.frames.length;
+  }
+
+  /** Frame `index`, or the last one past the end. */
+  frameAt(index: number): QueensFrame {
+    return this.frames[Math.min(index, this.frames.length - 1)];
   }
 }
