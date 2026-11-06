@@ -25,6 +25,10 @@ test('home loads cleanly', async ({ page }) => {
   );
   expect(overflow, 'horizontal overflow in px').toBeLessThanOrEqual(0);
 
+  // Zoom stays allowed (UX.md rule 12): no maximum-scale or user-scalable=no.
+  const viewport = await page.locator('meta[name="viewport"]').getAttribute('content');
+  expect(viewport, 'viewport meta').not.toMatch(/maximum-scale|user-scalable\s*=\s*(no|0)/i);
+
   const a11y = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = a11y.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
   expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([]);

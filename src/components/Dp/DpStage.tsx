@@ -8,17 +8,18 @@ import { newSeed, seededRandom } from "@/utils/random";
 import { useElementSize } from "@/hooks/useElementSize";
 import { selectGameQuestion, useStore } from "@/store";
 import { Button } from "../ui/button";
+import { TextField } from "../ui/text-field";
 import { localized } from "@/i18n";
 
 const copy = localized({
   en: {
-    twoWords: (max: number) => `Two words of letters, up to ${max} each`,
+    oneWord: (max: number) => `Letters only, up to ${max}`,
     words: "Words",
-    first: "First word (down the side)",
-    firstShort: "First word",
+    first: "First word",
+    firstAxis: "(down the side)",
     swap: "Swap the words",
-    second: "Second word (across the top)",
-    secondShort: "Second word",
+    second: "Second word",
+    secondAxis: "(across the top)",
     compare: "Compare",
     less: (label: string) => `Less ${label.toLowerCase()}`,
     more: (label: string) => `More ${label.toLowerCase()}`,
@@ -28,13 +29,13 @@ const copy = localized({
     newItems: "New items",
   },
   es: {
-    twoWords: (max) => `Dos palabras solo con letras, de hasta ${max} cada una`,
+    oneWord: (max) => `Solo letras, hasta ${max}`,
     words: "Palabras",
-    first: "Primera palabra (en el costado)",
-    firstShort: "Primera palabra",
+    first: "Palabra 1",
+    firstAxis: "(en el costado)",
     swap: "Intercambiar las palabras",
-    second: "Segunda palabra (arriba)",
-    secondShort: "Segunda palabra",
+    second: "Palabra 2",
+    secondAxis: "(arriba)",
     compare: "Comparar",
     less: (label) => `${label}: menos`,
     more: (label) => `${label}: más`,
@@ -89,25 +90,32 @@ const DpCanvas = () => {
   );
 };
 
-const inputClass =
-  "h-10 pointer-coarse:h-11 w-full min-w-0 rounded-full border border-line/70 bg-background px-3 font-mono text-sm uppercase text-foreground placeholder:normal-case placeholder:text-foreground/50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary sm:px-4";
+/** A short visible name; screen readers also hear which side of the table the word goes on. */
+const WordLabel = ({ name, axis }: { name: string; axis: string }) => (
+  <>
+    {name}
+    <span className="sr-only"> {axis}</span>
+  </>
+);
+
+// Phones: both fields grow from the width of their button alone (the input's own width is 0), so the two
+// inputs come out the same width whatever the buttons beside them. Wider screens: a fixed width each.
+const wordClass = "flex-auto sm:flex-none";
+const wordInputClass = "w-0 font-mono uppercase sm:w-44 sm:flex-none";
 
 /** Two words in, and the table starts over. Remounted (by key) when the words change elsewhere. */
 const WordsBar = ({ a, b }: { a: string; b: string }) => {
   const setWords = useStore((s) => s.setDpWords);
   const [first, setFirst] = useState(a);
   const [second, setSecond] = useState(b);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{ first: boolean; second: boolean }>({ first: false, second: false });
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
     const x = cleanWord(first);
     const y = cleanWord(second);
-    if (!x || !y) {
-      setError(copy.twoWords(MAX_WORD));
-      return;
-    }
-    setError(null);
+    setErrors({ first: !x, second: !y });
+    if (!x || !y) return;
     setWords(x, y);
     useStore.getState().play();
   };
@@ -117,54 +125,60 @@ const WordsBar = ({ a, b }: { a: string; b: string }) => {
       data-tour="words"
       onSubmit={submit}
       aria-label={copy.words}
-      className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-edge bg-surface px-2 py-2 sm:gap-2 sm:px-3"
+      className="flex flex-wrap items-start gap-1.5 rounded-2xl border border-edge bg-surface px-2 py-2 sm:gap-2 sm:px-3"
     >
-      <label className="flex min-w-16 flex-1 items-center sm:max-w-44">
-        <span className="sr-only">{copy.first}</span>
-        <input
-          value={first}
-          maxLength={MAX_WORD}
-          onChange={(e) => setFirst(e.target.value)}
-          placeholder={copy.firstShort}
-          autoCapitalize="characters"
-          spellCheck={false}
-          className={inputClass}
-        />
-      </label>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="h-10 w-9 shrink-0 sm:w-10 pointer-coarse:h-11"
-        onClick={() => {
-          setFirst(second);
-          setSecond(first);
+      <TextField
+        label={<WordLabel name={copy.first} axis={copy.firstAxis} />}
+        value={first}
+        maxLength={MAX_WORD}
+        onChange={(e) => {
+          setFirst(e.target.value);
+          setErrors((was) => ({ ...was, first: false }));
         }}
-        aria-label={copy.swap}
-        title={copy.swap}
-      >
-        <WidthIcon />
-      </Button>
-      <label className="flex min-w-16 flex-1 items-center sm:max-w-44">
-        <span className="sr-only">{copy.second}</span>
-        <input
-          value={second}
-          maxLength={MAX_WORD}
-          onChange={(e) => setSecond(e.target.value)}
-          placeholder={copy.secondShort}
-          autoCapitalize="characters"
-          spellCheck={false}
-          className={inputClass}
-        />
-      </label>
-      <Button type="submit" size="sm" variant="primary" className="h-10 shrink-0 px-3 sm:px-4 pointer-coarse:h-11">
-        {copy.compare}
-      </Button>
-      {error && (
-        <span role="alert" className="basis-full px-1 text-xs text-foreground/70 sm:basis-auto">
-          {error}
-        </span>
-      )}
+        error={errors.first ? copy.oneWord(MAX_WORD) : null}
+        autoCapitalize="characters"
+        autoComplete="off"
+        spellCheck={false}
+        className={wordClass}
+        inputClassName={wordInputClass}
+        end={
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-10 w-9 shrink-0 sm:w-10 pointer-coarse:h-11"
+            onClick={() => {
+              setFirst(second);
+              setSecond(first);
+              setErrors({ first: errors.second, second: errors.first });
+            }}
+            aria-label={copy.swap}
+            title={copy.swap}
+          >
+            <WidthIcon />
+          </Button>
+        }
+      />
+      <TextField
+        label={<WordLabel name={copy.second} axis={copy.secondAxis} />}
+        value={second}
+        maxLength={MAX_WORD}
+        onChange={(e) => {
+          setSecond(e.target.value);
+          setErrors((was) => ({ ...was, second: false }));
+        }}
+        error={errors.second ? copy.oneWord(MAX_WORD) : null}
+        autoCapitalize="characters"
+        autoComplete="off"
+        spellCheck={false}
+        className={wordClass}
+        inputClassName={wordInputClass}
+        end={
+          <Button type="submit" size="sm" variant="primary" className="h-10 shrink-0 px-3 sm:px-4 pointer-coarse:h-11">
+            {copy.compare}
+          </Button>
+        }
+      />
     </form>
   );
 };

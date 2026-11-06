@@ -18,6 +18,8 @@ import { count } from "@/utils/count";
 import { moveDuration } from "@/utils/speed";
 import { cn } from "@/utils/cn";
 import { Button } from "../ui/button";
+import { parseWholeNumber } from "../ui/number";
+import { TextField } from "../ui/text-field";
 import { localized } from "@/i18n";
 
 const copy = localized({
@@ -137,6 +139,9 @@ export const StructureCanvas = ({
   );
 };
 
+/** What the value field takes, checked by the field on blur and by the bar on submit. */
+const VALUE = { min: MIN_VALUE, max: MAX_VALUE, message: copy.wholeNumber(MIN_VALUE, MAX_VALUE) };
+
 const ACTIONS: { kind: OperationKind; label: string }[] = (["insert", "search", "delete"] as const).map((kind) => ({
   kind,
   label: copy.actions[kind],
@@ -160,9 +165,9 @@ const OperationBar = () => {
   const min = heap && last.shape === "tree" && last.nodes.length ? last.nodes[0].value : null;
 
   const run = (kind: OperationKind) => {
-    const value = Number(text);
-    if (!Number.isInteger(value) || value < MIN_VALUE || value > MAX_VALUE) {
-      setError(copy.wholeNumber(MIN_VALUE, MAX_VALUE));
+    const value = parseWholeNumber(text, VALUE.min, VALUE.max);
+    if (value === null) {
+      setError(VALUE.message);
       return;
     }
     setError(null);
@@ -188,67 +193,63 @@ const OperationBar = () => {
       data-tour="structure"
       onSubmit={submit}
       aria-label={copy.operations}
-      className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-edge bg-surface px-2 py-2 sm:gap-2 sm:px-3"
+      className="rounded-2xl border border-edge bg-surface px-2 py-2 sm:px-3"
     >
-      <label className="flex min-w-11 flex-1 items-center sm:flex-none">
-        <span className="sr-only">{copy.value}</span>
-        <input
-          type="number"
-          inputMode="numeric"
-          min={MIN_VALUE}
-          max={MAX_VALUE}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder={copy.value}
-          aria-invalid={error !== null}
-          aria-describedby={error ? "operation-error" : undefined}
-          className="h-10 pointer-coarse:h-11 w-full min-w-11 rounded-full border border-line/70 bg-background px-2.5 text-center font-mono sm:w-24 sm:text-left sm:px-4 text-sm text-foreground placeholder:text-foreground/50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
-        />
-      </label>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="h-10 w-9 shrink-0 sm:w-10 pointer-coarse:h-11"
-        onClick={pickRandom}
-        aria-label={copy.random}
-        title={copy.random}
-      >
-        <ShuffleIcon />
-      </Button>
-      {ACTIONS.filter((action) => !heap || action.kind !== "delete").map((action) => (
-        <Button
-          key={action.kind}
-          type={action.kind === "insert" ? "submit" : "button"}
-          size="sm"
-          variant={action.kind === "insert" ? "primary" : "secondary"}
-          className="h-10 shrink-0 px-2.5 sm:px-4 pointer-coarse:h-11"
-          onClick={action.kind === "insert" ? undefined : () => run(action.kind)}
-        >
-          {action.label}
-        </Button>
-      ))}
-      {heap && (
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          className="h-10 shrink-0 px-2.5 sm:px-4 pointer-coarse:h-11"
-          disabled={min === null}
-          onClick={() => {
-            setError(null);
-            if (min !== null) runOperation({ kind: "delete", value: min });
-          }}
-          title={copy.popTitle}
-        >
-          {copy.popMin}
-        </Button>
-      )}
-      {error && (
-        <span id="operation-error" role="alert" className="basis-full px-1 text-xs text-foreground/70 sm:basis-auto">
-          {error}
-        </span>
-      )}
+      <TextField
+        label={copy.value}
+        number={VALUE}
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value);
+          setError(null);
+        }}
+        error={error}
+        autoComplete="off"
+        inputClassName="w-0 px-2.5 text-center font-mono sm:w-40 sm:flex-none sm:text-left"
+        end={
+          <>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-10 w-9 shrink-0 sm:w-10 pointer-coarse:h-11"
+            onClick={pickRandom}
+            aria-label={copy.random}
+            title={copy.random}
+          >
+            <ShuffleIcon />
+          </Button>
+          {ACTIONS.filter((action) => !heap || action.kind !== "delete").map((action) => (
+            <Button
+              key={action.kind}
+              type={action.kind === "insert" ? "submit" : "button"}
+              size="sm"
+              variant={action.kind === "insert" ? "primary" : "secondary"}
+              className="h-10 shrink-0 px-2.5 sm:px-4 pointer-coarse:h-11"
+              onClick={action.kind === "insert" ? undefined : () => run(action.kind)}
+            >
+              {action.label}
+            </Button>
+          ))}
+          {heap && (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              className="h-10 shrink-0 px-2.5 sm:px-4 pointer-coarse:h-11"
+              disabled={min === null}
+              onClick={() => {
+                setError(null);
+                if (min !== null) runOperation({ kind: "delete", value: min });
+              }}
+              title={copy.popTitle}
+            >
+              {copy.popMin}
+            </Button>
+          )}
+          </>
+        }
+      />
     </form>
   );
 };

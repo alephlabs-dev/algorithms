@@ -23,11 +23,11 @@ test('dynamic programming keeps Ñ and accents in the words you type', async ({ 
   await page.goto('/es/dynamic-programming/edit-distance');
 
   const words = page.getByRole('form', { name: 'Palabras' });
-  await words.getByPlaceholder('Primera palabra').fill('año');
-  await words.getByPlaceholder('Segunda palabra').fill('cañón');
+  await words.getByLabel('Palabra 1').fill('año');
+  await words.getByLabel('Palabra 2').fill('cañón');
   await words.getByRole('button', { name: 'Comparar' }).click();
 
   await expect(page).toHaveURL(/a=A%C3%91O/);
   await expect(page).toHaveURL(/b=CA%C3%91%C3%93N/);
-  await expect(words.getByPlaceholder('Primera palabra')).toHaveValue('AÑO');
+  await expect(words.getByLabel('Palabra 1')).toHaveValue('AÑO');
 });
