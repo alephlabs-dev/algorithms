@@ -64,6 +64,8 @@
   --color-mud: #6e5a3b;
   /* Backtracking: a square a queen already attacks. */
   --color-conflict: #ff6b6b;
+  /* Dims the page behind a modal sheet, drawer, dialog or the tour (UX.md rule 13). */
+  --color-scrim: rgb(0 0 0 / 0.55);
   --shadow-dock: 0 20px 60px rgb(0 0 0 / 0.5);
 }
 
@@ -89,6 +91,7 @@
   --color-outline: #13294b;
   --color-mud: #cdb88f;
   --color-conflict: #d42c2c;
+  --color-scrim: rgb(0 0 0 / 0.36);
   --shadow-dock: 0 12px 40px rgb(19 41 75 / 0.12);
 }
 
