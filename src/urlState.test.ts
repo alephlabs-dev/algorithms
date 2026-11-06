@@ -87,6 +87,10 @@ describe("url state", () => {
     expect(readUrlState("?speed=4x")).toEqual({ speed: "4x" });
   });
 
+  it("ignores a speed that was never a preset", () => {
+    expect(readUrlState("?speed=3x")).toEqual({});
+  });
+
   it("keeps the valid values when some are wrong", () => {
     expect(readUrlState("?algo=quick&size=abc")).toEqual({ algorithm: "quick" });
   });
