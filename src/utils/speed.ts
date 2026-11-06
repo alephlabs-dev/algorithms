@@ -4,7 +4,7 @@ import type { PathStepKind } from "@/pathfinding";
 
 // Internally speed is a position from 0 to 1 on an exponential scale: 1 step
 // per second at 0, ~8000 at 1. That range covers 10 items and 400 alike, even at
-// 16×. People pick a preset relative to a pace chosen for the current run (see speedFor).
+// 8×. People pick a preset relative to a pace chosen for the current run (see speedFor).
 const DOUBLINGS = 13;
 
 /** About 4.6 steps per second: the pace for small arrays at 1×. */
@@ -46,11 +46,22 @@ export const autoSpeed = (steps: number, view: Pace) =>
   Math.max(DEFAULT_SPEED, speedForStepsPerSecond(steps / TARGET_SECONDS[view]));
 
 // Each preset doubles the one before it, so every jump feels the same.
-export const speedPresets = ["0.25x", "0.5x", "1x", "2x", "4x", "8x", "16x"] as const;
+export const speedPresets = ["0.5x", "1x", "2x", "4x", "8x"] as const;
 export type SpeedPreset = (typeof speedPresets)[number];
 export const DEFAULT_PRESET: SpeedPreset = "1x";
 
-const multipliers: Record<SpeedPreset, number> = { "0.25x": 0.25, "0.5x": 0.5, "1x": 1, "2x": 2, "4x": 4, "8x": 8, "16x": 16 };
+const multipliers: Record<SpeedPreset, number> = { "0.5x": 0.5, "1x": 1, "2x": 2, "4x": 4, "8x": 8 };
+
+/**
+ * The kept preset closest to a multiplier like "16x", for links made when
+ * there were more presets. Null when it isn't a multiplier.
+ */
+export const nearestPreset = (value: string): SpeedPreset | null => {
+  const multiplier = /^(\d+(?:\.\d+)?)x$/.exec(value)?.[1];
+  if (!multiplier || Number(multiplier) <= 0) return null;
+  const distance = (p: SpeedPreset) => Math.abs(Math.log2(multipliers[p] / Number(multiplier)));
+  return speedPresets.reduce((best, p) => (distance(p) < distance(best) ? p : best));
+};
 
 export const presetLabels = Object.fromEntries(
   speedPresets.map((p) => [p, `${multipliers[p]}×`])

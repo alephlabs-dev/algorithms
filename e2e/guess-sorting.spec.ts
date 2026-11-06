@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
 test('sorting guess mode asks, takes an answer and keeps score', async ({ page }) => {
   // Skip the first-visit tour, which would cover the stage.
   await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
-  await page.goto('/sorting/insertion-sort?size=10&speed=16x');
+  await page.goto('/sorting/insertion-sort?size=10&speed=8x');
 
   const toggle = page.getByRole('button', { name: /Guess mode/ });
   await toggle.click();
@@ -25,7 +25,7 @@ test('sorting guess mode goes quiet with more than 20 items, and a tap says why'
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
-  await page.goto('/sorting/insertion-sort?size=10&speed=16x');
+  await page.goto('/sorting/insertion-sort?size=10&speed=8x');
 
   const toggle = page.getByRole('button', { name: /Guess mode/ });
   await toggle.click();
@@ -33,7 +33,11 @@ test('sorting guess mode goes quiet with more than 20 items, and a tap says why'
 
   // Switch to 40 items while guess mode is on.
   await page.getByRole('button', { name: /^Settings:/ }).click();
-  await page.getByRole('radiogroup', { name: 'Array size' }).getByRole('radio', { name: '40 items' }).click();
+  const size = page.getByRole('slider', { name: 'Array size' });
+  await size.focus();
+  await size.press('ArrowRight');
+  await size.press('ArrowRight');
+  await expect(size).toHaveAttribute('aria-valuetext', '40 items');
   await page.keyboard.press('Escape');
 
   await expect(toggle).toHaveAccessibleName(/Guess mode unavailable: Guess works with 10 or 20 items/);

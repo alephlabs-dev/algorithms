@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { Timeline, sortAlgorithms } from "./algorithms";
-import { MAX_MOBILE_SIZE } from "./consts/sizesMap";
+import { sizesFor } from "./consts/sizesMap";
 import {
   applyPreset,
   decodeCells,
@@ -345,8 +345,10 @@ const fitGridSize = (size: GridSize, view: View, isMobile: boolean) => {
 };
 
 /** Numbers mode only fits so many tiles, and phones only so many bars. */
-const maxSizeFor = (displayMode: DisplayMode, isMobile: boolean) =>
-  displayMode === "numbers" ? (isMobile ? 10 : 20) : isMobile ? MAX_MOBILE_SIZE : Infinity;
+const maxSizeFor = (displayMode: DisplayMode, isMobile: boolean) => {
+  const offered = sizesFor(displayMode, isMobile);
+  return offered[offered.length - 1];
+};
 
 const timelineFor = (algorithm: Algorithm, items: readonly number[]) => new Timeline(sortAlgorithms[algorithm], items);
 

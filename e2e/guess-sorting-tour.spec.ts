@@ -74,7 +74,10 @@ test('with 40 items the toggle hides "New" until Guess can actually be tried', a
   await page.keyboard.press('Escape');
 
   await page.getByRole('button', { name: /^Settings:/ }).click();
-  await page.getByRole('radiogroup', { name: 'Array size' }).getByRole('radio', { name: '10 items' }).click();
+  const size = page.getByRole('slider', { name: 'Array size' });
+  await size.focus();
+  await size.press('Home');
+  await expect(size).toHaveAttribute('aria-valuetext', '10 items');
   await page.keyboard.press('Escape');
   await expect(toggle).toHaveAccessibleName(/^New: Guess mode/);
 });

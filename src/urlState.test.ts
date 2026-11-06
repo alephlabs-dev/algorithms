@@ -80,6 +80,13 @@ describe("url state", () => {
     ).toEqual({});
   });
 
+  it("moves links with a dropped speed preset to the nearest kept one", () => {
+    expect(readUrlState("?speed=0.25x")).toEqual({ speed: "0.5x" });
+    expect(readUrlState("?speed=16x")).toEqual({ speed: "8x" });
+    expect(readUrlState("?speed=max")).toEqual({ speed: "8x" });
+    expect(readUrlState("?speed=4x")).toEqual({ speed: "4x" });
+  });
+
   it("keeps the valid values when some are wrong", () => {
     expect(readUrlState("?algo=quick&size=abc")).toEqual({ algorithm: "quick" });
   });

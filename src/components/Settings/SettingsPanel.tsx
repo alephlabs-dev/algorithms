@@ -2,7 +2,7 @@ import { BarChartIcon } from "@radix-ui/react-icons";
 import type { ReactNode } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { inputOrders } from "@/consts/inputOrders";
-import { MAX_MOBILE_SIZE, sizes } from "@/consts/sizesMap";
+import { NUMBERS_LIMIT, sizesFor } from "@/consts/sizesMap";
 import { useStore } from "@/store";
 import type { DisplayMode, InputOrder } from "@/types";
 import { ItemsControls } from "../Dp/DpStage";
@@ -14,6 +14,7 @@ import { GraphPresetButtons, GraphSizePicker } from "../Graphs/GraphTools";
 import { BrushPicker, GridSizePicker, PresetButtons } from "../Pathfinding/PathTools";
 import { ListItem } from "../ui/list-item";
 import { SegmentedControl } from "../ui/segmented";
+import { StepSlider } from "../ui/slider";
 import { localized } from "@/i18n";
 
 const text = localized({
@@ -93,8 +94,6 @@ const text = localized({
   },
 });
 
-const NUMBERS_LIMIT = { desktop: 20, mobile: 10 };
-
 const useSettings = () =>
   useStore(
     useShallow((s) => ({
@@ -116,22 +115,13 @@ const displayHelp = text.displayHelp;
 
 const SizePicker = () => {
   const s = useSettings();
-  const limit = s.isMobile ? NUMBERS_LIMIT.mobile : NUMBERS_LIMIT.desktop;
-  const options = sizes
-    .filter((size) => !s.isMobile || size <= MAX_MOBILE_SIZE)
-    .map((size) => ({
-      value: size,
-      label: <span className="font-mono">{size}</span>,
-      title: text.items(size),
-      disabled: s.displayMode === "numbers" && size > limit,
-    }));
   return (
-    <SegmentedControl
+    <StepSlider
       label={text.arraySize}
-      options={options}
+      values={sizesFor(s.displayMode, s.isMobile)}
       value={s.size}
-      onChange={(size) => size !== s.size && s.setSize(size)}
-      columns={options.length > 5 ? 3 : undefined}
+      onChange={s.setSize}
+      valueText={text.items}
     />
   );
 };

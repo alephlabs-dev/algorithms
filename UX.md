@@ -29,7 +29,7 @@ Leave room around things. When a screen gets crowded, show less on it, not small
 
 Secondary content isn't laid out next to the primary one. It sits behind one of these and comes out when asked for.
 
-- **In this app:** drawers/sheets are `src/components/ui/drawer.tsx`; popovers are `src/components/ui/popover.ts` with Radix Popover; tab-like switches are `src/components/ui/segmented.tsx` (for example Visualize / Race in `src/components/ViewSwitch.tsx`). `src/components/ui/slider.tsx` exists, but today it only scrubs playback (`src/components/Controls/Progress.tsx`), no setting uses it. Collapsible sections are `src/components/ui/disclosure.tsx` (the explanations under the stage, `Explanation` in `src/components/About.tsx`).
+- **In this app:** drawers/sheets are `src/components/ui/drawer.tsx`; popovers are `src/components/ui/popover.ts` with Radix Popover; tab-like switches are `src/components/ui/segmented.tsx` (for example Visualize / Race in `src/components/ViewSwitch.tsx`). `src/components/ui/slider.tsx` scrubs playback (`Slider` in `src/components/Controls/Progress.tsx`) and picks settings with fixed steps (`StepSlider`, the array size in `src/components/Settings/SettingsPanel.tsx`). Collapsible sections are `src/components/ui/disclosure.tsx` (the explanations under the stage, `Explanation` in `src/components/About.tsx`).
 - **Example:** on phones the pseudocode opens from a drawer (`src/components/Pseudocode.tsx`), and on desktop the longer explanation of a module opens from the ⓘ button as a popover (`AboutButton` in `src/components/TopBar.tsx`).
 
 ## 5. Every screen has a clear flow: where the user clicks and in what order
