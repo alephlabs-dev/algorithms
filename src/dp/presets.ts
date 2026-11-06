@@ -9,14 +9,21 @@ export const wordPairs: { a: string; b: string; label: string }[] = [
   { a: "GATTACA", b: "TACTAG", label: "Gattaca · tactag" },
 ];
 
-/** Uppercase letters, 1 to MAX_WORD of them; anything else is cleaned out. Empty means invalid. */
-export const cleanWord = (text: string) =>
-  text
-    .toUpperCase()
-    .replace(/[^A-Z]/g, "")
-    .slice(0, MAX_WORD);
+// One letter of any alphabet (Ñ, É, Ü… included) that fits in a single character, since the table reads words letter by letter.
+const isLetter = (ch: string) => ch.length === 1 && /\p{L}/u.test(ch);
 
-export const isWord = (text: string) => /^[A-Z]{1,10}$/.test(text);
+/**
+ * Uppercase letters, 1 to MAX_WORD of them; anything else is cleaned out. An
+ * accent typed as its own mark joins its letter first. Empty means invalid.
+ */
+export const cleanWord = (text: string) =>
+  Array.from(text.normalize("NFC").toUpperCase().normalize("NFC"))
+    .filter(isLetter)
+    .slice(0, MAX_WORD)
+    .join("");
+
+export const isWord = (text: string) =>
+  text.length >= 1 && text.length <= MAX_WORD && Array.from(text).every(isLetter) && text === text.toUpperCase();
 
 /** A textbook bag: the best fill (B and C, worth 9) isn't the most valuable item first (D, worth 7). */
 export const EXAMPLE_ITEMS: Item[] = [
