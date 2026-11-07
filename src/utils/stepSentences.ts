@@ -3,7 +3,7 @@
 // sentence in the real caption (#113). Builds each run the way src/store.ts does.
 import { pseudocode, sortAlgorithms, Timeline } from '@/algorithms';
 import { QueensRun, MAX_QUEENS, MIN_QUEENS, SUDOKU_PUZZLES, SudokuRun, type FillOrder, type SudokuPuzzle } from '@/backtracking';
-import { DpRun, EXAMPLE_CAPACITY, EXAMPLE_ITEMS, KnapsackRun, MAX_CAPACITY, MAX_ITEMS, RACE_CAPACITY, RACE_ITEMS, randomItems, wordPairs } from '@/dp';
+import { DpRun, EXAMPLE_CAPACITY, EXAMPLE_ITEMS, KnapsackRun, MAX_CAPACITY, MAX_ITEMS, MAX_WORD, RACE_CAPACITY, RACE_ITEMS, randomItems, wordPairs } from '@/dp';
 import { circleOptions, FourierRun, type FourierShape } from '@/fourier';
 import { graphTimelineFor, makeGraph, type GraphAlgorithm, type GraphPreset, type GraphSize } from '@/graphs';
 import { applyPreset, emptyGrid, gridDimensions, pathSearches, PathTimeline, type GridSize, type PathAlgorithm, type Preset } from '@/pathfinding';
@@ -68,9 +68,21 @@ const graphRuns = function* () {
         }
 };
 
+// The worst words a learner can type: as long as allowed, in the widest letters. Different,
+// the same, sharing no letter, and nearly the same, so every kind of sentence comes up.
+const W = 'W'.repeat(MAX_WORD);
+const M = 'M'.repeat(MAX_WORD);
+const NEARLY_W = `${'W'.repeat(MAX_WORD - 1)}M`;
+const WIDE_WORDS = [
+  { a: W, b: M },
+  { a: W, b: W },
+  { a: NEARLY_W, b: W },
+  { a: `M${'W'.repeat(MAX_WORD - 1)}`, b: NEARLY_W },
+];
+
 const dpRuns = function* () {
   const tables = [
-    ...wordPairs.flatMap(({ a, b }) => [
+    ...[...wordPairs, ...WIDE_WORDS].flatMap(({ a, b }) => [
       { run: `dp edit ${a} ${b}`, table: new DpRun('edit', a, b) },
       { run: `dp lcs ${a} ${b}`, table: new DpRun('lcs', a, b) },
     ]),

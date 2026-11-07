@@ -26,10 +26,10 @@ const text = localized({
       `Take ${names}: worth ${answer}, weighing ${weight} of ${capacity}.`,
     nothingFits: (capacity: number) => `Nothing fits in a bag of ${capacity}.`,
     // Two words
-    editStart: (a: string, b: string) =>
-      `How many edits turn ${a} into ${b}? Each cell solves it for two prefixes.`,
-    lcsStart: (a: string, b: string) =>
-      `The most letters ${a} and ${b} share in order? Each cell solves it for two prefixes.`,
+    // Sentences about both words don't name them: they're on the table's edges, and two
+    // ten-letter words in wide letters fill a line of the caption on their own.
+    editStart: "How many edits turn one word into the other? Each cell solves it for two prefixes.",
+    lcsStart: "How many letters do the words share in order? Each cell solves it for two prefixes.",
     editBase:
       "Row and column ε first: emptying a word takes a delete per letter, building one an insert per letter.",
     lcsBase: "Row and column ε first: a word shares nothing with an empty one, so they're all 0.",
@@ -47,12 +47,12 @@ const text = localized({
     traceInsert: (y: string) => `Came from the left plus one: insert ${y}.`,
     traceKeep: (x: string, y: string) => `${x} = ${y}: it's one of the shared letters. Go diagonally.`,
     traceSkip: (x: string, y: string, move: string) => `${x} ≠ ${y}: go ${move}, toward the bigger value.`,
-    sameWord: (a: string, b: string) => `${a} and ${b} are the same word: distance 0.`,
-    editDone: (a: string, b: string, edits: number, answer: number) =>
-      `${a} → ${b} in ${plural(edits, "edit")}: the corner's ${answer}. The edits are listed under the table.`,
+    sameWord: "Both words are the same: distance 0.",
+    editDone: (edits: number, answer: number) =>
+      `Distance ${answer}: the corner's value. ${edits === 1 ? "The 1 edit is" : `The ${edits} edits are`} listed under the table.`,
     noShared: (a: string, b: string) => `${a} and ${b} share no letters at all.`,
     lcsDone: (letters: string, answer: number) =>
-      `The longest common subsequence is ${letters}: ${plural(answer, "letter")}, in order in both words.`,
+      `The longest common subsequence has ${plural(answer, "letter")}: ${letters}.`,
   },
   es: {
     moves: { diag: "en diagonal", up: "hacia arriba", left: "hacia la izquierda" },
@@ -69,10 +69,8 @@ const text = localized({
     staysOut: (name) => `Igual que la celda de arriba: ${name} queda afuera. Sube.`,
     takeAll: (names, answer, weight, capacity) => `Toma ${names}: valen ${answer} y pesan ${weight} de ${capacity}.`,
     nothingFits: (capacity) => `Nada entra en una mochila de ${capacity}.`,
-    editStart: (a, b) =>
-      `¿Cuántas ediciones llevan de ${a} a ${b}? Cada celda, para dos prefijos.`,
-    lcsStart: (a, b) =>
-      `¿Cuántas letras comparten en orden ${a} y ${b}? Cada celda, para dos prefijos.`,
+    editStart: "¿Cuántas ediciones llevan de una palabra a la otra? Cada celda, para dos prefijos.",
+    lcsStart: "¿Cuántas letras comparten en orden las dos palabras? Cada celda, para dos prefijos.",
     editBase:
       "Primero la fila y la columna ε: con una palabra vacía, cada letra es un borrado o una inserción.",
     lcsBase: "Primero la fila y la columna ε: nada se comparte con una palabra vacía, así que valen 0.",
@@ -87,12 +85,12 @@ const text = localized({
     traceInsert: (y) => `Vino de la izquierda más uno: inserta ${y}.`,
     traceKeep: (x, y) => `${x} = ${y}: es una de las letras compartidas. Sigue en diagonal.`,
     traceSkip: (x, y, move) => `${x} ≠ ${y}: ve ${move}, hacia el valor más grande.`,
-    sameWord: (a, b) => `${a} y ${b} son la misma palabra: distancia 0.`,
-    editDone: (a, b, edits, answer) =>
-      `${a} → ${b} en ${edits} ${edits === 1 ? "edición" : "ediciones"}: la esquina vale ${answer}. Debajo están las ediciones.`,
+    sameWord: "Las dos palabras son iguales: distancia 0.",
+    editDone: (edits, answer) =>
+      `Distancia ${answer}: lo que vale la esquina. ${edits === 1 ? "La edición está" : `Las ${edits} ediciones están`} debajo de la tabla.`,
     noShared: (a, b) => `${a} y ${b} no comparten ninguna letra.`,
     lcsDone: (letters, answer) =>
-      `La subsecuencia común más larga es ${letters}: ${answer} ${answer === 1 ? "letra" : "letras"}, en orden en las dos palabras.`,
+      `La subsecuencia común más larga tiene ${answer} ${answer === 1 ? "letra" : "letras"}: ${letters}.`,
   },
 });
 
@@ -139,7 +137,7 @@ const narrateWords = (run: DpRun, index: number): string => {
   const edit = run.algorithm === "edit";
   switch (e.type) {
     case "start":
-      return edit ? text.editStart(a, b) : text.lcsStart(a, b);
+      return edit ? text.editStart : text.lcsStart;
     case "base":
       return edit ? text.editBase : text.lcsBase;
     case "cell": {
@@ -178,7 +176,7 @@ const narrateWords = (run: DpRun, index: number): string => {
     case "done": {
       if (edit) {
         const edits = alignment(a, b, run.trace).filter((c) => c.kind !== "match").length;
-        return e.answer === 0 ? text.sameWord(a, b) : text.editDone(a, b, edits, e.answer);
+        return e.answer === 0 ? text.sameWord : text.editDone(edits, e.answer);
       }
       const letters = keptLetters(a, run.trace);
       return e.answer === 0 ? text.noShared(a, b) : text.lcsDone(letters, e.answer);
