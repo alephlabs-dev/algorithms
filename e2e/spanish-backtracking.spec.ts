@@ -10,7 +10,7 @@ test('N-Queens in Spanish places queens and explains each step in Spanish', asyn
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   await expect(page.getByRole('heading', { level: 1, name: 'N reinas' })).toBeAttached();
   await expect(
-    page.getByText('6 reinas en un tablero de 6×6, una por fila. Presiona play: cada fila prueba sus columnas desde la izquierda.').filter({ visible: true }).first(),
+    page.getByText('6 reinas en un tablero de 6×6, una por fila. Presiona play: cada fila prueba desde la izquierda.').filter({ visible: true }).first(),
   ).toBeVisible();
 
   await page.getByRole('button', { name: 'Paso siguiente' }).click();
@@ -33,7 +33,7 @@ test('Sudoku in Spanish fills the grid and explains each step in Spanish', async
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   await expect(page.getByRole('heading', { level: 1, name: 'Sudoku' })).toBeAttached();
   await expect(
-    page.getByText('51 casillas vacías. Presiona play: cada una, de izquierda a derecha y de arriba abajo, prueba los dígitos del 1 al 9.').filter({ visible: true }).first(),
+    page.getByText('51 casillas vacías. Presiona play: fila por fila, cada una prueba los dígitos del 1 al 9.').filter({ visible: true }).first(),
   ).toBeVisible();
 
   await page.getByRole('button', { name: 'Paso siguiente' }).click();
@@ -52,11 +52,11 @@ test('Sudoku with fewest options first explains why each cell goes next, in Span
   await page.goto('/es/backtracking/sudoku?puzzle=hard&order=mrv');
 
   await expect(
-    page.getByText('51 casillas vacías. Presiona play: va primero la casilla a la que le caben menos dígitos, y los prueba del 1 al 9.').filter({ visible: true }).first(),
+    page.getByText('51 casillas vacías. Presiona play: primero la que admite menos dígitos, probando del 1 al 9.').filter({ visible: true }).first(),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Paso siguiente' }).click();
   await expect(
-    page.getByText(/^Fila \d, columna \d, la casilla con menos opciones \(1\): /).filter({ visible: true }).first(),
+    page.getByText(/^Fila \d, columna \d \(menos opciones: 1\): /).filter({ visible: true }).first(),
   ).toBeVisible();
   await expect(page).toHaveURL(/\/es\/backtracking\/sudoku\?puzzle=hard&order=mrv/);
   expect(errors).toEqual([]);

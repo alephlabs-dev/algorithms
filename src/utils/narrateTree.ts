@@ -91,7 +91,7 @@ const text = localized({
       `Done. ${plural(count, "value")} in ${m} ${unit}s: a load of ${load}.`,
   },
   es: {
-    idleHeap: "Presiona play para construir el montículo, o escribe un valor abajo para insertarlo o buscarlo, o saca el mínimo.",
+    idleHeap: "Presiona play para armar el montículo. Abajo: inserta o busca un valor, o saca el mínimo.",
     idleTable: "Presiona play para llenar la tabla, o escribe un valor abajo para insertarlo, buscarlo o borrarlo.",
     idleTree: "Presiona play para construir el árbol, o escribe un valor abajo para insertarlo, buscarlo o borrarlo.",
     treeVerb: { insert: "Inserta", search: "Busca", delete: "Borra" },
@@ -124,7 +124,7 @@ const text = localized({
       `Listo. El árbol tiene ${values} ${values === 1 ? "valor" : "valores"} y altura ${height}.`,
     heapInsert: (v) => `Inserta ${v}: empieza al final, en la siguiente posición libre.`,
     heapFind: (v) =>
-      `Busca ${v}: un montículo no tiene un orden de izquierda a derecha que lo guíe, así que revisa posición tras posición.`,
+      `Busca ${v}: el montículo no ordena de izquierda a derecha, así que revisa cada posición.`,
     popMin: (v) => `Saca el mínimo, ${v}: siempre está en la raíz, la posición 0.`,
     deleteFind: (v) => `Borra ${v}: primero hay que encontrarlo.`,
     intoRoot: (v) => `${v} va a la posición 0: la raíz.`,
@@ -163,10 +163,10 @@ const text = localized({
     foundIn: (v, unit, b) => `Encontrado ${v} en la ${unit} ${b}.`,
     endOfBucket: (v) => `Fin de la cubeta: ${v} no está en la tabla.`,
     notInTable: (v) =>
-      `${v} no está en la tabla: si se hubiera insertado, el recorrido lo habría encontrado antes de una casilla vacía.`,
+      `${v} no está en la tabla: si estuviera, el recorrido lo habría encontrado antes de una casilla vacía.`,
     marker: (b) => `Deja una marca en la casilla ${b}: una búsqueda de un valor más adelante no debe detenerse aquí.`,
     unlink: (v, b) => `Quita ${v} de la cubeta ${b}.`,
-    full: (v) => `Todas las casillas están ocupadas: no hay lugar para ${v}. Las tablas reales crecen antes de que pase esto.`,
+    full: (v) => `Todas las casillas están ocupadas: no hay lugar para ${v}. Las tablas reales crecen antes.`,
     tableDone: (count, m, unit, load) =>
       `Listo. ${count} ${count === 1 ? "valor" : "valores"} en ${m} ${unit}s: una carga de ${load}.`,
   },

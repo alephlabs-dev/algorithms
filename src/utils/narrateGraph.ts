@@ -19,9 +19,9 @@ const text = localized({
   en: {
     idle: "Press play to start. Drag nodes, tap two to join them, double-tap one to start there.",
     ending: {
-      bfs: "the green edges reach each node in the fewest edges.",
-      dfs: "the green edges are the tree the search made.",
-      dijkstra: "the green edges are the cheapest route to each node.",
+      bfs: "The green edges reach each one in the fewest edges.",
+      dfs: "The green edges are the tree the search made.",
+      dijkstra: "The green edges are the cheapest route to each one.",
     } as Record<Ending, string>,
     /** What the search keeps its nodes in, as the sentences name it. */
     structure: (structure: string) => structure,
@@ -66,14 +66,14 @@ const text = localized({
     stuck: (left: number) =>
       `Stuck: ${plural(left, "node")} still have edges coming in, so the graph has a loop and no order exists.`,
     treeDone: (weight: number) => `Done: the green edges join the nodes with the smallest possible total weight, ${weight}.`,
-    searchDone: (start: string, ending: string) => `Done: every node reachable from ${start} is visited, and ${ending}`,
+    searchDone: (start: string, ending: string) => `Every node reachable from ${start} is visited. ${ending}`,
   },
   es: {
-    idle: "Presiona play para empezar. Arrastra los nodos, toca dos para unirlos y toca dos veces uno para empezar ahí.",
+    idle: "Presiona play. Arrastra los nodos, toca dos para unirlos y toca dos veces uno para empezar ahí.",
     ending: {
-      bfs: "las aristas verdes llegan a cada nodo con la menor cantidad de aristas.",
-      dfs: "las aristas verdes son el árbol que armó la búsqueda.",
-      dijkstra: "las aristas verdes son la ruta más barata a cada nodo.",
+      bfs: "Las aristas verdes son los caminos con menos aristas.",
+      dfs: "Las aristas verdes son el árbol que armó la búsqueda.",
+      dijkstra: "Las aristas verdes son la ruta más barata a cada nodo.",
     },
     structure: (structure) => ({ queue: "la cola", stack: "la pila" })[structure] ?? structure,
     topoReadyFirst: (name) => `A ${name} no le llega nada: está listo.`,
@@ -116,7 +116,7 @@ const text = localized({
     stuck: (left) =>
       `Trabado: a ${left === 1 ? "1 nodo todavía le entran" : `${left} nodos todavía les entran`} aristas, así que el grafo tiene un ciclo y no existe un orden.`,
     treeDone: (weight) => `Listo: las aristas verdes unen los nodos con el menor peso total posible, ${weight}.`,
-    searchDone: (start, ending) => `Listo: se visitó cada nodo alcanzable desde ${start}, y ${ending}`,
+    searchDone: (start, ending) => `Se visitó todo lo alcanzable desde ${start}. ${ending}`,
   },
 });
 

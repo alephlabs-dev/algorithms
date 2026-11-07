@@ -10,7 +10,7 @@ test('Fourier in Spanish builds the wave and explains it in Spanish', async ({ p
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   await expect(page.getByRole('heading', { level: 1, name: 'Onda cuadrada' })).toBeAttached();
   await expect(
-    page.getByText(/^\d+ círculos, cada uno girando .* Presiona play para construir la onda cuadrada\.$/).filter({ visible: true }).first(),
+    page.getByText(/^\d+ círculos en cadena, .* Presiona play: arman la onda cuadrada\.$/).filter({ visible: true }).first(),
   ).toBeVisible();
 
   await page.getByRole('button', { name: 'Paso siguiente' }).click();

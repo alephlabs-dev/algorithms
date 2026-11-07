@@ -9,7 +9,7 @@ test('dynamic programming in Spanish fills the table and explains each step in S
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   await expect(page.getByRole('heading', { level: 1, name: 'Distancia de edición' })).toBeAttached();
-  await expect(page.getByText(/^¿Cuántas ediciones convierten [A-Z]+ en [A-Z]+\?/).filter({ visible: true }).first()).toBeVisible();
+  await expect(page.getByText(/^¿Cuántas ediciones llevan de una palabra a la otra\?/).filter({ visible: true }).first()).toBeVisible();
 
   await page.getByRole('button', { name: 'Paso siguiente' }).click();
   await expect(page.getByText(/^Primero la fila y la columna ε/).filter({ visible: true }).first()).toBeVisible();
