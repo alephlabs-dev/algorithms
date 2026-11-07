@@ -10,6 +10,7 @@ Each view exists for one thing. Everything else on it supports that thing and gi
 
 - **In this app:** a module page is for watching the run on the stage (`src/components/AlgorithmVisualizer/`, the module stages under `src/components/<Module>/`). Pickers, settings, pseudocode and the written explanation support it.
 - **Example:** on a sorting algorithm page the bars fill the stage. The pseudocode (`NowCard` in `src/components/Pseudocode.tsx`) waits behind a tab of the side panel on wide screens (`SidePanel` in `src/components/Settings/ModuleSettings.tsx`), and the explanation lives below the fold in `src/components/About.tsx`.
+- **The stage stays put:** nothing above the stage changes height during playback, so the stage doesn't move while a run plays. The step sentence over it always takes two lines of room, one line or two (`StepCaption` in `src/components/Pseudocode.tsx`; checked by `e2e/stage-stays-put.spec.ts`).
 
 ## 2. Clear hierarchy: the primary thing is seen first and stands out
 
