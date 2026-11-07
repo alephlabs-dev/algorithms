@@ -12,7 +12,7 @@ const text = localized({
     // Knapsack
     label: (name: string, weight: number, value: number) => `${name} (weight ${weight}, worth ${value})`,
     knapsackStart: (capacity: number) =>
-      `What's the most value that fits in a bag of ${capacity}? Each cell answers it for the first few items and a smaller bag. Press play.`,
+      `What's the most value that fits in a bag of ${capacity}? Each cell answers it for fewer items and less room.`,
     knapsackBase: "Row 0 first: with no items to choose from, any bag is worth 0.",
     doesntFit: (label: string, room: number, leave: number) =>
       `${label} doesn't fit in room ${room}: leave it, and keep ${leave} from the row above.`,
@@ -27,11 +27,11 @@ const text = localized({
     nothingFits: (capacity: number) => `Nothing fits in a bag of ${capacity}.`,
     // Two words
     editStart: (a: string, b: string) =>
-      `How many edits turn ${a} into ${b}? Each cell answers that for the first i letters of ${a} and the first j of ${b}. Press play.`,
+      `How many edits turn ${a} into ${b}? Each cell solves it for two prefixes.`,
     lcsStart: (a: string, b: string) =>
-      `What's the longest run of letters ${a} and ${b} share, in order? Each cell answers that for a prefix of each. Press play.`,
+      `The most letters ${a} and ${b} share in order? Each cell solves it for two prefixes.`,
     editBase:
-      "Row and column ε first: turning letters into nothing takes one delete each, and nothing into letters one insert each.",
+      "Row and column ε first: emptying a word takes a delete per letter, building one an insert per letter.",
     lcsBase: "Row and column ε first: a word shares nothing with an empty one, so they're all 0.",
     editMatch: (x: string, y: string, value: number) => `${x} = ${y}: no edit needed, so it costs what the diagonal does: ${value}.`,
     option: (name: string, value: number) => `${name} ${value}`,
@@ -49,7 +49,7 @@ const text = localized({
     traceSkip: (x: string, y: string, move: string) => `${x} ≠ ${y}: go ${move}, toward the bigger value.`,
     sameWord: (a: string, b: string) => `${a} and ${b} are the same word: distance 0.`,
     editDone: (a: string, b: string, edits: number, answer: number) =>
-      `${a} → ${b} in ${plural(edits, "edit")}: the corner's ${answer}. Shown under the table: replaced, deleted and inserted letters.`,
+      `${a} → ${b} in ${plural(edits, "edit")}: the corner's ${answer}. The edits are listed under the table.`,
     noShared: (a: string, b: string) => `${a} and ${b} share no letters at all.`,
     lcsDone: (letters: string, answer: number) =>
       `The longest common subsequence is ${letters}: ${plural(answer, "letter")}, in order in both words.`,
@@ -59,7 +59,7 @@ const text = localized({
     edits: { diag: "reemplazar", up: "borrar", left: "insertar" },
     label: (name, weight, value) => `${name} (peso ${weight}, vale ${value})`,
     knapsackStart: (capacity) =>
-      `¿Cuál es el mayor valor que cabe en una mochila de ${capacity}? Cada celda lo responde para los primeros objetos y una mochila más pequeña. Presiona play.`,
+      `¿Cuánto valor cabe en una mochila de ${capacity}? Cada celda lo responde con menos objetos y espacio.`,
     knapsackBase: "Primero la fila 0: sin objetos para elegir, cualquier mochila vale 0.",
     doesntFit: (label, room, leave) => `${label} no entra en un espacio de ${room}: déjalo y quédate con ${leave} de la fila de arriba.`,
     take: (room, name, rest, value, total, leave) =>
@@ -70,12 +70,12 @@ const text = localized({
     takeAll: (names, answer, weight, capacity) => `Toma ${names}: valen ${answer} y pesan ${weight} de ${capacity}.`,
     nothingFits: (capacity) => `Nada entra en una mochila de ${capacity}.`,
     editStart: (a, b) =>
-      `¿Cuántas ediciones convierten ${a} en ${b}? Cada celda lo responde para las primeras i letras de ${a} y las primeras j de ${b}. Presiona play.`,
+      `¿Cuántas ediciones llevan de ${a} a ${b}? Cada celda, para dos prefijos.`,
     lcsStart: (a, b) =>
-      `¿Cuál es la secuencia de letras más larga que ${a} y ${b} comparten en orden? Cada celda lo responde para un prefijo de cada una. Presiona play.`,
+      `¿Cuántas letras comparten en orden ${a} y ${b}? Cada celda, para dos prefijos.`,
     editBase:
-      "Primero la fila y la columna ε: convertir letras en nada lleva un borrado por letra, y nada en letras, una inserción por letra.",
-    lcsBase: "Primero la fila y la columna ε: una palabra no comparte nada con una vacía, así que todas valen 0.",
+      "Primero la fila y la columna ε: con una palabra vacía, cada letra es un borrado o una inserción.",
+    lcsBase: "Primero la fila y la columna ε: nada se comparte con una palabra vacía, así que valen 0.",
     editMatch: (x, y, value) => `${x} = ${y}: no hace falta editar, así que cuesta lo mismo que la diagonal: ${value}.`,
     option: (name, value) => `${name} ${value}`,
     editCheapest: (x, y, options, value, pick) => `${x} ≠ ${y}: lo más barato entre ${options} es ${value}, al ${pick}.`,
@@ -89,7 +89,7 @@ const text = localized({
     traceSkip: (x, y, move) => `${x} ≠ ${y}: ve ${move}, hacia el valor más grande.`,
     sameWord: (a, b) => `${a} y ${b} son la misma palabra: distancia 0.`,
     editDone: (a, b, edits, answer) =>
-      `${a} → ${b} en ${edits} ${edits === 1 ? "edición" : "ediciones"}: la esquina vale ${answer}. Debajo de la tabla: las letras reemplazadas, borradas e insertadas.`,
+      `${a} → ${b} en ${edits} ${edits === 1 ? "edición" : "ediciones"}: la esquina vale ${answer}. Debajo están las ediciones.`,
     noShared: (a, b) => `${a} y ${b} no comparten ninguna letra.`,
     lcsDone: (letters, answer) =>
       `La subsecuencia común más larga es ${letters}: ${answer} ${answer === 1 ? "letra" : "letras"}, en orden en las dos palabras.`,

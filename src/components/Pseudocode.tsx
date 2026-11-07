@@ -143,7 +143,7 @@ export const StepCaption = ({ className, onActivate }: { className?: string; onA
       {/* Centred on the first line (text-sm is 20px tall). */}
       <CodeIcon className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
       {/* Always two lines tall, one line or two, so the stage under it never moves (UX.md rule 1).
-          Longer sentences are cut (#113). */}
+          Every step sentence fits in two lines at 393px (e2e/step-sentences-fit.spec.ts); the clamp is a safety net. */}
       <span className="line-clamp-2 min-h-[2lh]">{sentence}</span>
     </button>
   );

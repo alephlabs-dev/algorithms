@@ -24,7 +24,7 @@ const text = localized({
   es: {
     frontier: { bfs: "la cola", dfs: "la pila", dijkstra: "el conjunto abierto", astar: "el conjunto abierto", greedy: "el conjunto abierto" },
     at: (row, col) => `fila ${row}, columna ${col}`,
-    start: "Presiona play para empezar la búsqueda. Arrastra sobre la cuadrícula para dibujar paredes, o mueve el inicio y el destino.",
+    start: "Presiona play para buscar. Arrastra para dibujar paredes, o mueve el inicio y el destino.",
     fromStart: "Empieza la búsqueda desde el punto verde.",
     reached: "¡Llegó al destino!",
     steps: (n) => count(n, "paso"),

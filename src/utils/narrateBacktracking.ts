@@ -19,7 +19,7 @@ const text = localized({
   },
   es: {
     start: (n) =>
-      `${n} reinas en un tablero de ${n}×${n}, una por fila. Presiona play: cada fila prueba sus columnas desde la izquierda.`,
+      `${n} reinas en un tablero de ${n}×${n}, una por fila. Presiona play: cada fila prueba desde la izquierda.`,
     choice: (row, col, last) =>
       `Fila ${row}, columna ${col} es segura, así que va una reina ahí.${last ? " Era la última fila." : ` Sigue la fila ${row + 1}.`}`,
     conflict: (row, col, by, sameColumn) =>
@@ -28,7 +28,7 @@ const text = localized({
     backtrack: (row, col, more) =>
       `Vuelta atrás: se quita la reina de la fila ${row}, columna ${col}.${more ? " Se prueba la siguiente columna." : " Era su última columna."}`,
     done: (n, choices, conflicts, backtracks) =>
-      `Las ${n} reinas están colocadas y ninguna ataca a otra. Hicieron falta ${count(choices, "elección", "elecciones")}, ${count(conflicts, "conflicto")} y ${count(backtracks, "vuelta atrás", "vueltas atrás")}.`,
+      `Las ${n} reinas, sin atacarse: ${count(choices, "elección", "elecciones")}, ${count(conflicts, "conflicto")} y ${count(backtracks, "vuelta atrás", "vueltas atrás")}.`,
   },
 });
 
@@ -60,7 +60,7 @@ const sudokuText = localized({
     startFewest: (empty: number) =>
       `${empty} empty cells. Press play: the cell with the fewest digits that fit goes next, and tries them from 1 to 9.`,
     cell: (row: number, col: number) => `Row ${row}, column ${col}`,
-    fewest: (where: string, n: number) => `${where}, the cell with the fewest options (${n})`,
+    fewest: (where: string, n: number) => `${where} (fewest options: ${n})`,
     choice: (where: string, digit: number) => `${where}: the ${digit} fits.`,
     rule: { row: "its row", column: "its column", box: "its box" } as Record<SudokuRule, string>,
     conflict: (where: string, digit: number, rule: string) => `${where}: the ${digit} is already in ${rule}. A conflict, so skip it.`,
@@ -69,28 +69,28 @@ const sudokuText = localized({
     backtrack: (row: number, col: number, digit: number, more: boolean) =>
       `Backtrack: take the ${digit} out of row ${row}, column ${col}.${more ? " Try the next digit." : " It was the last digit."}`,
     done: (choices: number, conflicts: number, backtracks: number) =>
-      `Solved: every row, column and box holds 1 to 9. It took ${count(choices, "choice")}, ${count(conflicts, "conflict")} and ${count(backtracks, "backtrack")}.`,
-    rowsTook: (steps: number, backtracks: number) =>
-      ` Row by row took ${count(steps, "step")} and ${count(backtracks, "backtrack")}.`,
+      `Solved in ${count(choices, "choice")}, ${count(conflicts, "conflict")} and ${count(backtracks, "backtrack")}.`,
+    doneFewest: (choices: number, backtracks: number, rowSteps: number, rowBacktracks: number) =>
+      `Solved in ${count(choices, "choice")} and ${count(backtracks, "backtrack")}. Row by row: ${count(rowSteps, "step")} and ${count(rowBacktracks, "backtrack")}.`,
   },
   es: {
     start: (empty) =>
-      `${empty} casillas vacías. Presiona play: cada una, de izquierda a derecha y de arriba abajo, prueba los dígitos del 1 al 9.`,
+      `${empty} casillas vacías. Presiona play: fila por fila, cada una prueba los dígitos del 1 al 9.`,
     startFewest: (empty) =>
-      `${empty} casillas vacías. Presiona play: va primero la casilla a la que le caben menos dígitos, y los prueba del 1 al 9.`,
+      `${empty} casillas vacías. Presiona play: primero la que admite menos dígitos, probando del 1 al 9.`,
     cell: (row, col) => `Fila ${row}, columna ${col}`,
-    fewest: (where, n) => `${where}, la casilla con menos opciones (${n})`,
+    fewest: (where, n) => `${where} (menos opciones: ${n})`,
     choice: (where, digit) => `${where}: cabe el ${digit}.`,
     rule: { row: "su fila", column: "su columna", box: "su caja" },
     conflict: (where, digit, rule) => `${where}: el ${digit} ya está en ${rule}. Un conflicto: se salta.`,
     deadEnd: (row, col) =>
-      `A la fila ${row}, columna ${col} no le quedan dígitos por probar: un callejón sin salida. Vuelve a la casilla anterior.`,
+      `Fila ${row}, columna ${col}: no queda dígito por probar. Callejón sin salida: vuelve a la casilla anterior.`,
     backtrack: (row, col, digit, more) =>
       `Vuelta atrás: se quita el ${digit} de la fila ${row}, columna ${col}.${more ? " Se prueba el siguiente dígito." : " Era el último dígito."}`,
     done: (choices, conflicts, backtracks) =>
-      `Resuelto: cada fila, columna y caja tiene del 1 al 9. Hicieron falta ${count(choices, "elección", "elecciones")}, ${count(conflicts, "conflicto")} y ${count(backtracks, "vuelta atrás", "vueltas atrás")}.`,
-    rowsTook: (steps, backtracks) =>
-      ` Por filas hicieron falta ${count(steps, "paso")} y ${count(backtracks, "vuelta atrás", "vueltas atrás")}.`,
+      `Resuelto en ${count(choices, "elección", "elecciones")}, ${count(conflicts, "conflicto")} y ${count(backtracks, "vuelta atrás", "vueltas atrás")}.`,
+    doneFewest: (choices, backtracks, rowSteps, rowBacktracks) =>
+      `Resuelto en ${count(choices, "elección", "elecciones")} y ${count(backtracks, "vuelta atrás", "vueltas atrás")}. Por filas: ${count(rowSteps, "paso")} y ${count(rowBacktracks, "vuelta atrás", "vueltas atrás")}.`,
   },
 });
 
@@ -100,10 +100,10 @@ export const narrateSudoku = (run: SudokuRun, index: number): string => {
   const { event } = frame;
   if (event.type === "start") return (run.order === "mrv" ? sudokuText.startFewest : sudokuText.start)(run.emptyCount);
   if (event.type === "done") {
-    const done = sudokuText.done(frame.choices, frame.conflicts, frame.backtracks);
-    if (run.order !== "mrv") return done;
+    if (run.order !== "mrv") return sudokuText.done(frame.choices, frame.conflicts, frame.backtracks);
+    // Fewest options first: next to what row by row would have taken.
     const rows = rowOrderRun(run.puzzle);
-    return done + sudokuText.rowsTook(rows.steps, rows.backtracks);
+    return sudokuText.doneFewest(frame.choices, frame.backtracks, rows.steps, rows.backtracks);
   }
   if (event.type === "backtrack") return sudokuText.backtrack(event.row + 1, event.col + 1, event.digit, event.digit < 9);
   if (event.type === "deadEnd") return sudokuText.deadEnd(event.row + 1, event.col + 1);
