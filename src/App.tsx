@@ -6,7 +6,7 @@ import { Landing } from "./components/Landing/Landing";
 import { MobileRaceBar, MobileTopBar } from "./components/MobileTopBar";
 import { CodeSheet, NowCard, StepCaption } from "./components/Pseudocode";
 import { ScrollHint } from "./components/ScrollHint";
-import { SettingsAside, SettingsSheet } from "./components/Settings/ModuleSettings";
+import { SettingsAside } from "./components/Settings/ModuleSettings";
 import { useSheets } from "./components/ui/sheets";
 import { LanguageButton } from "./components/LanguageSwitch";
 import { ThemeToggle } from "./components/ThemeToggle";
@@ -19,14 +19,12 @@ import { MOBILE_QUERY, PORTRAIT_QUERY, useStore } from "./store";
 import { navigate, routeFor } from "./urlSync";
 import { GameLayer } from "./components/Game";
 
-// Settings get a side panel from here up, and the pseudocode a card from XL up (UX.md rule 8).
-const PANEL_QUERY = "(min-width: 1024px)";
+// The pseudocode gets a card from XL up (UX.md rule 8).
 const CARD_QUERY = "(min-width: 1280px)";
 
-/** The non-modal sheet on screen, if any: each one only exists where its panel or card doesn't. */
+/** The non-modal sheet on screen, if any: only where the pseudocode card isn't. */
 const useSheet = () => {
   const open = useSheets((s) => s.open);
-  const panel = useMediaQuery(PANEL_QUERY);
   const card = useMediaQuery(CARD_QUERY);
   const isTourOpen = useStore((s) => s.isTourOpen);
 
@@ -35,7 +33,6 @@ const useSheet = () => {
     if (isTourOpen) useSheets.getState().close();
   }, [isTourOpen]);
 
-  if (open === "settings" && !panel) return <SettingsSheet />;
   if (open === "code" && !card) return <CodeSheet />;
   return null;
 };

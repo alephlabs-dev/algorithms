@@ -55,7 +55,9 @@ Never controls with the browser's default look. Every control lives in `src/comp
 
 ## 8. Secondary content on phones and tablets
 
-- Controls used during playback (speed, size, play) never cover the stage: inline below it, or a non-modal bottom sheet at most half the screen, with the stage still visible and animating.
+- Phones and iPad portrait: settings open in a modal bottom sheet over the stage, with the `--color-scrim` backdrop. The stage never resizes or moves under it, and opening or closing it doesn't change playback. It closes with its ✕, a swipe down, a tap on the backdrop or Escape. Its content fits without scrolling (rule 14).
+- Play and speed stay in the dock, never in the settings sheet.
+- Explanatory content followed during playback (the pseudocode) may open in its own non-modal sheet.
 - Choices that don't fit inline open in a modal sheet with a close button. Never stack sheets.
 - Tabs or segmented controls only switch between similar content. A separate route only for long, independent content.
 - iPad landscape and desktop: settings live in a fixed side panel.

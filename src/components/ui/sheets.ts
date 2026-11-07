@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
-/** The non-modal sheets: settings and the pseudocode. */
-export type SheetId = "settings" | "code";
+/** The non-modal sheets: the pseudocode (settings use a modal sheet). */
+export type SheetId = "code";
 
 type Sheets = {
   open: SheetId | null;
@@ -11,7 +11,7 @@ type Sheets = {
   close: () => void;
 };
 
-/** At most one sheet is open: opening one closes the other. */
+/** At most one sheet is open: a modal sheet closes this one when it opens. */
 export const useSheets = create<Sheets>((set, get) => ({
   open: null,
   trigger: null,

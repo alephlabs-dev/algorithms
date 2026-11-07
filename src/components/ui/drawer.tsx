@@ -61,10 +61,17 @@ const DrawerTitle = ({
   />
 );
 
-/** A modal sheet's content: its title with a ✕ beside it, then what scrolls. */
-const DrawerSheet = ({ title, children }: { title: ReactNode; children: ReactNode }) => (
+/**
+ * A modal sheet's content: its title with a ✕ beside it, then the content.
+ * Long lists may scroll; a sheet of controls must fit (UX.md rule 14).
+ */
+const DrawerSheet = ({
+  title,
+  children,
+  ...props
+}: { title: ReactNode; children: ReactNode } & Omit<ComponentProps<"div">, "title">) => (
   <DrawerContent aria-describedby={undefined}>
-    <div className="flex max-h-[85dvh] flex-col gap-4 overflow-y-auto p-6 pt-2 pb-10 text-foreground">
+    <div {...props} className="flex max-h-[85dvh] flex-col gap-4 overflow-y-auto p-6 pt-2 pb-10 text-foreground">
       <div className="flex items-center justify-between gap-4">
         <DrawerTitle className="flex items-center gap-2 text-xl font-semibold">{title}</DrawerTitle>
         <DrawerClose asChild>

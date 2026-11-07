@@ -1,8 +1,6 @@
 import { MixerHorizontalIcon } from "@radix-ui/react-icons";
 import { useModuleUI } from "@/modules";
 import { cn } from "@/utils/cn";
-import { SpeedField } from "../Controls/SpeedControl";
-import { BottomSheet } from "../ui/bottom-sheet";
 import { SectionLabel } from "../ui/section-label";
 import { localized } from "@/i18n";
 
@@ -29,17 +27,4 @@ export const SettingsAside = ({ className }: { className?: string }) => (
     </SectionLabel>
     <SettingsPanel />
   </section>
-);
-
-/**
- * Phones and upright tablets: the settings in a non-modal sheet under the
- * stage. It covers the dock, so the speed comes along.
- */
-export const SettingsSheet = () => (
-  <BottomSheet id="settings" title={text.settings} icon={<MixerHorizontalIcon className="h-5 w-5" />}>
-    <div className="flex flex-col gap-6">
-      <SpeedField />
-      <SettingsPanel />
-    </div>
-  </BottomSheet>
 );

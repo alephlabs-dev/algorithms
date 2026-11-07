@@ -4,7 +4,6 @@ import { cn } from "@/utils/cn";
 import { formatStepsPerSecond, presetLabels, speedPresets, type SpeedPreset } from "@/utils/speed";
 import { Button } from "../ui/button";
 import { SegmentedControl } from "../ui/segmented";
-import { Field } from "../Settings/SettingsPanel";
 import { localized } from "@/i18n";
 
 const text = localized({
@@ -31,8 +30,8 @@ const useSpeed = () =>
 
 const HELP = text.help;
 
-/** Speed presets relative to a pace picked for each run. Wide layouts, and the settings sheet (`full`). */
-export const SpeedControl = ({ className, full }: { className?: string; full?: boolean }) => {
+/** Speed presets relative to a pace picked for each run. Wide layouts. */
+export const SpeedControl = ({ className }: { className?: string }) => {
   const { preset, speed, setPreset } = useSpeed();
   return (
     <div data-tour="speed" className={cn("flex items-center gap-3", className)} title={`${HELP} ${text.now(formatStepsPerSecond(speed))}`}>
@@ -46,18 +45,11 @@ export const SpeedControl = ({ className, full }: { className?: string; full?: b
         value={preset}
         onChange={setPreset}
         compact
-        className={full ? "w-full" : "w-64 xl:w-72"}
+        className="w-64 xl:w-72"
       />
     </div>
   );
 };
-
-/** The speed as the first setting of the settings sheet, which covers the dock. */
-export const SpeedField = () => (
-  <Field label={text.speed} help={HELP}>
-    <SpeedControl full />
-  </Field>
-);
 
 /** One button that cycles through the presets, for narrow layouts where a row is too costly. */
 export const SpeedCycleButton = ({ className }: { className?: string }) => {

@@ -12,7 +12,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { StageInfo } from "./StageInfo";
 import { Button } from "./ui/button";
 import { Drawer, DrawerClose, DrawerSheet, DrawerTrigger } from "./ui/drawer";
-import { useSheetTrigger } from "./ui/sheets";
+import { SettingsPanel } from "./Settings/ModuleSettings";
 import { FieldChevron, fieldClass, NativeSelect } from "./ui/native-select";
 import { SegmentedControl } from "./ui/segmented";
 import { ViewSwitch } from "./ViewSwitch";
@@ -22,6 +22,7 @@ import { localized } from "@/i18n";
 const text = localized({
   en: {
     about: (label: string) => `About ${label}`,
+    settings: "Settings",
     settingsLabel: (summary: string) => `Settings: ${summary}`,
     algorithm: "Algorithm",
     racersField: (names: string) => `Racers: ${names}. Change`,
@@ -31,6 +32,7 @@ const text = localized({
   },
   es: {
     about: (label) => `Acerca de ${label}`,
+    settings: "Ajustes",
     settingsLabel: (summary) => `Ajustes: ${summary}`,
     algorithm: "Algoritmo",
     racersField: (names) => `Competidores: ${names}. Cambiar`,
@@ -52,23 +54,29 @@ const InfoButton = ({ label, children }: { label: string; children: ReactNode })
 );
 
 /**
- * Phones and upright tablets: opens the settings sheet under the stage (non-modal,
- * so the run stays in view). The button's name says what's set.
+ * Phones and upright tablets: the settings in a modal sheet over the stage,
+ * fitting without scroll (UX.md rule 14). The button's name says what's set.
  */
 const SettingsButton = () => {
   const { label: summary } = useSettingsSummary();
-  const trigger = useSheetTrigger("settings");
   return (
-    <Button
-      data-tour="settings"
-      size="icon"
-      className="h-12 w-12 shrink-0"
-      aria-label={text.settingsLabel(summary)}
-      title={summary}
-      {...trigger}
-    >
-      <MixerHorizontalIcon />
-    </Button>
+    // The stage stays put under the sheet: no scaling, and playback carries on.
+    <Drawer shouldScaleBackground={false}>
+      <DrawerTrigger asChild>
+        <Button
+          data-tour="settings"
+          size="icon"
+          className="h-12 w-12 shrink-0"
+          aria-label={text.settingsLabel(summary)}
+          title={summary}
+        >
+          <MixerHorizontalIcon />
+        </Button>
+      </DrawerTrigger>
+      <DrawerSheet title={text.settings} data-settings>
+        <SettingsPanel />
+      </DrawerSheet>
+    </Drawer>
   );
 };
 
