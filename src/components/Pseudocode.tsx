@@ -132,7 +132,7 @@ export const StepCaption = ({ className, onActivate }: { className?: string; onA
     <button
       type="button"
       className={cn(
-        "tap-target relative flex min-h-10 min-w-0 items-center gap-2 rounded-full px-3 py-1 text-left text-sm hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
+        "tap-target relative flex min-w-0 items-start gap-2 rounded-2xl px-3 py-1 text-left text-sm hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
         muted ? "text-foreground/60" : "text-foreground",
         className
       )}
@@ -140,8 +140,11 @@ export const StepCaption = ({ className, onActivate }: { className?: string; onA
       data-tour="narration"
       {...trigger}
     >
-      <CodeIcon className="h-4 w-4 shrink-0 text-secondary" />
-      <span className="line-clamp-2">{sentence}</span>
+      {/* Centred on the first line (text-sm is 20px tall). */}
+      <CodeIcon className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
+      {/* Always two lines tall, one line or two, so the stage under it never moves (UX.md rule 1).
+          Longer sentences are cut (#113). */}
+      <span className="line-clamp-2 min-h-[2lh]">{sentence}</span>
     </button>
   );
 };
