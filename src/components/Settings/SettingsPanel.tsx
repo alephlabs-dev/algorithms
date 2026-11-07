@@ -8,11 +8,11 @@ import type { DisplayMode, InputOrder } from "@/types";
 import { ItemsControls } from "../Dp/DpStage";
 import { DpStartPicker } from "../Dp/DpTools";
 import { BacktrackingPicker, FillOrderPicker } from "../Backtracking/BacktrackingTools";
-import { CirclesPicker, ShapeGrid } from "../Fourier/FourierTools";
+import { CirclesPicker, DrawingSelect } from "../Fourier/FourierTools";
 import { StructurePresetButtons, StructureSizePicker } from "../Structures/StructureTools";
 import { GraphPresetButtons, GraphSizePicker } from "../Graphs/GraphTools";
 import { BrushPicker, GridSizePicker, PresetButtons } from "../Pathfinding/PathTools";
-import { ListItem } from "../ui/list-item";
+import { NativeSelect } from "../ui/native-select";
 import { SegmentedControl } from "../ui/segmented";
 import { StepSlider } from "../ui/slider";
 import { localized } from "@/i18n";
@@ -126,28 +126,25 @@ const SizePicker = () => {
   );
 };
 
-/** Each input order with what it's for, so the choice explains itself. */
-const InputList = () => {
+/** How the array starts out, as one closed field; the field's help says what the chosen order is for. */
+const InputPicker = () => {
   const s = useSettings();
   return (
-    <div role="radiogroup" aria-label={text.input} className="flex flex-col gap-1">
-      {(Object.keys(inputOrders) as InputOrder[]).map((order) => (
-        <ListItem
-          key={order}
-          role="radio"
-          aria-checked={order === s.inputOrder}
-          aria-pressed={undefined}
-          selected={order === s.inputOrder}
-          onClick={() => {
-            if (order !== s.inputOrder) s.setInputOrder(order);
-          }}
-          className="flex-col items-start gap-0.5 py-2"
-        >
-          <span>{inputOrders[order].label}</span>
-          <span className="text-xs font-normal text-foreground/60">{inputOrders[order].description}</span>
-        </ListItem>
-      ))}
-    </div>
+    <NativeSelect
+      label={text.input}
+      value={s.inputOrder}
+      onChange={(order) => {
+        if (order !== s.inputOrder) s.setInputOrder(order as InputOrder);
+      }}
+      groups={[
+        {
+          options: (Object.keys(inputOrders) as InputOrder[]).map((order) => ({
+            value: order,
+            label: inputOrders[order].label,
+          })),
+        },
+      ]}
+    />
   );
 };
 
@@ -166,20 +163,33 @@ const DisplayPicker = () => {
   );
 };
 
-const Field = ({ label, help, children }: { label: string; help?: string; children: ReactNode }) => (
-  <div className="flex flex-col gap-2">
+/** One setting with its name above and help below. `tour` lets a tour step point at it. */
+export const Field = ({
+  label,
+  help,
+  tour,
+  children,
+}: {
+  label: string;
+  help?: string;
+  tour?: string;
+  children: ReactNode;
+}) => (
+  <div data-tour={tour} className="flex flex-col gap-2">
     <h3 className="text-sm font-semibold text-foreground">{label}</h3>
     {children}
     {help && <p className="text-xs text-foreground/70">{help}</p>}
   </div>
 );
 
-// Each module's settings, stacked for the settings sheet and menu. Help is plain text since tooltips don't work on touch.
+// Each module's settings, stacked for the settings sheet and panel. Where the panel
+// replaces a module's tools row (iPad landscape and desktop), the same controls carry
+// its "tools" tour anchor. Help is plain text since tooltips don't work on touch.
 
 /** Data structures' settings: how many values the tree starts with, in which order. */
 export const StructureSettings = () => (
   <div className="flex flex-col gap-6">
-    <Field label={text.startingValues} help={text.startingValuesHelp}>
+    <Field label={text.startingValues} help={text.startingValuesHelp} tour="tools">
       <StructurePresetButtons />
     </Field>
     <Field label={text.howMany} help={text.howManyHelp}>
@@ -196,12 +206,12 @@ export const DpSettings = () => {
       <Field label={text.bag} help={text.bagHelp}>
         <ItemsControls className="flex flex-wrap items-center gap-x-5 gap-y-3" />
       </Field>
-      <Field label={text.example}>
+      <Field label={text.example} tour="tools">
         <DpStartPicker />
       </Field>
     </div>
   ) : (
-    <Field label={text.exampleWords} help={text.exampleWordsHelp}>
+    <Field label={text.exampleWords} help={text.exampleWordsHelp} tour="tools">
       <DpStartPicker />
     </Field>
   );
@@ -211,13 +221,13 @@ export const DpSettings = () => {
 export const FourierSettings = () => {
   const wave = useStore((s) => s.fourierAlgorithm !== "epicycles");
   return (
-    <div className="flex flex-col gap-6">
+    <div data-tour="tools" className="flex flex-col gap-6">
       <Field label={text.circles} help={text.circlesHelp}>
         <CirclesPicker />
       </Field>
       {!wave && (
         <Field label={text.drawing} help={text.drawingHelp}>
-          <ShapeGrid />
+          <DrawingSelect />
         </Field>
       )}
     </div>
@@ -228,7 +238,7 @@ export const FourierSettings = () => {
 export const BacktrackingSettings = () => {
   const sudoku = useStore((s) => s.backtrackingProblem === "sudoku");
   return (
-    <div className="flex flex-col gap-6">
+    <div data-tour="tools" className="flex flex-col gap-6">
       <Field label={sudoku ? text.puzzle : text.queens} help={sudoku ? text.puzzleHelp : text.queensHelp}>
         <BacktrackingPicker />
       </Field>
@@ -247,7 +257,7 @@ export const GraphSettings = () => (
     <Field label={text.size} help={text.freshLayout}>
       <GraphSizePicker />
     </Field>
-    <Field label={text.layout} help={text.graphLayoutHelp}>
+    <Field label={text.layout} help={text.graphLayoutHelp} tour="tools">
       <GraphPresetButtons />
     </Field>
   </div>
@@ -259,12 +269,14 @@ export const PathSettings = () => (
     <Field label={text.gridSize} help={text.freshLayout}>
       <GridSizePicker />
     </Field>
-    <Field label={text.brush} help={text.brushHelp}>
-      <BrushPicker />
-    </Field>
-    <Field label={text.layout}>
-      <PresetButtons />
-    </Field>
+    <div data-tour="tools" className="flex flex-col gap-6">
+      <Field label={text.brush} help={text.brushHelp}>
+        <BrushPicker />
+      </Field>
+      <Field label={text.layout}>
+        <PresetButtons />
+      </Field>
+    </div>
   </div>
 );
 
@@ -276,8 +288,8 @@ export const SortingSettings = () => {
       <Field label={text.arraySize} help={sizeHelp(Math.max(...sizesFor("numbers", s.isMobile)))}>
         <SizePicker />
       </Field>
-      <Field label={text.input}>
-        <InputList />
+      <Field label={text.input} help={inputOrders[s.inputOrder].description}>
+        <InputPicker />
       </Field>
       {/* Race lanes always draw bars. */}
       {!s.isRace && (

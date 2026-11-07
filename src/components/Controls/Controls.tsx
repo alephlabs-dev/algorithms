@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { selectLastIndex, useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { useModuleUI } from "@/modules";
-import { SettingsMenu } from "../Settings/ModuleSettings";
 import { KeyboardShortcuts } from "./KeyboardShortcuts";
 import { Playback } from "./Playback";
 import { Progress } from "./Progress";
@@ -139,7 +138,6 @@ export const Controls = ({ className }: { className?: string }) => {
         {/* Upright tablets keep the phone's one-button speed, so the timeline and counters keep their room. */}
         <SpeedCycleButton className="lg:hidden" />
         <SpeedControl className="hidden lg:flex" />
-        <SettingsMenu className="hidden lg:flex" />
         {newArray}
       </div>
     </div>

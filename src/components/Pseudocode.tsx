@@ -5,8 +5,8 @@ import { useModuleUI } from "@/modules";
 import { useStore, type StoreState } from "@/store";
 import { cn } from "@/utils/cn";
 import { stepsPerSecond } from "@/utils/speed";
-import { Drawer, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
-import { SectionLabel } from "./ui/section-label";
+import { BottomSheet } from "./ui/bottom-sheet";
+import { useSheetTrigger } from "./ui/sheets";
 import { localized } from "@/i18n";
 
 const text = localized({
@@ -92,7 +92,8 @@ const Narration = ({ className }: { className?: string }) => {
 
 /**
  * The code with the current line, the step in plain words and the legend,
- * as a card beside the bars. Wide screens.
+ * as the side panel's Pseudocode tab. iPad landscape and desktop. It's
+ * explanation, not controls, so it may scroll inside (UX.md rule 14).
  */
 export const NowCard = ({ className }: { className?: string }) => {
   const { lines, line, tooFast } = usePseudocode();
@@ -102,9 +103,6 @@ export const NowCard = ({ className }: { className?: string }) => {
       aria-label={text.currentStep}
       className={cn("flex min-h-0 flex-col gap-4 overflow-y-auto rounded-3xl border border-edge bg-surface p-5", className)}
     >
-      <SectionLabel className="flex items-center gap-2">
-        <CodeIcon className="h-4 w-4" /> {text.pseudocode}
-      </SectionLabel>
       <div className={cn("-mx-3 transition-opacity duration-300", { "opacity-40": tooFast })}>
         <CodeLines lines={lines} line={tooFast ? null : line} />
       </div>
@@ -122,37 +120,44 @@ const ModuleLegend = () => {
 
 /**
  * The step in words above the bars, for narrower screens; tapping it opens
- * the full pseudocode.
+ * the full pseudocode in a sheet under the stage, or does `onActivate` (where
+ * the pseudocode lives elsewhere on the page).
  */
-export const StepCaption = ({ className }: { className?: string }) => {
-  const { lines, line } = usePseudocode();
+export const StepCaption = ({ className, onActivate }: { className?: string; onActivate?: () => void }) => {
   const { sentence, muted } = useNarration();
+  const sheetTrigger = useSheetTrigger("code");
+  const trigger = onActivate ? { onClick: onActivate } : sheetTrigger;
 
   return (
-    <Drawer>
-      <DrawerTrigger asChild>
-        <button
-          className={cn(
-            "tap-target relative flex min-h-10 min-w-0 items-center gap-2 rounded-full px-3 py-1 text-left text-sm hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
-            muted ? "text-foreground/60" : "text-foreground",
-            className
-          )}
-          aria-label={text.showPseudocode(sentence)}
-          data-tour="narration"
-        >
-          <CodeIcon className="h-4 w-4 shrink-0 text-secondary" />
-          <span className="line-clamp-2">{sentence}</span>
-        </button>
-      </DrawerTrigger>
-      <DrawerContent aria-describedby={undefined}>
-        <div className="flex flex-col gap-4 p-6 pb-10 text-foreground">
-          <DrawerTitle className="flex items-center gap-2 text-xl font-semibold">
-            <CodeIcon className="h-4 w-4" /> {text.pseudocode}
-          </DrawerTitle>
-          <CodeLines lines={lines} line={line} />
-          <p className="border-l-2 border-secondary pl-3">{sentence}</p>
-        </div>
-      </DrawerContent>
-    </Drawer>
+    <button
+      type="button"
+      className={cn(
+        "tap-target relative flex min-h-10 min-w-0 items-center gap-2 rounded-full px-3 py-1 text-left text-sm hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
+        muted ? "text-foreground/60" : "text-foreground",
+        className
+      )}
+      aria-label={text.showPseudocode(sentence)}
+      data-tour="narration"
+      {...trigger}
+    >
+      <CodeIcon className="h-4 w-4 shrink-0 text-secondary" />
+      <span className="line-clamp-2">{sentence}</span>
+    </button>
+  );
+};
+
+/**
+ * Narrower screens: the code with the current line, in a non-modal sheet, so
+ * it can be followed while the run plays above it.
+ */
+export const CodeSheet = () => {
+  const { lines, line, tooFast } = usePseudocode();
+  return (
+    <BottomSheet id="code" title={text.pseudocode} icon={<CodeIcon className="h-5 w-5" />}>
+      <div className={cn("-mx-3 transition-opacity duration-300", { "opacity-40": tooFast })}>
+        <CodeLines lines={lines} line={tooFast ? null : line} />
+      </div>
+      <Narration className="border-l-2 border-secondary pl-3" />
+    </BottomSheet>
   );
 };

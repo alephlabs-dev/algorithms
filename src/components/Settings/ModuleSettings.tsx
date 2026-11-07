@@ -1,13 +1,17 @@
 import { MixerHorizontalIcon } from "@radix-ui/react-icons";
-import * as Popover from "@radix-ui/react-popover";
-import { useModuleUI, useSettingsSummary } from "@/modules";
+import { useEffect } from "react";
+import { useModuleUI } from "@/modules";
+import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
-import { popoverClass } from "../ui/popover";
+import { NowCard } from "../Pseudocode";
+import { SectionLabel } from "../ui/section-label";
+import { SegmentedControl } from "../ui/segmented";
+import { usePanelTab, type PanelTab } from "./panelTab";
 import { localized } from "@/i18n";
 
 const text = localized({
-  en: { settings: (label: string) => `Settings: ${label}. Change` },
-  es: { settings: (label) => `Ajustes: ${label}. Cambiar` },
+  en: { settings: "Settings", pseudocode: "Pseudocode", panel: "Side panel" },
+  es: { settings: "Ajustes", pseudocode: "Pseudocódigo", panel: "Panel lateral" },
 });
 
 /** The settings of the module on stage. */
@@ -17,36 +21,52 @@ export const SettingsPanel = () => {
 };
 
 /**
- * Desktop and tablet: one pill in the dock that reads like the settings
- * ("40 · Random") and opens all of them.
+ * iPad landscape and desktop: the settings in a card beside the stage, fitting
+ * without scrolling (UX.md rule 14). Titled unless a tab already names it.
  */
-export const SettingsMenu = ({ className }: { className?: string }) => {
-  const { main, detail, mono, label } = useSettingsSummary();
+export const SettingsAside = ({ className, titled = true }: { className?: string; titled?: boolean }) => (
+  <section
+    data-tour="settings"
+    data-settings
+    aria-label={text.settings}
+    className={cn("flex min-h-0 flex-col gap-4 overflow-y-auto rounded-3xl border border-edge bg-surface p-5", className)}
+  >
+    {titled && (
+      <SectionLabel className="flex items-center gap-2">
+        <MixerHorizontalIcon className="h-4 w-4" /> {text.settings}
+      </SectionLabel>
+    )}
+    <SettingsPanel />
+  </section>
+);
+
+/**
+ * iPad landscape and desktop: the panel beside the stage, with two tabs for
+ * things the learner doesn't need at the same time (UX.md rule 8): the
+ * settings, and the pseudocode of the run. The last tab picked is kept for
+ * the session.
+ */
+export const SidePanel = ({ className }: { className?: string }) => {
+  const { tab, setTab } = usePanelTab();
+  const isTourOpen = useStore((s) => s.isTourOpen);
+
+  // The tour points at the settings, so it starts on that tab.
+  useEffect(() => {
+    if (isTourOpen) usePanelTab.getState().setTab("settings");
+  }, [isTourOpen]);
+
   return (
-    <Popover.Root>
-      <Popover.Trigger
-        data-tour="settings"
-        aria-label={text.settings(label)}
-        className={cn(
-          "flex h-11 shrink-0 items-center gap-2 rounded-full border border-edge px-4 text-sm text-foreground transition-colors hover:bg-accent data-[state=open]:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary",
-          className,
-        )}
-      >
-        <MixerHorizontalIcon className="h-4 w-4 text-foreground/70" />
-        <span className={mono ? "font-mono" : undefined}>{main}</span>
-        <span className="text-foreground/40">·</span>
-        <span className="whitespace-nowrap">{detail}</span>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          side="top"
-          align="end"
-          sideOffset={12}
-          className={cn(popoverClass, "max-h-[var(--radix-popover-content-available-height)] w-96 overflow-y-auto p-6")}
-        >
-          <SettingsPanel />
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+    <div className={cn("min-h-0 w-80 shrink-0 flex-col gap-4", className)}>
+      <SegmentedControl<PanelTab>
+        label={text.panel}
+        value={tab}
+        onChange={setTab}
+        options={[
+          { value: "settings", label: text.settings },
+          { value: "code", label: text.pseudocode },
+        ]}
+      />
+      {tab === "settings" ? <SettingsAside titled={false} className="max-h-full shrink-0" /> : <NowCard />}
+    </div>
   );
 };

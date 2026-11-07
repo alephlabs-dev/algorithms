@@ -9,10 +9,10 @@ import { ModuleButton } from "./ModuleSwitcher";
 import { RacerList } from "./Race/RacerPicker";
 import { ShareButton } from "./ShareButton";
 import { ThemeToggle } from "./ThemeToggle";
-import { SettingsPanel } from "./Settings/ModuleSettings";
 import { StageInfo } from "./StageInfo";
 import { Button } from "./ui/button";
-import { Drawer, DrawerClose, DrawerContent, DrawerTitle, DrawerTrigger } from "./ui/drawer";
+import { Drawer, DrawerClose, DrawerSheet, DrawerTrigger } from "./ui/drawer";
+import { SettingsPanel } from "./Settings/ModuleSettings";
 import { FieldChevron, fieldClass, NativeSelect } from "./ui/native-select";
 import { SegmentedControl } from "./ui/segmented";
 import { ViewSwitch } from "./ViewSwitch";
@@ -42,16 +42,6 @@ const text = localized({
   },
 });
 
-/** Bottom sheet with a title and scrollable content. */
-const Sheet = ({ title, children }: { title: string; children: ReactNode }) => (
-  <DrawerContent aria-describedby={undefined}>
-    <div className="flex max-h-[85dvh] flex-col gap-4 overflow-y-auto p-6 pb-10 text-foreground">
-      <DrawerTitle className="text-xl font-semibold">{title}</DrawerTitle>
-      {children}
-    </div>
-  </DrawerContent>
-);
-
 const InfoButton = ({ label, children }: { label: string; children: ReactNode }) => (
   <Drawer>
     <DrawerTrigger asChild>
@@ -59,15 +49,19 @@ const InfoButton = ({ label, children }: { label: string; children: ReactNode })
         <InfoCircledIcon />
       </Button>
     </DrawerTrigger>
-    <Sheet title={label}>{children}</Sheet>
+    <DrawerSheet title={label}>{children}</DrawerSheet>
   </Drawer>
 );
 
-/** Settings live in a sheet on phones and tablets; the button's name says what's set. */
+/**
+ * Phones and upright tablets: the settings in a modal sheet over the stage,
+ * fitting without scroll (UX.md rule 14). The button's name says what's set.
+ */
 const SettingsButton = () => {
   const { label: summary } = useSettingsSummary();
   return (
-    <Drawer>
+    // The stage stays put under the sheet: no scaling, and playback carries on.
+    <Drawer shouldScaleBackground={false}>
       <DrawerTrigger asChild>
         <Button
           data-tour="settings"
@@ -79,9 +73,9 @@ const SettingsButton = () => {
           <MixerHorizontalIcon />
         </Button>
       </DrawerTrigger>
-      <Sheet title={text.settings}>
+      <DrawerSheet title={text.settings} data-settings>
         <SettingsPanel />
-      </Sheet>
+      </DrawerSheet>
     </Drawer>
   );
 };
@@ -167,9 +161,9 @@ const RacersField = () => {
           <FieldChevron />
         </button>
       </DrawerTrigger>
-      <Sheet title={text.racersSheet(names.length, MAX_RACERS)}>
+      <DrawerSheet title={text.racersSheet(names.length, MAX_RACERS)}>
         <RacerList showHeader={false} />
-      </Sheet>
+      </DrawerSheet>
     </Drawer>
   );
 };

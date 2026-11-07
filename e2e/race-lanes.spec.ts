@@ -4,7 +4,8 @@ import { test, expect } from '@playwright/test';
 test('four sorting racers sit two by two', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
   await page.goto('/sorting/race?size=20&race=insertion,quick,merge,heap');
-  const lanes = page.getByRole('main').getByRole('heading', { level: 3 });
+  // Each lane's name heads its card (the settings panel has h3s too).
+  const lanes = page.getByRole('main').locator('section > header').getByRole('heading', { level: 3 });
   await expect(lanes).toHaveCount(4);
   const [a, b, c, d] = await Promise.all([0, 1, 2, 3].map(async (k) => (await lanes.nth(k).boundingBox())!));
   expect(Math.abs(a.y - b.y)).toBeLessThan(2);
@@ -15,7 +16,8 @@ test('four sorting racers sit two by two', async ({ page }) => {
 test('three sorting racers: two on top, the third across the bottom', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
   await page.goto('/sorting/race?size=20&race=insertion,quick,merge');
-  const lanes = page.getByRole('main').getByRole('heading', { level: 3 });
+  // Each lane's name heads its card (the settings panel has h3s too).
+  const lanes = page.getByRole('main').locator('section > header').getByRole('heading', { level: 3 });
   await expect(lanes).toHaveCount(3);
   const [a, b, c] = await Promise.all([0, 1, 2].map(async (k) => (await lanes.nth(k).boundingBox())!));
   expect(Math.abs(a.y - b.y)).toBeLessThan(2);

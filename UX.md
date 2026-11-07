@@ -9,7 +9,7 @@ Each rule says what it means here and gives one example from a screen that alrea
 Each view exists for one thing. Everything else on it supports that thing and gives way to it.
 
 - **In this app:** a module page is for watching the run on the stage (`src/components/AlgorithmVisualizer/`, the module stages under `src/components/<Module>/`). Pickers, settings, pseudocode and the written explanation support it.
-- **Example:** on a sorting algorithm page the bars fill the stage. The pseudocode card (`NowCard` in `src/components/Pseudocode.tsx`) only sits beside it on wide screens (`hidden xl:flex` in `src/App.tsx`), and the explanation lives below the fold in `src/components/About.tsx`.
+- **Example:** on a sorting algorithm page the bars fill the stage. The pseudocode (`NowCard` in `src/components/Pseudocode.tsx`) waits behind a tab of the side panel on wide screens (`SidePanel` in `src/components/Settings/ModuleSettings.tsx`), and the explanation lives below the fold in `src/components/About.tsx`.
 
 ## 2. Clear hierarchy: the primary thing is seen first and stands out
 
@@ -30,7 +30,7 @@ Leave room around things. When a screen gets crowded, show less on it, not small
 Secondary content isn't laid out next to the primary one. It sits behind one of these and comes out when asked for.
 
 - **In this app:** drawers/sheets are `src/components/ui/drawer.tsx`; popovers are `src/components/ui/popover.ts` with Radix Popover; tab-like switches are `src/components/ui/segmented.tsx` (for example Visualize / Race in `src/components/ViewSwitch.tsx`). `src/components/ui/slider.tsx` scrubs playback (`Slider` in `src/components/Controls/Progress.tsx`) and picks settings with fixed steps (`StepSlider`, the array size in `src/components/Settings/SettingsPanel.tsx`). Collapsible sections are `src/components/ui/disclosure.tsx` (the explanations under the stage, `Explanation` in `src/components/About.tsx`).
-- **Example:** on phones the pseudocode opens from a drawer (`src/components/Pseudocode.tsx`), and on desktop the longer explanation of a module opens from the ⓘ button as a popover (`AboutButton` in `src/components/TopBar.tsx`).
+- **Example:** on phones the pseudocode opens from a sheet (`CodeSheet` in `src/components/Pseudocode.tsx`), and on desktop the longer explanation of a module opens from the ⓘ button as a popover (`AboutButton` in `src/components/TopBar.tsx`).
 
 ## 5. Every screen has a clear flow: where the user clicks and in what order
 
@@ -55,10 +55,12 @@ Never controls with the browser's default look. Every control lives in `src/comp
 
 ## 8. Secondary content on phones and tablets
 
-- Controls used during playback (speed, size, play) never cover the stage: inline below it, or a non-modal bottom sheet at most half the screen, with the stage still visible and animating.
+- Phones and iPad portrait: settings open in a modal bottom sheet over the stage, with the `--color-scrim` backdrop. The stage never resizes or moves under it, and opening or closing it doesn't change playback. It closes with its ✕, a swipe down, a tap on the backdrop or Escape. Its content fits without scrolling (rule 14).
+- Play and speed stay in the dock, never in the settings sheet.
+- Explanatory content followed during playback (the pseudocode) may open in its own non-modal sheet.
 - Choices that don't fit inline open in a modal sheet with a close button. Never stack sheets.
-- Tabs or segmented controls only switch between similar content. A separate route only for long, independent content.
-- iPad landscape and desktop: settings live in a fixed side panel.
+- Tabs or segmented controls switch between content the learner doesn't need to see at the same time. A separate route only for long, independent content.
+- iPad landscape and desktop: a side panel beside the stage, never covering it, with two tabs: Settings (the default; fits without scrolling, rule 14) and Pseudocode. It keeps the last tab picked for the session.
 - Which control a choice uses is rule 10; the algorithm picker is rule 11.
 
 ## 9. Collapsible sections
@@ -86,11 +88,18 @@ Never controls with the browser's default look. Every control lives in `src/comp
 
 - Every backdrop behind a modal sheet, drawer or dialog uses the `--color-scrim` token (light: black at 32–40%, dark: black at 50–60%). Non-modal sheets have no backdrop.
 
+## 14. Controls never scroll
+
+- Controls are never inside a scrolling container. At the smallest size of each layout (393×852 phone, 834×1194 iPad portrait, 1194×834 iPad landscape, 1280×800 desktop), every control is visible without scrolling.
+- Explanatory content (the pseudocode) may scroll inside its own card; controls may not.
+- When the controls don't fit, regroup them (a select instead of a list, fewer words of help); never add a scroll.
+
 ## Checked automatically
 
 - **Tap targets (iPhone and iPad e2e projects, `e2e/tap-targets.spec.ts`):** every visible button, link and form control is at least 44×44 px.
   - **How:** grow the hit area, not the look, and only on touch screens (`@media (pointer: coarse)`). Use the `tap-target` utility in `src/index.css`: an invisible `::after` of at least 44×44 centred on the element, which needs a position (`relative`). For a list of links use `tap-rows` on the `<ul>`: each row is at least 44 px tall and its link covers the whole row. Grow the visible size only when there's no other way, such as text inputs, which can't have a `::after` (`pointer-coarse:h-11`).
   - **Exception:** links inside running text, that is inside a `<p>`, are exempt. They can't grow without breaking the line spacing.
+- **Settings fit (every e2e project, `e2e/settings-fit.spec.ts`):** on every module page at its layout's smallest size, the settings container (marked `data-settings`) doesn't overflow: `scrollHeight` ≤ `clientHeight`, and it sits inside the screen.
 - **Native controls (lint):** native form controls are only allowed inside `src/components/ui/`.
 - **Raw colors (lint):** color literals and Tailwind default palette classes are only allowed in the theme.
 

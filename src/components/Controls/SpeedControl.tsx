@@ -8,14 +8,14 @@ import { localized } from "@/i18n";
 
 const text = localized({
   en: {
-    help: "1× is a comfortable pace for this array; it adapts to the array size.",
+    help: "1× is a comfortable pace for this run; it adapts to its size.",
     now: (sps: string) => `Now ${sps} steps per second.`,
     speed: "Speed",
     presetSpeed: (preset: string) => `${preset} speed`,
     cycle: (preset: string, next: string) => `Speed ${preset}. Tap for ${next}`,
   },
   es: {
-    help: "1× es un ritmo cómodo para este arreglo; se adapta a su tamaño.",
+    help: "1× es un ritmo cómodo para esta ejecución; se adapta a su tamaño.",
     now: (sps) => `Ahora ${sps} pasos por segundo.`,
     speed: "Velocidad",
     presetSpeed: (preset) => `Velocidad ${preset}`,
