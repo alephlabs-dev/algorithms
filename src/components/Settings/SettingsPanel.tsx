@@ -8,7 +8,7 @@ import type { DisplayMode, InputOrder } from "@/types";
 import { ItemsControls } from "../Dp/DpStage";
 import { DpStartPicker } from "../Dp/DpTools";
 import { BacktrackingPicker, FillOrderPicker } from "../Backtracking/BacktrackingTools";
-import { CirclesPicker, ShapeGrid } from "../Fourier/FourierTools";
+import { CirclesPicker, DrawingSelect } from "../Fourier/FourierTools";
 import { StructurePresetButtons, StructureSizePicker } from "../Structures/StructureTools";
 import { GraphPresetButtons, GraphSizePicker } from "../Graphs/GraphTools";
 import { BrushPicker, GridSizePicker, PresetButtons } from "../Pathfinding/PathTools";
@@ -227,7 +227,7 @@ export const FourierSettings = () => {
       </Field>
       {!wave && (
         <Field label={text.drawing} help={text.drawingHelp}>
-          <ShapeGrid />
+          <DrawingSelect />
         </Field>
       )}
     </div>

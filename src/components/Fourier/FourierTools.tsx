@@ -8,6 +8,7 @@ import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";
 import { FactLine } from "../ui/fact-line";
+import { NativeSelect } from "../ui/native-select";
 import { popoverClass } from "../ui/popover";
 import { SectionLabel } from "../ui/section-label";
 import { SegmentedControl } from "../ui/segmented";
@@ -20,6 +21,7 @@ const text = localized({
     all: "All",
     circleCount: (n: number) => count(n, "circle"),
     drawing: (label: string) => `Drawing: ${label}. Change`,
+    drawingField: "Drawing",
     tools: "Fourier tools",
     legend: "Legend",
     tip: "Tip",
@@ -34,6 +36,7 @@ const text = localized({
     all: "Todos",
     circleCount: (n) => `${n} ${n === 1 ? "círculo" : "círculos"}`,
     drawing: (label) => `Dibujo: ${label}. Cambiar`,
+    drawingField: "Dibujo",
     tools: "Herramientas de Fourier",
     legend: "Leyenda",
     tip: "Punta",
@@ -110,6 +113,26 @@ export const ShapeGrid = ({ onPick, columns = "grid-cols-4" }: { onPick?: () => 
       ))}
       {tile(shapeOptions[shapeOptions.length - 1])}
     </div>
+  );
+};
+
+/** The settings' drawing picker: one closed field with the drawings in groups, so settings fit without scrolling (UX.md rule 14). */
+export const DrawingSelect = () => {
+  const { shape, setShape } = useStore(useShallow((s) => ({ shape: s.fourierShape, setShape: s.setFourierShape })));
+  const own = shapeOptions[shapeOptions.length - 1];
+  return (
+    <NativeSelect
+      label={text.drawingField}
+      value={shape}
+      onChange={(value) => setShape(value as FourierShape)}
+      groups={[
+        ...shapeGroups.map((group) => ({
+          label: group.label,
+          options: group.shapes.map((option) => ({ value: option.value, label: option.label })),
+        })),
+        { options: [{ value: own.value, label: own.label }] },
+      ]}
+    />
   );
 };
 
