@@ -8,25 +8,12 @@ import { cn } from "@/utils/cn";
  * in the HTML while closed, so prerendered pages keep their text for search
  * engines.
  */
-export const Disclosure = ({
-  title,
-  children,
-  className,
-  headingClassName = "text-xl font-semibold",
-  panelClassName,
-}: {
-  title: ReactNode;
-  children: ReactNode;
-  className?: string;
-  /** The heading's type: a page section's by default, smaller inside a card. */
-  headingClassName?: string;
-  panelClassName?: string;
-}) => {
+export const Disclosure = ({ title, children, className }: { title: ReactNode; children: ReactNode; className?: string }) => {
   const [open, setOpen] = useState(false);
   const panelId = useId();
   return (
     <section className={cn("flex flex-col gap-4", className)}>
-      <h2 className={headingClassName}>
+      <h2 className="text-xl font-semibold">
         <button
           type="button"
           data-disclosure
@@ -42,7 +29,7 @@ export const Disclosure = ({
           />
         </button>
       </h2>
-      <div id={panelId} hidden={!open} className={cn("flex flex-col gap-4", panelClassName)}>
+      <div id={panelId} hidden={!open} className="flex flex-col gap-4">
         {children}
       </div>
     </section>

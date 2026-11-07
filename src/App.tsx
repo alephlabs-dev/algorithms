@@ -4,9 +4,10 @@ import { About } from "./components/About";
 import { Controls } from "./components/Controls";
 import { Landing } from "./components/Landing/Landing";
 import { MobileRaceBar, MobileTopBar } from "./components/MobileTopBar";
-import { CodeSheet, NowCard, StepCaption } from "./components/Pseudocode";
+import { CodeSheet, StepCaption } from "./components/Pseudocode";
 import { ScrollHint } from "./components/ScrollHint";
-import { SettingsAside } from "./components/Settings/ModuleSettings";
+import { SettingsAside, SidePanel } from "./components/Settings/ModuleSettings";
+import { usePanelTab } from "./components/Settings/panelTab";
 import { useSheets } from "./components/ui/sheets";
 import { LanguageButton } from "./components/LanguageSwitch";
 import { ThemeToggle } from "./components/ThemeToggle";
@@ -19,13 +20,13 @@ import { MOBILE_QUERY, PORTRAIT_QUERY, useStore } from "./store";
 import { navigate, routeFor } from "./urlSync";
 import { GameLayer } from "./components/Game";
 
-// The pseudocode gets a card from XL up (UX.md rule 8).
-const CARD_QUERY = "(min-width: 1280px)";
+// iPad landscape and desktop: the side panel, whose Pseudocode tab replaces the sheet.
+const WIDE_QUERY = "(min-width: 1024px)";
 
-/** The non-modal sheet on screen, if any: only where the pseudocode card isn't. */
+/** The non-modal sheet on screen, if any: only below the side panel's sizes. */
 const useSheet = () => {
   const open = useSheets((s) => s.open);
-  const card = useMediaQuery(CARD_QUERY);
+  const card = useMediaQuery(WIDE_QUERY);
   const isTourOpen = useStore((s) => s.isTourOpen);
 
   // The tour points at the dock and the top bar, so it starts with no sheet in the way.
@@ -39,7 +40,7 @@ const useSheet = () => {
 
 /**
  * One stage, edge to edge: a slim bar on top that names what's playing, the
- * module's stage in the middle with the code card beside it on wide screens,
+ * module's stage in the middle with the side panel beside it on wide screens,
  * and a floating dock at the bottom. What's on stage comes from the module.
  */
 function App() {
@@ -54,6 +55,8 @@ function App() {
   const isPortrait = useMediaQuery(PORTRAIT_QUERY);
   const route = useStore(useShallow(routeFor));
   const sheet = useSheet();
+  const wide = useMediaQuery(WIDE_QUERY);
+  const setPanelTab = usePanelTab((s) => s.setTab);
 
   useEffect(() => {
     setIsMobile(isMobile);
@@ -82,8 +85,9 @@ function App() {
                 {/* Phones keep the module's tools in the settings sheet, so the stage gets the room; wide screens in the settings panel. */}
                 {Tools && <Tools className="-ml-1 hidden md:flex lg:hidden" />}
                 {/* The legend drops to its own line before it squeezes the step out (the settings panel narrows the stage). */}
-                <div className="flex min-h-10 flex-wrap items-center justify-between gap-x-4 gap-y-1 xl:hidden">
-                  <StepCaption className="-ml-3 min-w-64 flex-1" />
+                <div className="flex min-h-10 flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                  {/* Wide screens: tapping the step opens the side panel's Pseudocode tab. */}
+                  <StepCaption className="-ml-3 min-w-64 flex-1" onActivate={wide ? () => setPanelTab("code") : undefined} />
                   <Legend className="hidden shrink-0 md:flex" />
                 </div>
                 {/* Guess mode asks under the stage, so it never covers what it's asking about. */}
@@ -92,11 +96,8 @@ function App() {
                   <GameLayer />
                 </div>
               </div>
-              {/* Settings whole, then the code card in the room they leave (collapsed when it doesn't fit), beside the stage. */}
-              <div className="hidden min-h-0 w-80 shrink-0 flex-col gap-4 lg:flex">
-                <SettingsAside className="max-h-full shrink-0" />
-                <NowCard className="hidden xl:flex" />
-              </div>
+              {/* Settings | Pseudocode, beside the stage, never covering it (UX.md rule 8). */}
+              <SidePanel className="hidden lg:flex" />
             </div>
           </>
         ) : (

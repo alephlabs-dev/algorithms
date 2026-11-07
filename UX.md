@@ -9,7 +9,7 @@ Each rule says what it means here and gives one example from a screen that alrea
 Each view exists for one thing. Everything else on it supports that thing and gives way to it.
 
 - **In this app:** a module page is for watching the run on the stage (`src/components/AlgorithmVisualizer/`, the module stages under `src/components/<Module>/`). Pickers, settings, pseudocode and the written explanation support it.
-- **Example:** on a sorting algorithm page the bars fill the stage. The pseudocode card (`NowCard` in `src/components/Pseudocode.tsx`) only sits beside it on wide screens (`hidden xl:flex` in `src/App.tsx`), and the explanation lives below the fold in `src/components/About.tsx`.
+- **Example:** on a sorting algorithm page the bars fill the stage. The pseudocode (`NowCard` in `src/components/Pseudocode.tsx`) waits behind a tab of the side panel on wide screens (`SidePanel` in `src/components/Settings/ModuleSettings.tsx`), and the explanation lives below the fold in `src/components/About.tsx`.
 
 ## 2. Clear hierarchy: the primary thing is seen first and stands out
 
@@ -30,7 +30,7 @@ Leave room around things. When a screen gets crowded, show less on it, not small
 Secondary content isn't laid out next to the primary one. It sits behind one of these and comes out when asked for.
 
 - **In this app:** drawers/sheets are `src/components/ui/drawer.tsx`; popovers are `src/components/ui/popover.ts` with Radix Popover; tab-like switches are `src/components/ui/segmented.tsx` (for example Visualize / Race in `src/components/ViewSwitch.tsx`). `src/components/ui/slider.tsx` scrubs playback (`Slider` in `src/components/Controls/Progress.tsx`) and picks settings with fixed steps (`StepSlider`, the array size in `src/components/Settings/SettingsPanel.tsx`). Collapsible sections are `src/components/ui/disclosure.tsx` (the explanations under the stage, `Explanation` in `src/components/About.tsx`).
-- **Example:** on phones the pseudocode opens from a drawer (`src/components/Pseudocode.tsx`), and on desktop the longer explanation of a module opens from the ⓘ button as a popover (`AboutButton` in `src/components/TopBar.tsx`).
+- **Example:** on phones the pseudocode opens from a sheet (`CodeSheet` in `src/components/Pseudocode.tsx`), and on desktop the longer explanation of a module opens from the ⓘ button as a popover (`AboutButton` in `src/components/TopBar.tsx`).
 
 ## 5. Every screen has a clear flow: where the user clicks and in what order
 
@@ -59,8 +59,8 @@ Never controls with the browser's default look. Every control lives in `src/comp
 - Play and speed stay in the dock, never in the settings sheet.
 - Explanatory content followed during playback (the pseudocode) may open in its own non-modal sheet.
 - Choices that don't fit inline open in a modal sheet with a close button. Never stack sheets.
-- Tabs or segmented controls only switch between similar content. A separate route only for long, independent content.
-- iPad landscape and desktop: settings live in a fixed side panel.
+- Tabs or segmented controls switch between content the learner doesn't need to see at the same time. A separate route only for long, independent content.
+- iPad landscape and desktop: a side panel beside the stage, never covering it, with two tabs: Settings (the default; fits without scrolling, rule 14) and Pseudocode. It keeps the last tab picked for the session.
 - Which control a choice uses is rule 10; the algorithm picker is rule 11.
 
 ## 9. Collapsible sections

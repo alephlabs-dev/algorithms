@@ -1,16 +1,12 @@
 import { CodeIcon } from "@radix-ui/react-icons";
-import { useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { useElementSize } from "@/hooks/useElementSize";
 import { useThrottled } from "@/hooks/useThrottled";
 import { useModuleUI } from "@/modules";
 import { useStore, type StoreState } from "@/store";
 import { cn } from "@/utils/cn";
 import { stepsPerSecond } from "@/utils/speed";
 import { BottomSheet } from "./ui/bottom-sheet";
-import { Disclosure } from "./ui/disclosure";
 import { useSheetTrigger } from "./ui/sheets";
-import { SectionLabel } from "./ui/section-label";
 import { localized } from "@/i18n";
 
 const text = localized({
@@ -94,82 +90,26 @@ const Narration = ({ className }: { className?: string }) => {
   );
 };
 
-const cardClass = "flex flex-col gap-4 rounded-3xl border border-edge bg-surface p-5";
-
-const CardLabel = () => (
-  <span className="flex items-center gap-2">
-    <CodeIcon className="h-4 w-4" /> {text.pseudocode}
-  </span>
-);
-
-// Room kept for the step's sentence when deciding whether the card fits: about three lines.
-const NARRATION_ROOM = "min-h-[4.25rem]";
-
 /**
  * The code with the current line, the step in plain words and the legend,
- * as a card under the settings panel. XL screens. It takes the room the
- * settings leave: when the whole card doesn't fit there, it starts collapsed
- * and scrolls inside once opened (the settings never give way).
+ * as the side panel's Pseudocode tab. iPad landscape and desktop. It's
+ * explanation, not controls, so it may scroll inside (UX.md rule 14).
  */
 export const NowCard = ({ className }: { className?: string }) => {
   const { lines, line, tooFast } = usePseudocode();
-  const slotRef = useRef<HTMLDivElement>(null);
-  const measureRef = useRef<HTMLDivElement>(null);
-  const room = useElementSize(slotRef).height;
-  const need = useElementSize(measureRef).height;
-  // Before the first measurement (or while hidden) the card is shown whole.
-  const fits = room === 0 || need <= room;
-
-  const body = (
-    <>
+  return (
+    <section
+      data-tour="narration"
+      aria-label={text.currentStep}
+      className={cn("flex min-h-0 flex-col gap-4 overflow-y-auto rounded-3xl border border-edge bg-surface p-5", className)}
+    >
       <div className={cn("-mx-3 transition-opacity duration-300", { "opacity-40": tooFast })}>
         <CodeLines lines={lines} line={tooFast ? null : line} />
       </div>
       <Narration className="border-l-2 border-secondary pl-3" />
       <div className="h-px bg-edge" />
       <ModuleLegend />
-    </>
-  );
-
-  return (
-    <div
-      ref={slotRef}
-      role="region"
-      aria-label={text.currentStep}
-      data-tour="narration"
-      className={cn("relative flex min-h-0 flex-1 flex-col overflow-hidden", className)}
-    >
-      {/* The whole card, laid out but never seen, to know what it needs. Its sentence
-          is a fixed room, so the choice doesn't flip with each step. */}
-      <div ref={measureRef} aria-hidden className="pointer-events-none invisible absolute inset-x-0 top-0">
-        <div className={cardClass}>
-          <SectionLabel>
-            <CardLabel />
-          </SectionLabel>
-          <CodeLines lines={lines} line={null} />
-          <p className={NARRATION_ROOM} />
-          <div className="h-px" />
-          <ModuleLegend />
-        </div>
-      </div>
-      {fits ? (
-        <section className={cn(cardClass, "max-h-full min-h-0 overflow-y-auto")}>
-          <SectionLabel>
-            <CardLabel />
-          </SectionLabel>
-          {body}
-        </section>
-      ) : (
-        <Disclosure
-          title={<CardLabel />}
-          className={cn(cardClass, "max-h-full min-h-0")}
-          headingClassName="text-xs font-semibold uppercase tracking-wider text-foreground/60"
-          panelClassName="-mx-3 min-h-0 overflow-y-auto px-3"
-        >
-          {body}
-        </Disclosure>
-      )}
-    </div>
+    </section>
   );
 };
 
@@ -180,11 +120,13 @@ const ModuleLegend = () => {
 
 /**
  * The step in words above the bars, for narrower screens; tapping it opens
- * the full pseudocode in a sheet under the stage.
+ * the full pseudocode in a sheet under the stage, or does `onActivate` (where
+ * the pseudocode lives elsewhere on the page).
  */
-export const StepCaption = ({ className }: { className?: string }) => {
+export const StepCaption = ({ className, onActivate }: { className?: string; onActivate?: () => void }) => {
   const { sentence, muted } = useNarration();
-  const trigger = useSheetTrigger("code");
+  const sheetTrigger = useSheetTrigger("code");
+  const trigger = onActivate ? { onClick: onActivate } : sheetTrigger;
 
   return (
     <button
