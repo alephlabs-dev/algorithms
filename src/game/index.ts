@@ -1,5 +1,7 @@
 import type { Question } from "./questions";
 
+export { DEAD_END, queensQuestions } from "./queens";
+export { MAX_QUESTIONS } from "./spread";
 export { dpQuestions, sortQuestions, structureQuestions, type Answer, type Question, type Slot } from "./questions";
 
 // Per run, worked out once: a run's frames never change, so neither do its questions.

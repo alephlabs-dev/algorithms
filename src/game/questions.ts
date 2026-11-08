@@ -40,6 +40,8 @@ export type Question =
       options: number[];
       answer: number;
       cell?: { i: number; j: number };
+      /** N-Queens: the row the queen is about to land in, and the first column it tries (both from 0). */
+      queenRow?: { row: number; from: number };
       /** What each option's button says, when the bare number can't (heap sort's "4 stays"). */
       optionLabels?: string[];
     })

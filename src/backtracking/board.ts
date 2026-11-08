@@ -5,13 +5,17 @@ import type { QueensFrame, SudokuFrame } from "./types";
 
 const QUEEN = { kind: "queen" } as const;
 
-/** An N-Queens frame as the board draws it: the queens, the squares they attack, and what the step did. */
-export const queensBoard = (frame: QueensFrame, n: number): BoardInput => {
+/**
+ * An N-Queens frame as the board draws it: the queens, the squares they attack, and what the step did.
+ * While guess mode asks where a row's queen lands (`ask`), the attacked squares aren't shaded, since
+ * they'd give the answer away; the columns left to try are outlined instead.
+ */
+export const queensBoard = (frame: QueensFrame, n: number, ask?: { row: number; from: number } | null): BoardInput => {
   const { event, queens } = frame;
   const placed = queens.map((col, row) => ({ row, col }));
   const cells: BoardCell[] = Array.from({ length: n * n }, (_, k) => {
     const square = { row: Math.floor(k / n), col: k % n };
-    return { shade: placed.some((queen) => attacks(queen, square)) };
+    return { shade: !ask && placed.some((queen) => attacks(queen, square)) };
   });
   const cell = (row: number, col: number) => cells[row * n + col];
   placed.forEach(({ row, col }) => Object.assign(cell(row, col), { piece: QUEEN, tone: "placed" }));
@@ -27,7 +31,8 @@ export const queensBoard = (frame: QueensFrame, n: number): BoardInput => {
   else if (event.type === "backtrack") Object.assign(cell(event.row, event.col), { piece: QUEEN, tone: "ghost" });
 
   const labels = Array.from({ length: n }, (_, k) => String(k + 1));
-  return { rows: n, cols: n, cells, lines, deadEnd, rowLabels: labels, colLabels: labels };
+  const asked = ask ? { from: { row: ask.row, col: ask.from }, to: { row: ask.row, col: n - 1 } } : null;
+  return { rows: n, cols: n, cells, lines, deadEnd, ask: asked, rowLabels: labels, colLabels: labels };
 };
 
 /** A Sudoku frame as the board draws it: givens in ink, digits placed in green, and what the step did. */

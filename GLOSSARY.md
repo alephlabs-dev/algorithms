@@ -40,6 +40,16 @@ _Avoid_: New run, new array (outside sorting), shuffle
 The pacing profile of a kind of run ("single", "pathRace", …) that sets how fast 1× plays, so the run takes a comfortable time. The speed presets are multiples of it.
 _Avoid_: Base speed, tempo
 
+### Pathfinding
+
+**Frontier**:
+The cells a search has seen but not yet visited, waiting their turn. Each search orders it its own way: BFS by steps from the start, DFS newest first, Dijkstra by cost, A* by cost plus distance left, greedy by distance left.
+_Avoid_: Open set, queue, stack (outside each search's own pseudocode)
+
+**Visit**:
+Taking a cell out of the frontier and looking at it, which may add its neighbours to the frontier.
+_Avoid_: Explore, expand
+
 ### Backtracking
 
 **Problem**:

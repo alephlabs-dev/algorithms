@@ -11,6 +11,8 @@ import {
   type SudokuPuzzle,
 } from "@/backtracking";
 import type { BacktrackingEventType } from "@/backtracking/types";
+import { questionsOf, queensQuestions } from "@/game";
+import { localized } from "@/i18n";
 import { toBacktrackingSearch } from "@/urlState";
 import { defineModule } from "./slice";
 
@@ -35,6 +37,11 @@ const STEP_WEIGHT: Record<BacktrackingEventType, number> = {
   backtrack: 1,
   done: 0.5,
 };
+
+const guessText = localized({
+  en: { queensOnly: "Guess works with N-Queens for now" },
+  es: { queensOnly: "Adivina funciona con N reinas por ahora" },
+});
 
 const sudokuRunOf = (puzzle: SudokuPuzzle, order: FillOrder) => new SudokuRun(SUDOKU_PUZZLES[puzzle], order);
 
@@ -89,6 +96,9 @@ export const backtrackingSlice = defineModule<BacktrackingState, BacktrackingPro
     lastIndex: (s) => runOf(s).length - 1,
     stepWeight: (s, index) => STEP_WEIGHT[runOf(s).frameAt(index).event.type],
     pace: () => "backtracking",
+    // Sudoku asks nothing yet (#143).
+    game: (s) => (s.problem === "queens" ? questionsOf(s.queensRun, queensQuestions) : []),
+    gameUnavailable: (s) => (s.problem === "queens" ? null : guessText.queensOnly),
     route: (s, ctx) =>
       ctx.isModuleStart ? { kind: "backtracking" } : { kind: "backtrackingProblem", algorithm: s.problem },
     // N-Queens links its board size; Sudoku its puzzle.

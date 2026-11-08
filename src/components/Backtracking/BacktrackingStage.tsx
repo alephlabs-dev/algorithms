@@ -4,7 +4,7 @@ import { queensBoard, sudokuBoard } from "@/backtracking";
 import { BoardRenderer, type BoardInput } from "@/canvas/boardRenderer";
 import { useElementSize } from "@/hooks/useElementSize";
 import { localized } from "@/i18n";
-import { useStore } from "@/store";
+import { selectGameQuestion, useStore } from "@/store";
 import { cn } from "@/utils/cn";
 
 const text = localized({
@@ -95,12 +95,21 @@ const deadEndSlot = "border-conflict bg-conflict/15 ring-2 ring-conflict";
  * The strip grows with every choice and shrinks with every backtrack.
  */
 const QueensStage = () => {
-  const { run, frameIndex } = useStore(useShallow((s) => ({ run: s.backtracking.queensRun, frameIndex: s.frameIndex })));
+  const { run, frameIndex, ask } = useStore(
+    useShallow((s) => {
+      const question = selectGameQuestion(s);
+      return {
+        run: s.backtracking.queensRun,
+        frameIndex: s.frameIndex,
+        ask: question?.kind === "choice" ? question.queenRow : undefined,
+      };
+    }),
+  );
   const frame = run.frameAt(frameIndex);
-  const board = useMemo(() => queensBoard(frame, run.n), [frame, run.n]);
+  const board = useMemo(() => queensBoard(frame, run.n, ask), [frame, run.n, ask]);
   const { event } = frame;
-  // The row the step is about: the strip lights its slot up.
-  const activeRow = event.type === "start" || event.type === "done" ? null : event.row;
+  // The row the step is about, or the one guess mode asks about: the strip lights its slot up.
+  const activeRow = ask ? ask.row : event.type === "start" || event.type === "done" ? null : event.row;
   const deadEnd = event.type === "deadEnd";
 
   return (
