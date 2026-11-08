@@ -5,7 +5,7 @@ import { createAppStore, type StoreState, type View } from "@/appStore";
 import { encodeItems } from "@/dp/presets";
 import { encodePath, linkShape } from "@/fourier/shapes";
 import { makeGraph } from "@/graphs";
-import { encodeGraph } from "@/graphs/graph";
+import { decodeGraph, encodeGraph } from "@/graphs/graph";
 import { applyPreset, emptyGrid } from "@/pathfinding";
 import { encodeCells } from "@/pathfinding/grid";
 import { moduleOf, routeFromPath, routePath, type Route } from "@/routes";
@@ -27,8 +27,26 @@ import { engines, type ModuleId, type SliceStates } from "./engine";
 const SPEED = "2x";
 
 // Each module opens on a link to one of its pages, carrying settings that differ from its defaults.
+// `carries` is what the slice must hold after reading the link: a slice that can't read
+// a value falls back to its default without a word, and the tests would check the wrong state.
 const maze = applyPreset(emptyGrid(17, 33), "maze", seededRandom(3));
-const LINKS: Record<ModuleId, { page: Route; search: string }> = {
+// A link rounds node positions to 1/255, so the slice holds the graph as the link brings it back.
+const tree = decodeGraph(encodeGraph(makeGraph("tree", "large", false, seededRandom(5))))!;
+const items = [
+  { weight: 3, value: 4 },
+  { weight: 4, value: 5 },
+];
+const ops = [
+  { kind: "insert", value: 10 },
+  { kind: "insert", value: 20 },
+] as const;
+// A drawing travels in its link as the slice keeps it: fitted by linkShape.
+const drawing = linkShape([
+  { x: 0, y: 0 },
+  { x: 1, y: 0 },
+  { x: 0, y: 1 },
+]);
+const LINKS: { [M in ModuleId]: { page: Route; search: string; carries: Partial<SliceStates[M]> } } = {
   sorting: {
     page: { kind: "algorithm", algorithm: "heap" },
     search: toSearch({
@@ -39,6 +57,7 @@ const LINKS: Record<ModuleId, { page: Route; search: string }> = {
       raceAlgorithms: ["insertion", "quick", "merge"],
       speed: SPEED,
     }),
+    carries: { algorithm: "heap", size: 40, inputOrder: "reversed", seed: 12345, racers: ["insertion", "quick", "merge"] },
   },
   pathfinding: {
     page: { kind: "path", algorithm: "dijkstra" },
@@ -50,73 +69,46 @@ const LINKS: Record<ModuleId, { page: Route; search: string }> = {
       racers: ["bfs", "astar"],
       speed: SPEED,
     }),
+    carries: { algorithm: "dijkstra", gridSize: "medium", grid: maze, racers: ["bfs", "astar"] },
   },
   graphs: {
     page: { kind: "graph", algorithm: "dijkstra" },
-    search: toGraphSearch({
-      graph: encodeGraph(makeGraph("tree", "large", false, seededRandom(5))),
-      size: "large",
-      preset: "tree",
-      racers: ["prim", "kruskal"],
-      speed: SPEED,
-    }),
+    search: toGraphSearch({ graph: encodeGraph(tree), size: "large", preset: "tree", racers: ["prim", "kruskal"], speed: SPEED }),
+    carries: { algorithm: "dijkstra", size: "large", preset: "tree", graph: tree, racers: ["prim", "kruskal"] },
   },
   dp: {
     page: { kind: "dpProblem", algorithm: "lcs" },
-    search: toDpSearch({
-      a: "KITTEN",
-      b: "SITTING",
-      items: encodeItems([
-        { weight: 3, value: 4 },
-        { weight: 4, value: 5 },
-      ]),
-      capacity: 7,
-      speed: SPEED,
-    }),
+    search: toDpSearch({ a: "KITTEN", b: "SITTING", items: encodeItems(items), capacity: 7, speed: SPEED }),
+    carries: { algorithm: "lcs", a: "KITTEN", b: "SITTING", items, capacity: 7 },
   },
   structures: {
     page: { kind: "structure", algorithm: "avl" },
-    search: toStructureSearch({
-      ops: encodeOperations([
-        { kind: "insert", value: 10 },
-        { kind: "insert", value: 20 },
-      ]),
-      size: "medium",
-      preset: "ascending",
-      speed: SPEED,
-    }),
+    search: toStructureSearch({ ops: encodeOperations([...ops]), size: "medium", preset: "ascending", speed: SPEED }),
+    carries: { algorithm: "avl", ops: [...ops], size: "medium", preset: "ascending" },
   },
   backtracking: {
     page: { kind: "backtrackingProblem", algorithm: "queens" },
     search: toBacktrackingSearch({ n: 5, puzzle: "easy", order: "rows", speed: SPEED }),
+    carries: { problem: "queens", queensN: 5, sudokuPuzzle: "easy", sudokuOrder: "rows" },
   },
   fourier: {
     page: { kind: "series", algorithm: "epicycles" },
-    search: toFourierSearch({
-      circles: 25,
-      shape: "custom",
-      // A drawing travels in its link as the slice keeps it: fitted by linkShape.
-      path: encodePath(
-        linkShape([
-          { x: 0, y: 0 },
-          { x: 1, y: 0 },
-          { x: 0, y: 1 },
-        ]),
-      ),
-      speed: SPEED,
-    }),
+    search: toFourierSearch({ circles: 25, shape: "custom", path: encodePath(drawing), speed: SPEED }),
+    carries: { algorithm: "epicycles", circles: 25, shape: "custom", path: drawing },
   },
 };
 
 /** The store opened on the module's link, then switched to `view` the way the app does. */
 const stateFor = (module: ModuleId, view: View, isModuleStart: boolean): StoreState => {
-  const { page, search } = LINKS[module];
+  const { page, search, carries } = LINKS[module];
   const store = createAppStore({
     url: readLocation(routePath(page), search),
     isMobile: false,
     isPortrait: false,
     theme: "dark",
   });
+  expect(store.getState()[module], `${module} reads every setting its link carries`).toMatchObject(carries);
+  expect(store.getState().speedPreset).toBe(SPEED);
   if (view === "race") store.getState().setView("race");
   // Switching view leaves the module's start page, so the start page is set afterwards.
   return { ...store.getState(), isModuleStart };
