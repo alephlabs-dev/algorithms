@@ -200,7 +200,7 @@ export const StructureSettings = () => (
 
 /** Dynamic programming's settings: example words (any two can be typed under the table). */
 export const DpSettings = () => {
-  const bag = useStore((s) => s.dpAlgorithm === "knapsack" || s.view === "race");
+  const bag = useStore((s) => s.dp.algorithm === "knapsack" || s.view === "race");
   return bag ? (
     <div className="flex flex-col gap-6">
       <Field label={text.bag} help={text.bagHelp}>

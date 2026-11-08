@@ -10,6 +10,17 @@ import { generateItems } from "@/utils/generateItems";
 import { seededRandom } from "@/utils/random";
 import { engines, type ModuleId } from "./engine";
 
+const DP = {
+  algorithm: "lcs",
+  a: "KITTEN",
+  b: "SITTING",
+  items: [
+    { weight: 3, value: 4 },
+    { weight: 4, value: 5 },
+  ],
+  capacity: 7,
+};
+
 const STRUCTURES = {
   algorithm: "avl",
   size: "medium",
@@ -57,14 +68,7 @@ const stateFor = (module: ModuleId, view: "single" | "race", isModuleStart: bool
     graph: makeGraph("tree", "large", false, seededRandom(5)),
     graphRaceAlgorithms: ["prim", "kruskal"],
     structures: STRUCTURES,
-    dpAlgorithm: "lcs",
-    dpA: "KITTEN",
-    dpB: "SITTING",
-    dpItems: [
-      { weight: 3, value: 4 },
-      { weight: 4, value: 5 },
-    ],
-    dpCapacity: 7,
+    dp: DP,
     backtracking: BACKTRACKING,
     fourier: FOURIER,
   }) as unknown as StoreState;
@@ -121,9 +125,9 @@ describe("module engines", () => {
         } as Partial<StoreState>,
       ],
       ["structures", { structures: { ...STRUCTURES, preset: "random" } } as Partial<StoreState>],
-      ["dp", { dpA: "SUNDAY" }],
-      ["dp", { dpB: "SATURDAY" }],
-      ["dp", { dpAlgorithm: "knapsack", dpCapacity: 9 }],
+      ["dp", { dp: { ...DP, a: "SUNDAY" } } as Partial<StoreState>],
+      ["dp", { dp: { ...DP, b: "SATURDAY" } } as Partial<StoreState>],
+      ["dp", { dp: { ...DP, algorithm: "knapsack", capacity: 9 } } as Partial<StoreState>],
       ["backtracking", { backtracking: { ...BACKTRACKING, queensN: 8 } } as Partial<StoreState>],
     ];
     for (const [module, change] of changes) {

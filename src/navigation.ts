@@ -21,11 +21,11 @@ export const applyRoute = (app: AppStore, route: Route) => {
     const problem = route.kind === "backtrackingProblem" ? route.algorithm : store.backtracking.problem;
     if (store.module !== "backtracking" || store.backtracking.problem !== problem) store.pick("backtracking", problem);
   } else if (route.kind === "dp" || route.kind === "dpProblem") {
-    const algorithm = route.kind === "dpProblem" ? route.algorithm : store.dpAlgorithm;
-    if (store.module !== "dp" || store.view !== "single" || store.dpAlgorithm !== algorithm)
-      store.setDpAlgorithm(algorithm);
+    const algorithm = route.kind === "dpProblem" ? route.algorithm : store.dp.algorithm;
+    if (store.module !== "dp" || store.view !== "single" || store.dp.algorithm !== algorithm)
+      store.pick("dp", algorithm);
   } else if (route.kind === "dpRace") {
-    if (store.module !== "dp") store.setDpAlgorithm(store.dpAlgorithm);
+    if (store.module !== "dp") store.pick("dp", store.dp.algorithm);
     if (app.getState().view !== "race") store.setView("race");
   } else if (route.kind === "structure" || route.kind === "structures") {
     const algorithm = route.kind === "structure" ? route.algorithm : store.structures.algorithm;

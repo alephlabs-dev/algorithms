@@ -5,11 +5,10 @@ import type { Route } from "@/routes";
 import type { StoreState, View } from "@/store";
 import type { Size } from "@/types";
 import { sizes } from "@/consts/sizesMap";
-import { encodeItems } from "@/dp/presets";
-import { dpQuestions, questionsOf, SORT_GUESS_MAX_SIZE, sortQuestions, type Question } from "@/game";
-import { toDpSearch, toGraphSearch, toPathSearch, toSearch } from "@/urlState";
-import type { DpEvent } from "@/dp/types";
+import { questionsOf, SORT_GUESS_MAX_SIZE, sortQuestions, type Question } from "@/game";
+import { toGraphSearch, toPathSearch, toSearch } from "@/urlState";
 import { backtrackingSlice } from "./backtracking.slice";
+import { dpSlice } from "./dp.slice";
 import { fourierSlice } from "./fourier.slice";
 import { structuresSlice } from "./structures.slice";
 import type { Bound, ModuleSlice, SliceContext } from "./slice";
@@ -47,6 +46,7 @@ export const slices = {
   fourier: fourierSlice,
   backtracking: backtrackingSlice,
   structures: structuresSlice,
+  dp: dpSlice,
 };
 
 export type SlicedModule = keyof typeof slices;
@@ -161,23 +161,7 @@ export const engines: Record<ModuleId, ModuleEngine> = {
   },
   fourier: engineOf("fourier", slices.fourier.engine, (s) => s.fourier),
   structures: engineOf("structures", slices.structures.engine, (s) => s.structures),
-  dp: {
-    // The race clock counts subproblems: it runs until the slowest method is done.
-    lastIndex: (s, view) =>
-      view === "race" ? Math.max(0, ...s.dpRaceRuns.map((r) => r.length - 1)) : s.dpRun.length - 1,
-    stepWeight: (s, index) => DP_STEP_WEIGHT[s.dpRun.frames[index]?.event.type ?? "done"],
-    pace: (view) => (view === "race" ? "dpRace" : "dp"),
-    route: (s) => {
-      if (s.view === "race") return { kind: "dpRace" };
-      return s.isModuleStart ? { kind: "dp" } : { kind: "dpProblem", algorithm: s.dpAlgorithm };
-    },
-    // A knapsack (or its race) links its items; the word problems their words.
-    search: (s) =>
-      s.dpAlgorithm === "knapsack" || s.view === "race"
-        ? toDpSearch({ items: encodeItems(s.dpItems), capacity: s.dpCapacity, speed: s.speedPreset })
-        : toDpSearch({ a: s.dpA, b: s.dpB, speed: s.speedPreset }),
-    game: (s) => questionsOf(s.dpRun, dpQuestions),
-  },
+  dp: engineOf("dp", slices.dp.engine, (s) => s.dp),
   backtracking: engineOf("backtracking", slices.backtracking.engine, (s) => s.backtracking),
 };
 
@@ -188,13 +172,4 @@ export const engines: Record<ModuleId, ModuleEngine> = {
 export const selectSpeed = (s: StoreState) => {
   const engine = engines[s.module];
   return speedFor(s.speedPreset, engine.lastIndex(s, s.view), engine.pace(s.view));
-};
-
-/** Cells fill briskly; the way back, the part that answers the question, gets a longer beat. */
-const DP_STEP_WEIGHT: Record<DpEvent["type"], number> = {
-  start: 0.7,
-  base: 1.2,
-  cell: 0.8,
-  trace: 1.4,
-  done: 0.5,
 };

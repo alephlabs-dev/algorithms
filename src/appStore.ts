@@ -26,23 +26,6 @@ import {
   type GraphTimeline,
 } from "./graphs";
 import {
-  decodeItems,
-  DpRun,
-  EXAMPLE_CAPACITY,
-  EXAMPLE_ITEMS,
-  encodeItems,
-  KnapsackRun,
-  RACE_CAPACITY,
-  RACE_ITEMS,
-  KnapsackWork,
-  methods,
-  randomItems,
-  wordPairs,
-  type DpAlgorithm,
-  type Item,
-  type TableRun,
-} from "./dp";
-import {
   contextFor,
   engines,
   slices,
@@ -72,7 +55,6 @@ const LEGACY_TOUR_KEYS: Record<Exclude<Module, SlicedModule>, string> = {
   sorting: "tour-done",
   pathfinding: "tour-done-pathfinding",
   graphs: "tour-done-graphs",
-  dp: "tour-done-dp",
 };
 const SLICED = Object.keys(slices) as SlicedModule[];
 const TOUR_KEYS: Record<Module, string> = {
@@ -115,17 +97,6 @@ export type StoreState = SliceStates & {
   graphRaceAlgorithms: GraphAlgorithm[];
   /** One timeline per racer, on the current graph. Empty outside race view. */
   graphRaceTimelines: GraphTimeline[];
-  dpAlgorithm: DpAlgorithm;
-  /** The two words: down the side, and across the top. */
-  dpA: string;
-  dpB: string;
-  /** Knapsack: the items (named A, B, C… in order) and the bag's capacity. */
-  dpItems: Item[];
-  dpCapacity: number;
-  /** The table filled and walked back, frame by frame. */
-  dpRun: TableRun;
-  /** Race view: the knapsack solved three ways, every subproblem each one touches. */
-  dpRaceRuns: KnapsackWork[];
   /** Bumped when the graph is replaced wholesale, so nodes don't glide between layouts. */
   graphId: number;
   /** Searches racing on the grid, in the picker's order. */
@@ -201,11 +172,6 @@ export type StoreState = SliceStates & {
   /** Replaces the graph after an edit (moving a node, joining two); the run restarts. */
   editGraph: (graph: Graph) => void;
   toggleGraphRacer: (algorithm: GraphAlgorithm) => void;
-  setDpAlgorithm: (algorithm: DpAlgorithm) => void;
-  /** New words (already cleaned up); the table starts over. */
-  setDpWords: (a: string, b: string) => void;
-  /** New knapsack items and capacity; the table starts over. */
-  setDpItems: (items: Item[], capacity: number) => void;
   togglePathRacer: (algorithm: PathAlgorithm) => void;
   /** Switch to the pathfinding race with `algorithm` among the racers. */
   pathRaceWith: (algorithm: PathAlgorithm) => void;
@@ -248,7 +214,7 @@ export const selectRaceRuns = (state: StoreState): readonly unknown[] => {
     graphs: state.graphRaceTimelines,
     fourier: [],
     structures: state.structures.raceRuns,
-    dp: state.dpRaceRuns,
+    dp: state.dp.raceRuns,
     backtracking: [],
   };
   return runs[state.module];
@@ -323,34 +289,6 @@ const graphOrder: GraphAlgorithm[] = ["bfs", "dfs", "dijkstra", "prim", "kruskal
 
 const graphRaceTimelinesFor = (view: View, algorithms: GraphAlgorithm[], graph: Graph) =>
   view === "race" ? algorithms.map((a) => graphTimelineFor(a, graph)) : [];
-
-/** The table for a problem: two words, or a knapsack. */
-const dpRunFor = (algorithm: DpAlgorithm, a: string, b: string, items: Item[], capacity: number): TableRun =>
-  algorithm === "knapsack" ? new KnapsackRun(items, capacity) : new DpRun(algorithm, a, b);
-
-const dpRaceRunsFor = (view: View, items: Item[], capacity: number) =>
-  view === "race" ? methods.map((m) => new KnapsackWork(m, items, capacity)) : [];
-
-const isTextbookBag = (items: Item[], capacity: number) =>
-  capacity === EXAMPLE_CAPACITY && encodeItems(items) === encodeItems(EXAMPLE_ITEMS);
-
-/**
- * Switching dynamic programming's view: the race's runs and, coming from the
- * four-item textbook bag (too small for recursion to repeat itself), the
- * race's own example.
- */
-const dpRaceFor = (state: StoreState, view: View) => {
-  if (state.module !== "dp") return { dpRaceRuns: [] };
-  const swap = view === "race" && isTextbookBag(state.dpItems, state.dpCapacity);
-  const dpItems = swap ? RACE_ITEMS : state.dpItems;
-  const dpCapacity = swap ? RACE_CAPACITY : state.dpCapacity;
-  return {
-    dpItems,
-    dpCapacity,
-    dpRun: swap ? dpRunFor(state.dpAlgorithm, state.dpA, state.dpB, dpItems, dpCapacity) : state.dpRun,
-    dpRaceRuns: dpRaceRunsFor(view, dpItems, dpCapacity),
-  };
-};
 
 /** Race lanes are a quarter of the stage: graphs there stay at a size that reads. */
 const fitGraphSize = (size: GraphSize, view: View, isMobile: boolean): GraphSize => {
@@ -464,7 +402,6 @@ const LEGACY_RACES_DROPPED = {
   raceTimelines: [],
   pathRaceTimelines: [],
   graphRaceTimelines: [],
-  dpRaceRuns: [],
 } satisfies Partial<StoreState>;
 
 const initialState = ({ url, isMobile, isPortrait }: StoreEnv) => {
@@ -486,13 +423,6 @@ const initialState = ({ url, isMobile, isPortrait }: StoreEnv) => {
   const pathTimeline = pathTimelineFor(pathAlgorithm, grid);
   const pathRaceAlgorithms = url.path.racers ?? DEFAULT_PATH_RACERS;
   const pathRaceTimelines = pathRaceTimelinesFor(module === "pathfinding" ? view : "single", pathRaceAlgorithms, grid);
-  const dpAlgorithm = url.dpAlgorithm ?? "edit";
-  const dpA = url.dp.a ?? wordPairs[0].a;
-  const dpB = url.dp.b ?? wordPairs[0].b;
-  // The race opens on its own example, big enough for plain recursion to show its repeats.
-  const dpRaceStart = module === "dp" && view === "race";
-  const dpItems = (url.dp.items && decodeItems(url.dp.items)) || (dpRaceStart ? RACE_ITEMS : EXAMPLE_ITEMS);
-  const dpCapacity = url.dp.capacity ?? (dpRaceStart ? RACE_CAPACITY : EXAMPLE_CAPACITY);
   const graphAlgorithm = url.graphAlgorithm ?? "bfs";
   const graphSize = fitGraphSize(url.graph.size ?? "medium", module === "graphs" ? view : "single", isMobile);
   const graphPreset = url.graph.preset ?? "random";
@@ -516,13 +446,6 @@ const initialState = ({ url, isMobile, isPortrait }: StoreEnv) => {
     graph,
     graphTimeline: graphTimelineFor(graphAlgorithm, graph),
     ...hydrateSlices({ url, isMobile, isPortrait }),
-    dpAlgorithm,
-    dpA,
-    dpB,
-    dpItems,
-    dpCapacity,
-    dpRun: dpRunFor(dpAlgorithm, dpA, dpB, dpItems, dpCapacity),
-    dpRaceRuns: dpRaceRunsFor(module === "dp" ? view : "single", dpItems, dpCapacity),
     graphRaceAlgorithms: url.graph.racers ?? DEFAULT_GRAPH_RACERS,
     graphRaceTimelines: graphRaceTimelinesFor(
       module === "graphs" ? view : "single",
@@ -696,7 +619,6 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
             graph,
           ),
           ...racesFor(state, view),
-          ...dpRaceFor(state, view),
         };
       });
     },
@@ -808,17 +730,6 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
       // In pathfinding, "new" means another layout of the same kind (a clear grid becomes a maze).
       if (module === "pathfinding") applyGridPreset(gridPreset === "clear" ? "maze" : gridPreset);
       else if (module === "graphs") applyGraphPreset(graphPreset);
-      else if (module === "dp" && (get().dpAlgorithm === "knapsack" || get().view === "race")) {
-        // A new bag: a handful of random items for the same capacity.
-        const { dpItems, dpCapacity, setDpItems } = get();
-        setDpItems(randomItems(Math.max(4, dpItems.length), seededRandom(newSeed())), dpCapacity);
-      } else if (module === "dp") {
-        // "New" moves on to the next example pair, wrapping around.
-        const { dpA, dpB, setDpWords } = get();
-        const at = wordPairs.findIndex((p) => p.a === dpA && p.b === dpB);
-        const next = wordPairs[(at + 1) % wordPairs.length];
-        setDpWords(next.a, next.b);
-      }
       else setSize(size);
     },
 
@@ -880,37 +791,6 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
       replaceRun((state) => graphRunFor(state, graph));
     },
 
-    setDpAlgorithm: (algorithm) => {
-      replaceRun((state) => ({
-        module: "dp",
-        view: "single",
-        isModuleStart: false,
-        ...racesFor(state, "single"),
-        dpAlgorithm: algorithm,
-        dpRun: dpRunFor(algorithm, state.dpA, state.dpB, state.dpItems, state.dpCapacity),
-        dpRaceRuns: [],
-        raceTimelines: [],
-        pathRaceTimelines: [],
-        graphRaceTimelines: [],
-      }));
-    },
-
-    setDpWords: (dpA, dpB) => {
-      replaceRun((state) => ({
-        dpA,
-        dpB,
-        dpRun: dpRunFor(state.dpAlgorithm, dpA, dpB, state.dpItems, state.dpCapacity),
-      }));
-    },
-
-    setDpItems: (dpItems, dpCapacity) => {
-      replaceRun((state) => ({
-        dpItems,
-        dpCapacity,
-        dpRun: dpRunFor(state.dpAlgorithm, state.dpA, state.dpB, dpItems, dpCapacity),
-        dpRaceRuns: dpRaceRunsFor(state.module === "dp" ? state.view : "single", dpItems, dpCapacity),
-      }));
-    },
 
     toggleGraphRacer: (algorithm) => {
       replaceRun((state) => {

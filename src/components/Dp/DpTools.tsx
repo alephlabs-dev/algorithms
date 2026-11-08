@@ -54,7 +54,7 @@ const text = localized({
 
 /** Example word pairs to start from. */
 export const WordPairButtons = ({ className }: { className?: string }) => {
-  const { a, b, setWords } = useStore(useShallow((s) => ({ a: s.dpA, b: s.dpB, setWords: s.setDpWords })));
+  const { a, b, setWords } = useStore(useShallow((s) => ({ a: s.dp.a, b: s.dp.b, setWords: s.actions.dp.setWords })));
   return (
     <div role="group" aria-label={text.exampleWords} className={cn("flex flex-wrap gap-2", className)}>
       {wordPairs.map((pair) => {
@@ -86,8 +86,8 @@ const ExampleBagButton = () => {
   const [items, capacity] = race ? [RACE_ITEMS, RACE_CAPACITY] : [EXAMPLE_ITEMS, EXAMPLE_CAPACITY];
   const { current, setItems } = useStore(
     useShallow((s) => ({
-      current: s.dpCapacity === capacity && encodeItems(s.dpItems) === encodeItems(items),
-      setItems: s.setDpItems,
+      current: s.dp.capacity === capacity && encodeItems(s.dp.items) === encodeItems(items),
+      setItems: s.actions.dp.setItems,
     })),
   );
   return (
@@ -114,7 +114,7 @@ const ExampleBagButton = () => {
 
 /** What to start from: example words, or the example bag. */
 export const DpStartPicker = ({ className }: { className?: string }) => {
-  const bag = useStore((s) => s.dpAlgorithm === "knapsack" || s.view === "race");
+  const bag = useStore((s) => s.dp.algorithm === "knapsack" || s.view === "race");
   return bag ? <ExampleBagButton /> : <WordPairButtons className={className} />;
 };
 
@@ -135,8 +135,8 @@ const Item = ({ className, label }: { className: string; label: string }) => (
 export const DpLegend = ({ className }: { className?: string }) => {
   const { edit, knapsack, race } = useStore(
     useShallow((s) => ({
-      edit: s.dpAlgorithm === "edit",
-      knapsack: s.dpAlgorithm === "knapsack",
+      edit: s.dp.algorithm === "edit",
+      knapsack: s.dp.algorithm === "knapsack",
       race: s.view === "race",
     })),
   );
@@ -178,9 +178,9 @@ export const DpLegend = ({ className }: { className?: string }) => {
 export const DpStatsInline = ({ className }: { className?: string }) => {
   const { filled, total, answer } = useStore(
     useShallow((s) => {
-      const frame = s.dpRun.frames[Math.min(s.frameIndex, s.dpRun.length - 1)];
-      const total = s.dpRun.frames[s.dpRun.length - 1].filled;
-      return { filled: frame.filled, total, answer: frame.filled === total ? s.dpRun.answer : null };
+      const frame = s.dp.run.frames[Math.min(s.frameIndex, s.dp.run.length - 1)];
+      const total = s.dp.run.frames[s.dp.run.length - 1].filled;
+      return { filled: frame.filled, total, answer: frame.filled === total ? s.dp.run.answer : null };
     }),
   );
   return (
@@ -192,7 +192,7 @@ export const DpStatsInline = ({ className }: { className?: string }) => {
 };
 
 export const DpFacts = () => {
-  const algorithm = useStore((s) => s.dpAlgorithm);
+  const algorithm = useStore((s) => s.dp.algorithm);
   const { cost, cell } = dpProblems[algorithm];
   return <FactLine facts={[cost, text.aCell(cell)]} />;
 };
