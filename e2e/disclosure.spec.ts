@@ -16,7 +16,10 @@ const panelOf = async (page: Page, button: Locator) =>
 const press = (button: Locator, hasTouch: boolean) => (hasTouch ? button.tap() : button.click());
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
+  await page.addInitScript(() => {
+    localStorage.setItem('tour-done', 'true');
+    localStorage.setItem('tour-done-backtracking', 'true');
+  });
 });
 
 test('explanations start closed and open in place', async ({ page, hasTouch }) => {
@@ -62,6 +65,31 @@ test('the scroll hint opens the explanation it names', async ({ page }) => {
   const how = disclosure(page, 'How Insertion Sort works');
   await expect(how).toHaveAttribute('aria-expanded', 'true');
   await expect(await panelOf(page, how)).toBeInViewport();
+});
+
+for (const [path, name] of [
+  ['/backtracking/n-queens', 'How the N-Queens solver works'],
+  ['/es/backtracking/sudoku', 'Cómo se resuelve un sudoku'],
+]) {
+  test(`the scroll hint on ${path} names and opens its first explanation`, async ({ page }) => {
+    await page.goto(path);
+
+    await page.getByRole('main').getByRole('button', { name, exact: true }).click();
+
+    const how = disclosure(page, name);
+    await expect(how).toHaveAttribute('aria-expanded', 'true');
+    await expect(await panelOf(page, how)).toBeInViewport();
+  });
+}
+
+test('the scroll hint on a module start page only scrolls', async ({ page }) => {
+  await page.goto('/es/backtracking');
+
+  await page.getByRole('main').getByRole('button', { name: 'Sobre el backtracking', exact: true }).click();
+
+  const why = disclosure(page, '¿Por qué deshacer elecciones?');
+  await expect(why).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('#about')).toBeInViewport();
 });
 
 test('a new page starts with its explanations closed', async ({ page, hasTouch }) => {

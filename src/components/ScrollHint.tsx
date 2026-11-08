@@ -1,102 +1,9 @@
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
-import { fourierSeries } from "@/consts/fourierSeries";
-import { dpProblems } from "@/consts/dp";
-import { structures } from "@/consts/structures";
-import { graphAlgorithms } from "@/consts/graphAlgorithms";
-import { pathAlgorithms } from "@/consts/pathAlgorithms";
-import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import type { Route } from "@/routes";
 import { cn } from "@/utils/cn";
 import { openFirstDisclosure } from "./ui/open-disclosure";
-import { localized } from "@/i18n";
-
-const text = localized({
-  en: {
-    sorting: "About sorting algorithms",
-    pathfinding: "About pathfinding algorithms",
-    graphs: "About graph algorithms",
-    fourier: "About Fourier series",
-    structures: "About these data structures",
-    dp: "About dynamic programming",
-    dpRace: "What memoizing saves",
-    dpProblem: (title: string) => `How ${title.toLowerCase()} works`,
-    structure: (title: string) => `How the ${title} works`,
-    structureRace: "Why balancing matters",
-    series: ({ title }: { title: string; named: string }) => `How the ${title} works`,
-    algorithm: (title: string) => `How ${title} works`,
-    race: "How the race works",
-  },
-  es: {
-    sorting: "Sobre los algoritmos de ordenamiento",
-    pathfinding: "Sobre los algoritmos de búsqueda de caminos",
-    graphs: "Sobre los algoritmos de grafos",
-    fourier: "Sobre las series de Fourier",
-    structures: "Sobre estas estructuras de datos",
-    dp: "Sobre la programación dinámica",
-    dpRace: "Lo que ahorra memorizar",
-    dpProblem: (named) => `Cómo funciona ${named}`,
-    structure: (named) => `Cómo funciona ${named}`,
-    structureRace: "Por qué importa balancear",
-    series: ({ named }) => `${/^l(o|a)s /.test(named) ? "Cómo funcionan" : "Cómo funciona"} ${named}`,
-    algorithm: (title) => `Cómo funciona ${title}`,
-    race: "Cómo funciona la carrera",
-  },
-});
-
-const labelFor = (route: Route) => {
-  switch (route.kind) {
-    case "home":
-    case "sorting":
-      return text.sorting;
-    case "pathfinding":
-      return text.pathfinding;
-    case "graphs":
-      return text.graphs;
-    case "fourier":
-      return text.fourier;
-    case "structures":
-      return text.structures;
-    case "dp":
-      return text.dp;
-    case "dpRace":
-      return text.dpRace;
-    case "dpProblem":
-      return text.dpProblem(dpProblems[route.algorithm].named);
-    case "structure":
-      return text.structure(structures[route.algorithm].named);
-    case "structureRace":
-      return text.structureRace;
-    case "series":
-      return text.series(fourierSeries[route.algorithm]);
-    case "graph":
-      return text.algorithm(graphAlgorithms[route.algorithm].named);
-    case "race":
-    case "pathRace":
-    case "graphRace":
-      return text.race;
-    case "path":
-      return text.algorithm(pathAlgorithms[route.algorithm].named);
-    case "algorithm":
-      return text.algorithm(sortingAlgorithms[route.algorithm].title);
-  }
-};
-
-/**
- * A module's start page says "About …": the hint just takes you to the article.
- * Every other page's hint names the article's first explanation ("How X works",
- * "Why balancing matters"), so it opens that one too.
- */
-const MODULE_START_PAGES = new Set<Route["kind"]>([
-  "home",
-  "sorting",
-  "pathfinding",
-  "graphs",
-  "fourier",
-  "structures",
-  "dp",
-  "backtracking",
-]);
+import { hintFor, hintLabel } from "./scroll-hint";
 
 /**
  * Under the dock: says there's more to read below the stage, and takes you
@@ -120,7 +27,7 @@ export const ScrollHint = ({ route, className }: { route: Route; className?: str
       onClick={() => {
         const about = document.getElementById("about");
         if (!about) return;
-        if (!MODULE_START_PAGES.has(route.kind)) openFirstDisclosure(about);
+        if (hintFor(route).opens) openFirstDisclosure(about);
         const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         about.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
       }}
@@ -130,7 +37,7 @@ export const ScrollHint = ({ route, className }: { route: Route; className?: str
         className,
       )}
     >
-      {labelFor(route)}
+      {hintLabel(route)}
       <ChevronDownIcon aria-hidden className="h-4 w-4 animate-nudge motion-reduce:animate-none" />
     </button>
   );

@@ -363,7 +363,6 @@ const backtrackingText = localized({
     why: "Why take choices back?",
     whyText:
       "Trying every complete arrangement of a puzzle is hopeless: eight queens alone can sit on a board in over sixteen million ways, one per row. Backtracking builds an arrangement piece by piece instead, and checks each piece the moment it's placed. A piece that breaks a rule is skipped on the spot, so every arrangement that would have started with it is never looked at. When no piece fits, the last one is taken back and its next option is tried. It's how Sudoku solvers, crossword fillers, timetable planners and parsers work.",
-    howItWorks: "How it works",
     facts: "In short",
   },
   es: {
@@ -374,7 +373,6 @@ const backtrackingText = localized({
     why: "¿Por qué deshacer elecciones?",
     whyText:
       "Probar todas las disposiciones completas de un problema no tiene esperanza: solo ocho reinas, una por fila, se pueden colocar de más de dieciséis millones de formas. El backtracking construye una disposición pieza a pieza y comprueba cada pieza en cuanto la coloca. Una pieza que rompe una regla se salta en el acto, así que nunca se mira ninguna disposición que hubiera empezado con ella. Cuando no cabe ninguna pieza, se quita la última y se prueba su siguiente opción. Así funcionan los programas que resuelven sudokus, llenan crucigramas, arman horarios o analizan código.",
-    howItWorks: "Cómo funciona",
     facts: "En resumen",
   },
 });
@@ -880,14 +878,14 @@ const BacktrackingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] 
 );
 
 const BacktrackingProblemArticle = ({ algorithm }: { algorithm: BacktrackingProblem }) => {
-  const { title, shortDescription, longDescription, cost } = backtrackingProblems[algorithm];
+  const { title, howItWorks, shortDescription, longDescription, cost } = backtrackingProblems[algorithm];
   return (
     <>
       <header className="flex flex-col gap-3">
         <h1 className="text-display font-semibold">{title}</h1>
         <p className="text-lg text-foreground/80">{shortDescription}</p>
       </header>
-      <Explanation title={backtrackingText.howItWorks}>
+      <Explanation title={howItWorks}>
         <p className="leading-relaxed text-foreground/80">{longDescription}</p>
       </Explanation>
       <Explanation title={text.pseudocode}>

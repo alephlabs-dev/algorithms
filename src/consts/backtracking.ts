@@ -3,8 +3,8 @@ import type { BacktrackingProblem, FillOrder, SudokuPuzzle } from "@/backtrackin
 
 type ProblemText = {
   title: string;
-  /** How the name reads mid-sentence ("How … works"). */
-  named: string;
+  /** Title of the first explanation, which says how backtracking solves the problem. */
+  howItWorks: string;
   /** Short name for tight spots (pickers on phones). */
   short: string;
   shortDescription: string;
@@ -18,7 +18,7 @@ const text = localized<Record<BacktrackingProblem, ProblemText>>({
   en: {
     queens: {
       title: "N-Queens",
-      named: "the N-Queens puzzle",
+      howItWorks: "How the N-Queens solver works",
       short: "N-Queens",
       shortDescription:
         "Place N queens on an N×N board so no two attack each other: one row at a time, taking a queen back whenever a row has nowhere left to go.",
@@ -28,7 +28,7 @@ const text = localized<Record<BacktrackingProblem, ProblemText>>({
     },
     sudoku: {
       title: "Sudoku",
-      named: "a Sudoku",
+      howItWorks: "How the Sudoku solver works",
       short: "Sudoku",
       shortDescription:
         "Fill a 9×9 grid so every row, column and 3×3 box holds 1 to 9 once: one empty cell at a time, taking a digit back whenever a cell has nothing left to try.",
@@ -40,7 +40,7 @@ const text = localized<Record<BacktrackingProblem, ProblemText>>({
   es: {
     queens: {
       title: "N reinas",
-      named: "el problema de las N reinas",
+      howItWorks: "Cómo se resuelve el problema de las N reinas",
       short: "N reinas",
       shortDescription:
         "Coloca N reinas en un tablero de N×N sin que ninguna ataque a otra: fila por fila, quitando una reina cada vez que una fila se queda sin casillas.",
@@ -50,7 +50,7 @@ const text = localized<Record<BacktrackingProblem, ProblemText>>({
     },
     sudoku: {
       title: "Sudoku",
-      named: "un sudoku",
+      howItWorks: "Cómo se resuelve un sudoku",
       short: "Sudoku",
       shortDescription:
         "Llena una cuadrícula de 9×9 de modo que cada fila, columna y caja de 3×3 tenga del 1 al 9 una sola vez: casilla por casilla, quitando un dígito cada vez que una casilla se queda sin nada que probar.",
