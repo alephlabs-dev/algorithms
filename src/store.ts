@@ -81,7 +81,7 @@ import { MAX_OPERATIONS } from "./structures/link";
 import { readLocation } from "./urlState";
 import { generateItems } from "./utils/generateItems";
 import { newSeed, seededRandom } from "./utils/random";
-import { DEFAULT_PRESET, speedFor, type Pace, type SpeedPreset } from "./utils/speed";
+import { DEFAULT_PRESET, type SpeedPreset } from "./utils/speed";
 import type { Algorithm, DisplayMode, InputOrder } from "./types";
 
 export type View = "single" | "race";
@@ -200,8 +200,6 @@ export type StoreState = {
   displayMode: DisplayMode;
   /** How the generated array starts out (random, reversed...). */
   inputOrder: InputOrder;
-  /** Effective speed, 0–1 on an exponential scale (see utils/speed). Derived from the preset. */
-  speed: number;
   /** The chosen speed, relative to a pace picked for each run. */
   speedPreset: SpeedPreset;
   /** Seeds the current array, so a link can reproduce it exactly. */
@@ -303,6 +301,7 @@ export type StoreState = {
 export const selectFrame = (state: StoreState) => state.timeline.frameAt(state.frameIndex);
 export const selectPathFrame = (state: StoreState) => state.pathTimeline.frameAt(state.frameIndex);
 export const selectLastIndex = (state: StoreState) => engines[state.module].lastIndex(state, state.view);
+// The playback speed is derived too: selectSpeed lives in modules/engine, so tests can import it without a browser.
 
 /** Guess mode's questions for the run on stage (none in a race, or without guess mode). */
 export const gameQuestionsOf = (state: StoreState): Question[] =>
@@ -326,9 +325,6 @@ export const selectGameQuestion = (state: StoreState) => {
   return gameQuestionsOf(state).includes(q) ? q : null;
 };
 
-/** How fast 1× is depends on what's playing. */
-const paceOf = (module: Module, view: View): Pace => engines[module].pace(view);
-
 export const MOBILE_QUERY = "(max-width: 768px)";
 export const PORTRAIT_QUERY = "(orientation: portrait)";
 
@@ -351,12 +347,6 @@ const maxSizeFor = (displayMode: DisplayMode, isMobile: boolean) => {
 };
 
 const timelineFor = (algorithm: Algorithm, items: readonly number[]) => new Timeline(sortAlgorithms[algorithm], items);
-
-const newRun = (algorithm: Algorithm, items: readonly number[]) => ({
-  timeline: timelineFor(algorithm, items),
-  frameIndex: 0,
-  isPlaying: false,
-});
 
 const itemsFor = (size: number, order: InputOrder, seed: number) => generateItems(size, order, seededRandom(seed));
 
@@ -421,8 +411,6 @@ const structureRunsFor = (state: StoreState, ops: Operation[]) => ({
   structureOps: ops,
   structureRun: recordStructure(state.structureAlgorithm, ops),
   structureRaceRuns: structureRaceRunsFor(state.module === "structures" ? state.view : "single", ops),
-  frameIndex: 0,
-  isPlaying: false,
 });
 
 /** A circle count that fits the series: one of its options, the default if the asked-for one isn't. */
@@ -443,8 +431,6 @@ const graphRunFor = (state: StoreState, graph: Graph) => ({
   graph,
   graphTimeline: graphTimelineFor(state.graphAlgorithm, graph),
   graphRaceTimelines: graphRaceTimelinesFor(state.view, state.graphRaceAlgorithms, graph),
-  frameIndex: 0,
-  isPlaying: false,
 });
 
 /** Every search on a grid, after it changes: the single run and the racers. */
@@ -452,8 +438,6 @@ const pathRunsFor = (state: StoreState, grid: Grid) => ({
   grid,
   pathTimeline: pathTimelineFor(state.pathAlgorithm, grid),
   pathRaceTimelines: pathRaceTimelinesFor(state.view, state.pathRaceAlgorithms, grid),
-  frameIndex: 0,
-  isPlaying: false,
 });
 
 /** A fresh grid of the given size with a preset applied. */
@@ -585,7 +569,6 @@ const initial = (() => {
 })();
 
 export const useStore = create<StoreState>((set, get) => {
-  /** Call after any change that creates a new run. */
   /** After the screen changes shape: upright grids and graphs for narrow screens, wide ones otherwise. */
   const reshape = (before: StoreState) => {
     const state = get();
@@ -594,16 +577,19 @@ export const useStore = create<StoreState>((set, get) => {
     if (state.graph.aspect !== graphAspect(isNarrow(state))) state.setGraphSize(state.graphSize);
   };
 
-  const applyAutoSpeed = () => {
-    const state = get();
-    set({ speed: speedFor(state.speedPreset, selectLastIndex(state), paceOf(state.module, state.view)) });
-  };
-
-  const start = { ...initial, frameIndex: 0 } as StoreState;
+  /**
+   * The one way to put a new run on stage: playback starts over from the first
+   * frame and any open guess-mode question goes with the old run. The patch may
+   * set its own frameIndex and isPlaying; returning null changes nothing.
+   */
+  const replaceRun = (patch: (state: StoreState) => Partial<StoreState> | null) =>
+    set((state) => {
+      const next = patch(state);
+      return next ? { frameIndex: 0, isPlaying: false, gameQuestion: null, ...next } : {};
+    });
 
   return {
     ...initial,
-    speed: speedFor(initial.speedPreset, selectLastIndex(start), paceOf(initial.module, initial.view)),
     arrayId: 0,
     gridId: 0,
     graphId: 0,
@@ -662,53 +648,50 @@ export const useStore = create<StoreState>((set, get) => {
 
     // Within the module on screen: sorting races on the array, pathfinding on the grid.
     setView: (view) => {
-      // A big grid or graph gets a fresh layout at the largest size a race shows well.
-      const before = get();
-      const fittedGraph =
-        before.module === "graphs" ? fitGraphSize(before.graphSize, view, before.isMobile) : before.graphSize;
-      if (fittedGraph !== before.graphSize) {
-        const graph = makeGraph(before.graphPreset, fittedGraph, isNarrow(before), seededRandom(newSeed()));
-        set({
-          graphSize: fittedGraph,
-          graph,
-          graphId: before.graphId + 1,
-          graphTimeline: graphTimelineFor(before.graphAlgorithm, graph),
-        });
-      }
-      const fitted = before.module === "pathfinding" ? fitGridSize(before.gridSize, view, before.isMobile) : before.gridSize;
-      if (fitted !== before.gridSize) {
-        const grid = gridFor(fitted, isNarrow(before), before.gridPreset);
-        set({
-          gridSize: fitted,
-          grid,
-          gridId: before.gridId + 1,
-          pathTimeline: pathTimelineFor(before.pathAlgorithm, grid),
-        });
-      }
-      set((state) => ({
-        view,
-        isModuleStart: false,
-        frameIndex: 0,
-        isPlaying: false,
-        raceTimelines: raceTimelinesFor(
-          state.module === "sorting" ? view : "single",
-          state.raceAlgorithms,
-          state.timeline.values,
-        ),
-        pathRaceTimelines: pathRaceTimelinesFor(
-          state.module === "pathfinding" ? view : "single",
-          state.pathRaceAlgorithms,
-          state.grid,
-        ),
-        graphRaceTimelines: graphRaceTimelinesFor(
-          state.module === "graphs" ? view : "single",
-          state.graphRaceAlgorithms,
-          state.graph,
-        ),
-        structureRaceRuns: structureRaceRunsFor(state.module === "structures" ? view : "single", state.structureOps),
-        ...dpRaceFor(state, view),
-      }));
-      applyAutoSpeed();
+      replaceRun((state) => {
+        // A big grid or graph gets a fresh layout at the largest size a race shows well.
+        const graphSize = state.module === "graphs" ? fitGraphSize(state.graphSize, view, state.isMobile) : state.graphSize;
+        const refitGraph = graphSize !== state.graphSize;
+        const graph = refitGraph
+          ? makeGraph(state.graphPreset, graphSize, isNarrow(state), seededRandom(newSeed()))
+          : state.graph;
+        const gridSize = state.module === "pathfinding" ? fitGridSize(state.gridSize, view, state.isMobile) : state.gridSize;
+        const refitGrid = gridSize !== state.gridSize;
+        const grid = refitGrid ? gridFor(gridSize, isNarrow(state), state.gridPreset) : state.grid;
+        return {
+          view,
+          isModuleStart: false,
+          ...(refitGraph && {
+            graphSize,
+            graph,
+            graphId: state.graphId + 1,
+            graphTimeline: graphTimelineFor(state.graphAlgorithm, graph),
+          }),
+          ...(refitGrid && {
+            gridSize,
+            grid,
+            gridId: state.gridId + 1,
+            pathTimeline: pathTimelineFor(state.pathAlgorithm, grid),
+          }),
+          raceTimelines: raceTimelinesFor(
+            state.module === "sorting" ? view : "single",
+            state.raceAlgorithms,
+            state.timeline.values,
+          ),
+          pathRaceTimelines: pathRaceTimelinesFor(
+            state.module === "pathfinding" ? view : "single",
+            state.pathRaceAlgorithms,
+            grid,
+          ),
+          graphRaceTimelines: graphRaceTimelinesFor(
+            state.module === "graphs" ? view : "single",
+            state.graphRaceAlgorithms,
+            graph,
+          ),
+          structureRaceRuns: structureRaceRunsFor(state.module === "structures" ? view : "single", state.structureOps),
+          ...dpRaceFor(state, view),
+        };
+      });
     },
 
     // Keeps between MIN_RACERS and MAX_RACERS lanes, in the sidebar's order.
@@ -725,38 +708,32 @@ export const useStore = create<StoreState>((set, get) => {
     },
 
     toggleRaceAlgorithm: (algorithm) => {
-      set((state) => {
+      replaceRun((state) => {
         const selected = state.raceAlgorithms.includes(algorithm);
         const count = state.raceAlgorithms.length;
-        if ((selected && count <= MIN_RACERS) || (!selected && count >= MAX_RACERS)) return {};
+        if ((selected && count <= MIN_RACERS) || (!selected && count >= MAX_RACERS)) return null;
         const order = Object.keys(sortAlgorithms) as Algorithm[];
         const raceAlgorithms = order.filter((a) => (a === algorithm ? !selected : state.raceAlgorithms.includes(a)));
         return {
           raceAlgorithms,
-          frameIndex: 0,
-          isPlaying: false,
           raceTimelines: raceTimelinesFor(state.view, raceAlgorithms, state.timeline.values),
         };
       });
-      applyAutoSpeed();
     },
 
     togglePathRacer: (algorithm) => {
-      set((state) => {
+      replaceRun((state) => {
         const selected = state.pathRaceAlgorithms.includes(algorithm);
         const count = state.pathRaceAlgorithms.length;
-        if ((selected && count <= MIN_RACERS) || (!selected && count >= MAX_RACERS)) return {};
+        if ((selected && count <= MIN_RACERS) || (!selected && count >= MAX_RACERS)) return null;
         const pathRaceAlgorithms = pathOrder.filter((a) =>
           a === algorithm ? !selected : state.pathRaceAlgorithms.includes(a),
         );
         return {
           pathRaceAlgorithms,
-          frameIndex: 0,
-          isPlaying: false,
           pathRaceTimelines: pathRaceTimelinesFor(state.view, pathRaceAlgorithms, state.grid),
         };
       });
-      applyAutoSpeed();
     },
 
     pathRaceWith: (algorithm) => {
@@ -777,7 +754,7 @@ export const useStore = create<StoreState>((set, get) => {
 
     // Keeps the same array so algorithms can be compared on identical data.
     setActiveAlgorithm: (algorithm) => {
-      set((state) => ({
+      replaceRun((state) => ({
         activeAlgorithm: algorithm,
         module: "sorting",
         // Picking one algorithm leaves any race (raceWith goes back to one right after).
@@ -786,13 +763,12 @@ export const useStore = create<StoreState>((set, get) => {
         pathRaceTimelines: [],
         graphRaceTimelines: [],
         isModuleStart: false,
-        ...newRun(algorithm, state.timeline.values),
+        timeline: timelineFor(algorithm, state.timeline.values),
       }));
-      applyAutoSpeed();
     },
 
     setSize: (size) => {
-      set((state) => {
+      replaceRun((state) => {
         const seed = newSeed();
         const items = itemsFor(size, state.inputOrder, seed);
         return {
@@ -800,10 +776,9 @@ export const useStore = create<StoreState>((set, get) => {
           seed,
           arrayId: state.arrayId + 1,
           raceTimelines: raceTimelinesFor(state.view, state.raceAlgorithms, items),
-          ...newRun(state.activeAlgorithm, items),
+          timeline: timelineFor(state.activeAlgorithm, items),
         };
       });
-      applyAutoSpeed();
     },
 
     setInputOrder: (inputOrder) => {
@@ -811,10 +786,7 @@ export const useStore = create<StoreState>((set, get) => {
       get().createNewArray();
     },
 
-    setSpeedPreset: (speedPreset) => {
-      set({ speedPreset });
-      applyAutoSpeed();
-    },
+    setSpeedPreset: (speedPreset) => set({ speedPreset }),
     setScrubbing: (isScrubbing) => set({ isScrubbing }),
     setHelpOpen: (isHelpOpen) => set({ isHelpOpen }),
 
@@ -852,7 +824,7 @@ export const useStore = create<StoreState>((set, get) => {
 
     // The grid stays the same so algorithms can be compared on it.
     setPathAlgorithm: (algorithm) => {
-      set((state) => ({
+      replaceRun((state) => ({
         module: "pathfinding",
         view: "single",
         isModuleStart: false,
@@ -860,26 +832,22 @@ export const useStore = create<StoreState>((set, get) => {
         pathTimeline: pathTimelineFor(algorithm, state.grid),
         pathRaceTimelines: [],
         graphRaceTimelines: [],
-        frameIndex: 0,
-        isPlaying: false,
       }));
-      applyAutoSpeed();
     },
 
     setGridSize: (requested) => {
-      set((state) => {
+      replaceRun((state) => {
         const gridSize = state.module === "pathfinding" ? fitGridSize(requested, state.view, state.isMobile) : requested;
         const grid = gridFor(gridSize, isNarrow(state), state.gridPreset);
         return { gridSize, gridId: state.gridId + 1, ...pathRunsFor(state, grid) };
       });
-      applyAutoSpeed();
     },
 
     setBrush: (brush) => set({ brush }),
 
     // The graph stays the same so algorithms can be compared on it.
     setGraphAlgorithm: (algorithm) => {
-      set((state) => ({
+      replaceRun((state) => ({
         module: "graphs",
         view: "single",
         isModuleStart: false,
@@ -888,36 +856,30 @@ export const useStore = create<StoreState>((set, get) => {
         raceTimelines: [],
         pathRaceTimelines: [],
         graphRaceTimelines: [],
-        frameIndex: 0,
-        isPlaying: false,
       }));
-      applyAutoSpeed();
     },
 
     setGraphSize: (requested) => {
-      set((state) => {
+      replaceRun((state) => {
         const graphSize = fitGraphSize(requested, state.view, state.isMobile);
         const graph = makeGraph(state.graphPreset, graphSize, isNarrow(state), seededRandom(newSeed()));
         return { graphSize, ...graphRunFor(state, graph), graphId: state.graphId + 1 };
       });
-      applyAutoSpeed();
     },
 
     applyGraphPreset: (graphPreset) => {
-      set((state) => {
+      replaceRun((state) => {
         const graph = makeGraph(graphPreset, state.graphSize, isNarrow(state), seededRandom(newSeed()));
         return { graphPreset, ...graphRunFor(state, graph), graphId: state.graphId + 1 };
       });
-      applyAutoSpeed();
     },
 
     editGraph: (graph) => {
-      set((state) => graphRunFor(state, graph));
-      applyAutoSpeed();
+      replaceRun((state) => graphRunFor(state, graph));
     },
 
     setStructureAlgorithm: (algorithm) => {
-      set((state) => ({
+      replaceRun((state) => ({
         module: "structures",
         view: "single",
         isModuleStart: false,
@@ -928,41 +890,35 @@ export const useStore = create<StoreState>((set, get) => {
         graphRaceTimelines: [],
         structureRaceRuns: [],
         dpRaceRuns: [],
-        frameIndex: 0,
-        isPlaying: false,
       }));
-      applyAutoSpeed();
     },
 
     applyStructurePreset: (structurePreset) => {
-      set((state) => {
+      replaceRun((state) => {
         const ops = presetOperations(structurePreset, state.structureSize, seededRandom(newSeed()));
         return { structurePreset, ...structureRunsFor(state, ops), structureId: state.structureId + 1 };
       });
-      applyAutoSpeed();
     },
 
     setStructureSize: (structureSize) => {
-      set((state) => {
+      replaceRun((state) => {
         const ops = presetOperations(state.structurePreset, structureSize, seededRandom(newSeed()));
         return { structureSize, ...structureRunsFor(state, ops), structureId: state.structureId + 1 };
       });
-      applyAutoSpeed();
     },
 
     runOperation: (op) => {
-      set((state) => {
+      replaceRun((state) => {
         const ops = [...state.structureOps, op].slice(-MAX_OPERATIONS);
         const runs = structureRunsFor(state, ops);
         // Play just the new operation; a race replays everything, so both trees start even.
         const start = state.view === "race" ? 0 : runs.structureRun.opStarts[runs.structureRun.opStarts.length - 1];
         return { ...runs, frameIndex: start, isPlaying: true };
       });
-      applyAutoSpeed();
     },
 
     setDpAlgorithm: (algorithm) => {
-      set((state) => ({
+      replaceRun((state) => ({
         module: "dp",
         view: "single",
         isModuleStart: false,
@@ -973,14 +929,11 @@ export const useStore = create<StoreState>((set, get) => {
         pathRaceTimelines: [],
         graphRaceTimelines: [],
         structureRaceRuns: [],
-        frameIndex: 0,
-        isPlaying: false,
       }));
-      applyAutoSpeed();
     },
 
     setBacktrackingProblem: (problem) => {
-      set((state) => ({
+      replaceRun((state) => ({
         module: "backtracking",
         view: "single",
         isModuleStart: false,
@@ -992,62 +945,46 @@ export const useStore = create<StoreState>((set, get) => {
         pathRaceTimelines: [],
         graphRaceTimelines: [],
         structureRaceRuns: [],
-        frameIndex: 0,
-        isPlaying: false,
       }));
-      applyAutoSpeed();
     },
 
     setQueensN: (queensN) => {
-      set({ queensN, queensRun: new QueensRun(queensN), frameIndex: 0, isPlaying: false });
-      applyAutoSpeed();
+      replaceRun(() => ({ queensN, queensRun: new QueensRun(queensN) }));
     },
 
     setSudokuPuzzle: (sudokuPuzzle) => {
-      set((state) => ({
+      replaceRun((state) => ({
         sudokuPuzzle,
         sudokuRun: new SudokuRun(SUDOKU_PUZZLES[sudokuPuzzle], state.sudokuOrder),
-        frameIndex: 0,
-        isPlaying: false,
       }));
-      applyAutoSpeed();
     },
 
     setSudokuOrder: (sudokuOrder) => {
-      set((state) => ({
+      replaceRun((state) => ({
         sudokuOrder,
         sudokuRun: new SudokuRun(SUDOKU_PUZZLES[state.sudokuPuzzle], sudokuOrder),
-        frameIndex: 0,
-        isPlaying: false,
       }));
-      applyAutoSpeed();
     },
 
     setDpWords: (dpA, dpB) => {
-      set((state) => ({
+      replaceRun((state) => ({
         dpA,
         dpB,
         dpRun: dpRunFor(state.dpAlgorithm, dpA, dpB, state.dpItems, state.dpCapacity),
-        frameIndex: 0,
-        isPlaying: false,
       }));
-      applyAutoSpeed();
     },
 
     setDpItems: (dpItems, dpCapacity) => {
-      set((state) => ({
+      replaceRun((state) => ({
         dpItems,
         dpCapacity,
         dpRun: dpRunFor(state.dpAlgorithm, state.dpA, state.dpB, dpItems, dpCapacity),
         dpRaceRuns: dpRaceRunsFor(state.module === "dp" ? state.view : "single", dpItems, dpCapacity),
-        frameIndex: 0,
-        isPlaying: false,
       }));
-      applyAutoSpeed();
     },
 
     setFourierAlgorithm: (algorithm) => {
-      set((state) => {
+      replaceRun((state) => {
         const fourierCircles = fitCircles(algorithm, state.fourierCircles);
         return {
           module: "fourier",
@@ -1059,77 +996,60 @@ export const useStore = create<StoreState>((set, get) => {
           raceTimelines: [],
           pathRaceTimelines: [],
           graphRaceTimelines: [],
-          frameIndex: 0,
-          isPlaying: false,
         };
       });
-      applyAutoSpeed();
     },
 
     setFourierCircles: (fourierCircles) => {
-      set((state) => ({
+      replaceRun((state) => ({
         fourierCircles,
         fourierRun: new FourierRun(state.fourierAlgorithm, fourierCircles, state.fourierShape, state.fourierPath),
-        frameIndex: 0,
-        isPlaying: false,
       }));
-      applyAutoSpeed();
     },
 
     setFourierShape: (fourierShape) => {
-      set((state) => {
+      replaceRun((state) => {
         const fourierPath = fourierShape === "custom" ? null : state.fourierPath;
         return {
           fourierShape,
           fourierPath,
           fourierRun: new FourierRun(state.fourierAlgorithm, state.fourierCircles, fourierShape, fourierPath),
-          frameIndex: 0,
-          isPlaying: false,
         };
       });
-      applyAutoSpeed();
     },
 
     setFourierPath: (path) => {
-      set((state) => ({
+      replaceRun((state) => ({
         fourierShape: "custom",
         fourierPath: path,
         fourierRun: new FourierRun(state.fourierAlgorithm, state.fourierCircles, "custom", path),
-        frameIndex: 0,
-        isPlaying: false,
       }));
-      applyAutoSpeed();
     },
 
     toggleGraphRacer: (algorithm) => {
-      set((state) => {
+      replaceRun((state) => {
         const selected = state.graphRaceAlgorithms.includes(algorithm);
         const count = state.graphRaceAlgorithms.length;
-        if ((selected && count <= MIN_RACERS) || (!selected && count >= MAX_RACERS)) return {};
+        if ((selected && count <= MIN_RACERS) || (!selected && count >= MAX_RACERS)) return null;
         const graphRaceAlgorithms = graphOrder.filter((a) =>
           a === algorithm ? !selected : state.graphRaceAlgorithms.includes(a)
         );
         return {
           graphRaceAlgorithms,
-          frameIndex: 0,
-          isPlaying: false,
           graphRaceTimelines: graphRaceTimelinesFor(state.view, graphRaceAlgorithms, state.graph),
         };
       });
-      applyAutoSpeed();
     },
 
     editGrid: (grid) => {
-      set((state) => pathRunsFor(state, grid));
-      applyAutoSpeed();
+      replaceRun((state) => pathRunsFor(state, grid));
     },
 
     applyGridPreset: (gridPreset) => {
-      set((state) => {
+      replaceRun((state) => {
         const grid = applyPreset(state.grid, gridPreset, seededRandom(newSeed()));
         return { gridPreset, gridId: state.gridId + 1, ...pathRunsFor(state, grid) };
       });
-      applyAutoSpeed();
     },
 
     play: () =>

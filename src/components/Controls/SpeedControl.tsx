@@ -1,5 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "@/store";
+import { selectSpeed } from "@/modules/engine";
 import { cn } from "@/utils/cn";
 import { formatStepsPerSecond, presetLabels, speedPresets, type SpeedPreset } from "@/utils/speed";
 import { Button } from "../ui/button";
@@ -25,7 +26,7 @@ const text = localized({
 
 const useSpeed = () =>
   useStore(
-    useShallow((s) => ({ preset: s.speedPreset, speed: s.speed, setPreset: s.setSpeedPreset }))
+    useShallow((s) => ({ preset: s.speedPreset, speed: selectSpeed(s), setPreset: s.setSpeedPreset }))
   );
 
 const HELP = text.help;

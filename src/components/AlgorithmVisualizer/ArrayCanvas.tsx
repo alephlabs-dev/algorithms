@@ -3,6 +3,7 @@ import type { Frame } from "@/algorithms";
 import { BarsRenderer, type DisplayMode } from "@/canvas/barsRenderer";
 import { useElementSize } from "@/hooks/useElementSize";
 import { useStore } from "@/store";
+import { selectSpeed } from "@/modules/engine";
 import { moveDuration } from "@/utils/speed";
 
 type Props = {
@@ -27,7 +28,7 @@ export const ArrayCanvas = ({ frame, values, mode, celebrate, runId, label, anno
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<BarsRenderer | null>(null);
   const { width, height } = useElementSize(wrapperRef);
-  const speed = useStore((s) => s.speed);
+  const speed = useStore((s) => selectSpeed(s));
   const isScrubbing = useStore((s) => s.isScrubbing);
 
   useEffect(() => {

@@ -5,6 +5,7 @@ import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { useElementSize } from "@/hooks/useElementSize";
 import { EMPTY, MUD, WALL, withMarker, withTerrain, type Grid, type PathFrame, type Terrain } from "@/pathfinding";
 import { selectLastIndex, selectPathFrame, useStore } from "@/store";
+import { selectSpeed } from "@/modules/engine";
 import { count } from "@/utils/count";
 import { describeFrame } from "@/utils/describePathFrame";
 import { moveDuration } from "@/utils/speed";
@@ -69,7 +70,7 @@ export const GridCanvas = ({ frame, label }: { frame: PathFrame; label: string }
     useShallow((s) => ({
       grid: s.grid,
       gridId: s.gridId,
-      speed: s.speed,
+      speed: selectSpeed(s),
       isScrubbing: s.isScrubbing,
       theme: s.theme,
     })),

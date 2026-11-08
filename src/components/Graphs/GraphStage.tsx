@@ -13,6 +13,7 @@ import {
   type GraphFrame,
 } from "@/graphs";
 import { selectLastIndex, useStore } from "@/store";
+import { selectSpeed } from "@/modules/engine";
 import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";
 import { moveDuration } from "@/utils/speed";
@@ -86,7 +87,7 @@ export const GraphCanvas = ({ frame, algorithm }: { frame: GraphFrame; algorithm
     useShallow((s) => ({
       graph: s.graph,
       graphId: s.graphId,
-      speed: s.speed,
+      speed: selectSpeed(s),
       isScrubbing: s.isScrubbing,
       theme: s.theme,
     })),

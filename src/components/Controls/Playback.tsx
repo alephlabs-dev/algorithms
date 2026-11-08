@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { selectLastIndex, useStore } from "@/store";
-import { engines } from "@/modules/engine";
+import { engines, selectSpeed } from "@/modules/engine";
 import { stepDelay } from "@/utils/speed";
 
 // Cap so a slow frame (tab in background, big seek) can't jump half the run at once.
@@ -21,7 +21,7 @@ export const Playback = () => {
       const state = useStore.getState();
       pending += now - last;
       last = now;
-      const delay = stepDelay(state.speed);
+      const delay = stepDelay(selectSpeed(state));
       const lastIndex = selectLastIndex(state);
 
       // Each step costs its share of a beat (see STEP_WEIGHT). Races tick once per
