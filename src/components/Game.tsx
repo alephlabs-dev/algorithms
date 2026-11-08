@@ -247,17 +247,21 @@ export const GameLayer = () => {
                 </p>
                 {question.kind === "choice" && (
                   <div className="flex flex-wrap gap-2">
-                    {question.options.map((option, k) => (
-                      <button
-                        key={option}
-                        type="button"
-                        className={optionClass}
-                        onClick={() => answer(option)}
-                        aria-keyshortcuts={String(k + 1)}
-                      >
-                        {question.optionLabels?.[k] ?? option}
-                      </button>
-                    ))}
+                    {question.options.map((option, k) => {
+                      const label = question.optionLabels?.[k] ?? String(option);
+                      return (
+                        <button
+                          key={option}
+                          type="button"
+                          // Numbers stay monospaced so they line up; words ("Dead end", "4 stays") read in the body font.
+                          className={cn(optionClass, !/^\d+$/.test(label) && "font-sans")}
+                          onClick={() => answer(option)}
+                          aria-keyshortcuts={String(k + 1)}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
                 {question.kind === "slot" && (
