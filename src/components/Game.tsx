@@ -151,8 +151,11 @@ export const GameToggle = ({ compact }: { compact?: boolean }) => {
   );
 };
 
-/** Room guess mode's panel takes under the stage while it's on: its min-h-28 plus the gap-2 above it (src/App.tsx). */
-export const GAME_ROOM = 112 + 8;
+/** Guess mode's panel under the stage: at least this tall, with this much space above it (CSS pixels). */
+const GAME_PANEL_MIN_HEIGHT = 112;
+const GAME_PANEL_GAP = 8;
+/** Room the panel takes from the stage while guess mode is on: what a stage sizing itself for it subtracts. */
+export const GAME_ROOM = GAME_PANEL_MIN_HEIGHT + GAME_PANEL_GAP;
 
 const optionClass =
   "tap-target relative h-10 min-w-12 rounded-full border border-line/70 px-4 font-mono text-sm font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
@@ -214,7 +217,11 @@ export const GameLayer = () => {
 
   return (
     // Room under the stage, kept the whole time guess mode is on: the stage shrinks once, never hides behind a question.
-    <div className="flex min-h-28 shrink-0 flex-col justify-end">
+    // Its size comes from GAME_PANEL_MIN_HEIGHT and GAME_PANEL_GAP, so GAME_ROOM always matches it.
+    <div
+      className="flex shrink-0 flex-col justify-end"
+      style={{ minHeight: GAME_PANEL_MIN_HEIGHT, marginTop: GAME_PANEL_GAP }}
+    >
       {question || showFeedback ? (
         <div className="flex">
           <div

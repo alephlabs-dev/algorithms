@@ -34,14 +34,14 @@ describe("pathfinding guess mode questions", () => {
     expect(pathQuestions(run, algorithm).length).toBeGreaterThan(0);
   });
 
-  it.each(cases)("%s on %s: the answer is the cell visited next, among four marked cells", (algorithm, _, grid) => {
+  it.each(cases)("%s on %s: the answer is the cell visited next, among three or four marked cells", (algorithm, _, grid) => {
     const run = new PathTimeline(pathSearches[algorithm], grid);
     for (const q of pathQuestions(run, algorithm)) {
       if (q.kind !== "choice" || !q.gridCells) throw new Error("a cell question");
       const step = run.stepAt(q.at);
       expect(step?.type).toBe("visit");
       expect(q.answer).toBe(step?.type === "visit" && step.cell);
-      expect(q.options).toHaveLength(4);
+      expect([3, 4]).toContain(q.options.length);
       expect(q.options).toContain(q.answer);
     }
   });
@@ -122,7 +122,7 @@ describe("pathfinding guess mode questions", () => {
     for (let k = 1; k < asked.length; k++) expect(asked[k] - asked[k - 1]).toBeGreaterThanOrEqual(6);
   });
 
-  it.each(algorithms)("%s asks nothing in a corridor: never three other cells waiting", (algorithm) => {
+  it.each(algorithms)("%s asks nothing in a corridor: never two other cells waiting", (algorithm) => {
     // One row open between two rows of wall.
     const grid = emptyGrid(3, 21);
     const cells = grid.cells.slice();
@@ -135,7 +135,7 @@ describe("pathfinding guess mode questions", () => {
     const run = new PathTimeline(pathSearches.bfs, emptyGrid(11, 21));
     for (const q of pathQuestions(run, "bfs")) {
       if (q.kind !== "choice") throw new Error("a cell question");
-      expect(q.optionLabels).toEqual(["A", "B", "C", "D"]);
+      expect(q.optionLabels).toEqual(["A", "B", "C", "D"].slice(0, q.options.length));
       expect(q.options).toEqual([...q.options].sort((a, b) => a - b));
     }
   });
@@ -152,5 +152,15 @@ describe("pathfinding guess mode questions", () => {
     expect(q.explain(true)).toBe("Right. BFS takes the nearest ring first. D is 1 step from the start; A, B and C are 2.");
     expect(q.explain(false)).toMatch(/^It's D\. /);
     expect(q.marksText).toBe("A: row 4, column 4; B: row 5, column 3; C: row 5, column 5; D: row 6, column 5");
+  });
+
+  it.each(algorithms)("%s in mazes: asks with three cells where only two lose, four where three do", (algorithm) => {
+    const sizes = new Set<number>();
+    for (let seed = 1; seed <= 20; seed++) {
+      const grid = applyPreset(emptyGrid(17, 33), "maze", seededRandom(seed));
+      for (const q of pathQuestions(new PathTimeline(pathSearches[algorithm], grid), algorithm))
+        if (q.kind === "choice") sizes.add(q.options.length);
+    }
+    expect([...sizes].sort()).toEqual([3, 4]);
   });
 });

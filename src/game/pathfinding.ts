@@ -11,6 +11,10 @@ const GAP = 6;
 /** The letters marked on the candidate cells, in reading order. */
 const CELL_LETTERS = ["A", "B", "C", "D"];
 
+/** Each question offers the answer and up to three cells that lose to it; never fewer than two. */
+const MAX_DISTRACTORS = 3;
+const MIN_DISTRACTORS = 2;
+
 /** A cell waiting in the frontier, with what each search orders it by. */
 type Waiting = {
   /** Steps from the start (BFS, DFS) or cost to reach it (the others), as the search knows it now. */
@@ -140,9 +144,10 @@ const decisive = (run: PathTimeline, algorithm: PathAlgorithm, visit: Visit) => 
 
 /**
  * The cells guess mode offers for a visit: the answer and the three that lose to it by
- * the least, always for a reason the explanation can show (never one tied with the
- * answer). In DFS never another neighbour of the cell just visited either, since the
- * order neighbours are pushed in isn't on screen. Null when there aren't three.
+ * the least (two where only two lose), always for a reason the explanation can show:
+ * never one tied with the answer. In DFS never another neighbour of the cell just
+ * visited either, since the order neighbours are pushed in isn't on screen. Null when
+ * fewer than two lose.
  */
 const candidatesOf = (run: PathTimeline, algorithm: PathAlgorithm, visit: Visit) => {
   const { grid } = run;
@@ -153,13 +158,13 @@ const candidatesOf = (run: PathTimeline, algorithm: PathAlgorithm, visit: Visit)
   const losers = [...visit.frontier.keys()]
     .filter((cell) => value(cell) > best && !(algorithm === "dfs" && beside.has(cell)))
     .sort((a, b) => value(a) - value(b) || left(a) - left(b) || a - b);
-  if (losers.length < 3) return null;
-  return { cells: [visit.cell, ...losers.slice(0, 3)].sort((a, b) => a - b), value };
+  if (losers.length < MIN_DISTRACTORS) return null;
+  return { cells: [visit.cell, ...losers.slice(0, MAX_DISTRACTORS)].sort((a, b) => a - b), value };
 };
 
 /**
  * Pathfinding: which marked cell the search visits next. At most ten per run, spread
- * over it, at least six visits apart, and only where three other cells lose for a
+ * over it, at least six visits apart, and only where two or three other cells lose for a
  * reason the explanation can show.
  */
 export const pathQuestions = (run: PathTimeline, algorithm: PathAlgorithm): Question[] => {

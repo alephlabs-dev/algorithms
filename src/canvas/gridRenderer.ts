@@ -9,8 +9,14 @@ export type GridRenderInput = {
   /** Seconds a color change takes. 0 snaps (scrubbing, very fast playback). */
   fade: number;
   /** Cells guess mode asks about, each with its letter, drawn on top of everything. */
-  marks?: { cell: number; label: string }[];
+  marks?: GridMark[];
 };
+
+/** A cell guess mode marks on the grid, and the letter it shows. */
+export type GridMark = { cell: number; label: string };
+
+/** Guess mode's letters are never drawn smaller than this, in CSS pixels. */
+const MARK_MIN_FONT = 11;
 
 const GAP = 0.08; // share of a cell left as a gap between cells
 const POP_FROM = 0.45; // a cell that changes state grows from this scale
@@ -254,27 +260,22 @@ export class GridRenderer {
     for (const mark of input.marks ?? []) this.drawMark(mark, size, left, top, gap, radius);
   }
 
-  /** A cell guess mode asks about: a plain tile with a dashed outline and its letter. */
-  private drawMark(mark: { cell: number; label: string }, size: number, left: number, top: number, gap: number, radius: number) {
+  /**
+   * A cell guess mode asks about: a badge in the text color over the whole tile, its letter
+   * cut out in the background color, bold and never under 11px, so it reads on any cell.
+   */
+  private drawMark(mark: GridMark, size: number, left: number, top: number, gap: number, radius: number) {
     const { ctx, colors, input } = this;
     const cols = input!.grid.cols;
+    const s = size - gap;
     const x = left + (mark.cell % cols) * size + gap / 2;
     const y = top + Math.floor(mark.cell / cols) * size + gap / 2;
-    const s = size - gap;
-    const width = Math.max(1.5, size * 0.08);
-    ctx.fillStyle = colors.background;
+    ctx.fillStyle = colors.foreground;
     ctx.beginPath();
     ctx.roundRect(x, y, s, s, radius);
     ctx.fill();
-    ctx.strokeStyle = colors.outline;
-    ctx.lineWidth = width;
-    ctx.setLineDash([size * 0.14, size * 0.1]);
-    ctx.beginPath();
-    ctx.roundRect(x + width / 2, y + width / 2, s - width, s - width, radius);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = colors.foreground;
-    ctx.font = `700 ${Math.round(size * 0.55)}px "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif`;
+    ctx.fillStyle = colors.background;
+    ctx.font = `700 ${Math.max(MARK_MIN_FONT, Math.round(size * 0.6))}px "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(mark.label, x + s / 2, y + s / 2 + 1);

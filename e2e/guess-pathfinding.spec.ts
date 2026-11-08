@@ -18,8 +18,9 @@ const openGrid = (testInfo: TestInfo) => {
 
 // Runs on every device project. Guess mode in pathfinding: which lettered cell the search visits next.
 test('BFS guess mode marks four cells, takes a tap on one and keeps score', async ({ page }, testInfo) => {
-  // A phone's stage can't fit 24px cells even on the small grid: the next test checks what it says instead.
-  test.skip(testInfo.project.name === 'iphone', 'guess mode in pathfinding needs a bigger screen than a phone');
+  // Playwright's iPhone is 393 × 659 (Safari's bars taken out): even the small grid's cells are under 16px
+  // there with the guess panel open. The next test checks what it says instead.
+  test.skip(testInfo.project.name === 'iphone', "the iPhone project's stage is too short for 16px cells");
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.addInitScript(() => localStorage.setItem('tour-done-pathfinding', 'true'));
@@ -52,23 +53,34 @@ test('BFS guess mode marks four cells, takes a tap on one and keeps score', asyn
   expect(errors).toEqual([]);
 });
 
-test('where cells are too small for letters, guess mode says so and what to try', async ({ page }, testInfo) => {
+// Guess mode plays where cells are at least 16px on screen with its panel open, whatever the grid size.
+const cellRoom: Record<string, { grid: string; why: string | null }> = {
+  iphone: { grid: 'small', why: 'Guess needs bigger cells than fit on this screen' },
+  // The big grid still has 21px cells on an upright iPad.
+  ipad: { grid: 'large', why: null },
+  'ipad-landscape': { grid: 'large', why: 'Guess needs bigger cells: pick a smaller grid' },
+  desktop: { grid: 'large', why: 'Guess needs bigger cells: pick a smaller grid' },
+};
+
+test('guess mode plays by cell size on screen, and says what to try when cells are too small', async ({ page }, testInfo) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.addInitScript(() => localStorage.setItem('tour-done-pathfinding', 'true'));
-  // A phone runs out of room on the smallest grid already; bigger screens on the biggest grid.
-  const phone = testInfo.project.name === 'iphone';
-  await gotoApp(page, `/pathfinding/breadth-first-search?grid=${phone ? 'small' : 'large'}`);
-  const why = phone
-    ? 'Guess needs bigger cells than fit on this screen'
-    : 'Guess needs bigger cells: pick a smaller grid';
+  const { grid, why } = cellRoom[testInfo.project.name];
+  await gotoApp(page, `/pathfinding/breadth-first-search?grid=${grid}`);
 
   const toggle = page.getByRole('button', { name: /Guess mode/ });
-  await expect(toggle).toHaveAccessibleName(`Guess mode unavailable: ${why}`);
-  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
-  // Touch screens don't show the title: tapping the toggle shows the reason.
-  await toggle.click();
-  await expect(page.getByText(`${why}.`)).toBeVisible();
+  if (why === null) {
+    await expect(toggle).toHaveAccessibleName(/Guess mode: it stops to ask/);
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  } else {
+    await expect(toggle).toHaveAccessibleName(`Guess mode unavailable: ${why}`);
+    await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    // Touch screens don't show the title: tapping the toggle shows the reason.
+    await toggle.click();
+    await expect(page.getByText(`${why}.`)).toBeVisible();
+  }
   expect(errors).toEqual([]);
 });
 

@@ -45,8 +45,11 @@ export type PathfindingState = {
   cellSize: number | null;
 };
 
-/** Guess mode marks cells with letters, readable from this many pixels a cell. */
-export const GUESS_MIN_CELL = 24;
+/**
+ * Guess mode marks cells with letters, readable from this many pixels a cell (a bold 11px
+ * letter on a badge). The buttons under the stage are the main way to answer; tapping a cell is a bonus.
+ */
+export const GUESS_MIN_CELL = 16;
 
 const guessText = localized({
   en: {

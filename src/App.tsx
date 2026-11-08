@@ -100,7 +100,8 @@ function App() {
                   <Legend className="hidden shrink-0 md:mt-1 md:flex" />
                 </div>
                 {/* Guess mode asks under the stage, so it never covers what it's asking about. */}
-                <div className="relative flex min-h-0 flex-1 flex-col gap-2">
+                {/* The panel keeps its own space above it (GameLayer), so the stage can size itself for it. */}
+                <div className="relative flex min-h-0 flex-1 flex-col">
                   <Stage />
                   <GameLayer />
                 </div>
