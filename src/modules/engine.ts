@@ -4,15 +4,14 @@ import { encodeCells } from "@/pathfinding/grid";
 import type { Route } from "@/routes";
 import type { StoreState, View } from "@/store";
 import type { Size } from "@/types";
-import { encodeOperations } from "@/structures/link";
-import type { HashEvent, TreeEvent } from "@/structures/types";
 import { sizes } from "@/consts/sizesMap";
 import { encodeItems } from "@/dp/presets";
-import { dpQuestions, questionsOf, SORT_GUESS_MAX_SIZE, sortQuestions, structureQuestions, type Question } from "@/game";
-import { toDpSearch, toGraphSearch, toPathSearch, toSearch, toStructureSearch } from "@/urlState";
+import { dpQuestions, questionsOf, SORT_GUESS_MAX_SIZE, sortQuestions, type Question } from "@/game";
+import { toDpSearch, toGraphSearch, toPathSearch, toSearch } from "@/urlState";
 import type { DpEvent } from "@/dp/types";
 import { backtrackingSlice } from "./backtracking.slice";
 import { fourierSlice } from "./fourier.slice";
+import { structuresSlice } from "./structures.slice";
 import type { Bound, ModuleSlice, SliceContext } from "./slice";
 import { GRAPH_STEP_WEIGHT, PATH_STEP_WEIGHT, speedFor, STEP_WEIGHT, type Pace } from "@/utils/speed";
 
@@ -47,6 +46,7 @@ export type ModuleEngine = {
 export const slices = {
   fourier: fourierSlice,
   backtracking: backtrackingSlice,
+  structures: structuresSlice,
 };
 
 export type SlicedModule = keyof typeof slices;
@@ -160,27 +160,7 @@ export const engines: Record<ModuleId, ModuleEngine> = {
       }),
   },
   fourier: engineOf("fourier", slices.fourier.engine, (s) => s.fourier),
-  structures: {
-    // Races tick one frame per lane, so the clock runs until the longer run is done.
-    lastIndex: (s, view) =>
-      view === "race"
-        ? Math.max(0, ...s.structureRaceRuns.map((r) => r.frames.length - 1))
-        : s.structureRun.frames.length - 1,
-    stepWeight: (s, index) => STRUCTURE_STEP_WEIGHT[s.structureRun.frames[index]?.event.type ?? "done"],
-    pace: (view) => (view === "race" ? "structureRace" : "structures"),
-    route: (s) => {
-      if (s.view === "race") return { kind: "structureRace" };
-      return s.isModuleStart ? { kind: "structures" } : { kind: "structure", algorithm: s.structureAlgorithm };
-    },
-    search: (s) =>
-      toStructureSearch({
-        ops: encodeOperations(s.structureOps),
-        size: s.structureSize,
-        preset: s.structurePreset,
-        speed: s.speedPreset,
-      }),
-    game: (s) => questionsOf(s.structureRun, structureQuestions),
-  },
+  structures: engineOf("structures", slices.structures.engine, (s) => s.structures),
   dp: {
     // The race clock counts subproblems: it runs until the slowest method is done.
     lastIndex: (s, view) =>
@@ -217,31 +197,4 @@ const DP_STEP_WEIGHT: Record<DpEvent["type"], number> = {
   cell: 0.8,
   trace: 1.4,
   done: 0.5,
-};
-
-/** A rotation gets the longest beat, so the nodes can be seen gliding; going back up is quick. */
-const STRUCTURE_STEP_WEIGHT: Record<TreeEvent["type"] | HashEvent["type"], number> = {
-  start: 0.7,
-  compare: 0.8,
-  place: 1,
-  duplicate: 1,
-  found: 1,
-  missing: 1,
-  remove: 1,
-  removed: 1,
-  successor: 1,
-  height: 0.5,
-  rotate: 1.6,
-  // Heap: a swap glides like a rotation; scanning slot after slot is quick.
-  append: 1,
-  sift: 0.7,
-  swap: 1.3,
-  scan: 0.5,
-  take: 1,
-  lift: 1.3,
-  // Hash tables: the jump to a bucket is the point, so it gets a beat.
-  hash: 1,
-  probe: 0.7,
-  full: 1,
-  done: 0.4,
 };

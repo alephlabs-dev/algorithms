@@ -10,6 +10,16 @@ import { generateItems } from "@/utils/generateItems";
 import { seededRandom } from "@/utils/random";
 import { engines, type ModuleId } from "./engine";
 
+const STRUCTURES = {
+  algorithm: "avl",
+  size: "medium",
+  preset: "ascending",
+  ops: [
+    { kind: "insert", value: 10 },
+    { kind: "insert", value: 20 },
+  ],
+};
+
 const BACKTRACKING = { problem: "queens", queensN: 5, sudokuPuzzle: "easy", sudokuOrder: "rows" };
 
 const FOURIER = {
@@ -46,13 +56,7 @@ const stateFor = (module: ModuleId, view: "single" | "race", isModuleStart: bool
     graphPreset: "tree",
     graph: makeGraph("tree", "large", false, seededRandom(5)),
     graphRaceAlgorithms: ["prim", "kruskal"],
-    structureAlgorithm: "avl",
-    structureSize: "medium",
-    structurePreset: "ascending",
-    structureOps: [
-      { kind: "insert", value: 10 },
-      { kind: "insert", value: 20 },
-    ],
+    structures: STRUCTURES,
     dpAlgorithm: "lcs",
     dpA: "KITTEN",
     dpB: "SITTING",
@@ -104,8 +108,19 @@ describe("module engines", () => {
         { fourier: { ...FOURIER, path: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }] } } as Partial<StoreState>,
       ],
       ["fourier", { speedPreset: "4x" }],
-      ["structures", { structureOps: [{ kind: "insert", value: 10 }, { kind: "delete", value: 10 }] }],
-      ["structures", { structurePreset: "random" }],
+      [
+        "structures",
+        {
+          structures: {
+            ...STRUCTURES,
+            ops: [
+              { kind: "insert", value: 10 },
+              { kind: "delete", value: 10 },
+            ],
+          },
+        } as Partial<StoreState>,
+      ],
+      ["structures", { structures: { ...STRUCTURES, preset: "random" } } as Partial<StoreState>],
       ["dp", { dpA: "SUNDAY" }],
       ["dp", { dpB: "SATURDAY" }],
       ["dp", { dpAlgorithm: "knapsack", dpCapacity: 9 }],

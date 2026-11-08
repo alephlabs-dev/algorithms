@@ -54,19 +54,6 @@ import {
 } from "./modules/engine";
 import type { Patch, SliceContext } from "./modules/slice";
 import { forgetAnswers, isAnswered, markAnswered, NEW_SCORE, type Answer, type GameScore, type Question } from "./game";
-import {
-  decodeOperations,
-  presetOperations,
-  recordStructure,
-  TreeRecorder,
-  type Operation,
-  type StructureAlgorithm,
-  type StructureRun,
-  type TreeAlgorithm,
-  type StructurePreset,
-  type StructureSize,
-} from "./structures";
-import { MAX_OPERATIONS } from "./structures/link";
 import { readLocation } from "./urlState";
 import { generateItems } from "./utils/generateItems";
 import { newSeed, seededRandom } from "./utils/random";
@@ -85,7 +72,6 @@ const LEGACY_TOUR_KEYS: Record<Exclude<Module, SlicedModule>, string> = {
   sorting: "tour-done",
   pathfinding: "tour-done-pathfinding",
   graphs: "tour-done-graphs",
-  structures: "tour-done-structures",
   dp: "tour-done-dp",
 };
 const SLICED = Object.keys(slices) as SlicedModule[];
@@ -129,18 +115,6 @@ export type StoreState = SliceStates & {
   graphRaceAlgorithms: GraphAlgorithm[];
   /** One timeline per racer, on the current graph. Empty outside race view. */
   graphRaceTimelines: GraphTimeline[];
-  structureAlgorithm: StructureAlgorithm;
-  /** What "new values" makes, and how many. */
-  structurePreset: StructurePreset;
-  structureSize: StructureSize;
-  /** Every operation so far, starting with the preset's inserts. */
-  structureOps: Operation[];
-  /** All of them, recorded frame by frame. */
-  structureRun: StructureRun;
-  /** Race view: BST and AVL on the same operations. */
-  structureRaceRuns: TreeRecorder[];
-  /** Bumped when the values are replaced wholesale, so nodes don't glide between unrelated trees. */
-  structureId: number;
   dpAlgorithm: DpAlgorithm;
   /** The two words: down the side, and across the top. */
   dpA: string;
@@ -227,11 +201,6 @@ export type StoreState = SliceStates & {
   /** Replaces the graph after an edit (moving a node, joining two); the run restarts. */
   editGraph: (graph: Graph) => void;
   toggleGraphRacer: (algorithm: GraphAlgorithm) => void;
-  setStructureAlgorithm: (algorithm: StructureAlgorithm) => void;
-  applyStructurePreset: (preset: StructurePreset) => void;
-  setStructureSize: (size: StructureSize) => void;
-  /** Does one more operation and plays it. */
-  runOperation: (op: Operation) => void;
   setDpAlgorithm: (algorithm: DpAlgorithm) => void;
   /** New words (already cleaned up); the table starts over. */
   setDpWords: (a: string, b: string) => void;
@@ -278,7 +247,7 @@ export const selectRaceRuns = (state: StoreState): readonly unknown[] => {
     pathfinding: state.pathRaceTimelines,
     graphs: state.graphRaceTimelines,
     fourier: [],
-    structures: state.structureRaceRuns,
+    structures: state.structures.raceRuns,
     dp: state.dpRaceRuns,
     backtracking: [],
   };
@@ -355,12 +324,6 @@ const graphOrder: GraphAlgorithm[] = ["bfs", "dfs", "dijkstra", "prim", "kruskal
 const graphRaceTimelinesFor = (view: View, algorithms: GraphAlgorithm[], graph: Graph) =>
   view === "race" ? algorithms.map((a) => graphTimelineFor(a, graph)) : [];
 
-// The race is the point of AVL: the same operations, with and without balancing.
-const STRUCTURE_RACERS: TreeAlgorithm[] = ["bst", "avl"];
-
-const structureRaceRunsFor = (view: View, ops: Operation[]) =>
-  view === "race" ? STRUCTURE_RACERS.map((a) => new TreeRecorder(a, ops)) : [];
-
 /** The table for a problem: two words, or a knapsack. */
 const dpRunFor = (algorithm: DpAlgorithm, a: string, b: string, items: Item[], capacity: number): TableRun =>
   algorithm === "knapsack" ? new KnapsackRun(items, capacity) : new DpRun(algorithm, a, b);
@@ -388,13 +351,6 @@ const dpRaceFor = (state: StoreState, view: View) => {
     dpRaceRuns: dpRaceRunsFor(view, dpItems, dpCapacity),
   };
 };
-
-/** The runs after the operations change: the single one and, in a race, both racers. */
-const structureRunsFor = (state: StoreState, ops: Operation[]) => ({
-  structureOps: ops,
-  structureRun: recordStructure(state.structureAlgorithm, ops),
-  structureRaceRuns: structureRaceRunsFor(state.module === "structures" ? state.view : "single", ops),
-});
 
 /** Race lanes are a quarter of the stage: graphs there stay at a size that reads. */
 const fitGraphSize = (size: GraphSize, view: View, isMobile: boolean): GraphSize => {
@@ -456,6 +412,8 @@ type LooseSlice = {
   pick: (slice: object, ctx: SliceContext, algorithm: string) => object;
   actions: Record<string, (slice: object, ctx: SliceContext, ...args: unknown[]) => Patch<object>>;
   newInput: (slice: object, ctx: SliceContext) => Patch<object>;
+  playFrom?: Record<string, ((slice: object, ctx: SliceContext) => number) | undefined>;
+  forView?: (slice: object, ctx: SliceContext) => object;
 };
 const looseSlices = slices as unknown as Record<SlicedModule, LooseSlice>;
 
@@ -471,6 +429,20 @@ const patchSlice = (
   const patch = change(state[module], ctx);
   return patch && ({ [module]: { ...state[module], ...patch } } as Partial<StoreState>);
 };
+
+/**
+ * Every slice's race runs after the view or the module on stage changes: `module`
+ * gets `view`, the others none. Written once, so no module keeps a stale race.
+ */
+const racesFor = (state: StoreState, view: View, module: Module = state.module): Partial<StoreState> =>
+  Object.assign(
+    {},
+    ...SLICED.map((m) => {
+      const { forView } = looseSlices[m];
+      if (!forView) return {};
+      return patchSlice(state, m, forView, { ...contextFor(state, m), view: m === module ? view : "single" });
+    }),
+  );
 
 /** Every sliced module's state, from the link and the screen. */
 const hydrateSlices = ({ url, isMobile, isPortrait }: Omit<StoreEnv, "theme">) =>
@@ -492,7 +464,6 @@ const LEGACY_RACES_DROPPED = {
   raceTimelines: [],
   pathRaceTimelines: [],
   graphRaceTimelines: [],
-  structureRaceRuns: [],
   dpRaceRuns: [],
 } satisfies Partial<StoreState>;
 
@@ -515,12 +486,6 @@ const initialState = ({ url, isMobile, isPortrait }: StoreEnv) => {
   const pathTimeline = pathTimelineFor(pathAlgorithm, grid);
   const pathRaceAlgorithms = url.path.racers ?? DEFAULT_PATH_RACERS;
   const pathRaceTimelines = pathRaceTimelinesFor(module === "pathfinding" ? view : "single", pathRaceAlgorithms, grid);
-  const structureAlgorithm = url.structureAlgorithm ?? "avl";
-  const structurePreset = url.structure.preset ?? "example";
-  const structureSize = url.structure.size ?? (isMobile ? "small" : "medium");
-  const structureOps =
-    (url.structure.ops && decodeOperations(url.structure.ops)) ||
-    presetOperations(structurePreset, structureSize, seededRandom(newSeed()));
   const dpAlgorithm = url.dpAlgorithm ?? "edit";
   const dpA = url.dp.a ?? wordPairs[0].a;
   const dpB = url.dp.b ?? wordPairs[0].b;
@@ -558,12 +523,6 @@ const initialState = ({ url, isMobile, isPortrait }: StoreEnv) => {
     dpCapacity,
     dpRun: dpRunFor(dpAlgorithm, dpA, dpB, dpItems, dpCapacity),
     dpRaceRuns: dpRaceRunsFor(module === "dp" ? view : "single", dpItems, dpCapacity),
-    structureAlgorithm,
-    structurePreset,
-    structureSize,
-    structureOps,
-    structureRun: recordStructure(structureAlgorithm, structureOps),
-    structureRaceRuns: structureRaceRunsFor(module === "structures" ? view : "single", structureOps),
     graphRaceAlgorithms: url.graph.racers ?? DEFAULT_GRAPH_RACERS,
     graphRaceTimelines: graphRaceTimelinesFor(
       module === "graphs" ? view : "single",
@@ -612,7 +571,6 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
     arrayId: 0,
     gridId: 0,
     graphId: 0,
-    structureId: 0,
     frameIndex: 0,
     isPlaying: false,
     isScrubbing: false,
@@ -642,24 +600,28 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
         Object.fromEntries(
           Object.entries(looseSlices[module].actions).map(([name, action]) => [
             name,
-            (...args: unknown[]) => replaceRun((state) => patchSlice(state, module, (s, ctx) => action(s, ctx, ...args))),
+            (...args: unknown[]) =>
+              replaceRun((state) => {
+                const ctx = contextFor(state, module);
+                const patch = patchSlice(state, module, (s) => action(s, ctx, ...args), ctx);
+                const playFrom = looseSlices[module].playFrom?.[name];
+                if (!patch || !playFrom) return patch;
+                return { ...patch, frameIndex: playFrom(patch[module] as object, ctx), isPlaying: true };
+              }),
           ]),
         ),
       ]),
     ) as SliceActions,
 
     pick: (module, algorithm) => {
-      replaceRun((state) => ({
-        module,
-        view: "single",
-        isModuleStart: false,
-        ...LEGACY_RACES_DROPPED,
-        ...patchSlice(state, module, (s, ctx) => looseSlices[module].pick(s, ctx, algorithm), {
-          ...contextFor(state, module),
-          view: "single",
-          isModuleStart: false,
-        }),
-      }));
+      replaceRun((state) => {
+        // Picking one algorithm leaves any race.
+        const races = racesFor(state, "single", module);
+        const ctx = { ...contextFor(state, module), view: "single" as const, isModuleStart: false };
+        const pick = (s: object) => looseSlices[module].pick(s, ctx, algorithm);
+        const picked = patchSlice({ ...state, ...races }, module, pick, ctx);
+        return { module, view: "single", isModuleStart: false, ...LEGACY_RACES_DROPPED, ...races, ...picked };
+      });
     },
 
     setTheme: (theme) => {
@@ -733,7 +695,7 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
             state.graphRaceAlgorithms,
             graph,
           ),
-          structureRaceRuns: structureRaceRunsFor(state.module === "structures" ? view : "single", state.structureOps),
+          ...racesFor(state, view),
           ...dpRaceFor(state, view),
         };
       });
@@ -808,6 +770,7 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
         pathRaceTimelines: [],
         graphRaceTimelines: [],
         isModuleStart: false,
+        ...racesFor(state, "single"),
         timeline: timelineFor(algorithm, state.timeline.values),
       }));
     },
@@ -845,7 +808,6 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
       // In pathfinding, "new" means another layout of the same kind (a clear grid becomes a maze).
       if (module === "pathfinding") applyGridPreset(gridPreset === "clear" ? "maze" : gridPreset);
       else if (module === "graphs") applyGraphPreset(graphPreset);
-      else if (module === "structures") get().applyStructurePreset(get().structurePreset);
       else if (module === "dp" && (get().dpAlgorithm === "knapsack" || get().view === "race")) {
         // A new bag: a handful of random items for the same capacity.
         const { dpItems, dpCapacity, setDpItems } = get();
@@ -866,6 +828,7 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
         module: "pathfinding",
         view: "single",
         isModuleStart: false,
+        ...racesFor(state, "single"),
         pathAlgorithm: algorithm,
         pathTimeline: pathTimelineFor(algorithm, state.grid),
         pathRaceTimelines: [],
@@ -889,6 +852,7 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
         module: "graphs",
         view: "single",
         isModuleStart: false,
+        ...racesFor(state, "single"),
         graphAlgorithm: algorithm,
         graphTimeline: graphTimelineFor(algorithm, state.graph),
         raceTimelines: [],
@@ -916,57 +880,18 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
       replaceRun((state) => graphRunFor(state, graph));
     },
 
-    setStructureAlgorithm: (algorithm) => {
-      replaceRun((state) => ({
-        module: "structures",
-        view: "single",
-        isModuleStart: false,
-        structureAlgorithm: algorithm,
-        structureRun: recordStructure(algorithm, state.structureOps),
-        raceTimelines: [],
-        pathRaceTimelines: [],
-        graphRaceTimelines: [],
-        structureRaceRuns: [],
-        dpRaceRuns: [],
-      }));
-    },
-
-    applyStructurePreset: (structurePreset) => {
-      replaceRun((state) => {
-        const ops = presetOperations(structurePreset, state.structureSize, seededRandom(newSeed()));
-        return { structurePreset, ...structureRunsFor(state, ops), structureId: state.structureId + 1 };
-      });
-    },
-
-    setStructureSize: (structureSize) => {
-      replaceRun((state) => {
-        const ops = presetOperations(state.structurePreset, structureSize, seededRandom(newSeed()));
-        return { structureSize, ...structureRunsFor(state, ops), structureId: state.structureId + 1 };
-      });
-    },
-
-    runOperation: (op) => {
-      replaceRun((state) => {
-        const ops = [...state.structureOps, op].slice(-MAX_OPERATIONS);
-        const runs = structureRunsFor(state, ops);
-        // Play just the new operation; a race replays everything, so both trees start even.
-        const start = state.view === "race" ? 0 : runs.structureRun.opStarts[runs.structureRun.opStarts.length - 1];
-        return { ...runs, frameIndex: start, isPlaying: true };
-      });
-    },
-
     setDpAlgorithm: (algorithm) => {
       replaceRun((state) => ({
         module: "dp",
         view: "single",
         isModuleStart: false,
+        ...racesFor(state, "single"),
         dpAlgorithm: algorithm,
         dpRun: dpRunFor(algorithm, state.dpA, state.dpB, state.dpItems, state.dpCapacity),
         dpRaceRuns: [],
         raceTimelines: [],
         pathRaceTimelines: [],
         graphRaceTimelines: [],
-        structureRaceRuns: [],
       }));
     },
 

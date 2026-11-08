@@ -37,8 +37,15 @@ export type ModuleSlice<S, Id extends string, A extends Record<string, Action<S>
   current: (slice: S) => Id;
   /** Puts an algorithm on stage, in single view. */
   pick: (slice: S, ctx: SliceContext, id: Id) => Partial<S>;
-  /** Changes to the module's input or settings; each one replaces the run. */
+  /** Changes to the module's input or settings; each one replaces the run, stopped at its first frame. */
   actions: A;
+  /** Actions after which playback runs on its own, from the frame given here (on the slice after the action). */
+  playFrom?: { [K in keyof A]?: (slice: S, ctx: SliceContext) => number };
+  /**
+   * The race runs for `ctx.view`: one per racer in race view, none in single view.
+   * The store calls it whenever the view or the module on stage changes. Without it, the module has no race.
+   */
+  forView?: (slice: S, ctx: SliceContext) => Partial<S>;
   /** "New": another input of the same kind. */
   newInput: (slice: S, ctx: SliceContext) => Patch<S>;
   /** What playback needs: how long a run is and how its steps are paced, and the page and link it's on. */

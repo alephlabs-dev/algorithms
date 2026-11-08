@@ -69,7 +69,7 @@ const StructureRaceLane = ({ run, clock, place }: { run: TreeRecorder; clock: nu
 /** The same operations on a plain BST and an AVL tree, one step per tick each. */
 export const StructureRaceLanes = () => {
   const { runs, clock, replay } = useStore(
-    useShallow((s) => ({ runs: s.structureRaceRuns, clock: s.frameIndex, replay: s.play })),
+    useShallow((s) => ({ runs: s.structures.raceRuns, clock: s.frameIndex, replay: s.play })),
   );
   // Fewer comparisons wins: the work a search tree exists to save. (Steps would reward skipping the rotations.)
   const placeOf = (run: TreeRecorder) =>
