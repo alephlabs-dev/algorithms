@@ -1,4 +1,5 @@
 import type { MouseEvent, ReactNode } from "react";
+import { flushSync } from "react-dom";
 import { href, type Route } from "@/routes";
 
 /**
@@ -26,8 +27,11 @@ export const PageLink = ({
       // Let modified clicks open a new tab as usual.
       if (!onNavigate || event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
       event.preventDefault();
-      onNavigate(to);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      // Draw the new page first: WebKit stops a smooth scroll when the page changes under it.
+      flushSync(() => onNavigate(to));
+      // No explicit behavior: it follows the theme's scroll-behavior, which glides
+      // only when the learner hasn't asked for reduced motion.
+      window.scrollTo({ top: 0 });
     }}
   >
     {children}
