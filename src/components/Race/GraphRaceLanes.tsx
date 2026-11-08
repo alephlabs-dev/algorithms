@@ -154,8 +154,8 @@ const GraphRaceResults = ({ rows, onReplay }: { rows: Row[]; onReplay: () => voi
 export const GraphRaceLanes = () => {
   const { algorithms, timelines, clock, replay } = useStore(
     useShallow((s) => ({
-      algorithms: s.graphRaceAlgorithms,
-      timelines: s.graphRaceTimelines,
+      algorithms: s.graphs.racers,
+      timelines: s.graphs.raceRuns,
       clock: s.frameIndex,
       replay: s.play,
     })),

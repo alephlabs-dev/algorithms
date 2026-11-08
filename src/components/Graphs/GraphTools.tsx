@@ -62,7 +62,7 @@ const text = localized({
 
 /** Ready-made layouts, one tap each. */
 export const GraphPresetButtons = ({ className }: { className?: string }) => {
-  const { apply, current } = useStore(useShallow((s) => ({ apply: s.applyGraphPreset, current: s.graphPreset })));
+  const { apply, current } = useStore(useShallow((s) => ({ apply: s.actions.graphs.applyPreset, current: s.graphs.preset })));
   return <PresetButtons presets={graphPresetOptions} current={current} onPick={apply} className={className} />;
 };
 
@@ -79,7 +79,7 @@ export const GraphTools = ({ className }: { className?: string }) => (
 );
 
 export const GraphSizePicker = () => {
-  const { size, setSize } = useStore(useShallow((s) => ({ size: s.graphSize, setSize: s.setGraphSize })));
+  const { size, setSize } = useStore(useShallow((s) => ({ size: s.graphs.size, setSize: s.actions.graphs.setSize })));
   return (
     <SegmentedControl<GraphSize>
       label={text.size}
@@ -110,7 +110,7 @@ const Line = ({ className, label }: { className: string; label: string }) => (
 /** What each color on the graph means, in each algorithm's words. */
 export const GraphLegend = ({ className }: { className?: string }) => {
   const { algorithm, isRace } = useStore(
-    useShallow((s) => ({ algorithm: s.graphAlgorithm, isRace: s.view === "race" })),
+    useShallow((s) => ({ algorithm: s.graphs.algorithm, isRace: s.view === "race" })),
   );
   const structure = graphAlgorithms[algorithm].structure;
   // Race lanes mix algorithms: words that fit them all.
@@ -167,7 +167,7 @@ export const GraphLegend = ({ className }: { className?: string }) => {
 /** Counters on one line, for the dock. */
 export const GraphStatsInline = ({ className }: { className?: string }) => {
   const { stats, total } = useStore(
-    useShallow((s) => ({ stats: s.graphTimeline.frameAt(s.frameIndex).stats, total: s.graph.nodes.length })),
+    useShallow((s) => ({ stats: s.graphs.run.frameAt(s.frameIndex).stats, total: s.graphs.graph.nodes.length })),
   );
   return (
     <p className={cn("whitespace-nowrap font-mono text-xs text-foreground/80", className)}>
@@ -178,7 +178,7 @@ export const GraphStatsInline = ({ className }: { className?: string }) => {
 
 /** What the algorithm on stage keeps its nodes in, and how fast it is. */
 export const GraphFacts = () => {
-  const algorithm = useStore((s) => s.graphAlgorithm);
+  const algorithm = useStore((s) => s.graphs.algorithm);
   const { structure, timeComplexity, weighted } = graphAlgorithms[algorithm];
   return <FactLine facts={[structure, weighted ? text.usesWeights : text.ignoresWeights, timeComplexity]} />;
 };

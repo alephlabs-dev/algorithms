@@ -85,8 +85,8 @@ export const GraphCanvas = ({ frame, algorithm }: { frame: GraphFrame; algorithm
   const { width, height } = useElementSize(wrapperRef);
   const { graph, graphId, speed, isScrubbing, theme } = useStore(
     useShallow((s) => ({
-      graph: s.graph,
-      graphId: s.graphId,
+      graph: s.graphs.graph,
+      graphId: s.graphs.inputId,
       speed: selectSpeed(s),
       isScrubbing: s.isScrubbing,
       theme: s.theme,
@@ -159,7 +159,9 @@ export const GraphCanvas = ({ frame, algorithm }: { frame: GraphFrame; algorithm
     press.dragging = true;
     event.currentTarget.style.cursor = "grabbing";
     const place = rendererRef.current!.toLayout(x, y);
-    const { graph: current, editGraph } = useStore.getState();
+    const { graphs, actions } = useStore.getState();
+    const current = graphs.graph;
+    const editGraph = actions.graphs.edit;
     editGraph(withNodeAt(current, press.node, place.x, place.y));
   };
 
@@ -168,7 +170,9 @@ export const GraphCanvas = ({ frame, algorithm }: { frame: GraphFrame; algorithm
     pressRef.current = null;
     event.currentTarget.style.cursor = "grab";
     if (!press || press.dragging) return;
-    const { graph: current, editGraph } = useStore.getState();
+    const { graphs, actions } = useStore.getState();
+    const current = graphs.graph;
+    const editGraph = actions.graphs.edit;
     const now = performance.now();
     const last = lastTapRef.current;
     lastTapRef.current = { node: press.node, time: now };
@@ -212,7 +216,7 @@ export const GraphCanvas = ({ frame, algorithm }: { frame: GraphFrame; algorithm
 /** The single view: one run on the graph, the structure it keeps, and a summary when it's done. */
 export const GraphStage = () => {
   const { frame, algorithm } = useStore(
-    useShallow((s) => ({ frame: s.graphTimeline.frameAt(s.frameIndex), algorithm: s.graphAlgorithm }))
+    useShallow((s) => ({ frame: s.graphs.run.frameAt(s.frameIndex), algorithm: s.graphs.algorithm }))
   );
   return (
     <div data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col gap-2">
@@ -236,13 +240,13 @@ const StructureStrip = () => {
   const [overflows, setOverflows] = useState(false);
   const { pending, dist, edgeQueue, structure, graph } = useStore(
     useShallow((s) => {
-      const frame = s.graphTimeline.frameAt(s.frameIndex);
+      const frame = s.graphs.run.frameAt(s.frameIndex);
       return {
         pending: frame.pending,
         dist: frame.dist,
         edgeQueue: frame.edgeQueue,
-        structure: s.graphTimeline.structure,
-        graph: s.graph,
+        structure: s.graphs.run.structure,
+        graph: s.graphs.graph,
       };
     }),
   );
@@ -318,12 +322,12 @@ const linkClass =
 
 /** Over the graph when a run ends: what it took, and what to compare it with. */
 const GraphFinishSummary = ({ className }: { className?: string }) => {
-  const { finished, stats, algorithm, setGraphAlgorithm } = useStore(
+  const { finished, stats, algorithm, pick } = useStore(
     useShallow((s) => ({
       finished: s.frameIndex > 0 && s.frameIndex === selectLastIndex(s),
-      stats: s.graphTimeline.frameAt(s.frameIndex).stats,
-      algorithm: s.graphAlgorithm,
-      setGraphAlgorithm: s.setGraphAlgorithm,
+      stats: s.graphs.run.frameAt(s.frameIndex).stats,
+      algorithm: s.graphs.algorithm,
+      pick: s.pick,
     })),
   );
   const next = NEXT[algorithm];
@@ -335,7 +339,7 @@ const GraphFinishSummary = ({ className }: { className?: string }) => {
           <span className={cn("hidden font-mono text-xs text-foreground/80 sm:inline")}>
             {text.summary(stats.visited, stats.examined)}
           </span>
-          <button type="button" onClick={() => setGraphAlgorithm(next)} className={linkClass}>
+          <button type="button" onClick={() => pick("graphs", next)} className={linkClass}>
             {text.tryOther(graphAlgorithms[next].short)}
           </button>
         </div>

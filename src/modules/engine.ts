@@ -1,18 +1,18 @@
 import { localized } from "@/i18n";
-import { encodeGraph } from "@/graphs/graph";
 import { encodeCells } from "@/pathfinding/grid";
 import type { Route } from "@/routes";
 import type { StoreState, View } from "@/store";
 import type { Size } from "@/types";
 import { sizes } from "@/consts/sizesMap";
 import { questionsOf, SORT_GUESS_MAX_SIZE, sortQuestions, type Question } from "@/game";
-import { toGraphSearch, toPathSearch, toSearch } from "@/urlState";
+import { toPathSearch, toSearch } from "@/urlState";
 import { backtrackingSlice } from "./backtracking.slice";
 import { dpSlice } from "./dp.slice";
 import { fourierSlice } from "./fourier.slice";
+import { graphsSlice } from "./graphs.slice";
 import { structuresSlice } from "./structures.slice";
 import type { Bound, ModuleSlice, SliceContext } from "./slice";
-import { GRAPH_STEP_WEIGHT, PATH_STEP_WEIGHT, speedFor, STEP_WEIGHT, type Pace } from "@/utils/speed";
+import { PATH_STEP_WEIGHT, speedFor, STEP_WEIGHT, type Pace } from "@/utils/speed";
 
 /** The modules the app has. Each one declares its engine here and its interface in ./<id>.tsx. */
 export type ModuleId = "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | "backtracking";
@@ -47,6 +47,7 @@ export const slices = {
   backtracking: backtrackingSlice,
   structures: structuresSlice,
   dp: dpSlice,
+  graphs: graphsSlice,
 };
 
 export type SlicedModule = keyof typeof slices;
@@ -140,25 +141,7 @@ export const engines: Record<ModuleId, ModuleEngine> = {
         speed: s.speedPreset,
       }),
   },
-  graphs: {
-    // Races tick one step per lane, so the clock runs until the longest run is over.
-    lastIndex: (s, view) =>
-      view === "race" ? Math.max(0, ...s.graphRaceTimelines.map((t) => t.length - 1)) : s.graphTimeline.length - 1,
-    stepWeight: (s, index) => GRAPH_STEP_WEIGHT[s.graphTimeline.stepAt(index)?.type ?? "done"],
-    pace: (view) => (view === "race" ? "graphRace" : "graphs"),
-    route: (s) => {
-      if (s.view === "race") return { kind: "graphRace" };
-      return s.isModuleStart ? { kind: "graphs" } : { kind: "graph", algorithm: s.graphAlgorithm };
-    },
-    search: (s) =>
-      toGraphSearch({
-        graph: encodeGraph(s.graph),
-        size: s.graphSize,
-        preset: s.graphPreset,
-        racers: s.graphRaceAlgorithms,
-        speed: s.speedPreset,
-      }),
-  },
+  graphs: engineOf("graphs", slices.graphs.engine, (s) => s.graphs),
   fourier: engineOf("fourier", slices.fourier.engine, (s) => s.fourier),
   structures: engineOf("structures", slices.structures.engine, (s) => s.structures),
   dp: engineOf("dp", slices.dp.engine, (s) => s.dp),

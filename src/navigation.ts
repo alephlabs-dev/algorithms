@@ -38,11 +38,11 @@ export const applyRoute = (app: AppStore, route: Route) => {
     const algorithm = route.kind === "series" ? route.algorithm : store.fourier.algorithm;
     if (store.module !== "fourier" || store.fourier.algorithm !== algorithm) store.pick("fourier", algorithm);
   } else if (route.kind === "graph" || route.kind === "graphs") {
-    const algorithm = route.kind === "graph" ? route.algorithm : store.graphAlgorithm;
-    if (store.module !== "graphs" || store.view !== "single" || store.graphAlgorithm !== algorithm)
-      store.setGraphAlgorithm(algorithm);
+    const algorithm = route.kind === "graph" ? route.algorithm : store.graphs.algorithm;
+    if (store.module !== "graphs" || store.view !== "single" || store.graphs.algorithm !== algorithm)
+      store.pick("graphs", algorithm);
   } else if (route.kind === "graphRace") {
-    if (store.module !== "graphs") store.setGraphAlgorithm(store.graphAlgorithm);
+    if (store.module !== "graphs") store.pick("graphs", store.graphs.algorithm);
     if (app.getState().view !== "race") store.setView("race");
   } else if (route.kind === "path" || route.kind === "pathfinding") {
     const algorithm = route.kind === "path" ? route.algorithm : store.pathAlgorithm;

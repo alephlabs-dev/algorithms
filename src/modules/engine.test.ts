@@ -10,6 +10,14 @@ import { generateItems } from "@/utils/generateItems";
 import { seededRandom } from "@/utils/random";
 import { engines, type ModuleId } from "./engine";
 
+const GRAPHS = {
+  algorithm: "dijkstra",
+  size: "large",
+  preset: "tree",
+  graph: makeGraph("tree", "large", false, seededRandom(5)),
+  racers: ["prim", "kruskal"],
+};
+
 const DP = {
   algorithm: "lcs",
   a: "KITTEN",
@@ -62,11 +70,7 @@ const stateFor = (module: ModuleId, view: "single" | "race", isModuleStart: bool
     gridSize: "medium",
     grid: applyPreset(emptyGrid(17, 33), "maze", seededRandom(3)),
     pathRaceAlgorithms: ["bfs", "astar"],
-    graphAlgorithm: "dijkstra",
-    graphSize: "large",
-    graphPreset: "tree",
-    graph: makeGraph("tree", "large", false, seededRandom(5)),
-    graphRaceAlgorithms: ["prim", "kruskal"],
+    graphs: GRAPHS,
     structures: STRUCTURES,
     dp: DP,
     backtracking: BACKTRACKING,
@@ -102,9 +106,9 @@ describe("module engines", () => {
       ["sorting", { raceAlgorithms: ["quick", "merge"] }],
       ["pathfinding", { grid: applyPreset(emptyGrid(17, 33), "walls", seededRandom(8)) }],
       ["pathfinding", { pathRaceAlgorithms: ["dfs", "greedy"] }],
-      ["graphs", { graph: makeGraph("grid", "large", false, seededRandom(2)) }],
-      ["graphs", { graphPreset: "dag" }],
-      ["graphs", { graphRaceAlgorithms: ["bfs", "topo"] }],
+      ["graphs", { graphs: { ...GRAPHS, graph: makeGraph("grid", "large", false, seededRandom(2)) } } as Partial<StoreState>],
+      ["graphs", { graphs: { ...GRAPHS, preset: "dag" } } as Partial<StoreState>],
+      ["graphs", { graphs: { ...GRAPHS, racers: ["bfs", "topo"] } } as Partial<StoreState>],
       ["fourier", { fourier: { ...FOURIER, circles: 100 } } as Partial<StoreState>],
       ["fourier", { fourier: { ...FOURIER, shape: "star" } } as Partial<StoreState>],
       [

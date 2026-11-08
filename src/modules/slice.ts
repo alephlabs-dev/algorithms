@@ -46,6 +46,8 @@ export type ModuleSlice<S, Id extends string, A extends Record<string, Action<S>
    * The store calls it whenever the view or the module on stage changes. Without it, the module has no race.
    */
   forView?: (slice: S, ctx: SliceContext) => Partial<S>;
+  /** After the screen turns narrow or wide (see isNarrow): a layout that fits it, or null to keep the input. */
+  reshape?: (slice: S, ctx: SliceContext) => Patch<S>;
   /** "New": another input of the same kind. */
   newInput: (slice: S, ctx: SliceContext) => Patch<S>;
   /** What playback needs: how long a run is and how its steps are paced, and the page and link it's on. */
@@ -77,3 +79,19 @@ export const defineModule =
 export type Bound<A> = {
   [K in keyof A]: A[K] extends (slice: never, ctx: never, ...args: infer P) => unknown ? (...args: P) => void : never;
 };
+
+export const MIN_RACERS = 2;
+export const MAX_RACERS = 4;
+
+/**
+ * The racers after tapping `racer`: added or taken out, in `order`. Null when that
+ * would leave fewer than MIN_RACERS or more than MAX_RACERS.
+ */
+export const toggleRacer = <T extends string>(order: readonly T[], racers: readonly T[], racer: T): T[] | null => {
+  const selected = racers.includes(racer);
+  if ((selected && racers.length <= MIN_RACERS) || (!selected && racers.length >= MAX_RACERS)) return null;
+  return order.filter((a) => (a === racer ? !selected : racers.includes(a)));
+};
+
+/** Phones, and any window taller than wide, get upright grids and graphs that fit their stage. */
+export const isNarrow = (s: { isMobile: boolean; isPortrait: boolean }) => s.isMobile || s.isPortrait;
