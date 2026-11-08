@@ -84,11 +84,13 @@ function App() {
               <div className="flex min-w-0 flex-1 flex-col gap-2 lg:px-4">
                 {/* Phones keep the module's tools in the settings sheet, so the stage gets the room; wide screens in the settings panel. */}
                 {Tools && <Tools className="-ml-1 hidden md:flex lg:hidden" />}
-                {/* The legend drops to its own line before it squeezes the step out (the settings panel narrows the stage). */}
-                <div className="flex min-h-10 flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                {/* The legend drops to its own line before it makes the step narrower than on a phone: 373px is
+                    the 325px of text a 393px phone gets, plus the caption's padding and icon (e2e/step-sentences-fit.spec.ts). */}
+                <div className="flex min-h-10 flex-wrap items-start justify-between gap-x-4 gap-y-1">
                   {/* Wide screens: tapping the step opens the side panel's Pseudocode tab. */}
-                  <StepCaption className="-ml-3 min-w-64 flex-1" onActivate={wide ? () => setPanelTab("code") : undefined} />
-                  <Legend className="hidden shrink-0 md:flex" />
+                  <StepCaption className="-ml-3 flex-1 md:min-w-[373px]" onActivate={wide ? () => setPanelTab("code") : undefined} />
+                  {/* Lined up with the step's first line (the caption's py-1). */}
+                  <Legend className="hidden shrink-0 md:mt-1 md:flex" />
                 </div>
                 {/* Guess mode asks under the stage, so it never covers what it's asking about. */}
                 <div className="relative flex min-h-0 flex-1 flex-col gap-2">

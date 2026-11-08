@@ -37,6 +37,8 @@ jobs:
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile
       - run: make e2e
+        env:
+          STEP_SENTENCES: 1 # the slow step-sentence check, skipped locally by default
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
