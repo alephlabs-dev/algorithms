@@ -17,7 +17,8 @@ import { useMediaQuery } from "./hooks/useMediaQuery";
 import { useModuleUI } from "./modules";
 import { href } from "./routes";
 import { MOBILE_QUERY, PORTRAIT_QUERY, useStore } from "./store";
-import { navigate, routeFor } from "./urlSync";
+import { routeFor } from "./navigation";
+import { navigate } from "./urlSync";
 import { GameLayer } from "./components/Game";
 
 // iPad landscape and desktop: the side panel, whose Pseudocode tab replaces the sheet.
