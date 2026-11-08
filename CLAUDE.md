@@ -20,6 +20,7 @@ Hooks and CI only call these Makefile targets. When the stack changes, change th
 - `make e2e`: browser tests on iPhone, iPad (portrait and landscape) and desktop, without screenshot comparison.
 - `make e2e-sentences`: the slow check that every step sentence fits its caption at all four sizes (~2 min). `make e2e` skips it; CI runs it on every PR. Run it when you change a step sentence or the caption row.
 - `PORT=<n> make e2e`: the same on another port, so runs in parallel worktrees don't test each other's builds (default 4173; 5173 is the human's dev server, never use it).
+  Avoid port 4190: browsers block it and WebKit page loads hang. If the port is busy ("port in use"), kill the stale process on it (`lsof -ti :<port> | xargs kill`) instead of switching ports.
 
 ## Rules
 

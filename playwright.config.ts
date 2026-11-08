@@ -25,7 +25,9 @@ export default defineConfig({
     : {
         command: `pnpm build && pnpm preview --port ${PORT} --strictPort`,
         url: BASE_URL,
-        reuseExistingServer: !process.env.CI,
+        // Never reuse: a stale server on the port would be tested instead of this build.
+        // A busy port fails fast with "port in use"; kill the stale process.
+        reuseExistingServer: false,
         timeout: 120_000,
       },
   // Overrides go AFTER the device spread, or the device preset wins.
