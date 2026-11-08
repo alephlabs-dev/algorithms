@@ -636,6 +636,12 @@ export const backtrackingTour = localized<TourStep[]>({
       text: ({ phone }) =>
         `${phone ? "In settings: from" : "From"} 4 to 8 queens, or an easy or hard Sudoku. Bigger boards and harder puzzles take far more steps.`,
     },
+    {
+      anchor: "game",
+      title: "A guessing game",
+      text: () =>
+        "With N-Queens, turn on Guess and playback stops before a queen lands to ask which column it takes, or whether the row is a dead end. It keeps score.",
+    },
   ],
   es: [
     {
@@ -662,6 +668,12 @@ export const backtrackingTour = localized<TourStep[]>({
       title: "Tu tablero",
       text: ({ phone }) =>
         `${phone ? "En los ajustes: de" : "De"} 4 a 8 reinas, o un sudoku fácil o difícil. Los tableros grandes y los sudokus difíciles llevan muchos más pasos.`,
+    },
+    {
+      anchor: "game",
+      title: "Un juego de adivinar",
+      text: () =>
+        "Con N reinas, activa Adivina y la reproducción se detiene antes de que caiga una reina para preguntarte en qué columna cae, o si la fila es un callejón sin salida. Lleva el puntaje.",
     },
   ],
 });

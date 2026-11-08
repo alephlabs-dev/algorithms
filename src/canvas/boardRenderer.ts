@@ -30,6 +30,8 @@ export type BoardInput = {
   lines: { from: Square; to: Square }[];
   /** A block of squares with no value left to try: a row of N-Queens, a Sudoku cell. */
   deadEnd?: { from: Square; to: Square } | null;
+  /** Squares a guess-mode question asks about, such as the columns left to try in a row: outlined, dashed. */
+  ask?: { from: Square; to: Square } | null;
   /** Labels down the side and across the top. */
   rowLabels?: string[];
   colLabels?: string[];
@@ -170,6 +172,21 @@ export class BoardRenderer {
       ctx.strokeStyle = css(p.conflict);
       ctx.lineWidth = Math.max(2, size * 0.05);
       ctx.strokeRect(x + ctx.lineWidth / 2, y + ctx.lineWidth / 2, w - ctx.lineWidth, h - ctx.lineWidth);
+    }
+
+    if (input.ask) {
+      const { from, to } = input.ask;
+      const { x, y } = at(from.row, from.col);
+      const w = (to.col - from.col + 1) * size;
+      const h = (to.row - from.row + 1) * size;
+      const width = Math.max(2, size * 0.05);
+      ctx.fillStyle = css(p.outline, 0.12);
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = css(p.outline);
+      ctx.lineWidth = width;
+      ctx.setLineDash([size * 0.14, size * 0.1]);
+      ctx.strokeRect(x + width / 2, y + width / 2, w - width, h - width);
+      ctx.setLineDash([]);
     }
 
     // Lines from square to square, kept clear of what sits on them.
