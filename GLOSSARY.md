@@ -16,6 +16,26 @@ _Avoid_: Step, event
 Every frame of one algorithm on one input, worked out before playback starts. The run on stage is the one the learner is watching; a race has one run per racer.
 _Avoid_: Animation, execution
 
+**Module**:
+One visualizer of the app, such as sorting, pathfinding or backtracking, with its own algorithms, inputs and tour.
+_Avoid_: Section, category, visualizer type
+
+**View**:
+How a module shows its runs: single (one run on stage) or race (several racers side by side on the same input).
+_Avoid_: Mode, layout
+
+**Racer**:
+An algorithm taking part in a race; it gets one run and one lane.
+_Avoid_: Competitor, lane, contestant
+
+**Input**:
+What a run works on: the array, the grid, the graph, the operations, the words or the bag, the board, or the shape and its circles.
+_Avoid_: Data, dataset, array (outside sorting)
+
+**New input**:
+Swapping the module's input for another of the same kind (another array, another maze, the next word pair, more circles), so the learner can watch the same algorithm on something fresh.
+_Avoid_: New run, new array (outside sorting), shuffle
+
 **Pace**:
 The pacing profile of a kind of run ("single", "pathRace", …) that sets how fast 1× plays, so the run takes a comfortable time. The speed presets are multiples of it.
 _Avoid_: Base speed, tempo
