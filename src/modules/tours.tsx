@@ -181,6 +181,12 @@ export const pathfindingTour = localized<TourStep[]>({
       title: "Change the grid",
       text: () => "A smaller grid to read along, or a bigger one to see how each search spreads.",
     },
+    {
+      anchor: "game",
+      title: "A guessing game",
+      text: () =>
+        "Turn on Guess and playback stops to ask which of four lettered cells the search visits next: each search picks its own way. It keeps score.",
+    },
   ],
   es: [
     {
@@ -229,6 +235,12 @@ export const pathfindingTour = localized<TourStep[]>({
       anchor: "settings",
       title: "Cambia la cuadrícula",
       text: () => "Una cuadrícula más pequeña para seguirla de cerca, o una más grande para ver cómo se expande cada búsqueda.",
+    },
+    {
+      anchor: "game",
+      title: "Un juego de adivinar",
+      text: () =>
+        "Activa Adivina y la reproducción se detiene para preguntarte cuál de cuatro celdas con letra visita la búsqueda ahora: cada búsqueda elige a su manera. Lleva el puntaje.",
     },
   ],
 });

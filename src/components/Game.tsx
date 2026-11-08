@@ -14,6 +14,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { useShallow } from "zustand/react/shallow";
 import { localized } from "@/i18n";
 import { engines } from "@/modules/engine";
+import { FEEDBACK_MS, isCellQuestion } from "@/game";
 import { selectGameQuestion, useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { Button } from "./ui/button";
@@ -150,6 +151,9 @@ export const GameToggle = ({ compact }: { compact?: boolean }) => {
   );
 };
 
+/** Room guess mode's panel takes under the stage while it's on: its min-h-28 plus the gap-2 above it (src/App.tsx). */
+export const GAME_ROOM = 112 + 8;
+
 const optionClass =
   "tap-target relative h-10 min-w-12 rounded-full border border-line/70 px-4 font-mono text-sm font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary";
 
@@ -174,7 +178,7 @@ export const GameLayer = () => {
   useEffect(() => {
     if (!feedback) return;
     const show = window.setTimeout(() => setShownFeedback(feedback.id), 0);
-    const hide = window.setTimeout(() => setShownFeedback(null), 4500);
+    const hide = window.setTimeout(() => setShownFeedback(null), FEEDBACK_MS);
     return () => {
       window.clearTimeout(show);
       window.clearTimeout(hide);
@@ -193,6 +197,9 @@ export const GameLayer = () => {
       }
       const k = Number(event.key);
       if (k >= 1 && k <= question.options.length) answer(question.options[k - 1]);
+      // Lettered options (pathfinding's A–D cells) answer to their letter too.
+      const lettered = question.optionLabels?.findIndex((l) => /^[A-Z]$/.test(l) && l === event.key.toUpperCase()) ?? -1;
+      if (lettered >= 0) answer(question.options[lettered]);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -200,7 +207,10 @@ export const GameLayer = () => {
 
   if (!on || unavailable) return null;
   // The last answer's result stays a few seconds, above the next question if one comes quickly.
-  const showFeedback = feedback !== null && shownFeedback === feedback.id;
+  // Except over a question that letters grid cells (stepped to by hand; playback waits for it to go):
+  // the last explanation's letters would point at the new cells.
+  const lettersCells = isCellQuestion(question);
+  const showFeedback = feedback !== null && shownFeedback === feedback.id && !lettersCells;
 
   return (
     // Room under the stage, kept the whole time guess mode is on: the stage shrinks once, never hides behind a question.
@@ -256,7 +266,7 @@ export const GameLayer = () => {
                           // Numbers stay monospaced so they line up; words ("Dead end", "4 stays") read in the body font.
                           className={cn(optionClass, !/^\d+$/.test(label) && "font-sans")}
                           onClick={() => answer(option)}
-                          aria-keyshortcuts={String(k + 1)}
+                          aria-keyshortcuts={/^[A-Z]$/.test(label) ? `${k + 1} ${label}` : String(k + 1)}
                         >
                           {label}
                         </button>

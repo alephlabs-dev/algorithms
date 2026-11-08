@@ -1,8 +1,18 @@
 import type { Question } from "./questions";
 
+export { pathQuestions } from "./pathfinding";
 export { DEAD_END, queensQuestions } from "./queens";
 export { MAX_QUESTIONS } from "./spread";
-export { dpQuestions, sortQuestions, structureQuestions, type Answer, type Question, type Slot } from "./questions";
+export {
+  dpQuestions,
+  isCellQuestion,
+  sortQuestions,
+  structureQuestions,
+  type Answer,
+  type CellQuestion,
+  type Question,
+  type Slot,
+} from "./questions";
 
 // Per run, worked out once: a run's frames never change, so neither do its questions.
 const questionCache = new WeakMap<object, Question[]>();
@@ -21,6 +31,9 @@ export const markAnswered = (q: Question) => {
   answered.set(q.run, set);
 };
 export const forgetAnswers = (run: object) => answered.delete(run);
+
+/** How long an answer's explanation stays under the stage, in milliseconds. */
+export const FEEDBACK_MS = 4500;
 
 /** Sorting plays guess mode with this many items at most. */
 export const SORT_GUESS_MAX_SIZE = 20;

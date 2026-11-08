@@ -1,20 +1,23 @@
-import { useEffect, useRef, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { GridRenderer } from "@/canvas/gridRenderer";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { useElementSize } from "@/hooks/useElementSize";
 import { EMPTY, MUD, WALL, withMarker, withTerrain, type Grid, type PathFrame, type Terrain } from "@/pathfinding";
-import { selectLastIndex, selectPathFrame, useStore } from "@/store";
-import { selectSpeed } from "@/modules/engine";
+import { FEEDBACK_MS, isCellQuestion, type CellQuestion } from "@/game";
+import { selectGameQuestion, selectLastIndex, selectPathFrame, useStore } from "@/store";
+import { engines, selectSpeed } from "@/modules/engine";
 import { count } from "@/utils/count";
 import { describeFrame } from "@/utils/describePathFrame";
 import { moveDuration } from "@/utils/speed";
 import { cn } from "@/utils/cn";
 import { localized } from "@/i18n";
+import { GAME_ROOM } from "../Game";
 
 const text = localized({
   en: {
     canvas: (label: string) => `${label} Drag to draw walls or move the start and target.`,
+    marked: (label: string, marks: string) => `${label} Marked cells: ${marks}.`,
     onGrid: (title: string, rows: number, cols: number, frame: string) => `${title} on a ${rows} by ${cols} grid. ${frame}`,
     found: "Path found",
     none: "No path",
@@ -25,6 +28,7 @@ const text = localized({
   },
   es: {
     canvas: (label) => `${label} Arrastra para dibujar paredes o mover el inicio y el destino.`,
+    marked: (label, marks) => `${label} Celdas marcadas: ${marks}.`,
     onGrid: (title, rows, cols, frame) => `${title} en una cuadrícula de ${rows} por ${cols}. ${frame}`,
     // Short, so the pill stays on one line on phones.
     found: "Hay camino",
@@ -59,8 +63,21 @@ const cellsBetween = (grid: Grid, from: number, to: number) => {
  * A grid drawn on canvas and edited by dragging. Starting a drag on an empty
  * cell paints the current brush, on a painted cell erases, and on the start or
  * target moves it. Edits go to the shared grid, so every search restarts.
+ * While guess mode asks about cells (`ask`), they're marked with letters and
+ * tapping one answers; the grid can't be edited until it's answered.
  */
-export const GridCanvas = ({ frame, label }: { frame: PathFrame; label: string }) => {
+export const GridCanvas = ({
+  frame,
+  label,
+  ask,
+  answered,
+}: {
+  frame: PathFrame;
+  label: string;
+  ask?: CellQuestion | null;
+  /** The last answered question, whose letters stay up while its explanation does. */
+  answered?: CellQuestion | null;
+}) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<GridRenderer | null>(null);
@@ -90,6 +107,11 @@ export const GridCanvas = ({ frame, label }: { frame: PathFrame; label: string }
     rendererRef.current?.refreshColors();
   }, [theme]);
 
+  const marks = useMemo(() => {
+    const q = ask ?? answered;
+    return q?.options.map((cell, k) => ({ cell, label: q.optionLabels?.[k] ?? String(k + 1) }));
+  }, [ask, answered]);
+
   useEffect(() => {
     // Colors follow the playback pace, like bar moves do.
     rendererRef.current?.update({
@@ -97,8 +119,9 @@ export const GridCanvas = ({ frame, label }: { frame: PathFrame; label: string }
       frame,
       gridId,
       fade: isScrubbing ? 0 : Math.min(0.25, moveDuration(speed) * 2),
+      marks,
     });
-  }, [grid, frame, gridId, speed, isScrubbing]);
+  }, [grid, frame, gridId, speed, isScrubbing, marks]);
 
   const cellFrom = (event: PointerEvent) => {
     const rect = canvasRef.current!.getBoundingClientRect();
@@ -120,6 +143,10 @@ export const GridCanvas = ({ frame, label }: { frame: PathFrame; label: string }
   const onPointerDown = (event: PointerEvent<HTMLCanvasElement>) => {
     const cell = cellFrom(event);
     if (cell === null) return;
+    if (ask) {
+      if (ask.options.includes(cell)) useStore.getState().answerGame(cell);
+      return;
+    }
     event.currentTarget.setPointerCapture(event.pointerId);
     const { grid: current, brush } = useStore.getState().pathfinding;
     if (cell === current.start || cell === current.end) {
@@ -139,7 +166,14 @@ export const GridCanvas = ({ frame, label }: { frame: PathFrame; label: string }
     // Hovering a marker hints that it can be moved.
     if (!drag) {
       const current = useStore.getState().pathfinding.grid;
-      event.currentTarget.style.cursor = cell === current.start || cell === current.end ? "grab" : "crosshair";
+      event.currentTarget.style.cursor =
+        cell !== null && ask
+          ? ask.options.includes(cell)
+            ? "pointer"
+            : "default"
+          : cell === current.start || cell === current.end
+            ? "grab"
+            : "crosshair";
       return;
     }
     if (cell === null || cell === drag.last) return;
@@ -157,7 +191,7 @@ export const GridCanvas = ({ frame, label }: { frame: PathFrame; label: string }
       <canvas
         ref={canvasRef}
         role="img"
-        aria-label={text.canvas(label)}
+        aria-label={ask?.marksText ? text.marked(label, ask.marksText) : text.canvas(label)}
         className="absolute inset-0 h-full w-full touch-none select-none"
         style={{ cursor: "crosshair" }}
         onPointerDown={onPointerDown}
@@ -169,15 +203,74 @@ export const GridCanvas = ({ frame, label }: { frame: PathFrame; label: string }
   );
 };
 
+/**
+ * Measures the stage and tells the store how big a cell is with guess mode's panel open,
+ * so guess mode only plays where its letters fit. While the panel is closed it's worked
+ * out as if open (the stage loses GAME_ROOM to it). While open, the panel can grow a little
+ * past GAME_ROOM (feedback over a question): a couple of pixels of slack keep guess mode
+ * from switching itself off then, which would hide the panel and switch it back on.
+ */
+const useReportCellSize = (ref: React.RefObject<HTMLDivElement | null>) => {
+  const { width, height } = useElementSize(ref);
+  const { rows, cols, panelOpen, setCellSize } = useStore(
+    useShallow((s) => ({
+      rows: s.pathfinding.grid.rows,
+      cols: s.pathfinding.grid.cols,
+      panelOpen: s.isGameOn && s.view === "single" && engines.pathfinding.gameUnavailable?.(s) === null,
+      setCellSize: s.actions.pathfinding.setCellSize,
+    })),
+  );
+  useEffect(() => {
+    if (width === 0 || height === 0) return;
+    const room = panelOpen ? height : height - GAME_ROOM;
+    const size = Math.floor(Math.min(width / cols, room / rows)) + (panelOpen ? 2 : 0);
+    if (size !== useStore.getState().pathfinding.cellSize) setCellSize(size);
+  }, [width, height, rows, cols, panelOpen, setCellSize]);
+};
+
+/**
+ * The cells the last answered question marked, while its explanation is up: the explanation
+ * names them by letter, so the letters stay on the grid (they can't be tapped any more).
+ */
+const useAnsweredMarks = (): CellQuestion | null => {
+  const feedback = useStore((s) => s.gameFeedback);
+  const [shown, setShown] = useState<CellQuestion | null>(null);
+  useEffect(() => {
+    const q = feedback?.question;
+    if (!feedback || !isCellQuestion(q)) return;
+    const show = window.setTimeout(() => setShown(q), 0);
+    const hide = window.setTimeout(() => setShown(null), Math.max(0, feedback.id + FEEDBACK_MS - Date.now()));
+    return () => {
+      window.clearTimeout(show);
+      window.clearTimeout(hide);
+      setShown(null);
+    };
+  }, [feedback]);
+  // Only on the run it was about: a new grid or search drops them.
+  const run = useStore((s) => s.pathfinding.run);
+  return shown && shown.run === run ? shown : null;
+};
+
 /** The single view: one search on the grid. */
 export const PathStage = () => {
-  const { grid, frame, algorithm } = useStore(
-    useShallow((s) => ({ grid: s.pathfinding.grid, frame: selectPathFrame(s), algorithm: s.pathfinding.algorithm })),
+  const ref = useRef<HTMLDivElement>(null);
+  const { grid, frame, algorithm, ask } = useStore(
+    useShallow((s) => {
+      const question = selectGameQuestion(s);
+      return {
+        grid: s.pathfinding.grid,
+        frame: selectPathFrame(s),
+        algorithm: s.pathfinding.algorithm,
+        ask: isCellQuestion(question) ? question : null,
+      };
+    }),
   );
+  useReportCellSize(ref);
+  const answered = useAnsweredMarks();
   const { title } = pathAlgorithms[algorithm];
   return (
-    <div data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col">
-      <GridCanvas frame={frame} label={text.onGrid(title, grid.rows, grid.cols, describeFrame(frame))} />
+    <div ref={ref} data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col">
+      <GridCanvas frame={frame} ask={ask} answered={ask ? null : answered} label={text.onGrid(title, grid.rows, grid.cols, describeFrame(frame))} />
       <PathFinishSummary className="pointer-events-none absolute inset-x-2 top-2 flex justify-center" />
     </div>
   );
