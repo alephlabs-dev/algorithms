@@ -176,7 +176,8 @@ const ViewRow = () => {
       <ModuleButton />
       {/* A module without a race names itself here instead. */}
       {race ? (
-        <ViewSwitch className="min-w-0 flex-1" />
+        // Phones stretch it; from iPad up it's as wide as in the desktop bar, so it doesn't outweigh the picker.
+        <ViewSwitch className="min-w-0 flex-1 md:w-56 md:flex-none md:mr-auto" />
       ) : (
         <span className="flex-1 pl-1 text-[15px] font-semibold">{title}</span>
       )}

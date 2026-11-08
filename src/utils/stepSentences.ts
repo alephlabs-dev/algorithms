@@ -23,15 +23,15 @@ import { seededRandom } from '@/utils/random';
 export type StepSentence = { sentence: string; run: string };
 
 const SEEDS = [1, 2, 3];
-// Phones lay grids and graphs out tall and narrow.
-const PHONE_LAYOUT = true;
+// Phones and upright screens lay grids and graphs out tall and narrow; landscape screens wide.
+const LAYOUTS = [{ narrow: true, name: 'narrow' }, { narrow: false, name: 'wide' }];
 
 const sortingRuns = function* () {
   const orders: InputOrder[] = ['random', 'nearlySorted', 'reversed', 'sorted', 'fewUnique'];
   for (const algorithm of Object.keys(sortAlgorithms) as Algorithm[])
     for (const order of orders)
-      // Every size a phone offers; the big ones once, they're long.
-      for (const [size, seeds] of [[10, SEEDS], [20, SEEDS], [40, [1]], [100, [1]], [200, [1]]] as const)
+      // Every size offered (400 from iPad up); the big ones once, they're long.
+      for (const [size, seeds] of [[10, SEEDS], [20, SEEDS], [40, [1]], [100, [1]], [200, [1]], [400, [1]]] as const)
         for (const seed of seeds) {
           const timeline = new Timeline(sortAlgorithms[algorithm], generateItems(size, order, seededRandom(seed)));
           const run = `sorting ${algorithm} ${order} ${size} seed ${seed}`;
@@ -45,13 +45,14 @@ const pathfindingRuns = function* () {
   for (const algorithm of Object.keys(pathSearches) as PathAlgorithm[])
     for (const size of sizes)
       for (const preset of presets)
-        for (const seed of SEEDS) {
-          const { rows, cols } = gridDimensions(size, PHONE_LAYOUT);
-          const grid = applyPreset(emptyGrid(rows, cols), preset, seededRandom(seed));
-          const timeline = new PathTimeline(pathSearches[algorithm], grid);
-          const run = `pathfinding ${algorithm} ${size} ${preset} seed ${seed}`;
-          for (let i = 0; i < timeline.length; i++) yield { run, sentence: narratePath(timeline, i, algorithm) };
-        }
+        for (const seed of SEEDS)
+          for (const layout of LAYOUTS) {
+            const { rows, cols } = gridDimensions(size, layout.narrow);
+            const grid = applyPreset(emptyGrid(rows, cols), preset, seededRandom(seed));
+            const timeline = new PathTimeline(pathSearches[algorithm], grid);
+            const run = `pathfinding ${algorithm} ${size} ${preset} ${layout.name} seed ${seed}`;
+            for (let i = 0; i < timeline.length; i++) yield { run, sentence: narratePath(timeline, i, algorithm) };
+          }
 };
 
 const graphRuns = function* () {
@@ -61,11 +62,12 @@ const graphRuns = function* () {
   for (const algorithm of algorithms)
     for (const size of sizes)
       for (const preset of presets)
-        for (const seed of SEEDS) {
-          const timeline = graphTimelineFor(algorithm, makeGraph(preset, size, PHONE_LAYOUT, seededRandom(seed)));
-          const run = `graphs ${algorithm} ${size} ${preset} seed ${seed}`;
-          for (let i = 0; i < timeline.length; i++) yield { run, sentence: narrateGraph(timeline, i, algorithm) };
-        }
+        for (const seed of SEEDS)
+          for (const layout of LAYOUTS) {
+            const timeline = graphTimelineFor(algorithm, makeGraph(preset, size, layout.narrow, seededRandom(seed)));
+            const run = `graphs ${algorithm} ${size} ${preset} ${layout.name} seed ${seed}`;
+            for (let i = 0; i < timeline.length; i++) yield { run, sentence: narrateGraph(timeline, i, algorithm) };
+          }
 };
 
 // The worst words a learner can type: as long as allowed, in the widest letters. Different,
