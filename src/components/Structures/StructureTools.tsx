@@ -103,12 +103,12 @@ const Item = ({ className, label }: { className: string; label: string }) => (
 );
 
 /** What the colors and badges mean. */
-export const StructureLegend = ({ className, stacked }: { className?: string; stacked?: boolean }) => {
+export const StructureLegend = ({ className }: { className?: string }) => {
   const algorithm = useStore((s) => s.structureAlgorithm);
   const avl = algorithm === "avl";
   const list = cn(
     "flex text-xs text-foreground md:text-sm",
-    stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
+    "flex-wrap items-center gap-x-4 gap-y-1",
     className,
   );
   if (algorithm === "heap")
@@ -140,7 +140,7 @@ export const StructureLegend = ({ className, stacked }: { className?: string; st
       aria-label={text.legend}
       className={cn(
         "flex text-xs text-foreground md:text-sm",
-        stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
+        "flex-wrap items-center gap-x-4 gap-y-1",
         className,
       )}
     >

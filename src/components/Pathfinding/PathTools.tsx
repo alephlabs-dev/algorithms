@@ -118,12 +118,12 @@ const Swatch = ({ className, label }: { className: string; label: string }) => (
 );
 
 /** What each color on the grid means. */
-export const PathLegend = ({ className, stacked }: { className?: string; stacked?: boolean }) => (
+export const PathLegend = ({ className }: { className?: string }) => (
   <ul
     aria-label={text.legend}
     className={cn(
       "flex text-xs text-foreground md:text-sm",
-      stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
+      "flex-wrap items-center gap-x-4 gap-y-1",
       className,
     )}
   >

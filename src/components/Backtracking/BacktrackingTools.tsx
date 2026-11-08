@@ -159,7 +159,7 @@ const Digit = ({ className, label }: { className: string; label: string }) => (
 );
 
 /** What the marks on the board mean. */
-export const BacktrackingLegend = ({ className, stacked }: { className?: string; stacked?: boolean }) => {
+export const BacktrackingLegend = ({ className }: { className?: string }) => {
   const sudoku = useStore((s) => s.backtrackingProblem === "sudoku");
   const fewest = useStore((s) => s.backtrackingProblem === "sudoku" && s.sudokuOrder === "mrv");
   return (
@@ -167,7 +167,7 @@ export const BacktrackingLegend = ({ className, stacked }: { className?: string;
       aria-label={text.legend}
       className={cn(
         "flex text-xs text-foreground md:text-sm",
-        stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
+        "flex-wrap items-center gap-x-4 gap-y-1",
         className,
       )}
     >

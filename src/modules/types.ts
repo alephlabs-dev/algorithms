@@ -36,7 +36,7 @@ export type ModuleUI = {
   /** Tools that sit above the stage from tablet width up (on phones they live in the settings). */
   Tools?: ComponentType<WithClass>;
   /** What the colors on stage mean. */
-  Legend: ComponentType<WithClass & { stacked?: boolean }>;
+  Legend: ComponentType<WithClass>;
   /** Counters for the dock, in single view. */
   Stats: ComponentType<WithClass>;
   /** The settings, in the dock's popover and the phone's sheet. */

@@ -108,7 +108,7 @@ const Line = ({ className, label }: { className: string; label: string }) => (
 );
 
 /** What each color on the graph means, in each algorithm's words. */
-export const GraphLegend = ({ className, stacked }: { className?: string; stacked?: boolean }) => {
+export const GraphLegend = ({ className }: { className?: string }) => {
   const { algorithm, isRace } = useStore(
     useShallow((s) => ({ algorithm: s.graphAlgorithm, isRace: s.view === "race" })),
   );
@@ -155,7 +155,7 @@ export const GraphLegend = ({ className, stacked }: { className?: string; stacke
       aria-label={text.legend}
       className={cn(
         "flex text-xs text-foreground md:text-sm",
-        stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
+        "flex-wrap items-center gap-x-4 gap-y-1",
         className,
       )}
     >

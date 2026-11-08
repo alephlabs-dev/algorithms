@@ -106,3 +106,16 @@ test('iPad landscape and desktop: a side panel with Settings and Pseudocode tabs
   await page.getByRole('button', { name: /Show pseudocode$/ }).click();
   await expect(tabs.getByRole('radio', { name: 'Pseudocode' })).toBeChecked();
 });
+
+test('iPad landscape and desktop: the legend shows once while the Pseudocode tab is open', async ({ page }, testInfo) => {
+  test.skip(!hasSettingsPanel(testInfo), 'phones and upright tablets use the sheet');
+  await page.addInitScript(() => localStorage.setItem('tour-done-pathfinding', 'true'));
+  await page.goto('/pathfinding');
+
+  await page.getByRole('radiogroup', { name: 'Side panel' }).getByRole('radio', { name: 'Pseudocode' }).click();
+  const card = page.getByRole('region', { name: 'Current step' });
+  await expect(card).toBeVisible();
+  // Once, above the stage, where it also shows on upright tablets and with the Settings tab open.
+  await expect(page.getByRole('list', { name: /legend/i }).filter({ visible: true })).toHaveCount(1);
+  await expect(card.getByRole('list', { name: /legend/i })).toHaveCount(0);
+});
