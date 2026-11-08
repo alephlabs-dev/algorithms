@@ -1,18 +1,18 @@
 import { localized } from "@/i18n";
-import { encodeCells } from "@/pathfinding/grid";
 import type { Route } from "@/routes";
 import type { StoreState, View } from "@/store";
 import type { Size } from "@/types";
 import { sizes } from "@/consts/sizesMap";
 import { questionsOf, SORT_GUESS_MAX_SIZE, sortQuestions, type Question } from "@/game";
-import { toPathSearch, toSearch } from "@/urlState";
+import { toSearch } from "@/urlState";
 import { backtrackingSlice } from "./backtracking.slice";
 import { dpSlice } from "./dp.slice";
 import { fourierSlice } from "./fourier.slice";
 import { graphsSlice } from "./graphs.slice";
+import { pathfindingSlice } from "./pathfinding.slice";
 import { structuresSlice } from "./structures.slice";
-import type { Bound, ModuleSlice, SliceContext } from "./slice";
-import { PATH_STEP_WEIGHT, speedFor, STEP_WEIGHT, type Pace } from "@/utils/speed";
+import type { BoundSlice, ModuleSlice, SliceContext } from "./slice";
+import { speedFor, STEP_WEIGHT, type Pace } from "@/utils/speed";
 
 /** The modules the app has. Each one declares its engine here and its interface in ./<id>.tsx. */
 export type ModuleId = "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | "backtracking";
@@ -48,13 +48,14 @@ export const slices = {
   structures: structuresSlice,
   dp: dpSlice,
   graphs: graphsSlice,
+  pathfinding: pathfindingSlice,
 };
 
 export type SlicedModule = keyof typeof slices;
 /** Each sliced module's state, under its id. */
 export type SliceStates = { [M in SlicedModule]: ReturnType<(typeof slices)[M]["hydrate"]> };
 /** Each sliced module's actions, bound by the store: `s.actions.fourier.setCircles(25)`. */
-export type SliceActions = { [M in SlicedModule]: Bound<(typeof slices)[M]["actions"]> };
+export type SliceActions = { [M in SlicedModule]: BoundSlice<(typeof slices)[M]> };
 /** The algorithms a sliced module can put on stage. */
 export type SliceAlgorithm<M extends SlicedModule> = ReturnType<(typeof slices)[M]["current"]>;
 
@@ -121,26 +122,7 @@ export const engines: Record<ModuleId, ModuleEngine> = {
       sortGuessUnavailable(s) ? [] : questionsOf(s.timeline, (run) => sortQuestions(run, s.activeAlgorithm)),
     gameUnavailable: sortGuessUnavailable,
   },
-  pathfinding: {
-    // Races run on cells examined, so every lane gets the same clock.
-    lastIndex: (s, view) =>
-      view === "race" ? Math.max(0, ...s.pathRaceTimelines.map((t) => t.totalVisits)) : s.pathTimeline.length - 1,
-    stepWeight: (s, index) => PATH_STEP_WEIGHT[s.pathTimeline.stepAt(index)?.type ?? "done"],
-    pace: (view) => (view === "race" ? "pathRace" : "pathfinding"),
-    route: (s) => {
-      if (s.view === "race") return { kind: "pathRace" };
-      return s.isModuleStart ? { kind: "pathfinding" } : { kind: "path", algorithm: s.pathAlgorithm };
-    },
-    search: (s) =>
-      toPathSearch({
-        gridSize: s.gridSize,
-        cells: encodeCells(s.grid.cells),
-        start: s.grid.start,
-        end: s.grid.end,
-        racers: s.pathRaceAlgorithms,
-        speed: s.speedPreset,
-      }),
-  },
+  pathfinding: engineOf("pathfinding", slices.pathfinding.engine, (s) => s.pathfinding),
   graphs: engineOf("graphs", slices.graphs.engine, (s) => s.graphs),
   fourier: engineOf("fourier", slices.fourier.engine, (s) => s.fourier),
   structures: engineOf("structures", slices.structures.engine, (s) => s.structures),

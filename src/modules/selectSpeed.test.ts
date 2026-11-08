@@ -46,7 +46,7 @@ describe("selectSpeed", () => {
       module: "pathfinding",
       view: "single",
       speedPreset: "1x",
-      pathTimeline: run(4_000),
+      pathfinding: { run: run(4_000) },
     } as unknown as StoreState;
     expect(secondsFor(s, 4_000)).toBeCloseTo(20);
   });

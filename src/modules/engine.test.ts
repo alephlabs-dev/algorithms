@@ -10,6 +10,13 @@ import { generateItems } from "@/utils/generateItems";
 import { seededRandom } from "@/utils/random";
 import { engines, type ModuleId } from "./engine";
 
+const PATHFINDING = {
+  algorithm: "dijkstra",
+  gridSize: "medium",
+  grid: applyPreset(emptyGrid(17, 33), "maze", seededRandom(3)),
+  racers: ["bfs", "astar"],
+};
+
 const GRAPHS = {
   algorithm: "dijkstra",
   size: "large",
@@ -66,16 +73,17 @@ const stateFor = (module: ModuleId, view: "single" | "race", isModuleStart: bool
     speedPreset: "2x",
     seed: 12345,
     raceAlgorithms: ["insertion", "quick", "merge"],
-    pathAlgorithm: "dijkstra",
-    gridSize: "medium",
-    grid: applyPreset(emptyGrid(17, 33), "maze", seededRandom(3)),
-    pathRaceAlgorithms: ["bfs", "astar"],
+    pathfinding: PATHFINDING,
     graphs: GRAPHS,
     structures: STRUCTURES,
     dp: DP,
     backtracking: BACKTRACKING,
     fourier: FOURIER,
   }) as unknown as StoreState;
+
+/** A store change to one module's slice. */
+const within = (module: ModuleId, base: object, change: object) =>
+  ({ [module]: { ...base, ...change } }) as Partial<StoreState>;
 
 describe("module engines", () => {
   for (const module of Object.keys(engines) as ModuleId[]) {
@@ -104,35 +112,32 @@ describe("module engines", () => {
       ["sorting", { inputOrder: "sorted" }],
       ["sorting", { seed: 99 }],
       ["sorting", { raceAlgorithms: ["quick", "merge"] }],
-      ["pathfinding", { grid: applyPreset(emptyGrid(17, 33), "walls", seededRandom(8)) }],
-      ["pathfinding", { pathRaceAlgorithms: ["dfs", "greedy"] }],
-      ["graphs", { graphs: { ...GRAPHS, graph: makeGraph("grid", "large", false, seededRandom(2)) } } as Partial<StoreState>],
-      ["graphs", { graphs: { ...GRAPHS, preset: "dag" } } as Partial<StoreState>],
-      ["graphs", { graphs: { ...GRAPHS, racers: ["bfs", "topo"] } } as Partial<StoreState>],
-      ["fourier", { fourier: { ...FOURIER, circles: 100 } } as Partial<StoreState>],
-      ["fourier", { fourier: { ...FOURIER, shape: "star" } } as Partial<StoreState>],
       [
-        "fourier",
-        { fourier: { ...FOURIER, path: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }] } } as Partial<StoreState>,
+        "pathfinding",
+        within("pathfinding", PATHFINDING, { grid: applyPreset(emptyGrid(17, 33), "walls", seededRandom(8)) }),
       ],
+      ["pathfinding", within("pathfinding", PATHFINDING, { racers: ["dfs", "greedy"] })],
+      ["graphs", within("graphs", GRAPHS, { graph: makeGraph("grid", "large", false, seededRandom(2)) })],
+      ["graphs", within("graphs", GRAPHS, { preset: "dag" })],
+      ["graphs", within("graphs", GRAPHS, { racers: ["bfs", "topo"] })],
+      ["fourier", within("fourier", FOURIER, { circles: 100 })],
+      ["fourier", within("fourier", FOURIER, { shape: "star" })],
+      ["fourier", within("fourier", FOURIER, { path: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }] })],
       ["fourier", { speedPreset: "4x" }],
       [
         "structures",
-        {
-          structures: {
-            ...STRUCTURES,
-            ops: [
-              { kind: "insert", value: 10 },
-              { kind: "delete", value: 10 },
-            ],
-          },
-        } as Partial<StoreState>,
+        within("structures", STRUCTURES, {
+          ops: [
+            { kind: "insert", value: 10 },
+            { kind: "delete", value: 10 },
+          ],
+        }),
       ],
-      ["structures", { structures: { ...STRUCTURES, preset: "random" } } as Partial<StoreState>],
-      ["dp", { dp: { ...DP, a: "SUNDAY" } } as Partial<StoreState>],
-      ["dp", { dp: { ...DP, b: "SATURDAY" } } as Partial<StoreState>],
-      ["dp", { dp: { ...DP, algorithm: "knapsack", capacity: 9 } } as Partial<StoreState>],
-      ["backtracking", { backtracking: { ...BACKTRACKING, queensN: 8 } } as Partial<StoreState>],
+      ["structures", within("structures", STRUCTURES, { preset: "random" })],
+      ["dp", within("dp", DP, { a: "SUNDAY" })],
+      ["dp", within("dp", DP, { b: "SATURDAY" })],
+      ["dp", within("dp", DP, { algorithm: "knapsack", capacity: 9 })],
+      ["backtracking", within("backtracking", BACKTRACKING, { queensN: 8 })],
     ];
     for (const [module, change] of changes) {
       const state = stateFor(module, "single", false);

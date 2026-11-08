@@ -45,10 +45,10 @@ export const applyRoute = (app: AppStore, route: Route) => {
     if (store.module !== "graphs") store.pick("graphs", store.graphs.algorithm);
     if (app.getState().view !== "race") store.setView("race");
   } else if (route.kind === "path" || route.kind === "pathfinding") {
-    const algorithm = route.kind === "path" ? route.algorithm : store.pathAlgorithm;
-    if (!inPath || store.view !== "single" || store.pathAlgorithm !== algorithm) store.setPathAlgorithm(algorithm);
+    const algorithm = route.kind === "path" ? route.algorithm : store.pathfinding.algorithm;
+    if (!inPath || store.view !== "single" || store.pathfinding.algorithm !== algorithm) store.pick("pathfinding", algorithm);
   } else if (route.kind === "pathRace") {
-    if (!inPath) store.setPathAlgorithm(store.pathAlgorithm);
+    if (!inPath) store.pick("pathfinding", store.pathfinding.algorithm);
     if (app.getState().view !== "race") store.setView("race");
   } else if (route.kind === "race") {
     if (store.module !== "sorting") store.setActiveAlgorithm(store.activeAlgorithm);

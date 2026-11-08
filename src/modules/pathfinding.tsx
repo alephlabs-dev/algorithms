@@ -43,8 +43,8 @@ export const pathfindingUI: ModuleUI = {
   Facts: PathFacts,
 
   settingsSummary: (s) => {
-    const size = gridSizeLabels[s.gridSize];
-    const layout = presetLabel(s.gridPreset);
+    const size = gridSizeLabels[s.pathfinding.gridSize];
+    const layout = presetLabel(s.pathfinding.gridPreset);
     return { main: size, detail: layout, label: text.grid(size, layout) };
   },
   newRunLabel: text.newRun,
@@ -58,24 +58,24 @@ export const pathfindingUI: ModuleUI = {
       })),
     },
   ],
-  current: (s) => s.pathAlgorithm,
-  pick: (id) => useStore.getState().setPathAlgorithm(id as PathAlgorithm),
+  current: (s) => s.pathfinding.algorithm,
+  pick: (id) => useStore.getState().pick("pathfinding", id as PathAlgorithm),
 
-  about: (s) => pathAlgorithms[s.pathAlgorithm],
-  summary: (s) => pathTraits(s.pathAlgorithm),
+  about: (s) => pathAlgorithms[s.pathfinding.algorithm],
+  summary: (s) => pathTraits(s.pathfinding.algorithm),
   race: {
     Stage: PathRaceLanes,
-    racers: (s) => s.pathRaceAlgorithms,
-    toggleRacer: (id) => useStore.getState().togglePathRacer(id as PathAlgorithm),
+    racers: (s) => s.pathfinding.racers,
+    toggleRacer: (id) => useStore.getState().actions.pathfinding.toggleRacer(id as PathAlgorithm),
     tagline: text.tagline,
     description: PATH_RACE_DESCRIPTION,
     unit: text.unit,
   },
 
   code: {
-    lines: (s) => pathPseudocode[s.pathAlgorithm],
+    lines: (s) => pathPseudocode[s.pathfinding.algorithm],
     line: (s) => selectPathFrame(s).line,
-    narrate: (s, index) => narratePath(s.pathTimeline, Math.min(index, s.pathTimeline.length - 1), s.pathAlgorithm),
+    narrate: (s, index) => narratePath(s.pathfinding.run, Math.min(index, s.pathfinding.run.length - 1), s.pathfinding.algorithm),
   },
 
   tour: pathfindingTour,

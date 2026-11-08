@@ -28,7 +28,12 @@ type Action<S> = (slice: S, ctx: SliceContext, ...args: never[]) => Patch<S>;
  * slice per module under its id, and only the store writes: every action here
  * returns a patch, and any patch that changes the run starts playback over.
  */
-export type ModuleSlice<S, Id extends string, A extends Record<string, Action<S>>> = {
+export type ModuleSlice<
+  S,
+  Id extends string,
+  A extends Record<string, Action<S>>,
+  B extends Record<string, Action<S>> = Record<never, never>,
+> = {
   /** Remembers that the module's tour was seen (in localStorage). */
   tourKey: string;
   /** The slice a visit starts with, from the link and the screen. */
@@ -39,6 +44,8 @@ export type ModuleSlice<S, Id extends string, A extends Record<string, Action<S>
   pick: (slice: S, ctx: SliceContext, id: Id) => Partial<S>;
   /** Changes to the module's input or settings; each one replaces the run, stopped at its first frame. */
   actions: A;
+  /** Changes to tools that leave the run alone (what dragging paints), so playback carries on. */
+  settings?: B;
   /** Actions after which playback runs on its own, from the frame given here (on the slice after the action). */
   playFrom?: { [K in keyof A]?: (slice: S, ctx: SliceContext) => number };
   /**
@@ -46,6 +53,8 @@ export type ModuleSlice<S, Id extends string, A extends Record<string, Action<S>
    * The store calls it whenever the view or the module on stage changes. Without it, the module has no race.
    */
   forView?: (slice: S, ctx: SliceContext) => Partial<S>;
+  /** Adds a racer before switching to race view ("race it"): the race's racers, with `racer` among them. */
+  addRacer?: (slice: S, racer: Id) => Partial<S>;
   /** After the screen turns narrow or wide (see isNarrow): a layout that fits it, or null to keep the input. */
   reshape?: (slice: S, ctx: SliceContext) => Patch<S>;
   /** "New": another input of the same kind. */
@@ -72,13 +81,19 @@ export type ModuleSlice<S, Id extends string, A extends Record<string, Action<S>
 /** Declares a module's slice: `defineModule<State, AlgorithmId>()({ ... })`. */
 export const defineModule =
   <S, Id extends string>() =>
-  <A extends Record<string, Action<S>>>(slice: ModuleSlice<S, Id, A>) =>
+  <A extends Record<string, Action<S>>, B extends Record<string, Action<S>> = Record<never, never>>(
+    slice: ModuleSlice<S, Id, A, B>,
+  ) =>
     slice;
 
 /** A module's actions as callers see them: the arguments only, the store applies the patch. */
 export type Bound<A> = {
   [K in keyof A]: A[K] extends (slice: never, ctx: never, ...args: infer P) => unknown ? (...args: P) => void : never;
 };
+
+/** Every action a module's callers can call: its actions and its settings. */
+export type BoundSlice<T extends { actions: unknown; settings?: unknown }> = Bound<T["actions"]> &
+  Bound<NonNullable<T["settings"]>>;
 
 export const MIN_RACERS = 2;
 export const MAX_RACERS = 4;
@@ -95,3 +110,10 @@ export const toggleRacer = <T extends string>(order: readonly T[], racers: reado
 
 /** Phones, and any window taller than wide, get upright grids and graphs that fit their stage. */
 export const isNarrow = (s: { isMobile: boolean; isPortrait: boolean }) => s.isMobile || s.isPortrait;
+
+/** The racers with `racer` among them, in `order`; a full race gives up its last racer for it. */
+export const withRacer = <T extends string>(order: readonly T[], racers: readonly T[], racer: T): T[] => {
+  if (racers.includes(racer)) return [...racers];
+  const kept = racers.length >= MAX_RACERS ? racers.slice(0, -1) : racers;
+  return order.filter((a) => a === racer || kept.includes(a));
+};
