@@ -37,9 +37,11 @@ jobs:
       options: --ipc=host
     steps:
       - uses: actions/checkout@v4
+      # The Playwright image ships without make.
+      - run: apt-get update && apt-get install -y --no-install-recommends make
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright test --project=${{ matrix.project }}
+      - run: make e2e ARGS=--project=${{ matrix.project }}
         env:
           STEP_SENTENCES: 1 # the slow step-sentence check, skipped locally by default
       - uses: actions/upload-artifact@v4
