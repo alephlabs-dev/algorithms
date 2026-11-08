@@ -91,8 +91,9 @@ const Narration = ({ className }: { className?: string }) => {
 };
 
 /**
- * The code with the current line, the step in plain words and the legend,
- * as the side panel's Pseudocode tab. iPad landscape and desktop. It's
+ * The code with the current line and the step in plain words, as the side
+ * panel's Pseudocode tab. iPad landscape and desktop. The legend stays in the
+ * row above the stage, so it shows once, whichever tab is open. It's
  * explanation, not controls, so it may scroll inside (UX.md rule 14).
  */
 export const NowCard = ({ className }: { className?: string }) => {
@@ -107,15 +108,8 @@ export const NowCard = ({ className }: { className?: string }) => {
         <CodeLines lines={lines} line={tooFast ? null : line} />
       </div>
       <Narration className="border-l-2 border-secondary pl-3" />
-      <div className="h-px bg-edge" />
-      <ModuleLegend />
     </section>
   );
-};
-
-const ModuleLegend = () => {
-  const { Legend } = useModuleUI();
-  return <Legend stacked />;
 };
 
 /**

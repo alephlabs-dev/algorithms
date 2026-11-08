@@ -132,7 +132,7 @@ const Item = ({ className, label }: { className: string; label: string }) => (
   </li>
 );
 
-export const DpLegend = ({ className, stacked }: { className?: string; stacked?: boolean }) => {
+export const DpLegend = ({ className }: { className?: string }) => {
   const { edit, knapsack, race } = useStore(
     useShallow((s) => ({
       edit: s.dpAlgorithm === "edit",
@@ -146,7 +146,7 @@ export const DpLegend = ({ className, stacked }: { className?: string; stacked?:
         aria-label={text.legend}
         className={cn(
           "flex text-xs text-foreground md:text-sm",
-          stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
+          "flex-wrap items-center gap-x-4 gap-y-1",
           className,
         )}
       >
@@ -159,7 +159,7 @@ export const DpLegend = ({ className, stacked }: { className?: string; stacked?:
       aria-label={text.legend}
       className={cn(
         "flex text-xs text-foreground md:text-sm",
-        stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
+        "flex-wrap items-center gap-x-4 gap-y-1",
         className,
       )}
     >

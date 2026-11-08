@@ -39,7 +39,7 @@ const Swatch = ({ className, label }: { className: string; label: string }) => (
 );
 
 /** What each bar color means. Yellow means something different per algorithm, so races leave it out. */
-export const Legend = ({ className, stacked }: { className?: string; stacked?: boolean }) => {
+export const Legend = ({ className }: { className?: string }) => {
   const tempLabel = useStore((s) =>
     s.view === "race" ? undefined : sortingAlgorithms[s.activeAlgorithm].tempLabel
   );
@@ -48,7 +48,7 @@ export const Legend = ({ className, stacked }: { className?: string; stacked?: b
       aria-label={text.legend}
       className={cn(
         "flex text-xs text-foreground md:text-sm",
-        stacked ? "flex-col gap-1.5" : "flex-wrap items-center gap-x-4 gap-y-1",
+        "flex-wrap items-center gap-x-4 gap-y-1",
         className
       )}
     >
