@@ -106,7 +106,7 @@ export const graphsSlice = defineModule<GraphsState, GraphAlgorithm>()({
   },
 
   // Upright graphs for narrow screens, wide ones otherwise.
-  reshape: (s, ctx) => (s.graph.aspect === graphAspect(isNarrow(ctx)) ? null : fresh(s, ctx, s.preset, s.size)),
+  fit: (s, ctx) => (s.graph.aspect === graphAspect(isNarrow(ctx)) ? null : fresh(s, ctx, s.preset, s.size)),
 
   newInput: (s, ctx) => fresh(s, ctx, s.preset, s.size),
 

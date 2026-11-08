@@ -144,7 +144,10 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm>()(
       : resized(s, ctx, s.gridSize),
 
   // Upright grids for narrow screens, wide ones otherwise.
-  reshape: (s, ctx) => resized(s, ctx, s.gridSize),
+  fit: (s, ctx) => {
+    const { rows, cols } = gridDimensions(s.gridSize, isNarrow(ctx));
+    return s.grid.rows === rows && s.grid.cols === cols ? null : resized(s, ctx, s.gridSize);
+  },
 
   // "New" means another layout of the same kind (a clear grid becomes a maze).
   newInput: (s, ctx) => withPreset(s, ctx, s.gridPreset === "clear" ? "maze" : s.gridPreset),

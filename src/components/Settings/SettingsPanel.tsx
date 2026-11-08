@@ -97,12 +97,12 @@ const text = localized({
 const useSettings = () =>
   useStore(
     useShallow((s) => ({
-      size: s.size,
-      setSize: s.setSize,
-      inputOrder: s.inputOrder,
-      setInputOrder: s.setInputOrder,
-      displayMode: s.displayMode,
-      setDisplayMode: s.setDisplayMode,
+      size: s.sorting.size,
+      setSize: s.actions.sorting.setSize,
+      inputOrder: s.sorting.inputOrder,
+      setInputOrder: s.actions.sorting.setInputOrder,
+      displayMode: s.sorting.displayMode,
+      setDisplayMode: s.actions.sorting.setDisplayMode,
       isMobile: s.isMobile,
       isRace: s.view === "race",
     }))

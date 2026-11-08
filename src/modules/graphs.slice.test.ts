@@ -63,8 +63,8 @@ describe("graphs slice", () => {
 
   it("turning the screen upright lays the graph out upright; staying wide keeps it", () => {
     const s = at("/graphs");
-    expect(slice.reshape!(s, single)).toBeNull();
-    const upright = apply(s, slice.reshape!(s, { ...single, isPortrait: true }));
+    expect(slice.fit!(s, single)).toBeNull();
+    const upright = apply(s, slice.fit!(s, { ...single, isPortrait: true }));
     expect(upright.graph.aspect).toBe(graphAspect(true));
     expect(upright.inputId).toBe(s.inputId + 1);
   });

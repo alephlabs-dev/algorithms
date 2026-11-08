@@ -12,7 +12,7 @@ const text = localized({
 
 /** Best / average / worst time complexity for an algorithm. */
 export const Complexity = ({ className }: { className?: string }) => {
-  const activeAlgorithm = useStore((s) => s.activeAlgorithm);
+  const activeAlgorithm = useStore((s) => s.sorting.algorithm);
   const { timeComplexity } = sortingAlgorithms[activeAlgorithm];
   return (
     <div className={cn("flex flex-wrap items-center gap-2 text-sm", className)}>

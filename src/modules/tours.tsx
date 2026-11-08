@@ -2,7 +2,7 @@ import { localized } from "@/i18n";
 import { MUD_COST } from "@/pathfinding";
 import type { Theme } from "@/store";
 import { Swatch } from "@/components/TourSwatch";
-import { sortGuessSizes } from "./engine";
+import { sortGuessSizes } from "./sorting.slice";
 import type { TourStep } from "./types";
 
 // The guided tour of each module: which control to light up, and what to say about it.

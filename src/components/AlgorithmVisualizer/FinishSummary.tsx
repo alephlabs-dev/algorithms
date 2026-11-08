@@ -31,7 +31,7 @@ export const FinishSummary = ({ className }: { className?: string }) => {
       finished: s.frameIndex > 0 && s.frameIndex === selectLastIndex(s),
       steps: selectLastIndex(s),
       stats: selectFrame(s).stats,
-      algorithm: s.activeAlgorithm,
+      algorithm: s.sorting.algorithm,
       raceWith: s.raceWith,
     }))
   );

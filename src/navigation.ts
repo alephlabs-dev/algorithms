@@ -46,17 +46,18 @@ export const applyRoute = (app: AppStore, route: Route) => {
     if (app.getState().view !== "race") store.setView("race");
   } else if (route.kind === "path" || route.kind === "pathfinding") {
     const algorithm = route.kind === "path" ? route.algorithm : store.pathfinding.algorithm;
-    if (!inPath || store.view !== "single" || store.pathfinding.algorithm !== algorithm) store.pick("pathfinding", algorithm);
+    if (!inPath || store.view !== "single" || store.pathfinding.algorithm !== algorithm)
+      store.pick("pathfinding", algorithm);
   } else if (route.kind === "pathRace") {
     if (!inPath) store.pick("pathfinding", store.pathfinding.algorithm);
     if (app.getState().view !== "race") store.setView("race");
   } else if (route.kind === "race") {
-    if (store.module !== "sorting") store.setActiveAlgorithm(store.activeAlgorithm);
+    if (store.module !== "sorting") store.pick("sorting", store.sorting.algorithm);
     if (app.getState().view !== "race") store.setView("race");
   } else {
-    const algorithm = route.kind === "algorithm" ? route.algorithm : store.activeAlgorithm;
-    if (store.module !== "sorting" || store.view !== "single" || store.activeAlgorithm !== algorithm)
-      store.setActiveAlgorithm(algorithm);
+    const algorithm = route.kind === "algorithm" ? route.algorithm : store.sorting.algorithm;
+    if (store.module !== "sorting" || store.view !== "single" || store.sorting.algorithm !== algorithm)
+      store.pick("sorting", algorithm);
   }
   app.setState({
     isLanding: false,

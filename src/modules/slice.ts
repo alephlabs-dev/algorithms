@@ -55,8 +55,11 @@ export type ModuleSlice<
   forView?: (slice: S, ctx: SliceContext) => Partial<S>;
   /** Adds a racer before switching to race view ("race it"): the race's racers, with `racer` among them. */
   addRacer?: (slice: S, racer: Id) => Partial<S>;
-  /** After the screen turns narrow or wide (see isNarrow): a layout that fits it, or null to keep the input. */
-  reshape?: (slice: S, ctx: SliceContext) => Patch<S>;
+  /**
+   * After the screen or one of the module's settings changes: an input that fits
+   * (an upright layout on a narrow screen, fewer items on a small one), or null when it already does.
+   */
+  fit?: (slice: S, ctx: SliceContext) => Patch<S>;
   /** "New": another input of the same kind. */
   newInput: (slice: S, ctx: SliceContext) => Patch<S>;
   /** What playback needs: how long a run is and how its steps are paced, and the page and link it's on. */

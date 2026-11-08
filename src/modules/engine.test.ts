@@ -10,6 +10,15 @@ import { generateItems } from "@/utils/generateItems";
 import { seededRandom } from "@/utils/random";
 import { engines, type ModuleId } from "./engine";
 
+const SORTING = {
+  algorithm: "heap",
+  size: 40,
+  inputOrder: "reversed",
+  displayMode: "bars",
+  seed: 12345,
+  racers: ["insertion", "quick", "merge"],
+};
+
 const PATHFINDING = {
   algorithm: "dijkstra",
   gridSize: "medium",
@@ -59,20 +68,15 @@ const FOURIER = {
   ],
 };
 
-// Just the fields the engines' routing reads; the store itself needs a browser.
+// Just the fields the engines read; each slice gets only its settings.
 const stateFor = (module: ModuleId, view: "single" | "race", isModuleStart: boolean) =>
   ({
     module,
     view,
     isModuleStart,
     isLanding: false,
-    activeAlgorithm: "heap",
-    size: 40,
-    inputOrder: "reversed",
-    displayMode: "bars",
     speedPreset: "2x",
-    seed: 12345,
-    raceAlgorithms: ["insertion", "quick", "merge"],
+    sorting: SORTING,
     pathfinding: PATHFINDING,
     graphs: GRAPHS,
     structures: STRUCTURES,
@@ -108,10 +112,10 @@ describe("module engines", () => {
 
   it("puts every setting a module shares in its link, so editing it changes the link", () => {
     const changes: [ModuleId, Partial<StoreState>][] = [
-      ["sorting", { size: 80 }],
-      ["sorting", { inputOrder: "sorted" }],
-      ["sorting", { seed: 99 }],
-      ["sorting", { raceAlgorithms: ["quick", "merge"] }],
+      ["sorting", within("sorting", SORTING, { size: 80 })],
+      ["sorting", within("sorting", SORTING, { inputOrder: "sorted" })],
+      ["sorting", within("sorting", SORTING, { seed: 99 })],
+      ["sorting", within("sorting", SORTING, { racers: ["quick", "merge"] })],
       [
         "pathfinding",
         within("pathfinding", PATHFINDING, { grid: applyPreset(emptyGrid(17, 33), "walls", seededRandom(8)) }),
@@ -162,13 +166,14 @@ describe("module engines", () => {
   });
 
   it("sorting has guess mode with 10 or 20 items, and none with more", () => {
-    const sortingWith = (size: number) =>
-      ({
-        ...stateFor("sorting", "single", false),
-        activeAlgorithm: "insertion",
+    const sortingWith = (size: number) => ({
+      ...stateFor("sorting", "single", false),
+      ...within("sorting", SORTING, {
+        algorithm: "insertion",
         size,
-        timeline: new Timeline(sortAlgorithms.insertion, generateItems(size, "random", seededRandom(4))),
-      }) as StoreState;
+        run: new Timeline(sortAlgorithms.insertion, generateItems(size, "random", seededRandom(4))),
+      }),
+    });
     const game = engines.sorting.game;
     expect(game).toBeDefined();
     expect(game!(sortingWith(10)).length).toBeGreaterThan(0);

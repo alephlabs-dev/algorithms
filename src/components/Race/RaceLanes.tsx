@@ -76,10 +76,10 @@ const RaceLane = ({ algorithm, timeline, clock, place, runId, className }: LaneP
 export const RaceLanes = () => {
   const { algorithms, timelines, clock, runId, replay } = useStore(
     useShallow((s) => ({
-      algorithms: s.raceAlgorithms,
-      timelines: s.raceTimelines,
+      algorithms: s.sorting.racers,
+      timelines: s.sorting.raceRuns,
       clock: s.frameIndex,
-      runId: s.arrayId,
+      runId: s.sorting.inputId,
       // play() restarts from the beginning once the run has finished.
       replay: s.play,
     }))

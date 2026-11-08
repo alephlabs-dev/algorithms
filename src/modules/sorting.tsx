@@ -56,10 +56,10 @@ export const sortingUI: ModuleUI = {
   Facts: Complexity,
 
   settingsSummary: (s) => {
-    const input = inputOrders[s.inputOrder].label;
+    const input = inputOrders[s.sorting.inputOrder].label;
     // Race lanes always draw bars, so the display mode only matters in single view.
-    const display = s.view === "race" ? "" : `, ${s.displayMode === "bars" ? text.bars : text.numbers}`;
-    return { main: String(s.size), detail: input, mono: true, label: `${text.items(s.size)}, ${input}${display}` };
+    const display = s.view === "race" ? "" : `, ${s.sorting.displayMode === "bars" ? text.bars : text.numbers}`;
+    return { main: String(s.sorting.size), detail: input, mono: true, label: `${text.items(s.sorting.size)}, ${input}${display}` };
   },
   newRunLabel: text.newRun,
 
@@ -68,27 +68,27 @@ export const sortingUI: ModuleUI = {
     hint: group.hint,
     items: group.algorithms.map((id) => ({ id, title: sortingAlgorithms[id].title, short: shortName(id) })),
   })),
-  current: (s) => s.activeAlgorithm,
-  pick: (id) => useStore.getState().setActiveAlgorithm(id as Algorithm),
+  current: (s) => s.sorting.algorithm,
+  pick: (id) => useStore.getState().pick("sorting", id as Algorithm),
 
-  about: (s) => sortingAlgorithms[s.activeAlgorithm],
+  about: (s) => sortingAlgorithms[s.sorting.algorithm],
   summary: (s) => {
-    const { average, worst } = sortingAlgorithms[s.activeAlgorithm].timeComplexity;
+    const { average, worst } = sortingAlgorithms[s.sorting.algorithm].timeComplexity;
     return average === worst ? text.always(average) : text.avgWorst(average, worst);
   },
   race: {
     Stage: RaceLanes,
-    racers: (s) => s.raceAlgorithms,
-    toggleRacer: (id) => useStore.getState().toggleRaceAlgorithm(id as Algorithm),
+    racers: (s) => s.sorting.racers,
+    toggleRacer: (id) => useStore.getState().actions.sorting.toggleRacer(id as Algorithm),
     tagline: text.tagline,
     description: RACE_DESCRIPTION,
     unit: text.unit,
   },
 
   code: {
-    lines: (s) => pseudocode[s.activeAlgorithm],
+    lines: (s) => pseudocode[s.sorting.algorithm],
     line: (s) => selectFrame(s).line,
-    narrate: (s, index) => narrate(s.timeline, Math.min(index, s.timeline.length - 1), pseudocode[s.activeAlgorithm]),
+    narrate: (s, index) => narrate(s.sorting.run, Math.min(index, s.sorting.run.length - 1), pseudocode[s.sorting.algorithm]),
   },
 
   tour: sortingTour,
