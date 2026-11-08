@@ -39,8 +39,9 @@ export const ResultsOverlay = ({ children, onReplay }: { children: ReactNode; on
   }
 
   return (
+    // A backdrop (it hides the lanes and takes their taps), so it uses the scrim (UX.md rule 13).
     // Over the lanes on wide screens; over the whole screen on phones, where the card is taller than the lanes.
-    <div className="fixed inset-0 z-40 grid place-items-center bg-background/60 p-4 backdrop-blur-[2px] animate-in fade-in duration-300 motion-reduce:animate-none md:absolute md:z-10">
+    <div className="fixed inset-0 z-40 grid place-items-center bg-scrim p-4 animate-in fade-in duration-300 motion-reduce:animate-none md:absolute md:z-10">
       <section
         role="status"
         aria-label={text.label}
