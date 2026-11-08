@@ -37,8 +37,8 @@ const text = localized({
   },
 });
 
-const frameOf = (s: { structureRun: { frames: unknown[] }; frameIndex: number }) =>
-  Math.min(s.frameIndex, s.structureRun.frames.length - 1);
+const frameOf = (s: { structures: { run: { frames: unknown[] } }; frameIndex: number }) =>
+  Math.min(s.frameIndex, s.structures.run.frames.length - 1);
 
 export const structuresUI: ModuleUI = {
   id: "structures",
@@ -52,12 +52,12 @@ export const structuresUI: ModuleUI = {
   Facts: StructureFacts,
 
   settingsSummary: (s) => {
-    const detail = structurePresetLabel(s.structurePreset);
+    const detail = structurePresetLabel(s.structures.preset);
     return {
-      main: structureSizeLabels[s.structureSize],
+      main: structureSizeLabels[s.structures.size],
       detail,
       mono: true,
-      label: text.summary(structureSizeLabels[s.structureSize], detail),
+      label: text.summary(structureSizeLabels[s.structures.size], detail),
     };
   },
   newRunLabel: text.newRun,
@@ -77,8 +77,8 @@ export const structuresUI: ModuleUI = {
       .filter((id) => structures[id].group === group)
       .map((id) => ({ id, title: structures[id].title, short: structures[id].short })),
   })),
-  current: (s) => s.structureAlgorithm,
-  pick: (id) => useStore.getState().setStructureAlgorithm(id as StructureAlgorithm),
+  current: (s) => s.structures.algorithm,
+  pick: (id) => useStore.getState().pick("structures", id as StructureAlgorithm),
 
   race: {
     Stage: StructureRaceLanes,
@@ -90,13 +90,13 @@ export const structuresUI: ModuleUI = {
     unit: text.unit,
   },
 
-  about: (s) => structures[s.structureAlgorithm],
-  summary: (s) => structures[s.structureAlgorithm].cost,
+  about: (s) => structures[s.structures.algorithm],
+  summary: (s) => structures[s.structures.algorithm].cost,
 
   code: {
-    lines: (s) => structurePseudocode[s.structureAlgorithm],
-    line: (s) => s.structureRun.frames[frameOf(s)].line,
-    narrate: (s, index) => narrateTree(s.structureRun, Math.min(index, s.structureRun.frames.length - 1)),
+    lines: (s) => structurePseudocode[s.structures.algorithm],
+    line: (s) => s.structures.run.frames[frameOf(s)].line,
+    narrate: (s, index) => narrateTree(s.structures.run, Math.min(index, s.structures.run.frames.length - 1)),
   },
 
   tour: structuresTour,

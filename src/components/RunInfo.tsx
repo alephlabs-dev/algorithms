@@ -41,7 +41,7 @@ const Swatch = ({ className, label }: { className: string; label: string }) => (
 /** What each bar color means. Yellow means something different per algorithm, so races leave it out. */
 export const Legend = ({ className }: { className?: string }) => {
   const tempLabel = useStore((s) =>
-    s.view === "race" ? undefined : sortingAlgorithms[s.activeAlgorithm].tempLabel
+    s.view === "race" ? undefined : sortingAlgorithms[s.sorting.algorithm].tempLabel
   );
   return (
     <ul
@@ -66,7 +66,7 @@ const useStats = () =>
       stats: selectFrame(s).stats,
       step: s.frameIndex,
       lastIndex: selectLastIndex(s),
-      countsWrites: sortingAlgorithms[s.activeAlgorithm].countsWrites,
+      countsWrites: sortingAlgorithms[s.sorting.algorithm].countsWrites,
     }))
   );
 

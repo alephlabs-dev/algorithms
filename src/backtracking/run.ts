@@ -4,7 +4,7 @@ import type { BacktrackingProblem, BacktrackingRun } from "./types";
 
 /** The run of the problem on stage. */
 export const runOf = (s: {
-  backtrackingProblem: BacktrackingProblem;
+  problem: BacktrackingProblem;
   queensRun: QueensRun;
   sudokuRun: SudokuRun;
-}): BacktrackingRun => (s.backtrackingProblem === "sudoku" ? s.sudokuRun : s.queensRun);
+}): BacktrackingRun => (s.problem === "sudoku" ? s.sudokuRun : s.queensRun);

@@ -61,7 +61,7 @@ const sizes = Array.from({ length: MAX_QUEENS - MIN_QUEENS + 1 }, (_, k) => MIN_
 
 /** How many queens, and so how big the board is. */
 export const QueensPicker = ({ className }: { className?: string }) => {
-  const { n, setN } = useStore(useShallow((s) => ({ n: s.queensN, setN: s.setQueensN })));
+  const { n, setN } = useStore(useShallow((s) => ({ n: s.backtracking.queensN, setN: s.actions.backtracking.setQueensN })));
   return (
     <SegmentedControl<number>
       label={text.queens}
@@ -80,7 +80,7 @@ export const QueensPicker = ({ className }: { className?: string }) => {
 
 /** Which Sudoku: easy or hard. */
 export const SudokuPuzzlePicker = ({ className }: { className?: string }) => {
-  const { puzzle, setPuzzle } = useStore(useShallow((s) => ({ puzzle: s.sudokuPuzzle, setPuzzle: s.setSudokuPuzzle })));
+  const { puzzle, setPuzzle } = useStore(useShallow((s) => ({ puzzle: s.backtracking.sudokuPuzzle, setPuzzle: s.actions.backtracking.setSudokuPuzzle })));
   return (
     <SegmentedControl<SudokuPuzzle>
       label={text.puzzle}
@@ -95,7 +95,7 @@ export const SudokuPuzzlePicker = ({ className }: { className?: string }) => {
 
 /** Which empty cell goes next: row by row, or fewest options first. */
 export const FillOrderPicker = ({ className }: { className?: string }) => {
-  const { order, setOrder } = useStore(useShallow((s) => ({ order: s.sudokuOrder, setOrder: s.setSudokuOrder })));
+  const { order, setOrder } = useStore(useShallow((s) => ({ order: s.backtracking.sudokuOrder, setOrder: s.actions.backtracking.setSudokuOrder })));
   return (
     <SegmentedControl<FillOrder>
       label={text.order}
@@ -114,13 +114,13 @@ export const FillOrderPicker = ({ className }: { className?: string }) => {
 
 /** The setting each problem has: the board size, or the puzzle. */
 export const BacktrackingPicker = ({ className }: { className?: string }) => {
-  const sudoku = useStore((s) => s.backtrackingProblem === "sudoku");
+  const sudoku = useStore((s) => s.backtracking.problem === "sudoku");
   return sudoku ? <SudokuPuzzlePicker className={className} /> : <QueensPicker className={className} />;
 };
 
 /** Above the stage: the board size, or the puzzle. */
 export const BacktrackingTools = ({ className }: { className?: string }) => {
-  const sudoku = useStore((s) => s.backtrackingProblem === "sudoku");
+  const sudoku = useStore((s) => s.backtracking.problem === "sudoku");
   return (
     <div
       data-tour="tools"
@@ -160,8 +160,8 @@ const Digit = ({ className, label }: { className: string; label: string }) => (
 
 /** What the marks on the board mean. */
 export const BacktrackingLegend = ({ className }: { className?: string }) => {
-  const sudoku = useStore((s) => s.backtrackingProblem === "sudoku");
-  const fewest = useStore((s) => s.backtrackingProblem === "sudoku" && s.sudokuOrder === "mrv");
+  const sudoku = useStore((s) => s.backtracking.problem === "sudoku");
+  const fewest = useStore((s) => s.backtracking.problem === "sudoku" && s.backtracking.sudokuOrder === "mrv");
   return (
     <ul
       aria-label={text.legend}
@@ -202,7 +202,7 @@ export const BacktrackingLegend = ({ className }: { className?: string }) => {
 export const BacktrackingStatsInline = ({ className }: { className?: string }) => {
   const { choices, conflicts, backtracks } = useStore(
     useShallow((s) => {
-      const frame = runOf(s).frameAt(s.frameIndex);
+      const frame = runOf(s.backtracking).frameAt(s.frameIndex);
       return { choices: frame.choices, conflicts: frame.conflicts, backtracks: frame.backtracks };
     }),
   );
@@ -226,7 +226,7 @@ export const BacktrackingStatsInline = ({ className }: { className?: string }) =
 /** Cost, how many solutions the puzzle has, and what conflicts save; under fewest options first, what row by row took. */
 export const BacktrackingFacts = () => {
   const { problem, n, run } = useStore(
-    useShallow((s) => ({ problem: s.backtrackingProblem, n: s.queensN, run: s.sudokuRun })),
+    useShallow((s) => ({ problem: s.backtracking.problem, n: s.backtracking.queensN, run: s.backtracking.sudokuRun })),
   );
   const rows = run.order === "mrv" ? rowOrderRun(run.puzzle) : null;
   const facts =

@@ -51,7 +51,7 @@ const text = localized({
   },
 });
 
-const frameOf = (s: { dpRun: { length: number }; frameIndex: number }) => Math.min(s.frameIndex, s.dpRun.length - 1);
+const frameOf = (s: { dp: { run: { length: number } }; frameIndex: number }) => Math.min(s.frameIndex, s.dp.run.length - 1);
 
 export const dpUI: ModuleUI = {
   id: "dp",
@@ -65,18 +65,18 @@ export const dpUI: ModuleUI = {
   Facts: DpFacts,
 
   settingsSummary: (s) => {
-    if (s.dpAlgorithm === "knapsack" || s.view === "race") {
-      const example = s.dpCapacity === EXAMPLE_CAPACITY && encodeItems(s.dpItems) === encodeItems(EXAMPLE_ITEMS);
+    if (s.dp.algorithm === "knapsack" || s.view === "race") {
+      const example = s.dp.capacity === EXAMPLE_CAPACITY && encodeItems(s.dp.items) === encodeItems(EXAMPLE_ITEMS);
       return {
-        main: `${s.dpItems.length}`,
-        detail: example ? text.example : text.bag(s.dpCapacity),
+        main: `${s.dp.items.length}`,
+        detail: example ? text.example : text.bag(s.dp.capacity),
         mono: true,
-        label: text.itemsLabel(s.dpItems.length, s.dpCapacity),
+        label: text.itemsLabel(s.dp.items.length, s.dp.capacity),
       };
     }
-    const label = `${s.dpA} · ${s.dpB}`;
-    const example = wordPairs.some((p) => p.a === s.dpA && p.b === s.dpB);
-    return { main: `${s.dpA.length}×${s.dpB.length}`, detail: example ? text.example : text.yourWords, mono: true, label };
+    const label = `${s.dp.a} · ${s.dp.b}`;
+    const example = wordPairs.some((p) => p.a === s.dp.a && p.b === s.dp.b);
+    return { main: `${s.dp.a.length}×${s.dp.b.length}`, detail: example ? text.example : text.yourWords, mono: true, label };
   },
   newRunLabel: text.newRun,
 
@@ -98,8 +98,8 @@ export const dpUI: ModuleUI = {
       items: [{ id: "knapsack", title: dpProblems.knapsack.title, short: dpProblems.knapsack.short }],
     },
   ],
-  current: (s) => s.dpAlgorithm,
-  pick: (id) => useStore.getState().setDpAlgorithm(id as DpAlgorithm),
+  current: (s) => s.dp.algorithm,
+  pick: (id) => useStore.getState().pick("dp", id as DpAlgorithm),
 
   race: {
     Stage: DpRaceLanes,
@@ -112,13 +112,13 @@ export const dpUI: ModuleUI = {
     racerName: (id) => dpMethods[id as Method].short,
   },
 
-  about: (s) => dpProblems[s.dpAlgorithm],
-  summary: (s) => dpProblems[s.dpAlgorithm].cost,
+  about: (s) => dpProblems[s.dp.algorithm],
+  summary: (s) => dpProblems[s.dp.algorithm].cost,
 
   code: {
-    lines: (s) => dpPseudocode[s.dpAlgorithm],
-    line: (s) => s.dpRun.frames[frameOf(s)].line,
-    narrate: (s, index) => narrateDp(s.dpRun, Math.min(index, s.dpRun.length - 1)),
+    lines: (s) => dpPseudocode[s.dp.algorithm],
+    line: (s) => s.dp.run.frames[frameOf(s)].line,
+    narrate: (s, index) => narrateDp(s.dp.run, Math.min(index, s.dp.run.length - 1)),
   },
 
   tour: dpTour,

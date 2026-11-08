@@ -42,13 +42,13 @@ export const FourierStage = () => {
   const { width, height } = useElementSize(wrapperRef);
   const { run, frameIndex, theme, algorithm, drawing, circles } = useStore(
     useShallow((s) => ({
-      run: s.fourierRun,
+      run: s.fourier.run,
       frameIndex: s.frameIndex,
       theme: s.theme,
-      algorithm: s.fourierAlgorithm,
+      algorithm: s.fourier.algorithm,
       // Waiting for a shape: "Draw" picked, nothing drawn yet.
-      drawing: s.fourierAlgorithm === "epicycles" && s.fourierShape === "custom" && s.fourierPath === null,
-      circles: s.fourierCircles,
+      drawing: s.fourier.algorithm === "epicycles" && s.fourier.shape === "custom" && s.fourier.path === null,
+      circles: s.fourier.circles,
     })),
   );
 
@@ -99,7 +99,7 @@ export const FourierStage = () => {
     const size = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
     setStroke(null);
     if (current.length < MIN_POINTS || size < MIN_SIZE) return;
-    useStore.getState().setFourierPath(normalize(resample(current, 128)));
+    useStore.getState().actions.fourier.setPath(normalize(resample(current, 128)));
   };
 
   const { title } = fourierSeries[algorithm];

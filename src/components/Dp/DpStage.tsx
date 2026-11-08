@@ -56,10 +56,10 @@ const DpCanvas = () => {
     useShallow((s) => {
       const question = selectGameQuestion(s);
       return {
-        run: s.dpRun,
-        frame: s.dpRun.frames[Math.min(s.frameIndex, s.dpRun.length - 1)],
+        run: s.dp.run,
+        frame: s.dp.run.frames[Math.min(s.frameIndex, s.dp.run.length - 1)],
         theme: s.theme,
-        ask: question?.kind === "choice" && question.cell ? s.dpRun.frames[question.at] : undefined,
+        ask: question?.kind === "choice" && question.cell ? s.dp.run.frames[question.at] : undefined,
       };
     }),
   );
@@ -105,7 +105,7 @@ const wordInputClass = "w-0 font-mono uppercase sm:w-44 sm:flex-none";
 
 /** Two words in, and the table starts over. Remounted (by key) when the words change elsewhere. */
 const WordsBar = ({ a, b }: { a: string; b: string }) => {
-  const setWords = useStore((s) => s.setDpWords);
+  const setWords = useStore((s) => s.actions.dp.setWords);
   const [first, setFirst] = useState(a);
   const [second, setSecond] = useState(b);
   const [errors, setErrors] = useState<{ first: boolean; second: boolean }>({ first: false, second: false });
@@ -230,7 +230,7 @@ const Stepper = ({
 /** Knapsack: the bag's capacity, how many items, and a fresh set. In the bar under the table, and in settings. */
 export const ItemsControls = ({ className }: { className?: string }) => {
   const { items, capacity, setItems } = useStore(
-    useShallow((s) => ({ items: s.dpItems, capacity: s.dpCapacity, setItems: s.setDpItems })),
+    useShallow((s) => ({ items: s.dp.items, capacity: s.dp.capacity, setItems: s.actions.dp.setItems })),
   );
   const random = () => seededRandom(newSeed());
   return (
@@ -272,7 +272,7 @@ const ItemsBar = () => (
 /** The table, and the words (or items) it's for. */
 export const DpStage = () => {
   const { a, b, knapsack } = useStore(
-    useShallow((s) => ({ a: s.dpA, b: s.dpB, knapsack: s.dpAlgorithm === "knapsack" })),
+    useShallow((s) => ({ a: s.dp.a, b: s.dp.b, knapsack: s.dp.algorithm === "knapsack" })),
   );
   return (
     <div data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col gap-2">

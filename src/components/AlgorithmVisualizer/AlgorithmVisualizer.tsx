@@ -26,11 +26,11 @@ export const AlgorithmVisualizer = () => {
   const { frame, values, frameIndex, lastIndex, arrayId, displayMode, labels, labelAll } = useStore(
     useShallow((s) => ({
       frame: selectFrame(s),
-      values: s.timeline.values,
+      values: s.sorting.run.values,
       frameIndex: s.frameIndex,
       lastIndex: selectLastIndex(s),
-      arrayId: s.arrayId,
-      displayMode: s.displayMode,
+      arrayId: s.sorting.inputId,
+      displayMode: s.sorting.displayMode,
       labels: selectGameQuestion(s)?.labels,
       labelAll: selectGuessPlaying(s),
     }))

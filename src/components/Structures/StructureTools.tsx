@@ -55,7 +55,7 @@ const text = localized({
 
 /** Which values the tree starts from, in which order. */
 export const StructurePresetButtons = ({ className }: { className?: string }) => {
-  const { preset, apply } = useStore(useShallow((s) => ({ preset: s.structurePreset, apply: s.applyStructurePreset })));
+  const { preset, apply } = useStore(useShallow((s) => ({ preset: s.structures.preset, apply: s.actions.structures.applyPreset })));
   return (
     <PresetButtons
       label={text.starting}
@@ -68,7 +68,7 @@ export const StructurePresetButtons = ({ className }: { className?: string }) =>
 };
 
 export const StructureSizePicker = () => {
-  const { size, setSize } = useStore(useShallow((s) => ({ size: s.structureSize, setSize: s.setStructureSize })));
+  const { size, setSize } = useStore(useShallow((s) => ({ size: s.structures.size, setSize: s.actions.structures.setSize })));
   return (
     <SegmentedControl<StructureSize>
       label={text.howMany}
@@ -104,7 +104,7 @@ const Item = ({ className, label }: { className: string; label: string }) => (
 
 /** What the colors and badges mean. */
 export const StructureLegend = ({ className }: { className?: string }) => {
-  const algorithm = useStore((s) => s.structureAlgorithm);
+  const algorithm = useStore((s) => s.structures.algorithm);
   const avl = algorithm === "avl";
   const list = cn(
     "flex text-xs text-foreground md:text-sm",
@@ -166,7 +166,7 @@ export const StructureLegend = ({ className }: { className?: string }) => {
 export const StructureStatsInline = ({ className }: { className?: string }) => {
   const { size, detail } = useStore(
     useShallow((s) => {
-      const frame = s.structureRun.frames[Math.min(s.frameIndex, s.structureRun.frames.length - 1)];
+      const frame = s.structures.run.frames[Math.min(s.frameIndex, s.structures.run.frames.length - 1)];
       if (frame.shape === "tree") return { size: frame.nodes.length, detail: text.height(Math.max(0, frame.height)) };
       // A table's speed is about how full it is.
       return { size: frame.count, detail: text.load((frame.count / frame.buckets.length).toFixed(2)) };
@@ -180,7 +180,7 @@ export const StructureStatsInline = ({ className }: { className?: string }) => {
 };
 
 export const StructureFacts = () => {
-  const algorithm = useStore((s) => s.structureAlgorithm);
+  const algorithm = useStore((s) => s.structures.algorithm);
   const { cost, shape } = structures[algorithm];
   return <FactLine facts={[cost, shape]} />;
 };

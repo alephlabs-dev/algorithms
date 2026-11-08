@@ -96,7 +96,7 @@ const Lane = ({ work, clock, place }: { work: KnapsackWork; clock: number; place
 /** The same knapsack three ways, one subproblem per tick each. */
 export const DpRaceLanes = () => {
   const { runs, clock, replay } = useStore(
-    useShallow((s) => ({ runs: s.dpRaceRuns, clock: s.frameIndex, replay: s.play })),
+    useShallow((s) => ({ runs: s.dp.raceRuns, clock: s.frameIndex, replay: s.play })),
   );
   // Fewer subproblems touched wins.
   const placeOf = (work: KnapsackWork) => 1 + runs.filter((o) => o.length < work.length).length;

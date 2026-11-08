@@ -97,12 +97,12 @@ const text = localized({
 const useSettings = () =>
   useStore(
     useShallow((s) => ({
-      size: s.size,
-      setSize: s.setSize,
-      inputOrder: s.inputOrder,
-      setInputOrder: s.setInputOrder,
-      displayMode: s.displayMode,
-      setDisplayMode: s.setDisplayMode,
+      size: s.sorting.size,
+      setSize: s.actions.sorting.setSize,
+      inputOrder: s.sorting.inputOrder,
+      setInputOrder: s.actions.sorting.setInputOrder,
+      displayMode: s.sorting.displayMode,
+      setDisplayMode: s.actions.sorting.setDisplayMode,
       isMobile: s.isMobile,
       isRace: s.view === "race",
     }))
@@ -200,7 +200,7 @@ export const StructureSettings = () => (
 
 /** Dynamic programming's settings: example words (any two can be typed under the table). */
 export const DpSettings = () => {
-  const bag = useStore((s) => s.dpAlgorithm === "knapsack" || s.view === "race");
+  const bag = useStore((s) => s.dp.algorithm === "knapsack" || s.view === "race");
   return bag ? (
     <div className="flex flex-col gap-6">
       <Field label={text.bag} help={text.bagHelp}>
@@ -219,7 +219,7 @@ export const DpSettings = () => {
 
 /** Fourier's settings: how many circles, and for epicycles which drawing. */
 export const FourierSettings = () => {
-  const wave = useStore((s) => s.fourierAlgorithm !== "epicycles");
+  const wave = useStore((s) => s.fourier.algorithm !== "epicycles");
   return (
     <div data-tour="tools" className="flex flex-col gap-6">
       <Field label={text.circles} help={text.circlesHelp}>
@@ -236,7 +236,7 @@ export const FourierSettings = () => {
 
 /** Backtracking's settings: the board size, or the Sudoku puzzle. */
 export const BacktrackingSettings = () => {
-  const sudoku = useStore((s) => s.backtrackingProblem === "sudoku");
+  const sudoku = useStore((s) => s.backtracking.problem === "sudoku");
   return (
     <div data-tour="tools" className="flex flex-col gap-6">
       <Field label={sudoku ? text.puzzle : text.queens} help={sudoku ? text.puzzleHelp : text.queensHelp}>

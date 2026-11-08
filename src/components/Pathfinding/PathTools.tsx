@@ -51,7 +51,7 @@ const text = localized({
 
 /** What dragging paints. Shared by the tools row and the settings. */
 export const BrushPicker = ({ className }: { className?: string }) => {
-  const { brush, setBrush } = useStore(useShallow((s) => ({ brush: s.brush, setBrush: s.setBrush })));
+  const { brush, setBrush } = useStore(useShallow((s) => ({ brush: s.pathfinding.brush, setBrush: s.actions.pathfinding.setBrush })));
   return (
     <SegmentedControl<Brush>
       label={text.brush}
@@ -69,7 +69,7 @@ export const BrushPicker = ({ className }: { className?: string }) => {
 
 /** Ready-made layouts, one tap each. */
 export const PresetButtons = ({ className }: { className?: string }) => {
-  const { apply, current } = useStore(useShallow((s) => ({ apply: s.applyGridPreset, current: s.gridPreset })));
+  const { apply, current } = useStore(useShallow((s) => ({ apply: s.actions.pathfinding.applyGridPreset, current: s.pathfinding.gridPreset })));
   return <LayoutButtons presets={presets} current={current} onPick={apply} className={className} />;
 };
 
@@ -89,8 +89,8 @@ export const PathTools = ({ className }: { className?: string }) => (
 export const GridSizePicker = () => {
   const { gridSize, setGridSize, cap } = useStore(
     useShallow((s) => ({
-      gridSize: s.gridSize,
-      setGridSize: s.setGridSize,
+      gridSize: s.pathfinding.gridSize,
+      setGridSize: s.actions.pathfinding.setGridSize,
       // Races show four grids at once, so the biggest sizes are off there.
       cap: s.view === "race" ? gridSizes.indexOf(raceMaxGridSize(s.isMobile)) : Infinity,
     }))

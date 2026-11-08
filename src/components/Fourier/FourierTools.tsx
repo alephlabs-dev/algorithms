@@ -53,9 +53,9 @@ const text = localized({
 export const CirclesPicker = ({ className }: { className?: string }) => {
   const { circles, setCircles, wave } = useStore(
     useShallow((s) => ({
-      circles: s.fourierCircles,
-      setCircles: s.setFourierCircles,
-      wave: isWave(s.fourierAlgorithm),
+      circles: s.fourier.circles,
+      setCircles: s.actions.fourier.setCircles,
+      wave: isWave(s.fourier.algorithm),
     })),
   );
   const options = circleOptions[wave ? "wave" : "drawing"];
@@ -80,7 +80,7 @@ const tileClass =
 
 /** Every drawing as a tile with its miniature, in groups, then drawing your own. */
 export const ShapeGrid = ({ onPick, columns = "grid-cols-4" }: { onPick?: () => void; columns?: string }) => {
-  const { shape, setShape } = useStore(useShallow((s) => ({ shape: s.fourierShape, setShape: s.setFourierShape })));
+  const { shape, setShape } = useStore(useShallow((s) => ({ shape: s.fourier.shape, setShape: s.actions.fourier.setShape })));
   const pick = (value: FourierShape) => {
     setShape(value);
     onPick?.();
@@ -118,7 +118,7 @@ export const ShapeGrid = ({ onPick, columns = "grid-cols-4" }: { onPick?: () => 
 
 /** The settings' drawing picker: one closed field with the drawings in groups, so settings fit without scrolling (UX.md rule 14). */
 export const DrawingSelect = () => {
-  const { shape, setShape } = useStore(useShallow((s) => ({ shape: s.fourierShape, setShape: s.setFourierShape })));
+  const { shape, setShape } = useStore(useShallow((s) => ({ shape: s.fourier.shape, setShape: s.actions.fourier.setShape })));
   const own = shapeOptions[shapeOptions.length - 1];
   return (
     <NativeSelect
@@ -139,7 +139,7 @@ export const DrawingSelect = () => {
 /** Wide screens: a button showing the drawing on stage, opening the grid of drawings. */
 export const DrawingPicker = () => {
   const [open, setOpen] = useState(false);
-  const shape = useStore((s) => s.fourierShape);
+  const shape = useStore((s) => s.fourier.shape);
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger
@@ -161,7 +161,7 @@ export const DrawingPicker = () => {
 
 /** Above the stage: circles always, and the drawings for epicycles. */
 export const FourierTools = ({ className }: { className?: string }) => {
-  const wave = useStore((s) => isWave(s.fourierAlgorithm));
+  const wave = useStore((s) => isWave(s.fourier.algorithm));
   return (
     <div
       data-tour="tools"
@@ -187,7 +187,7 @@ const Item = ({ className, label }: { className: string; label: string }) => (
 
 /** What each line on the stage is. */
 export const FourierLegend = ({ className }: { className?: string }) => {
-  const wave = useStore((s) => isWave(s.fourierAlgorithm));
+  const wave = useStore((s) => isWave(s.fourier.algorithm));
   return (
     <ul
       aria-label={text.legend}
@@ -210,7 +210,7 @@ export const FourierLegend = ({ className }: { className?: string }) => {
 
 /** Circles and how close they get, for the dock. */
 export const FourierStatsInline = ({ className }: { className?: string }) => {
-  const { circles, error } = useStore(useShallow((s) => ({ circles: s.fourierCircles, error: s.fourierRun.error })));
+  const { circles, error } = useStore(useShallow((s) => ({ circles: s.fourier.circles, error: s.fourier.run.error })));
   return (
     <p className={cn("whitespace-nowrap font-mono text-xs text-foreground/80", className)}>
       {text.circleCount(circles)}
@@ -221,7 +221,7 @@ export const FourierStatsInline = ({ className }: { className?: string }) => {
 
 /** The series in one line, and the speeds its circles turn at. */
 export const FourierFacts = () => {
-  const algorithm = useStore((s) => s.fourierAlgorithm);
+  const algorithm = useStore((s) => s.fourier.algorithm);
   const { formula, speeds } = fourierSeries[algorithm];
   return <FactLine facts={[formula, speeds]} />;
 };

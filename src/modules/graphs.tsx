@@ -46,9 +46,9 @@ export const graphsUI: ModuleUI = {
   Facts: GraphFacts,
 
   settingsSummary: (s) => {
-    const size = graphSizeLabels[s.graphSize].split(" ")[0];
-    const layout = graphPresetLabel(s.graphPreset);
-    return { main: size, detail: layout, label: text.summary(graphSizeLabels[s.graphSize], layout) };
+    const size = graphSizeLabels[s.graphs.size].split(" ")[0];
+    const layout = graphPresetLabel(s.graphs.preset);
+    return { main: size, detail: layout, label: text.summary(graphSizeLabels[s.graphs.size], layout) };
   },
   newRunLabel: text.newRun,
 
@@ -61,28 +61,28 @@ export const graphsUI: ModuleUI = {
       })),
     },
   ],
-  current: (s) => s.graphAlgorithm,
-  pick: (id) => useStore.getState().setGraphAlgorithm(id as GraphAlgorithm),
+  current: (s) => s.graphs.algorithm,
+  pick: (id) => useStore.getState().pick("graphs", id as GraphAlgorithm),
 
   race: {
     Stage: GraphRaceLanes,
-    racers: (s) => s.graphRaceAlgorithms,
-    toggleRacer: (id) => useStore.getState().toggleGraphRacer(id as GraphAlgorithm),
+    racers: (s) => s.graphs.racers,
+    toggleRacer: (id) => useStore.getState().actions.graphs.toggleRacer(id as GraphAlgorithm),
     tagline: text.tagline,
     description: GRAPH_RACE_DESCRIPTION,
     unit: text.unit,
   },
 
-  about: (s) => graphAlgorithms[s.graphAlgorithm],
+  about: (s) => graphAlgorithms[s.graphs.algorithm],
   summary: (s) => {
-    const { structure, weighted } = graphAlgorithms[s.graphAlgorithm];
+    const { structure, weighted } = graphAlgorithms[s.graphs.algorithm];
     return `${structure} · ${weighted ? text.usesWeights : text.ignoresWeights}`;
   },
 
   code: {
-    lines: (s) => graphPseudocode[s.graphAlgorithm],
-    line: (s) => s.graphTimeline.frameAt(s.frameIndex).line,
-    narrate: (s, index) => narrateGraph(s.graphTimeline, Math.min(index, s.graphTimeline.length - 1), s.graphAlgorithm),
+    lines: (s) => graphPseudocode[s.graphs.algorithm],
+    line: (s) => s.graphs.run.frameAt(s.frameIndex).line,
+    narrate: (s, index) => narrateGraph(s.graphs.run, Math.min(index, s.graphs.run.length - 1), s.graphs.algorithm),
   },
 
   tour: graphsTour,

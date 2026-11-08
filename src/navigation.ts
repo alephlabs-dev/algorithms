@@ -18,45 +18,46 @@ export const applyRoute = (app: AppStore, route: Route) => {
   }
   const inPath = store.module === "pathfinding";
   if (route.kind === "backtracking" || route.kind === "backtrackingProblem") {
-    const problem = route.kind === "backtrackingProblem" ? route.algorithm : store.backtrackingProblem;
-    if (store.module !== "backtracking" || store.backtrackingProblem !== problem) store.setBacktrackingProblem(problem);
+    const problem = route.kind === "backtrackingProblem" ? route.algorithm : store.backtracking.problem;
+    if (store.module !== "backtracking" || store.backtracking.problem !== problem) store.pick("backtracking", problem);
   } else if (route.kind === "dp" || route.kind === "dpProblem") {
-    const algorithm = route.kind === "dpProblem" ? route.algorithm : store.dpAlgorithm;
-    if (store.module !== "dp" || store.view !== "single" || store.dpAlgorithm !== algorithm)
-      store.setDpAlgorithm(algorithm);
+    const algorithm = route.kind === "dpProblem" ? route.algorithm : store.dp.algorithm;
+    if (store.module !== "dp" || store.view !== "single" || store.dp.algorithm !== algorithm)
+      store.pick("dp", algorithm);
   } else if (route.kind === "dpRace") {
-    if (store.module !== "dp") store.setDpAlgorithm(store.dpAlgorithm);
+    if (store.module !== "dp") store.pick("dp", store.dp.algorithm);
     if (app.getState().view !== "race") store.setView("race");
   } else if (route.kind === "structure" || route.kind === "structures") {
-    const algorithm = route.kind === "structure" ? route.algorithm : store.structureAlgorithm;
-    if (store.module !== "structures" || store.view !== "single" || store.structureAlgorithm !== algorithm)
-      store.setStructureAlgorithm(algorithm);
+    const algorithm = route.kind === "structure" ? route.algorithm : store.structures.algorithm;
+    if (store.module !== "structures" || store.view !== "single" || store.structures.algorithm !== algorithm)
+      store.pick("structures", algorithm);
   } else if (route.kind === "structureRace") {
-    if (store.module !== "structures") store.setStructureAlgorithm(store.structureAlgorithm);
+    if (store.module !== "structures") store.pick("structures", store.structures.algorithm);
     if (app.getState().view !== "race") store.setView("race");
   } else if (route.kind === "series" || route.kind === "fourier") {
-    const algorithm = route.kind === "series" ? route.algorithm : store.fourierAlgorithm;
-    if (store.module !== "fourier" || store.fourierAlgorithm !== algorithm) store.setFourierAlgorithm(algorithm);
+    const algorithm = route.kind === "series" ? route.algorithm : store.fourier.algorithm;
+    if (store.module !== "fourier" || store.fourier.algorithm !== algorithm) store.pick("fourier", algorithm);
   } else if (route.kind === "graph" || route.kind === "graphs") {
-    const algorithm = route.kind === "graph" ? route.algorithm : store.graphAlgorithm;
-    if (store.module !== "graphs" || store.view !== "single" || store.graphAlgorithm !== algorithm)
-      store.setGraphAlgorithm(algorithm);
+    const algorithm = route.kind === "graph" ? route.algorithm : store.graphs.algorithm;
+    if (store.module !== "graphs" || store.view !== "single" || store.graphs.algorithm !== algorithm)
+      store.pick("graphs", algorithm);
   } else if (route.kind === "graphRace") {
-    if (store.module !== "graphs") store.setGraphAlgorithm(store.graphAlgorithm);
+    if (store.module !== "graphs") store.pick("graphs", store.graphs.algorithm);
     if (app.getState().view !== "race") store.setView("race");
   } else if (route.kind === "path" || route.kind === "pathfinding") {
-    const algorithm = route.kind === "path" ? route.algorithm : store.pathAlgorithm;
-    if (!inPath || store.view !== "single" || store.pathAlgorithm !== algorithm) store.setPathAlgorithm(algorithm);
+    const algorithm = route.kind === "path" ? route.algorithm : store.pathfinding.algorithm;
+    if (!inPath || store.view !== "single" || store.pathfinding.algorithm !== algorithm)
+      store.pick("pathfinding", algorithm);
   } else if (route.kind === "pathRace") {
-    if (!inPath) store.setPathAlgorithm(store.pathAlgorithm);
+    if (!inPath) store.pick("pathfinding", store.pathfinding.algorithm);
     if (app.getState().view !== "race") store.setView("race");
   } else if (route.kind === "race") {
-    if (store.module !== "sorting") store.setActiveAlgorithm(store.activeAlgorithm);
+    if (store.module !== "sorting") store.pick("sorting", store.sorting.algorithm);
     if (app.getState().view !== "race") store.setView("race");
   } else {
-    const algorithm = route.kind === "algorithm" ? route.algorithm : store.activeAlgorithm;
-    if (store.module !== "sorting" || store.view !== "single" || store.activeAlgorithm !== algorithm)
-      store.setActiveAlgorithm(algorithm);
+    const algorithm = route.kind === "algorithm" ? route.algorithm : store.sorting.algorithm;
+    if (store.module !== "sorting" || store.view !== "single" || store.sorting.algorithm !== algorithm)
+      store.pick("sorting", algorithm);
   }
   app.setState({
     isLanding: false,

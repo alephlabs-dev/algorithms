@@ -182,8 +182,8 @@ const PathRaceResults = ({ rows, onReplay }: { rows: Row[]; onReplay: () => void
 export const PathRaceLanes = () => {
   const { algorithms, timelines, clock, replay } = useStore(
     useShallow((s) => ({
-      algorithms: s.pathRaceAlgorithms,
-      timelines: s.pathRaceTimelines,
+      algorithms: s.pathfinding.racers,
+      timelines: s.pathfinding.raceRuns,
       clock: s.frameIndex,
       replay: s.play,
     })),

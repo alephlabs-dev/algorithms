@@ -68,8 +68,8 @@ export const GridCanvas = ({ frame, label }: { frame: PathFrame; label: string }
   const { width, height } = useElementSize(wrapperRef);
   const { grid, gridId, speed, isScrubbing, theme } = useStore(
     useShallow((s) => ({
-      grid: s.grid,
-      gridId: s.gridId,
+      grid: s.pathfinding.grid,
+      gridId: s.pathfinding.inputId,
       speed: selectSpeed(s),
       isScrubbing: s.isScrubbing,
       theme: s.theme,
@@ -106,7 +106,9 @@ export const GridCanvas = ({ frame, label }: { frame: PathFrame; label: string }
   };
 
   const apply = (drag: Drag, cells: number[]) => {
-    const { grid: current, editGrid } = useStore.getState();
+    const { pathfinding, actions } = useStore.getState();
+    const current = pathfinding.grid;
+    const editGrid = actions.pathfinding.editGrid;
     let next = current;
     for (const cell of cells) {
       if (drag.kind === "marker") next = withMarker(next, drag.marker, cell);
@@ -119,7 +121,7 @@ export const GridCanvas = ({ frame, label }: { frame: PathFrame; label: string }
     const cell = cellFrom(event);
     if (cell === null) return;
     event.currentTarget.setPointerCapture(event.pointerId);
-    const { grid: current, brush } = useStore.getState();
+    const { grid: current, brush } = useStore.getState().pathfinding;
     if (cell === current.start || cell === current.end) {
       dragRef.current = { kind: "marker", marker: cell === current.start ? "start" : "end", last: cell };
       return;
@@ -136,12 +138,12 @@ export const GridCanvas = ({ frame, label }: { frame: PathFrame; label: string }
     const cell = cellFrom(event);
     // Hovering a marker hints that it can be moved.
     if (!drag) {
-      const current = useStore.getState().grid;
+      const current = useStore.getState().pathfinding.grid;
       event.currentTarget.style.cursor = cell === current.start || cell === current.end ? "grab" : "crosshair";
       return;
     }
     if (cell === null || cell === drag.last) return;
-    const path = drag.kind === "marker" ? [cell] : cellsBetween(useStore.getState().grid, drag.last, cell);
+    const path = drag.kind === "marker" ? [cell] : cellsBetween(useStore.getState().pathfinding.grid, drag.last, cell);
     drag.last = cell;
     apply(drag, path);
   };
@@ -170,7 +172,7 @@ export const GridCanvas = ({ frame, label }: { frame: PathFrame; label: string }
 /** The single view: one search on the grid. */
 export const PathStage = () => {
   const { grid, frame, algorithm } = useStore(
-    useShallow((s) => ({ grid: s.grid, frame: selectPathFrame(s), algorithm: s.pathAlgorithm })),
+    useShallow((s) => ({ grid: s.pathfinding.grid, frame: selectPathFrame(s), algorithm: s.pathfinding.algorithm })),
   );
   const { title } = pathAlgorithms[algorithm];
   return (
@@ -186,13 +188,13 @@ const linkClass =
 
 /** Over the grid when a search ends: what it took, and what to try next. */
 const PathFinishSummary = ({ className }: { className?: string }) => {
-  const { finished, frame, algorithm, setPathAlgorithm, pathRaceWith } = useStore(
+  const { finished, frame, algorithm, pick, raceWith } = useStore(
     useShallow((s) => ({
       finished: s.frameIndex > 0 && s.frameIndex === selectLastIndex(s),
       frame: selectPathFrame(s),
-      algorithm: s.pathAlgorithm,
-      setPathAlgorithm: s.setPathAlgorithm,
-      pathRaceWith: s.pathRaceWith,
+      algorithm: s.pathfinding.algorithm,
+      pick: s.pick,
+      raceWith: s.raceWith,
     })),
   );
   // Point at the instructive comparison for each algorithm.
@@ -209,10 +211,10 @@ const PathFinishSummary = ({ className }: { className?: string }) => {
             {frame.found && text.pathCost(frame.stats.pathLength, frame.stats.pathCost)}
             {text.lookedAt(frame.stats.visited)}
           </span>
-          <button type="button" onClick={() => setPathAlgorithm(next)} className={linkClass}>
+          <button type="button" onClick={() => pick("pathfinding", next)} className={linkClass}>
             {text.tryOther(pathAlgorithms[next].short)}
           </button>
-          <button type="button" onClick={() => pathRaceWith(algorithm)} className={linkClass}>
+          <button type="button" onClick={() => raceWith("pathfinding", algorithm)} className={linkClass}>
             {text.race}
           </button>
         </div>

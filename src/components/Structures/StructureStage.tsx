@@ -73,11 +73,11 @@ export const StructureCanvas = ({
   const { width, height } = useElementSize(wrapperRef);
   const { structureId, speed, isScrubbing, theme, ops, question, answer } = useStore(
     useShallow((s) => ({
-      structureId: s.structureId,
+      structureId: s.structures.inputId,
       speed: selectSpeed(s),
       isScrubbing: s.isScrubbing,
       theme: s.theme,
-      ops: s.structureOps,
+      ops: s.structures.ops,
       question: selectGameQuestion(s),
       answer: s.answerGame,
     })),
@@ -154,10 +154,10 @@ const OperationBar = () => {
   const [error, setError] = useState<string | null>(null);
   const { runOperation, last, algorithm } = useStore(
     useShallow((s) => ({
-      runOperation: s.runOperation,
+      runOperation: s.actions.structures.runOperation,
       // The final frame: a stable reference, unlike a list built here on every read.
-      last: s.structureRun.frames[s.structureRun.frames.length - 1],
-      algorithm: s.structureAlgorithm,
+      last: s.structures.run.frames[s.structures.run.frames.length - 1],
+      algorithm: s.structures.algorithm,
     })),
   );
   const values = valuesIn(last);
@@ -259,8 +259,8 @@ const OperationBar = () => {
 export const StructureStage = () => {
   const { frame, algorithm } = useStore(
     useShallow((s) => ({
-      frame: s.structureRun.frames[Math.min(s.frameIndex, s.structureRun.frames.length - 1)],
-      algorithm: s.structureAlgorithm,
+      frame: s.structures.run.frames[Math.min(s.frameIndex, s.structures.run.frames.length - 1)],
+      algorithm: s.structures.algorithm,
     })),
   );
   const size = valuesIn(frame).length;

@@ -49,21 +49,21 @@ const problems: Record<
   }
 > = {
   queens: {
-    settingsSummary: (s) => ({ main: String(s.queensN), detail: text.queensWord, mono: true, label: text.queens(s.queensN) }),
-    summary: (s) => text.summary(s.queensN),
+    settingsSummary: (s) => ({ main: String(s.backtracking.queensN), detail: text.queensWord, mono: true, label: text.queens(s.backtracking.queensN) }),
+    summary: (s) => text.summary(s.backtracking.queensN),
     pseudocode: () => queensPseudocode,
-    narrate: (s, index) => narrateBacktracking(s.queensRun, index),
+    narrate: (s, index) => narrateBacktracking(s.backtracking.queensRun, index),
   },
   sudoku: {
     settingsSummary: (s) => {
-      const name = sudokuPuzzleNames[s.sudokuPuzzle];
-      const detail = s.sudokuOrder === "mrv" ? "MRV" : text.puzzleWord;
-      return { main: name, detail, label: `${text.puzzleLabel(name)}, ${fillOrderNames[s.sudokuOrder]}` };
+      const name = sudokuPuzzleNames[s.backtracking.sudokuPuzzle];
+      const detail = s.backtracking.sudokuOrder === "mrv" ? "MRV" : text.puzzleWord;
+      return { main: name, detail, label: `${text.puzzleLabel(name)}, ${fillOrderNames[s.backtracking.sudokuOrder]}` };
     },
     summary: (s) =>
-      text.sudokuSummary(sudokuPuzzleNames[s.sudokuPuzzle]) + (s.sudokuOrder === "mrv" ? " · MRV" : ""),
-    pseudocode: (s) => sudokuPseudocodeFor(s.sudokuOrder),
-    narrate: (s, index) => narrateSudoku(s.sudokuRun, index),
+      text.sudokuSummary(sudokuPuzzleNames[s.backtracking.sudokuPuzzle]) + (s.backtracking.sudokuOrder === "mrv" ? " · MRV" : ""),
+    pseudocode: (s) => sudokuPseudocodeFor(s.backtracking.sudokuOrder),
+    narrate: (s, index) => narrateSudoku(s.backtracking.sudokuRun, index),
   },
 };
 
@@ -78,7 +78,7 @@ export const backtrackingUI: ModuleUI = {
   Settings: BacktrackingSettings,
   Facts: BacktrackingFacts,
 
-  settingsSummary: (s) => problems[s.backtrackingProblem].settingsSummary(s),
+  settingsSummary: (s) => problems[s.backtracking.problem].settingsSummary(s),
   // The next board size, or the other puzzle.
   newRunLabel: text.newRun,
 
@@ -91,16 +91,16 @@ export const backtrackingUI: ModuleUI = {
       })),
     },
   ],
-  current: (s) => s.backtrackingProblem,
-  pick: (id) => useStore.getState().setBacktrackingProblem(id as BacktrackingProblem),
+  current: (s) => s.backtracking.problem,
+  pick: (id) => useStore.getState().pick("backtracking", id as BacktrackingProblem),
 
-  about: (s) => backtrackingProblems[s.backtrackingProblem],
-  summary: (s) => problems[s.backtrackingProblem].summary(s),
+  about: (s) => backtrackingProblems[s.backtracking.problem],
+  summary: (s) => problems[s.backtracking.problem].summary(s),
 
   code: {
-    lines: (s) => problems[s.backtrackingProblem].pseudocode(s),
-    line: (s) => runOf(s).frameAt(s.frameIndex).line,
-    narrate: (s, index) => problems[s.backtrackingProblem].narrate(s, index),
+    lines: (s) => problems[s.backtracking.problem].pseudocode(s),
+    line: (s) => runOf(s.backtracking).frameAt(s.frameIndex).line,
+    narrate: (s, index) => problems[s.backtracking.problem].narrate(s, index),
   },
 
   tour: backtrackingTour,
