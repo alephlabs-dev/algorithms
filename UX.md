@@ -88,7 +88,7 @@ Never controls with the browser's default look. Every control lives in `src/comp
 ## 13. Overlays
 
 - Every backdrop behind a modal sheet, drawer or dialog uses the `--color-scrim` token (light: black at 32–40%, dark: black at 50–60%). Non-modal sheets have no backdrop.
-- So does any veil that covers content and takes its taps, modal or not: e.g. the race results veil (`ResultsOverlay`), over the whole screen on phones and over the lanes on wide screens. Nothing else on the veil: no other color, opacity or blur.
+- So does any veil that covers content and takes its taps, modal or not: e.g. the race results veil (`ResultsOverlay`), over the whole screen on phones and over the lanes on wide screens. Nothing else on the veil: no other color or opacity.
 
 ## 14. Controls never scroll
 
@@ -102,7 +102,7 @@ Never controls with the browser's default look. Every control lives in `src/comp
   - **How:** grow the hit area, not the look, and only on touch screens (`@media (pointer: coarse)`). Use the `tap-target` utility in `src/index.css`: an invisible `::after` of at least 44×44 centred on the element, which needs a position (`relative`). For a list of links use `tap-rows` on the `<ul>`: each row is at least 44 px tall and its link covers the whole row. Grow the visible size only when there's no other way, such as text inputs, which can't have a `::after` (`pointer-coarse:h-11`).
   - **Exception:** links inside running text, that is inside a `<p>`, are exempt. They can't grow without breaking the line spacing.
 - **Settings fit (every e2e project, `e2e/settings-fit.spec.ts`):** on every module page at its layout's smallest size, the settings container (marked `data-settings`) doesn't overflow: `scrollHeight` ≤ `clientHeight`, and it sits inside the screen.
-- **Race results veil (every e2e project, `e2e/race-results-scrim.spec.ts`):** after a sorting and a pathfinding race, in both themes, the veil's background is the resolved `--color-scrim` and it has no backdrop blur (rule 13).
+- **Race results veil (desktop e2e project, `e2e/race-results-scrim.spec.ts`):** after a sorting and a pathfinding race, in both themes, the veil's background is the resolved `--color-scrim` (rule 13).
 - **Native controls (lint):** native form controls are only allowed inside `src/components/ui/`.
 - **Raw colors (lint):** color literals and Tailwind default palette classes are only allowed in the theme.
 

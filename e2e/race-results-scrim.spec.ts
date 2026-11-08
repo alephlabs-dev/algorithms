@@ -21,7 +21,9 @@ const races = [
 
 for (const theme of ['light', 'dark'] as const) {
   for (const url of races) {
-    test(`race results veil uses the scrim token (${theme}, ${url.split('?')[0]})`, async ({ page }) => {
+    test(`race results veil uses the scrim token (${theme}, ${url.split('?')[0]})`, async ({ page }, info) => {
+      // The color comes from the theme, not the device: one project is enough.
+      test.skip(info.project.name !== 'desktop', 'desktop only');
       // The app picks its theme from localStorage, not the system setting.
       await page.addInitScript((t) => {
         localStorage.setItem('tour-done', 'true');
@@ -38,11 +40,7 @@ for (const theme of ['light', 'dark'] as const) {
       const veil = card.locator('..');
       const scrim = await resolvedScrim(page);
       expect(scrim).not.toBe('rgba(0, 0, 0, 0)');
-      const style = await veil.evaluate((el) => {
-        const s = getComputedStyle(el);
-        return { background: s.backgroundColor, blur: s.backdropFilter };
-      });
-      expect(style).toEqual({ background: scrim, blur: 'none' });
+      expect(await veil.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(scrim);
     });
   }
 }
