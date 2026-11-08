@@ -1,93 +1,123 @@
 import { describe, expect, it } from "vitest";
 import { sortAlgorithms } from "@/algorithms";
 import { Timeline } from "@/algorithms/timeline";
+import { createAppStore, type StoreState, type View } from "@/appStore";
+import { encodeItems } from "@/dp/presets";
+import { encodePath, linkShape } from "@/fourier/shapes";
 import { makeGraph } from "@/graphs";
+import { decodeGraph, encodeGraph } from "@/graphs/graph";
 import { applyPreset, emptyGrid } from "@/pathfinding";
-import { moduleOf, routeFromPath, routePath } from "@/routes";
-import type { StoreState } from "@/store";
-import { readLocation } from "@/urlState";
+import { encodeCells } from "@/pathfinding/grid";
+import { moduleOf, routeFromPath, routePath, type Route } from "@/routes";
+import { encodeOperations } from "@/structures/link";
+import {
+  readLocation,
+  toBacktrackingSearch,
+  toDpSearch,
+  toFourierSearch,
+  toGraphSearch,
+  toPathSearch,
+  toSearch,
+  toStructureSearch,
+} from "@/urlState";
 import { generateItems } from "@/utils/generateItems";
 import { seededRandom } from "@/utils/random";
-import { engines, type ModuleId } from "./engine";
+import { engines, type ModuleId, type SliceStates } from "./engine";
 
-const SORTING = {
-  algorithm: "heap",
-  size: 40,
-  inputOrder: "reversed",
-  displayMode: "bars",
-  seed: 12345,
-  racers: ["insertion", "quick", "merge"],
+const SPEED = "2x";
+
+// Each module opens on a link to one of its pages, carrying settings that differ from its defaults.
+// `carries` is what the slice must hold after reading the link: a slice that can't read
+// a value falls back to its default without a word, and the tests would check the wrong state.
+const maze = applyPreset(emptyGrid(17, 33), "maze", seededRandom(3));
+// A link rounds node positions to 1/255, so the slice holds the graph as the link brings it back.
+const tree = decodeGraph(encodeGraph(makeGraph("tree", "large", false, seededRandom(5))))!;
+const items = [
+  { weight: 3, value: 4 },
+  { weight: 4, value: 5 },
+];
+const ops = [
+  { kind: "insert", value: 10 },
+  { kind: "insert", value: 20 },
+] as const;
+// A drawing travels in its link as the slice keeps it: fitted by linkShape.
+const drawing = linkShape([
+  { x: 0, y: 0 },
+  { x: 1, y: 0 },
+  { x: 0, y: 1 },
+]);
+const LINKS: { [M in ModuleId]: { page: Route; search: string; carries: Partial<SliceStates[M]> } } = {
+  sorting: {
+    page: { kind: "algorithm", algorithm: "heap" },
+    search: toSearch({
+      size: 40,
+      inputOrder: "reversed",
+      displayMode: "bars",
+      seed: 12345,
+      raceAlgorithms: ["insertion", "quick", "merge"],
+      speed: SPEED,
+    }),
+    carries: { algorithm: "heap", size: 40, inputOrder: "reversed", seed: 12345, racers: ["insertion", "quick", "merge"] },
+  },
+  pathfinding: {
+    page: { kind: "path", algorithm: "dijkstra" },
+    search: toPathSearch({
+      gridSize: "medium",
+      cells: encodeCells(maze.cells),
+      start: maze.start,
+      end: maze.end,
+      racers: ["bfs", "astar"],
+      speed: SPEED,
+    }),
+    carries: { algorithm: "dijkstra", gridSize: "medium", grid: maze, racers: ["bfs", "astar"] },
+  },
+  graphs: {
+    page: { kind: "graph", algorithm: "dijkstra" },
+    search: toGraphSearch({ graph: encodeGraph(tree), size: "large", preset: "tree", racers: ["prim", "kruskal"], speed: SPEED }),
+    carries: { algorithm: "dijkstra", size: "large", preset: "tree", graph: tree, racers: ["prim", "kruskal"] },
+  },
+  dp: {
+    page: { kind: "dpProblem", algorithm: "lcs" },
+    search: toDpSearch({ a: "KITTEN", b: "SITTING", items: encodeItems(items), capacity: 7, speed: SPEED }),
+    carries: { algorithm: "lcs", a: "KITTEN", b: "SITTING", items, capacity: 7 },
+  },
+  structures: {
+    page: { kind: "structure", algorithm: "avl" },
+    search: toStructureSearch({ ops: encodeOperations([...ops]), size: "medium", preset: "ascending", speed: SPEED }),
+    carries: { algorithm: "avl", ops: [...ops], size: "medium", preset: "ascending" },
+  },
+  backtracking: {
+    page: { kind: "backtrackingProblem", algorithm: "queens" },
+    search: toBacktrackingSearch({ n: 5, puzzle: "easy", order: "rows", speed: SPEED }),
+    carries: { problem: "queens", queensN: 5, sudokuPuzzle: "easy", sudokuOrder: "rows" },
+  },
+  fourier: {
+    page: { kind: "series", algorithm: "epicycles" },
+    search: toFourierSearch({ circles: 25, shape: "custom", path: encodePath(drawing), speed: SPEED }),
+    carries: { algorithm: "epicycles", circles: 25, shape: "custom", path: drawing },
+  },
 };
 
-const PATHFINDING = {
-  algorithm: "dijkstra",
-  gridSize: "medium",
-  grid: applyPreset(emptyGrid(17, 33), "maze", seededRandom(3)),
-  racers: ["bfs", "astar"],
+/** The store opened on the module's link, then switched to `view` the way the app does. */
+const stateFor = (module: ModuleId, view: View, isModuleStart: boolean): StoreState => {
+  const { page, search, carries } = LINKS[module];
+  const store = createAppStore({
+    url: readLocation(routePath(page), search),
+    isMobile: false,
+    isPortrait: false,
+    theme: "dark",
+  });
+  expect(store.getState()[module], `${module} reads every setting its link carries`).toMatchObject(carries);
+  expect(store.getState().speedPreset).toBe(SPEED);
+  if (view === "race") store.getState().setView("race");
+  // Switching view leaves the module's start page, so the start page is set afterwards.
+  return { ...store.getState(), isModuleStart };
 };
 
-const GRAPHS = {
-  algorithm: "dijkstra",
-  size: "large",
-  preset: "tree",
-  graph: makeGraph("tree", "large", false, seededRandom(5)),
-  racers: ["prim", "kruskal"],
-};
-
-const DP = {
-  algorithm: "lcs",
-  a: "KITTEN",
-  b: "SITTING",
-  items: [
-    { weight: 3, value: 4 },
-    { weight: 4, value: 5 },
-  ],
-  capacity: 7,
-};
-
-const STRUCTURES = {
-  algorithm: "avl",
-  size: "medium",
-  preset: "ascending",
-  ops: [
-    { kind: "insert", value: 10 },
-    { kind: "insert", value: 20 },
-  ],
-};
-
-const BACKTRACKING = { problem: "queens", queensN: 5, sudokuPuzzle: "easy", sudokuOrder: "rows" };
-
-const FOURIER = {
-  algorithm: "epicycles",
-  circles: 25,
-  shape: "custom",
-  path: [
-    { x: 0, y: 0 },
-    { x: 1, y: 0 },
-    { x: 0, y: 1 },
-  ],
-};
-
-// Just the fields the engines read; each slice gets only its settings.
-const stateFor = (module: ModuleId, view: "single" | "race", isModuleStart: boolean) =>
-  ({
-    module,
-    view,
-    isModuleStart,
-    isLanding: false,
-    speedPreset: "2x",
-    sorting: SORTING,
-    pathfinding: PATHFINDING,
-    graphs: GRAPHS,
-    structures: STRUCTURES,
-    dp: DP,
-    backtracking: BACKTRACKING,
-    fourier: FOURIER,
-  }) as unknown as StoreState;
-
-/** A store change to one module's slice. */
-const within = (module: ModuleId, base: object, change: object) =>
-  ({ [module]: { ...base, ...change } }) as Partial<StoreState>;
+/** A change to one module's slice. */
+const within =
+  <M extends ModuleId>(module: M, change: Partial<SliceStates[M]>) =>
+  (state: StoreState): StoreState => ({ ...state, [module]: { ...state[module], ...change } });
 
 describe("module engines", () => {
   for (const module of Object.keys(engines) as ModuleId[]) {
@@ -104,57 +134,63 @@ describe("module engines", () => {
           // Fourier and backtracking have no race: their pages are single view whatever the store's view says.
           const hasRace = module !== "fourier" && module !== "backtracking";
           expect(location.view ?? "single").toBe(hasRace ? view : "single");
-          expect(location.speed).toBe("2x");
+          expect(location.speed).toBe(SPEED);
         }
       }
     });
   }
 
   it("puts every setting a module shares in its link, so editing it changes the link", () => {
-    const changes: [ModuleId, Partial<StoreState>][] = [
-      ["sorting", within("sorting", SORTING, { size: 80 })],
-      ["sorting", within("sorting", SORTING, { inputOrder: "sorted" })],
-      ["sorting", within("sorting", SORTING, { seed: 99 })],
-      ["sorting", within("sorting", SORTING, { racers: ["quick", "merge"] })],
+    const changes: [ModuleId, (state: StoreState) => StoreState][] = [
+      ["sorting", within("sorting", { size: 80 })],
+      ["sorting", within("sorting", { inputOrder: "sorted" })],
+      ["sorting", within("sorting", { seed: 99 })],
+      ["sorting", within("sorting", { racers: ["quick", "merge"] })],
       [
         "pathfinding",
-        within("pathfinding", PATHFINDING, { grid: applyPreset(emptyGrid(17, 33), "walls", seededRandom(8)) }),
+        within("pathfinding", { grid: applyPreset(emptyGrid(17, 33), "walls", seededRandom(8)) }),
       ],
-      ["pathfinding", within("pathfinding", PATHFINDING, { racers: ["dfs", "greedy"] })],
-      ["graphs", within("graphs", GRAPHS, { graph: makeGraph("grid", "large", false, seededRandom(2)) })],
-      ["graphs", within("graphs", GRAPHS, { preset: "dag" })],
-      ["graphs", within("graphs", GRAPHS, { racers: ["bfs", "topo"] })],
-      ["fourier", within("fourier", FOURIER, { circles: 100 })],
-      ["fourier", within("fourier", FOURIER, { shape: "star" })],
-      ["fourier", within("fourier", FOURIER, { path: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }] })],
-      ["fourier", { speedPreset: "4x" }],
+      ["pathfinding", within("pathfinding", { racers: ["dfs", "greedy"] })],
+      ["graphs", within("graphs", { graph: makeGraph("grid", "large", false, seededRandom(2)) })],
+      ["graphs", within("graphs", { preset: "dag" })],
+      ["graphs", within("graphs", { racers: ["bfs", "topo"] })],
+      ["fourier", within("fourier", { circles: 100 })],
+      ["fourier", within("fourier", { shape: "star" })],
+      [
+        "fourier",
+        within("fourier", {
+          path: linkShape([
+            { x: 0, y: 0 },
+            { x: 0, y: 1 },
+            { x: 1, y: 1 },
+          ]),
+        }),
+      ],
+      ["fourier", (state) => ({ ...state, speedPreset: "4x" })],
       [
         "structures",
-        within("structures", STRUCTURES, {
+        within("structures", {
           ops: [
             { kind: "insert", value: 10 },
             { kind: "delete", value: 10 },
           ],
         }),
       ],
-      ["structures", within("structures", STRUCTURES, { preset: "random" })],
-      ["dp", within("dp", DP, { a: "SUNDAY" })],
-      ["dp", within("dp", DP, { b: "SATURDAY" })],
-      ["dp", within("dp", DP, { algorithm: "knapsack", capacity: 9 })],
-      ["backtracking", within("backtracking", BACKTRACKING, { queensN: 8 })],
+      ["structures", within("structures", { preset: "random" })],
+      ["dp", within("dp", { a: "SUNDAY" })],
+      ["dp", within("dp", { b: "SATURDAY" })],
+      ["dp", within("dp", { algorithm: "knapsack", capacity: 9 })],
+      ["backtracking", within("backtracking", { queensN: 8 })],
     ];
     for (const [module, change] of changes) {
       const state = stateFor(module, "single", false);
-      expect(engines[module].search({ ...state, ...change } as StoreState)).not.toBe(engines[module].search(state));
+      expect(engines[module].search(change(state))).not.toBe(engines[module].search(state));
     }
   });
 
   it("puts the Sudoku puzzle in its link", () => {
-    const sudokuWith = (change: object) =>
-      ({
-        ...stateFor("backtracking", "single", false),
-        backtracking: { ...BACKTRACKING, problem: "sudoku", ...change },
-      }) as unknown as StoreState;
+    const sudokuWith = (change: Partial<SliceStates["backtracking"]>) =>
+      within("backtracking", { problem: "sudoku", ...change })(stateFor("backtracking", "single", false));
     const sudoku = sudokuWith({});
     const route = engines.backtracking.route(sudoku);
     expect(routePath(route)).toBe("/backtracking/sudoku");
@@ -166,14 +202,12 @@ describe("module engines", () => {
   });
 
   it("sorting has guess mode with 10 or 20 items, and none with more", () => {
-    const sortingWith = (size: number) => ({
-      ...stateFor("sorting", "single", false),
-      ...within("sorting", SORTING, {
+    const sortingWith = (size: number) =>
+      within("sorting", {
         algorithm: "insertion",
         size,
         run: new Timeline(sortAlgorithms.insertion, generateItems(size, "random", seededRandom(4))),
-      }),
-    });
+      })(stateFor("sorting", "single", false));
     const game = engines.sorting.game;
     expect(game).toBeDefined();
     expect(game!(sortingWith(10)).length).toBeGreaterThan(0);
