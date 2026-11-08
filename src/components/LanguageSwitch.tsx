@@ -2,7 +2,7 @@ import type { MouseEvent, ReactNode } from "react";
 import { lang, type Lang } from "@/i18n";
 import { pathIn } from "@/routes";
 import { useStore } from "@/store";
-import { routeFor } from "@/urlSync";
+import { routeFor } from "@/navigation";
 import { cn } from "@/utils/cn";
 
 const other: Lang = lang === "en" ? "es" : "en";
