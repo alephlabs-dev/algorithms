@@ -3,6 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useThrottled } from "@/hooks/useThrottled";
 import { useModuleUI } from "@/modules";
 import { useStore, type StoreState } from "@/store";
+import { selectSpeed } from "@/modules/engine";
 import { cn } from "@/utils/cn";
 import { stepsPerSecond } from "@/utils/speed";
 import { BottomSheet } from "./ui/bottom-sheet";
@@ -30,7 +31,7 @@ const READABLE_STEPS_PER_SECOND = 6;
 // The highlighted line and the sentence change at most this often.
 const UPDATE_INTERVAL_MS = 250;
 
-const tooFastFor = (s: StoreState) => s.isPlaying && stepsPerSecond(s.speed) > READABLE_STEPS_PER_SECOND;
+const tooFastFor = (s: StoreState) => s.isPlaying && stepsPerSecond(selectSpeed(s)) > READABLE_STEPS_PER_SECOND;
 
 // Only re-renders when the line or the play state changes, not on every frame.
 const usePseudocode = () => {

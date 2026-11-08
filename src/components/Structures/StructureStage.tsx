@@ -14,6 +14,7 @@ import {
   type StructureFrame,
 } from "@/structures";
 import { selectGameQuestion, useStore } from "@/store";
+import { selectSpeed } from "@/modules/engine";
 import { count } from "@/utils/count";
 import { moveDuration } from "@/utils/speed";
 import { cn } from "@/utils/cn";
@@ -73,7 +74,7 @@ export const StructureCanvas = ({
   const { structureId, speed, isScrubbing, theme, ops, question, answer } = useStore(
     useShallow((s) => ({
       structureId: s.structureId,
-      speed: s.speed,
+      speed: selectSpeed(s),
       isScrubbing: s.isScrubbing,
       theme: s.theme,
       ops: s.structureOps,

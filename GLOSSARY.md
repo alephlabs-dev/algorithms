@@ -12,6 +12,14 @@ _Avoid_: Game mode, quiz
 The decision in a run that best shows how its algorithm works, such as how far insertion sort slides a value or where quick sort's pivot lands. Guess mode asks about key moments.
 _Avoid_: Step, event
 
+**Run**:
+Every frame of one algorithm on one input, worked out before playback starts. The run on stage is the one the learner is watching; a race has one run per racer.
+_Avoid_: Animation, execution
+
+**Pace**:
+The pacing profile of a kind of run ("single", "pathRace", …) that sets how fast 1× plays, so the run takes a comfortable time. The speed presets are multiples of it.
+_Avoid_: Base speed, tempo
+
 ### Backtracking
 
 **Problem**:

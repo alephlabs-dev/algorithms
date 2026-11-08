@@ -14,7 +14,7 @@ import { encodeItems } from "@/dp/presets";
 import { dpQuestions, questionsOf, SORT_GUESS_MAX_SIZE, sortQuestions, structureQuestions, type Question } from "@/game";
 import { toBacktrackingSearch, toDpSearch, toFourierSearch, toGraphSearch, toPathSearch, toSearch, toStructureSearch } from "@/urlState";
 import type { DpEvent } from "@/dp/types";
-import { GRAPH_STEP_WEIGHT, PATH_STEP_WEIGHT, STEP_WEIGHT, type Pace } from "@/utils/speed";
+import { GRAPH_STEP_WEIGHT, PATH_STEP_WEIGHT, speedFor, STEP_WEIGHT, type Pace } from "@/utils/speed";
 
 /** The modules the app has. Each one declares its engine here and its interface in ./<id>.tsx. */
 export type ModuleId = "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | "backtracking";
@@ -184,6 +184,15 @@ export const engines: Record<ModuleId, ModuleEngine> = {
           : { n: s.queensN, speed: s.speedPreset },
       ),
   },
+};
+
+/**
+ * The speed playback runs at: the chosen preset, as a multiple of the pace of the
+ * run on stage. Worked out from the state, so it follows every new run by itself.
+ */
+export const selectSpeed = (s: StoreState) => {
+  const engine = engines[s.module];
+  return speedFor(s.speedPreset, engine.lastIndex(s, s.view), engine.pace(s.view));
 };
 
 /** Conflicts flick past; a queen or digit placed or taken back gets the full beat, a dead end a longer one. */
