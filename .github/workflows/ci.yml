@@ -23,9 +23,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: make ci
 
-  e2e:
+  e2e-device:
+    name: e2e (${{ matrix.project }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false # one device failing shouldn't hide the others' results
+      matrix:
+        project: [iphone, ipad, ipad-landscape, desktop]
     container:
       # Keep this tag equal to the installed @playwright/test version (pnpm exec playwright --version).
       image: mcr.microsoft.com/playwright:v1.64.1-noble
@@ -36,12 +41,20 @@ jobs:
       - run: apt-get update && apt-get install -y --no-install-recommends make
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile
-      - run: make e2e
+      - run: make e2e ARGS=--project=${{ matrix.project }}
         env:
           STEP_SENTENCES: 1 # the slow step-sentence check, skipped locally by default
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: playwright-report
           retention-days: 7
+
+  # The ruleset on main requires a check named "e2e"; this job keeps that name for the matrix above.
+  e2e:
+    needs: e2e-device
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "${{ needs.e2e-device.result }}" = success
