@@ -5,6 +5,7 @@ import {
   encodePath,
   FourierRun,
   isWave,
+  linkShape,
   type FourierAlgorithm,
   type FourierShape,
   type Point,
@@ -59,8 +60,11 @@ export const fourierSlice = defineModule<FourierState, FourierAlgorithm>()({
       const path = shape === "custom" ? null : s.path;
       return { shape, path, run: runOf({ ...s, shape, path }) };
     },
-    /** A hand-drawn shape. */
-    setPath: (s, _, path: Point[]) => ({ shape: "custom", path, run: runOf({ ...s, shape: "custom", path }) }),
+    /** A hand-drawn shape, fitted for its link right away so what's drawn is what's shared. */
+    setPath: (s, _, stroke: Point[]) => {
+      const path = linkShape(stroke);
+      return { shape: "custom", path, run: runOf({ ...s, shape: "custom", path }) };
+    },
   },
 
   // "New" adds circles, wrapping back to the fewest: the quickest way to see the series converge.

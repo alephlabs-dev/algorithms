@@ -289,11 +289,20 @@ export const shapePoints = (shape: FourierShape, custom: Point[] | null): Point[
 
 const LINK_POINTS = 64;
 
+const toByte = (v: number) => Math.min(255, Math.max(0, Math.round(((v + 1) / 2) * 255)));
+const fromByte = (b: number) => (b / 255) * 2 - 1;
+
+/**
+ * A hand-drawn stroke as its link carries it: normalized, 64 points, each
+ * coordinate rounded to a byte. Fitting happens once, when the drawing is
+ * made, so the drawer sees what the link shows and the link never drifts.
+ */
+export const linkShape = (points: Point[]): Point[] =>
+  resample(normalize(points), LINK_POINTS).map((p) => ({ x: fromByte(toByte(p.x)), y: fromByte(toByte(p.y)) }));
+
+/** A shape from `linkShape` (or `decodePath`) as link text; it only packs the points, so decoding gives them back. */
 export const encodePath = (points: Point[]): string => {
-  const bytes = resample(normalize(points), LINK_POINTS).flatMap((p) => [
-    Math.round(((p.x + 1) / 2) * 255),
-    Math.round(((p.y + 1) / 2) * 255),
-  ]);
+  const bytes = points.flatMap((p) => [toByte(p.x), toByte(p.y)]);
   return btoa(String.fromCharCode(...bytes))
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
@@ -304,10 +313,7 @@ export const decodePath = (text: string): Point[] | null => {
   try {
     const bytes = [...atob(text.replace(/-/g, "+").replace(/_/g, "/"))].map((c) => c.charCodeAt(0));
     if (bytes.length !== LINK_POINTS * 2) return null;
-    return Array.from({ length: LINK_POINTS }, (_, k) => ({
-      x: (bytes[2 * k] / 255) * 2 - 1,
-      y: (bytes[2 * k + 1] / 255) * 2 - 1,
-    }));
+    return Array.from({ length: LINK_POINTS }, (_, k) => ({ x: fromByte(bytes[2 * k]), y: fromByte(bytes[2 * k + 1]) }));
   } catch {
     return null;
   }
