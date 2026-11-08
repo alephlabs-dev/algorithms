@@ -130,7 +130,8 @@ body {
   }
 }
 
-/* In-page links (the landing's "Modules") glide there, or jump when motion is reduced. */
+/* In-page links (the landing's "Modules") and PageLink's scroll to the top of a new page
+   glide there, or jump when motion is reduced (#90). */
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
