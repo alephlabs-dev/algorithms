@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { gotoApp } from './goto';
 
 // The race results veil hides the lanes and takes their taps, so it's a backdrop: its fill is
 // the --color-scrim token (UX.md rule 13), in both themes, on every module's race page.
@@ -29,7 +30,7 @@ for (const theme of ['light', 'dark'] as const) {
         localStorage.setItem('tour-done', 'true');
         localStorage.setItem('theme', t);
       }, theme);
-      await page.goto(url);
+      await gotoApp(page, url);
       // Dark is the default and has no attribute; light sets data-theme="light".
       if (theme === 'light') await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
       else await expect(page.locator('html')).not.toHaveAttribute('data-theme', 'light');

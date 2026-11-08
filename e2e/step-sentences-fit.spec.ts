@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { test, expect } from '@playwright/test';
+import { gotoApp } from './goto';
 import { createServer } from 'vite';
 
 // The step sentence above the stage is always two lines tall, so the stage never moves (#111), and cuts
@@ -69,7 +70,7 @@ for (const lang of ['en', 'es'] as Lang[]) {
     for (const { module, url } of PAGES) {
       const own = sentences.filter((s) => s.run.split(' ')[0] === module);
       expect(own.length, `${module} has sentences`).toBeGreaterThan(0);
-      await page.goto(lang === 'en' ? url : `/es${url}`);
+      await gotoApp(page, lang === 'en' ? url : `/es${url}`);
       await page.evaluate(() => document.fonts.ready);
 
       const { width, lines } = await page.locator('[data-tour="narration"]:visible').evaluate((caption, texts) => {

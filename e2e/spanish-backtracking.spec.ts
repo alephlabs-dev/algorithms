@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { gotoApp } from './goto';
 
 // Runs on every device project. The Spanish N-Queens page: names, steps and the choices strip.
 test('N-Queens in Spanish places queens and explains each step in Spanish', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.addInitScript(() => localStorage.setItem('tour-done-backtracking', 'true'));
-  await page.goto('/es/backtracking/n-queens?n=6');
+  await gotoApp(page, '/es/backtracking/n-queens?n=6');
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   await expect(page.getByRole('heading', { level: 1, name: 'N reinas' })).toBeAttached();
@@ -28,7 +29,7 @@ test('Sudoku in Spanish fills the grid and explains each step in Spanish', async
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.addInitScript(() => localStorage.setItem('tour-done-backtracking', 'true'));
-  await page.goto('/es/backtracking/sudoku?puzzle=easy');
+  await gotoApp(page, '/es/backtracking/sudoku?puzzle=easy');
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   await expect(page.getByRole('heading', { level: 1, name: 'Sudoku' })).toBeAttached();
@@ -49,7 +50,7 @@ test('Sudoku with fewest options first explains why each cell goes next, in Span
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.addInitScript(() => localStorage.setItem('tour-done-backtracking', 'true'));
-  await page.goto('/es/backtracking/sudoku?puzzle=hard&order=mrv');
+  await gotoApp(page, '/es/backtracking/sudoku?puzzle=hard&order=mrv');
 
   await expect(
     page.getByText('51 casillas vacías. Presiona play: primero la que admite menos dígitos, probando del 1 al 9.').filter({ visible: true }).first(),

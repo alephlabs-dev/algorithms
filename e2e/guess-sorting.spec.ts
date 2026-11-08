@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { gotoApp } from './goto';
 import { openSettings } from './settings';
 
 // Runs on every device project. Guess mode in sorting: turn it on, play until it asks, answer, and the score counts it.
 test('sorting guess mode asks, takes an answer and keeps score', async ({ page }) => {
   // Skip the first-visit tour, which would cover the stage.
   await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
-  await page.goto('/sorting/insertion-sort?size=10&speed=8x');
+  await gotoApp(page, '/sorting/insertion-sort?size=10&speed=8x');
 
   const toggle = page.getByRole('button', { name: /Guess mode/ });
   await toggle.click();
@@ -26,7 +27,7 @@ test('sorting guess mode goes quiet with more than 20 items, and a tap says why'
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
-  await page.goto('/sorting/insertion-sort?size=10&speed=8x');
+  await gotoApp(page, '/sorting/insertion-sort?size=10&speed=8x');
 
   const toggle = page.getByRole('button', { name: /Guess mode/ });
   await toggle.click();

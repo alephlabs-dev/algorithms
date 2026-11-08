@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { gotoApp } from './goto';
 
 // UX.md: on phones and tablets every visible button, link and form control is at least 44×44 px.
 // The hit area counts, not just the visible box: an absolutely positioned ::before/::after can grow it.
@@ -38,7 +39,7 @@ for (const route of routes) {
       for (const key of ['tour-done', 'tour-done-pathfinding', 'tour-done-graphs', 'tour-done-fourier', 'tour-done-structures', 'tour-done-dp', 'tour-done-backtracking'])
         localStorage.setItem(key, 'true');
     });
-    await page.goto(route);
+    await gotoApp(page, route);
     await page.waitForLoadState('networkidle');
 
     const small = await page.evaluate(

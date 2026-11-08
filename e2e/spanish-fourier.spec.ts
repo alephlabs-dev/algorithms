@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { gotoApp } from './goto';
 
 // Runs on every device project. The Spanish Fourier page: names, steps and the circles control.
 test('Fourier in Spanish builds the wave and explains it in Spanish', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.addInitScript(() => localStorage.setItem('tour-done-fourier', 'true'));
-  await page.goto('/es/fourier/square-wave');
+  await gotoApp(page, '/es/fourier/square-wave');
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   await expect(page.getByRole('heading', { level: 1, name: 'Onda cuadrada' })).toBeAttached();

@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { gotoApp } from './goto';
 
 // The canvas reads theme colors from CSS variables, which the production build minifies
 // (#ffd700 can become "gold"). The sorted section must still come out yellow, not black.
 test('sorted section bars keep the theme color in the production build', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
   await page.emulateMedia({ colorScheme: 'dark' });
-  await page.goto('/sorting/insertion-sort?size=10');
+  await gotoApp(page, '/sorting/insertion-sort?size=10');
 
   // Insertion's first step lights the first two bars as the sorted section.
   await page.getByRole('button', { name: 'Next step', exact: true }).click();

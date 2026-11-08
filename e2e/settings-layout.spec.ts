@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { gotoApp } from './goto';
 import { hasSettingsPanel } from './settings';
 
 // Runs on every device project. Where settings live (UX.md rule 8): a modal sheet over the stage on
@@ -18,7 +19,7 @@ const position = async (page: Page) =>
 test('settings open in a modal sheet over a stage that stays put and keeps playing', async ({ page }, testInfo) => {
   test.skip(hasSettingsPanel(testInfo), 'iPad landscape and desktop keep the settings beside the stage');
   await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
-  await page.goto('/sorting/insertion-sort?size=40');
+  await gotoApp(page, '/sorting/insertion-sort?size=40');
 
   await page.getByRole('button', { name: 'Play', exact: true }).click();
   const stageBefore = await stagePlace(page);
@@ -59,7 +60,7 @@ test('settings open in a modal sheet over a stage that stays put and keeps playi
 
 test('picking a module closes the module list', async ({ page }, testInfo) => {
   await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
-  await page.goto('/sorting');
+  await gotoApp(page, '/sorting');
 
   await page.getByRole('button', { name: 'Module: Sorting. Change' }).filter({ visible: true }).first().click();
   const list = page.getByRole('navigation', { name: 'Modules' });
@@ -75,7 +76,7 @@ test('picking a module closes the module list', async ({ page }, testInfo) => {
 test('iPad landscape and desktop: a side panel with Settings and Pseudocode tabs beside the stage', async ({ page }, testInfo) => {
   test.skip(!hasSettingsPanel(testInfo), 'phones and upright tablets use the sheet');
   await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
-  await page.goto('/sorting/insertion-sort');
+  await gotoApp(page, '/sorting/insertion-sort');
 
   // Settings is the default tab.
   const tabs = page.getByRole('radiogroup', { name: 'Side panel' });
@@ -110,7 +111,7 @@ test('iPad landscape and desktop: a side panel with Settings and Pseudocode tabs
 test('iPad landscape and desktop: the legend shows once while the Pseudocode tab is open', async ({ page }, testInfo) => {
   test.skip(!hasSettingsPanel(testInfo), 'phones and upright tablets use the sheet');
   await page.addInitScript(() => localStorage.setItem('tour-done-pathfinding', 'true'));
-  await page.goto('/pathfinding');
+  await gotoApp(page, '/pathfinding');
 
   await page.getByRole('radiogroup', { name: 'Side panel' }).getByRole('radio', { name: 'Pseudocode' }).click();
   const card = page.getByRole('region', { name: 'Current step' });
