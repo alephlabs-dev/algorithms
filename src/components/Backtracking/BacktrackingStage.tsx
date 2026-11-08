@@ -40,7 +40,7 @@ const text = localized({
 
 /** The board on stage, for whichever problem: a chessboard of queens or a Sudoku grid. */
 export const BacktrackingStage = () => {
-  const problem = useStore((s) => s.backtrackingProblem);
+  const problem = useStore((s) => s.backtracking.problem);
   return problem === "sudoku" ? <SudokuStage /> : <QueensStage />;
 };
 
@@ -95,7 +95,7 @@ const deadEndSlot = "border-conflict bg-conflict/15 ring-2 ring-conflict";
  * The strip grows with every choice and shrinks with every backtrack.
  */
 const QueensStage = () => {
-  const { run, frameIndex } = useStore(useShallow((s) => ({ run: s.queensRun, frameIndex: s.frameIndex })));
+  const { run, frameIndex } = useStore(useShallow((s) => ({ run: s.backtracking.queensRun, frameIndex: s.frameIndex })));
   const frame = run.frameAt(frameIndex);
   const board = useMemo(() => queensBoard(frame, run.n), [frame, run.n]);
   const { event } = frame;
@@ -149,7 +149,7 @@ const SHOWN_SIDEWAYS = 8;
  * A dead end and a backtrack show at the end, as the step that's about to pop the stack.
  */
 const SudokuStage = () => {
-  const { run, frameIndex } = useStore(useShallow((s) => ({ run: s.sudokuRun, frameIndex: s.frameIndex })));
+  const { run, frameIndex } = useStore(useShallow((s) => ({ run: s.backtracking.sudokuRun, frameIndex: s.frameIndex })));
   const frame = run.frameAt(frameIndex);
   const board = useMemo(() => sudokuBoard(frame, run), [frame, run]);
   const { event, stack, grid } = frame;

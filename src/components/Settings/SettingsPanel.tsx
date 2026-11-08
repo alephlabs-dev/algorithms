@@ -236,7 +236,7 @@ export const FourierSettings = () => {
 
 /** Backtracking's settings: the board size, or the Sudoku puzzle. */
 export const BacktrackingSettings = () => {
-  const sudoku = useStore((s) => s.backtrackingProblem === "sudoku");
+  const sudoku = useStore((s) => s.backtracking.problem === "sudoku");
   return (
     <div data-tour="tools" className="flex flex-col gap-6">
       <Field label={sudoku ? text.puzzle : text.queens} help={sudoku ? text.puzzleHelp : text.queensHelp}>

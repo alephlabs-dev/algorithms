@@ -1,5 +1,3 @@
-import { runOf } from "@/backtracking";
-import type { BacktrackingEventType } from "@/backtracking/types";
 import { localized } from "@/i18n";
 import { encodeGraph } from "@/graphs/graph";
 import { encodeCells } from "@/pathfinding/grid";
@@ -11,8 +9,9 @@ import type { HashEvent, TreeEvent } from "@/structures/types";
 import { sizes } from "@/consts/sizesMap";
 import { encodeItems } from "@/dp/presets";
 import { dpQuestions, questionsOf, SORT_GUESS_MAX_SIZE, sortQuestions, structureQuestions, type Question } from "@/game";
-import { toBacktrackingSearch, toDpSearch, toGraphSearch, toPathSearch, toSearch, toStructureSearch } from "@/urlState";
+import { toDpSearch, toGraphSearch, toPathSearch, toSearch, toStructureSearch } from "@/urlState";
 import type { DpEvent } from "@/dp/types";
+import { backtrackingSlice } from "./backtracking.slice";
 import { fourierSlice } from "./fourier.slice";
 import type { Bound, ModuleSlice, SliceContext } from "./slice";
 import { GRAPH_STEP_WEIGHT, PATH_STEP_WEIGHT, speedFor, STEP_WEIGHT, type Pace } from "@/utils/speed";
@@ -47,6 +46,7 @@ export type ModuleEngine = {
  */
 export const slices = {
   fourier: fourierSlice,
+  backtracking: backtrackingSlice,
 };
 
 export type SlicedModule = keyof typeof slices;
@@ -198,20 +198,7 @@ export const engines: Record<ModuleId, ModuleEngine> = {
         : toDpSearch({ a: s.dpA, b: s.dpB, speed: s.speedPreset }),
     game: (s) => questionsOf(s.dpRun, dpQuestions),
   },
-  backtracking: {
-    lastIndex: (s) => runOf(s).length - 1,
-    stepWeight: (s, index) => BACKTRACKING_STEP_WEIGHT[runOf(s).frameAt(index).event.type],
-    pace: () => "backtracking",
-    route: (s) =>
-      s.isModuleStart ? { kind: "backtracking" } : { kind: "backtrackingProblem", algorithm: s.backtrackingProblem },
-    // N-Queens links its board size; Sudoku its puzzle.
-    search: (s) =>
-      toBacktrackingSearch(
-        s.backtrackingProblem === "sudoku"
-          ? { puzzle: s.sudokuPuzzle, order: s.sudokuOrder, speed: s.speedPreset }
-          : { n: s.queensN, speed: s.speedPreset },
-      ),
-  },
+  backtracking: engineOf("backtracking", slices.backtracking.engine, (s) => s.backtracking),
 };
 
 /**
@@ -221,16 +208,6 @@ export const engines: Record<ModuleId, ModuleEngine> = {
 export const selectSpeed = (s: StoreState) => {
   const engine = engines[s.module];
   return speedFor(s.speedPreset, engine.lastIndex(s, s.view), engine.pace(s.view));
-};
-
-/** Conflicts flick past; a queen or digit placed or taken back gets the full beat, a dead end a longer one. */
-const BACKTRACKING_STEP_WEIGHT: Record<BacktrackingEventType, number> = {
-  start: 0.7,
-  conflict: 0.4,
-  choice: 1,
-  deadEnd: 1.2,
-  backtrack: 1,
-  done: 0.5,
 };
 
 /** Cells fill briskly; the way back, the part that answers the question, gets a longer beat. */

@@ -10,6 +10,8 @@ import { generateItems } from "@/utils/generateItems";
 import { seededRandom } from "@/utils/random";
 import { engines, type ModuleId } from "./engine";
 
+const BACKTRACKING = { problem: "queens", queensN: 5, sudokuPuzzle: "easy", sudokuOrder: "rows" };
+
 const FOURIER = {
   algorithm: "epicycles",
   circles: 25,
@@ -59,10 +61,7 @@ const stateFor = (module: ModuleId, view: "single" | "race", isModuleStart: bool
       { weight: 4, value: 5 },
     ],
     dpCapacity: 7,
-    backtrackingProblem: "queens",
-    queensN: 5,
-    sudokuPuzzle: "easy",
-    sudokuOrder: "rows",
+    backtracking: BACKTRACKING,
     fourier: FOURIER,
   }) as unknown as StoreState;
 
@@ -110,7 +109,7 @@ describe("module engines", () => {
       ["dp", { dpA: "SUNDAY" }],
       ["dp", { dpB: "SATURDAY" }],
       ["dp", { dpAlgorithm: "knapsack", dpCapacity: 9 }],
-      ["backtracking", { queensN: 8 }],
+      ["backtracking", { backtracking: { ...BACKTRACKING, queensN: 8 } } as Partial<StoreState>],
     ];
     for (const [module, change] of changes) {
       const state = stateFor(module, "single", false);
@@ -119,13 +118,18 @@ describe("module engines", () => {
   });
 
   it("puts the Sudoku puzzle in its link", () => {
-    const sudoku = { ...stateFor("backtracking", "single", false), backtrackingProblem: "sudoku" } as StoreState;
+    const sudokuWith = (change: object) =>
+      ({
+        ...stateFor("backtracking", "single", false),
+        backtracking: { ...BACKTRACKING, problem: "sudoku", ...change },
+      }) as unknown as StoreState;
+    const sudoku = sudokuWith({});
     const route = engines.backtracking.route(sudoku);
     expect(routePath(route)).toBe("/backtracking/sudoku");
-    const hard = engines.backtracking.search({ ...sudoku, sudokuPuzzle: "hard" } as StoreState);
+    const hard = engines.backtracking.search(sudokuWith({ sudokuPuzzle: "hard" }));
     expect(hard).not.toBe(engines.backtracking.search(sudoku));
     expect(readLocation(routePath(route), hard).backtracking).toEqual({ puzzle: "hard" });
-    const mrv = engines.backtracking.search({ ...sudoku, sudokuOrder: "mrv" } as StoreState);
+    const mrv = engines.backtracking.search(sudokuWith({ sudokuOrder: "mrv" }));
     expect(readLocation(routePath(route), mrv).backtracking).toEqual({ puzzle: "easy", order: "mrv" });
   });
 

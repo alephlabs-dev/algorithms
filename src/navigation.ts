@@ -18,8 +18,8 @@ export const applyRoute = (app: AppStore, route: Route) => {
   }
   const inPath = store.module === "pathfinding";
   if (route.kind === "backtracking" || route.kind === "backtrackingProblem") {
-    const problem = route.kind === "backtrackingProblem" ? route.algorithm : store.backtrackingProblem;
-    if (store.module !== "backtracking" || store.backtrackingProblem !== problem) store.setBacktrackingProblem(problem);
+    const problem = route.kind === "backtrackingProblem" ? route.algorithm : store.backtracking.problem;
+    if (store.module !== "backtracking" || store.backtracking.problem !== problem) store.pick("backtracking", problem);
   } else if (route.kind === "dp" || route.kind === "dpProblem") {
     const algorithm = route.kind === "dpProblem" ? route.algorithm : store.dpAlgorithm;
     if (store.module !== "dp" || store.view !== "single" || store.dpAlgorithm !== algorithm)

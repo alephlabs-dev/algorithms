@@ -43,17 +43,6 @@ import {
   type TableRun,
 } from "./dp";
 import {
-  DEFAULT_QUEENS,
-  MAX_QUEENS,
-  MIN_QUEENS,
-  QueensRun,
-  SUDOKU_PUZZLES,
-  SudokuRun,
-  type BacktrackingProblem,
-  type FillOrder,
-  type SudokuPuzzle,
-} from "./backtracking";
-import {
   contextFor,
   engines,
   slices,
@@ -98,7 +87,6 @@ const LEGACY_TOUR_KEYS: Record<Exclude<Module, SlicedModule>, string> = {
   graphs: "tour-done-graphs",
   structures: "tour-done-structures",
   dp: "tour-done-dp",
-  backtracking: "tour-done-backtracking",
 };
 const SLICED = Object.keys(slices) as SlicedModule[];
 const TOUR_KEYS: Record<Module, string> = {
@@ -164,16 +152,6 @@ export type StoreState = SliceStates & {
   dpRun: TableRun;
   /** Race view: the knapsack solved three ways, every subproblem each one touches. */
   dpRaceRuns: KnapsackWork[];
-  backtrackingProblem: BacktrackingProblem;
-  /** N-Queens: the board's size, and how many queens go on it. */
-  queensN: number;
-  /** The search for the first solution, frame by frame. */
-  queensRun: QueensRun;
-  /** Sudoku: which preset puzzle, and its search. */
-  sudokuPuzzle: SudokuPuzzle;
-  /** Which empty cell goes next: row by row, or fewest options first. */
-  sudokuOrder: FillOrder;
-  sudokuRun: SudokuRun;
   /** Bumped when the graph is replaced wholesale, so nodes don't glide between layouts. */
   graphId: number;
   /** Searches racing on the grid, in the picker's order. */
@@ -259,11 +237,6 @@ export type StoreState = SliceStates & {
   setDpWords: (a: string, b: string) => void;
   /** New knapsack items and capacity; the table starts over. */
   setDpItems: (items: Item[], capacity: number) => void;
-  setBacktrackingProblem: (problem: BacktrackingProblem) => void;
-  /** A new board size; the search starts over. */
-  setQueensN: (n: number) => void;
-  setSudokuPuzzle: (puzzle: SudokuPuzzle) => void;
-  setSudokuOrder: (order: FillOrder) => void;
   togglePathRacer: (algorithm: PathAlgorithm) => void;
   /** Switch to the pathfinding race with `algorithm` among the racers. */
   pathRaceWith: (algorithm: PathAlgorithm) => void;
@@ -555,9 +528,6 @@ const initialState = ({ url, isMobile, isPortrait }: StoreEnv) => {
   const dpRaceStart = module === "dp" && view === "race";
   const dpItems = (url.dp.items && decodeItems(url.dp.items)) || (dpRaceStart ? RACE_ITEMS : EXAMPLE_ITEMS);
   const dpCapacity = url.dp.capacity ?? (dpRaceStart ? RACE_CAPACITY : EXAMPLE_CAPACITY);
-  const queensN = url.backtracking.n ?? DEFAULT_QUEENS;
-  const sudokuPuzzle = url.backtracking.puzzle ?? "easy";
-  const sudokuOrder = url.backtracking.order ?? "rows";
   const graphAlgorithm = url.graphAlgorithm ?? "bfs";
   const graphSize = fitGraphSize(url.graph.size ?? "medium", module === "graphs" ? view : "single", isMobile);
   const graphPreset = url.graph.preset ?? "random";
@@ -588,12 +558,6 @@ const initialState = ({ url, isMobile, isPortrait }: StoreEnv) => {
     dpCapacity,
     dpRun: dpRunFor(dpAlgorithm, dpA, dpB, dpItems, dpCapacity),
     dpRaceRuns: dpRaceRunsFor(module === "dp" ? view : "single", dpItems, dpCapacity),
-    backtrackingProblem: url.backtrackingProblem ?? ("queens" as BacktrackingProblem),
-    queensN,
-    queensRun: new QueensRun(queensN),
-    sudokuPuzzle,
-    sudokuOrder,
-    sudokuRun: new SudokuRun(SUDOKU_PUZZLES[sudokuPuzzle], sudokuOrder),
     structureAlgorithm,
     structurePreset,
     structureSize,
@@ -893,12 +857,6 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
         const next = wordPairs[(at + 1) % wordPairs.length];
         setDpWords(next.a, next.b);
       }
-      else if (module === "backtracking") {
-        // "New": the next board size (wrapping back to the smallest), or the other puzzle.
-        const { backtrackingProblem, queensN, setQueensN, sudokuPuzzle, setSudokuPuzzle } = get();
-        if (backtrackingProblem === "sudoku") setSudokuPuzzle(sudokuPuzzle === "easy" ? "hard" : "easy");
-        else setQueensN(queensN >= MAX_QUEENS ? MIN_QUEENS : queensN + 1);
-      }
       else setSize(size);
     },
 
@@ -1009,40 +967,6 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
         pathRaceTimelines: [],
         graphRaceTimelines: [],
         structureRaceRuns: [],
-      }));
-    },
-
-    setBacktrackingProblem: (problem) => {
-      replaceRun((state) => ({
-        module: "backtracking",
-        view: "single",
-        isModuleStart: false,
-        backtrackingProblem: problem,
-        queensRun: new QueensRun(state.queensN),
-        sudokuRun: new SudokuRun(SUDOKU_PUZZLES[state.sudokuPuzzle], state.sudokuOrder),
-        dpRaceRuns: [],
-        raceTimelines: [],
-        pathRaceTimelines: [],
-        graphRaceTimelines: [],
-        structureRaceRuns: [],
-      }));
-    },
-
-    setQueensN: (queensN) => {
-      replaceRun(() => ({ queensN, queensRun: new QueensRun(queensN) }));
-    },
-
-    setSudokuPuzzle: (sudokuPuzzle) => {
-      replaceRun((state) => ({
-        sudokuPuzzle,
-        sudokuRun: new SudokuRun(SUDOKU_PUZZLES[sudokuPuzzle], state.sudokuOrder),
-      }));
-    },
-
-    setSudokuOrder: (sudokuOrder) => {
-      replaceRun((state) => ({
-        sudokuOrder,
-        sudokuRun: new SudokuRun(SUDOKU_PUZZLES[state.sudokuPuzzle], sudokuOrder),
       }));
     },
 
