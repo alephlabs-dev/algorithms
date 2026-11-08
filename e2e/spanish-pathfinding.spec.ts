@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { gotoApp } from './goto';
 
 // Runs on every device project. The Spanish pathfinding page: Spanish names, steps and tools.
 test('pathfinding in Spanish names its searches and explains each step in Spanish', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.addInitScript(() => localStorage.setItem('tour-done-pathfinding', 'true'));
-  await page.goto('/es/pathfinding/breadth-first-search');
+  await gotoApp(page, '/es/pathfinding/breadth-first-search');
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   await expect(page.getByRole('heading', { level: 1, name: 'Búsqueda en anchura' })).toBeAttached();

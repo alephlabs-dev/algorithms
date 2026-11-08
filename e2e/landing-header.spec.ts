@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { gotoApp } from './goto';
 
 // Runs on every device project. The landing header: one row at every size, and its
 // "Modules" link takes you to the module list further down the page (#85).
@@ -7,7 +8,7 @@ for (const { path, modules } of [
   { path: '/es', modules: 'Módulos' },
 ]) {
   test(`landing header fits on one row and links to the modules (${path})`, async ({ page }) => {
-    await page.goto(path);
+    await gotoApp(page, path);
 
     const header = page.locator('header').first();
     const items = header.locator('a, button');

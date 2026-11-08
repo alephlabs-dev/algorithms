@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { gotoApp } from './goto';
 
 // Runs on every device project. With Guess on, every bar's value is on screen (and in the stage's description),
 // so a question about one value can be answered by comparing it with its neighbours.
 for (const size of [10, 20]) {
   test(`guess mode shows every bar's value with ${size} items`, async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
-    await page.goto(`/sorting/insertion-sort?size=${size}`);
+    await gotoApp(page, `/sorting/insertion-sort?size=${size}`);
     const stage = page.locator('[data-tour="bars"] canvas');
     await expect(stage).not.toHaveAccessibleName(/Values left to right/);
 

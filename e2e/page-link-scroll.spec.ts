@@ -1,4 +1,5 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
+import { gotoApp } from './goto';
 
 // Runs on every device project. A page link switches pages in the app and puts the new
 // page at the top: at once when the learner asked for reduced motion, gliding otherwise (#90).
@@ -7,7 +8,7 @@ const scrollY = (page: Page) => page.evaluate(() => window.scrollY);
 
 /** Opens the landing, scrolls down to its last module and returns that module's link. */
 const scrollToLastModuleLink = async (page: Page) => {
-  await page.goto('/');
+  await gotoApp(page, '/');
   // Module cards are the links with a heading inside.
   const link = page.locator('a[href]').filter({ has: page.locator('h3') }).last();
   await link.scrollIntoViewIfNeeded();

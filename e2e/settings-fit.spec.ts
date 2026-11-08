@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { gotoApp } from './goto';
 import { hasSettingsPanel } from './settings';
 
 // Runs on every device project. UX.md rule 14: controls never scroll. At the smallest size of
@@ -39,7 +40,7 @@ for (const path of PAGES) {
   test(`settings fit without scrolling on ${path}`, async ({ page }, testInfo) => {
     await page.setViewportSize(SMALLEST[testInfo.project.name]);
     await page.addInitScript((keys) => keys.forEach((k) => localStorage.setItem(k, 'true')), TOUR_KEYS);
-    await page.goto(path);
+    await gotoApp(page, path);
 
     if (!hasSettingsPanel(testInfo)) await page.getByRole('button', { name: /^(Settings|Ajustes):/ }).click();
     const settings = page.locator('[data-settings]').filter({ visible: true });

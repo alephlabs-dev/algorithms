@@ -1,4 +1,5 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
+import { gotoApp } from './goto';
 
 // Runs on every device project. The algorithm picker on phones and tablets (UX.md rule 11, #97):
 // modules whose algorithms fit as one row of segments at 393px show them inline; the rest keep
@@ -81,7 +82,7 @@ for (const m of modules) {
   for (const l of languages) {
     test(`${l.prefix}${m.route} picks the algorithm with ${m.picker}`, async ({ page }) => {
       await page.addInitScript((key) => localStorage.setItem(key, 'true'), m.tourKey);
-      await page.goto(`${l.prefix}${m.route}`);
+      await gotoApp(page, `${l.prefix}${m.route}`);
       await expect(page.locator('html')).toHaveAttribute('lang', l.lang);
       test.skip(!(await phoneBar(page)), 'the phone and tablet bar only');
 
@@ -118,7 +119,7 @@ for (const m of modules) {
       await page.addInitScript((key) => localStorage.setItem(key, 'true'), m.tourKey);
       const overflows: string[] = [];
       for (const l of languages) {
-        await page.goto(`${l.prefix}${m.route}`);
+        await gotoApp(page, `${l.prefix}${m.route}`);
         const select = page.getByRole('combobox', { name: l.name, exact: true });
         await expect(select).toBeVisible();
         overflows.push(...(await overflowingAsSegments(page, select)).map((o) => `${l.lang} ${o}`));
@@ -133,7 +134,7 @@ for (const m of modules) {
   const tour = m.tour;
   if (!tour) continue;
   test(`the tour's first step on ${m.route} lights the picker on screen`, async ({ page }) => {
-    await page.goto(m.route);
+    await gotoApp(page, m.route);
     await expect(page.getByRole('dialog', { name: tour })).toBeVisible();
     const picker = page.locator('[data-tour="picker"]:visible');
     const light = page.locator('[role="dialog"][aria-modal="true"]').locator('xpath=preceding-sibling::div[1]');

@@ -59,6 +59,12 @@ function App() {
   const wide = useMediaQuery(WIDE_QUERY);
   const setPanelTab = usePanelTab((s) => s.setTab);
 
+  // Pages arrive prerendered and React then replaces that HTML with its own
+  // render. This marks the moment it has, so e2e tests know the page is live (#116).
+  useEffect(() => {
+    document.documentElement.dataset.ready = "";
+  }, []);
+
   useEffect(() => {
     setIsMobile(isMobile);
   }, [isMobile, setIsMobile]);

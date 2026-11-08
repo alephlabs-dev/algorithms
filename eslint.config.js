@@ -31,6 +31,19 @@ export default defineConfig([
       "house/no-raw-colors": "error",
     },
   },
+  // e2e: open pages with gotoApp, which waits for React to replace the prerendered HTML (#116).
+  {
+    files: ["e2e/**/*.ts"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.property.name='goto']",
+          message: "Use gotoApp(page, url) from e2e/goto.ts: it waits until the app has rendered the page.",
+        },
+      ],
+    },
+  },
   // Our own components may wrap native controls.
   { files: ["src/components/ui/**"], rules: { "house/no-native-controls": "off" } },
   // The theme bridge: reads src/index.css's tokens for the canvas.

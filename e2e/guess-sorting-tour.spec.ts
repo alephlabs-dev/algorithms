@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { gotoApp } from './goto';
 import { openSettings } from './settings';
 
 // Runs on every device project. How first-time visitors find Guess mode in sorting:
@@ -32,7 +33,7 @@ const expectLightOnToggle = async (page: Page) => {
 };
 
 test('the sorting tour points at the Guess toggle', async ({ page }) => {
-  await page.goto('/sorting/insertion-sort?size=10');
+  await gotoApp(page, '/sorting/insertion-sort?size=10');
   const step = await tourTo(page, 'A guessing game');
   await expect(step).toContainText('Turn on Guess and playback stops before the key moments to ask what comes next.');
   await expect(step).toContainText('10 or 20 items');
@@ -40,7 +41,7 @@ test('the sorting tour points at the Guess toggle', async ({ page }) => {
 });
 
 test('with 40 items the tour still points at the Guess toggle and says when it plays', async ({ page }) => {
-  await page.goto('/sorting/insertion-sort?size=40');
+  await gotoApp(page, '/sorting/insertion-sort?size=40');
   const step = await tourTo(page, 'A guessing game');
   await expect(step).toContainText('10 or 20 items');
   await expectLightOnToggle(page);
@@ -48,7 +49,7 @@ test('with 40 items the tour still points at the Guess toggle and says when it p
 
 test('the sorting Guess toggle says "New" until Guess is tried', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
-  await page.goto('/sorting/insertion-sort?size=10');
+  await gotoApp(page, '/sorting/insertion-sort?size=10');
 
   const toggle = page.getByRole('button', { name: /Guess mode/ });
   await expect(toggle).toHaveAccessibleName(/^New: Guess mode/);
@@ -65,7 +66,7 @@ test('the sorting Guess toggle says "New" until Guess is tried', async ({ page }
 
 test('with 40 items the toggle hides "New" until Guess can actually be tried', async ({ page }, testInfo) => {
   await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
-  await page.goto('/sorting/insertion-sort?size=40');
+  await gotoApp(page, '/sorting/insertion-sort?size=40');
 
   const toggle = page.getByRole('button', { name: /Guess mode/ });
   await expect(toggle).toHaveAccessibleName(/^Guess mode unavailable/);

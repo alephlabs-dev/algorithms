@@ -1,4 +1,5 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
+import { gotoApp } from './goto';
 
 // Runs on every device project. Text fields are ui/TextField (UX.md rule 12, #98): a label you can see
 // above the field, an error linked to it, numbers typed as text, and 16px text on touch screens.
@@ -16,7 +17,7 @@ const description = async (page: Page, field: Locator) => {
 
 test('the structure value is a labelled number field that says what is wrong', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('tour-done-structures', 'true'));
-  await page.goto('/structures/avl-tree');
+  await gotoApp(page, '/structures/avl-tree');
 
   const bar = page.getByRole('form', { name: 'Operations' });
   const field = bar.getByRole('textbox', { name: 'Value' });
@@ -45,7 +46,7 @@ test('the structure value is a labelled number field that says what is wrong', a
 
 test('each DP word says on its own when it is missing', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('tour-done-dp', 'true'));
-  await page.goto('/dynamic-programming/edit-distance');
+  await gotoApp(page, '/dynamic-programming/edit-distance');
 
   const words = page.getByRole('form', { name: 'Words' });
   // A short visible label; screen readers also hear which side of the table the word goes on.

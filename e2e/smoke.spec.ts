@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { gotoApp } from './goto';
 import AxeBuilder from '@axe-core/playwright';
 
 // Runs on every device project (iPhone, iPad portrait/landscape, desktop).
@@ -15,7 +16,7 @@ test('home loads cleanly', async ({ page }) => {
     route.fulfill({ status: 200, contentType: 'text/javascript', body: '' }),
   );
 
-  await page.goto('/');
+  await gotoApp(page, '/');
   await page.waitForLoadState('networkidle');
 
   expect(errors, 'console / page errors').toEqual([]);

@@ -1,11 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { gotoApp } from './goto';
 
 // Runs on every device project. The Spanish dynamic programming page: names, steps and the words bar.
 test('dynamic programming in Spanish fills the table and explains each step in Spanish', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.addInitScript(() => localStorage.setItem('tour-done-dp', 'true'));
-  await page.goto('/es/dynamic-programming/edit-distance');
+  await gotoApp(page, '/es/dynamic-programming/edit-distance');
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   await expect(page.getByRole('heading', { level: 1, name: 'Distancia de edición' })).toBeAttached();
@@ -20,7 +21,7 @@ test('dynamic programming in Spanish fills the table and explains each step in S
 
 test('dynamic programming keeps Ñ and accents in the words you type', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('tour-done-dp', 'true'));
-  await page.goto('/es/dynamic-programming/edit-distance');
+  await gotoApp(page, '/es/dynamic-programming/edit-distance');
 
   const words = page.getByRole('form', { name: 'Palabras' });
   await words.getByLabel('Palabra 1').fill('año');

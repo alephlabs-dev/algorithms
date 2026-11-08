@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { gotoApp } from './goto';
 
 // Runs on every device project. UX.md rule 1: nothing above the stage changes height during playback,
 // so the stage doesn't move while a run plays. The step sentence above it is the usual suspect: it
@@ -15,7 +16,7 @@ for (const path of PAGES) {
     await page.addInitScript(() => {
       for (const key of ['tour-done', 'tour-done-pathfinding']) localStorage.setItem(key, 'true');
     });
-    await page.goto(path);
+    await gotoApp(page, path);
 
     const stage = page.locator('[data-tour="bars"]').filter({ visible: true }).first();
     const tops = new Set<number>();

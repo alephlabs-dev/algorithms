@@ -1,4 +1,5 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
+import { gotoApp } from './goto';
 
 // Runs on every device project. The explanation under the stage is a set of
 // disclosures (UX.md rule 9, #96): closed on entry, opened with a tap, a click
@@ -23,7 +24,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('explanations start closed and open in place', async ({ page, hasTouch }) => {
-  await page.goto('/sorting/insertion-sort');
+  await gotoApp(page, '/sorting/insertion-sort');
 
   const how = disclosure(page, 'How Insertion Sort works');
   const howPanel = await panelOf(page, how);
@@ -58,7 +59,7 @@ test('explanations start closed and open in place', async ({ page, hasTouch }) =
 });
 
 test('the scroll hint opens the explanation it names', async ({ page }) => {
-  await page.goto('/sorting/insertion-sort');
+  await gotoApp(page, '/sorting/insertion-sort');
 
   await page.getByRole('main').getByRole('button', { name: 'How Insertion Sort works' }).click();
 
@@ -72,7 +73,7 @@ for (const [path, name] of [
   ['/es/backtracking/sudoku', 'Cómo se resuelve un sudoku'],
 ]) {
   test(`the scroll hint on ${path} names and opens its first explanation`, async ({ page }) => {
-    await page.goto(path);
+    await gotoApp(page, path);
 
     await page.getByRole('main').getByRole('button', { name, exact: true }).click();
 
@@ -83,7 +84,7 @@ for (const [path, name] of [
 }
 
 test('the scroll hint on a module start page only scrolls', async ({ page }) => {
-  await page.goto('/es/backtracking');
+  await gotoApp(page, '/es/backtracking');
 
   await page.getByRole('main').getByRole('button', { name: 'Sobre el backtracking', exact: true }).click();
 
@@ -93,7 +94,7 @@ test('the scroll hint on a module start page only scrolls', async ({ page }) => 
 });
 
 test('a new page starts with its explanations closed', async ({ page, hasTouch }) => {
-  await page.goto('/sorting/insertion-sort');
+  await gotoApp(page, '/sorting/insertion-sort');
 
   const how = disclosure(page, 'How Insertion Sort works');
   await how.scrollIntoViewIfNeeded();

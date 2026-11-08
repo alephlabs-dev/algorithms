@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { gotoApp } from './goto';
 
 // Runs on every device project. The Spanish sorting page: in Spanish from the first paint,
 // steps explained in Spanish, and a way back to the same page in English.
@@ -6,7 +7,7 @@ test('sorting in Spanish speaks Spanish and switches back to English', async ({ 
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
-  await page.goto('/es/sorting/insertion-sort?size=10&speed=8x');
+  await gotoApp(page, '/es/sorting/insertion-sort?size=10&speed=8x');
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   await expect(page).toHaveTitle(/Insertion Sort paso a paso/);
@@ -33,7 +34,7 @@ test('the Spanish home page speaks Spanish and its links stay in Spanish', async
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.addInitScript(() => localStorage.setItem('tour-done', 'true'));
-  await page.goto('/es');
+  await gotoApp(page, '/es');
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'es');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mira pensar a los algoritmos.');
