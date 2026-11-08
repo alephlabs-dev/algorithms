@@ -1,7 +1,6 @@
 import { runOf } from "@/backtracking";
 import type { BacktrackingEventType } from "@/backtracking/types";
 import { localized } from "@/i18n";
-import { encodePath } from "@/fourier/shapes";
 import { encodeGraph } from "@/graphs/graph";
 import { encodeCells } from "@/pathfinding/grid";
 import type { Route } from "@/routes";
@@ -12,8 +11,10 @@ import type { HashEvent, TreeEvent } from "@/structures/types";
 import { sizes } from "@/consts/sizesMap";
 import { encodeItems } from "@/dp/presets";
 import { dpQuestions, questionsOf, SORT_GUESS_MAX_SIZE, sortQuestions, structureQuestions, type Question } from "@/game";
-import { toBacktrackingSearch, toDpSearch, toFourierSearch, toGraphSearch, toPathSearch, toSearch, toStructureSearch } from "@/urlState";
+import { toBacktrackingSearch, toDpSearch, toGraphSearch, toPathSearch, toSearch, toStructureSearch } from "@/urlState";
 import type { DpEvent } from "@/dp/types";
+import { fourierSlice } from "./fourier.slice";
+import type { Bound, ModuleSlice, SliceContext } from "./slice";
 import { GRAPH_STEP_WEIGHT, PATH_STEP_WEIGHT, speedFor, STEP_WEIGHT, type Pace } from "@/utils/speed";
 
 /** The modules the app has. Each one declares its engine here and its interface in ./<id>.tsx. */
@@ -38,6 +39,49 @@ export type ModuleEngine = {
   game?: (s: StoreState) => Question[];
   /** Why guess mode can't play the run on stage, shown on its toggle; null when it can. */
   gameUnavailable?: (s: StoreState) => string | null;
+};
+
+/**
+ * The modules declared as slices (./<id>.slice.ts), by id. The store holds one slice
+ * per module under its id. Modules not listed here still live flat in the store (#126).
+ */
+export const slices = {
+  fourier: fourierSlice,
+};
+
+export type SlicedModule = keyof typeof slices;
+/** Each sliced module's state, under its id. */
+export type SliceStates = { [M in SlicedModule]: ReturnType<(typeof slices)[M]["hydrate"]> };
+/** Each sliced module's actions, bound by the store: `s.actions.fourier.setCircles(25)`. */
+export type SliceActions = { [M in SlicedModule]: Bound<(typeof slices)[M]["actions"]> };
+/** The algorithms a sliced module can put on stage. */
+export type SliceAlgorithm<M extends SlicedModule> = ReturnType<(typeof slices)[M]["current"]>;
+
+/** What a module's slice reads from the shared store: its own view is single while it's off stage. */
+export const contextFor = (s: StoreState, module: ModuleId): SliceContext => ({
+  view: s.module === module ? s.view : "single",
+  isModuleStart: s.isModuleStart,
+  speedPreset: s.speedPreset,
+  isMobile: s.isMobile,
+  isPortrait: s.isPortrait,
+});
+
+/** A slice's engine, read from the whole store. */
+const engineOf = <S>(
+  module: ModuleId,
+  engine: ModuleSlice<S, never, never>["engine"],
+  read: (s: StoreState) => S,
+): ModuleEngine => {
+  const { game, gameUnavailable } = engine;
+  return {
+    lastIndex: (s, view) => engine.lastIndex(read(s), view),
+    stepWeight: (s, index) => engine.stepWeight(read(s), index),
+    pace: engine.pace,
+    route: (s) => engine.route(read(s), contextFor(s, module)),
+    search: (s) => engine.search(read(s), contextFor(s, module)),
+    ...(game && { game: (s: StoreState) => game(read(s)) }),
+    ...(gameUnavailable && { gameUnavailable: (s: StoreState) => gameUnavailable(read(s)) }),
+  };
 };
 
 /**
@@ -115,23 +159,7 @@ export const engines: Record<ModuleId, ModuleEngine> = {
         speed: s.speedPreset,
       }),
   },
-  fourier: {
-    // A frame per degree; every frame gets the same beat, so circles turn at an even pace.
-    lastIndex: (s) => s.fourierRun.length - 1,
-    stepWeight: () => 1,
-    pace: () => "fourier",
-    route: (s) => (s.isModuleStart ? { kind: "fourier" } : { kind: "series", algorithm: s.fourierAlgorithm }),
-    search: (s) =>
-      toFourierSearch({
-        circles: s.fourierCircles,
-        // Only drawings have a shape; a hand-drawn one travels in the link.
-        ...(s.fourierAlgorithm === "epicycles" && { shape: s.fourierShape }),
-        ...(s.fourierAlgorithm === "epicycles" &&
-          s.fourierShape === "custom" &&
-          s.fourierPath && { path: encodePath(s.fourierPath) }),
-        speed: s.speedPreset,
-      }),
-  },
+  fourier: engineOf("fourier", slices.fourier.engine, (s) => s.fourier),
   structures: {
     // Races tick one frame per lane, so the clock runs until the longer run is done.
     lastIndex: (s, view) =>

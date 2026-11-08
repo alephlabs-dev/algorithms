@@ -219,7 +219,7 @@ export const DpSettings = () => {
 
 /** Fourier's settings: how many circles, and for epicycles which drawing. */
 export const FourierSettings = () => {
-  const wave = useStore((s) => s.fourierAlgorithm !== "epicycles");
+  const wave = useStore((s) => s.fourier.algorithm !== "epicycles");
   return (
     <div data-tour="tools" className="flex flex-col gap-6">
       <Field label={text.circles} help={text.circlesHelp}>

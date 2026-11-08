@@ -10,6 +10,17 @@ import { generateItems } from "@/utils/generateItems";
 import { seededRandom } from "@/utils/random";
 import { engines, type ModuleId } from "./engine";
 
+const FOURIER = {
+  algorithm: "epicycles",
+  circles: 25,
+  shape: "custom",
+  path: [
+    { x: 0, y: 0 },
+    { x: 1, y: 0 },
+    { x: 0, y: 1 },
+  ],
+};
+
 // Just the fields the engines' routing reads; the store itself needs a browser.
 const stateFor = (module: ModuleId, view: "single" | "race", isModuleStart: boolean) =>
   ({
@@ -52,14 +63,7 @@ const stateFor = (module: ModuleId, view: "single" | "race", isModuleStart: bool
     queensN: 5,
     sudokuPuzzle: "easy",
     sudokuOrder: "rows",
-    fourierAlgorithm: "epicycles",
-    fourierCircles: 25,
-    fourierShape: "custom",
-    fourierPath: [
-      { x: 0, y: 0 },
-      { x: 1, y: 0 },
-      { x: 0, y: 1 },
-    ],
+    fourier: FOURIER,
   }) as unknown as StoreState;
 
 describe("module engines", () => {
@@ -94,9 +98,12 @@ describe("module engines", () => {
       ["graphs", { graph: makeGraph("grid", "large", false, seededRandom(2)) }],
       ["graphs", { graphPreset: "dag" }],
       ["graphs", { graphRaceAlgorithms: ["bfs", "topo"] }],
-      ["fourier", { fourierCircles: 100 }],
-      ["fourier", { fourierShape: "star" }],
-      ["fourier", { fourierPath: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }] }],
+      ["fourier", { fourier: { ...FOURIER, circles: 100 } } as Partial<StoreState>],
+      ["fourier", { fourier: { ...FOURIER, shape: "star" } } as Partial<StoreState>],
+      [
+        "fourier",
+        { fourier: { ...FOURIER, path: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }] } } as Partial<StoreState>,
+      ],
       ["fourier", { speedPreset: "4x" }],
       ["structures", { structureOps: [{ kind: "insert", value: 10 }, { kind: "delete", value: 10 }] }],
       ["structures", { structurePreset: "random" }],

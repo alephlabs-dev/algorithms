@@ -48,15 +48,15 @@ export const fourierUI: ModuleUI = {
   Facts: FourierFacts,
 
   settingsSummary: (s) => {
-    const circles = String(s.fourierCircles);
-    const detail = isWave(s.fourierAlgorithm) ? text.circlesWord : shapeLabel(s.fourierShape);
+    const circles = String(s.fourier.circles);
+    const detail = isWave(s.fourier.algorithm) ? text.circlesWord : shapeLabel(s.fourier.shape);
     return {
       main: circles,
       detail,
       mono: true,
-      label: isWave(s.fourierAlgorithm)
-        ? text.circles(s.fourierCircles)
-        : `${text.circles(s.fourierCircles)}, ${detail}`,
+      label: isWave(s.fourier.algorithm)
+        ? text.circles(s.fourier.circles)
+        : `${text.circles(s.fourier.circles)}, ${detail}`,
     };
   },
   // A frame per degree of the slowest circle.
@@ -79,17 +79,17 @@ export const fourierUI: ModuleUI = {
       items: [{ id: "epicycles", title: fourierSeries.epicycles.title, short: fourierSeries.epicycles.short }],
     },
   ],
-  current: (s) => s.fourierAlgorithm,
-  pick: (id) => useStore.getState().setFourierAlgorithm(id as FourierAlgorithm),
+  current: (s) => s.fourier.algorithm,
+  pick: (id) => useStore.getState().pick("fourier", id as FourierAlgorithm),
 
-  about: (s) => fourierSeries[s.fourierAlgorithm],
-  summary: (s) => text.summary(s.fourierCircles, (s.fourierRun.error * 100).toFixed(1)),
+  about: (s) => fourierSeries[s.fourier.algorithm],
+  summary: (s) => text.summary(s.fourier.circles, (s.fourier.run.error * 100).toFixed(1)),
 
   code: {
-    lines: (s) => fourierPseudocode[s.fourierAlgorithm],
+    lines: (s) => fourierPseudocode[s.fourier.algorithm],
     // Before playing: the setup (the transform, for drawings). Then: drawing, frame after frame.
-    line: (s) => (s.frameIndex === 0 ? (isWave(s.fourierAlgorithm) ? 0 : 2) : 6),
-    narrate: (s, index) => narrateFourier(s.fourierRun, Math.min(index, s.fourierRun.length - 1)),
+    line: (s) => (s.frameIndex === 0 ? (isWave(s.fourier.algorithm) ? 0 : 2) : 6),
+    narrate: (s, index) => narrateFourier(s.fourier.run, Math.min(index, s.fourier.run.length - 1)),
   },
 
   tour: fourierTour,

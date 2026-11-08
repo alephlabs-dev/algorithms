@@ -26,16 +26,6 @@ import {
   type GraphTimeline,
 } from "./graphs";
 import {
-  circleOptions,
-  decodePath,
-  defaultCircles,
-  FourierRun,
-  isWave,
-  type FourierAlgorithm,
-  type FourierShape,
-  type Point,
-} from "./fourier";
-import {
   decodeItems,
   DpRun,
   EXAMPLE_CAPACITY,
@@ -63,7 +53,17 @@ import {
   type FillOrder,
   type SudokuPuzzle,
 } from "./backtracking";
-import { engines, type ModuleId } from "./modules/engine";
+import {
+  contextFor,
+  engines,
+  slices,
+  type ModuleId,
+  type SliceActions,
+  type SliceAlgorithm,
+  type SlicedModule,
+  type SliceStates,
+} from "./modules/engine";
+import type { Patch, SliceContext } from "./modules/slice";
 import { forgetAnswers, isAnswered, markAnswered, NEW_SCORE, type Answer, type GameScore, type Question } from "./game";
 import {
   decodeOperations,
@@ -92,14 +92,18 @@ export type Brush = "wall" | "mud";
 export type Theme = "dark" | "light";
 
 // Each module has its own tour, remembered separately (sorting keeps its original key).
-const TOUR_KEYS: Record<Module, string> = {
+const LEGACY_TOUR_KEYS: Record<Exclude<Module, SlicedModule>, string> = {
   sorting: "tour-done",
   pathfinding: "tour-done-pathfinding",
   graphs: "tour-done-graphs",
-  fourier: "tour-done-fourier",
   structures: "tour-done-structures",
   dp: "tour-done-dp",
   backtracking: "tour-done-backtracking",
+};
+const SLICED = Object.keys(slices) as SlicedModule[];
+const TOUR_KEYS: Record<Module, string> = {
+  ...LEGACY_TOUR_KEYS,
+  ...(Object.fromEntries(SLICED.map((m) => [m, slices[m].tourKey])) as Record<SlicedModule, string>),
 };
 
 export const tourDone = (module: Module) => {
@@ -113,7 +117,7 @@ export const tourDone = (module: Module) => {
 export const MIN_RACERS = 2;
 export const MAX_RACERS = 4;
 
-export type StoreState = {
+export type StoreState = SliceStates & {
   isMobile: boolean;
   /** The window is taller than wide: grids and graphs are laid out upright. */
   isPortrait: boolean;
@@ -137,14 +141,6 @@ export type StoreState = {
   graphRaceAlgorithms: GraphAlgorithm[];
   /** One timeline per racer, on the current graph. Empty outside race view. */
   graphRaceTimelines: GraphTimeline[];
-  fourierAlgorithm: FourierAlgorithm;
-  /** How many circles add up the series. */
-  fourierCircles: number;
-  fourierShape: FourierShape;
-  /** The hand-drawn shape, when `fourierShape` is "custom"; null until it's drawn. */
-  fourierPath: Point[] | null;
-  /** The whole run, precomputed: where the circles are at every degree. */
-  fourierRun: FourierRun;
   structureAlgorithm: StructureAlgorithm;
   /** What "new values" makes, and how many. */
   structurePreset: StructurePreset;
@@ -224,6 +220,10 @@ export type StoreState = {
   /** The guided tour is showing. Opens by itself on the first visit. */
   isTourOpen: boolean;
 
+  /** Each sliced module's actions: `actions.fourier.setCircles(25)`. Each one replaces the run. */
+  actions: SliceActions;
+  /** Puts a module's algorithm on stage, in single view. */
+  pick: <M extends SlicedModule>(module: M, algorithm: SliceAlgorithm<M>) => void;
   setIsMobile: (isMobile: boolean) => void;
   setIsPortrait: (isPortrait: boolean) => void;
   setView: (view: View) => void;
@@ -249,11 +249,6 @@ export type StoreState = {
   /** Replaces the graph after an edit (moving a node, joining two); the run restarts. */
   editGraph: (graph: Graph) => void;
   toggleGraphRacer: (algorithm: GraphAlgorithm) => void;
-  setFourierAlgorithm: (algorithm: FourierAlgorithm) => void;
-  setFourierCircles: (circles: number) => void;
-  /** A ready-made drawing, or "custom" to draw one (which clears the last hand-drawn one). */
-  setFourierShape: (shape: FourierShape) => void;
-  setFourierPath: (path: Point[]) => void;
   setStructureAlgorithm: (algorithm: StructureAlgorithm) => void;
   applyStructurePreset: (preset: StructurePreset) => void;
   setStructureSize: (size: StructureSize) => void;
@@ -428,12 +423,6 @@ const structureRunsFor = (state: StoreState, ops: Operation[]) => ({
   structureRaceRuns: structureRaceRunsFor(state.module === "structures" ? state.view : "single", ops),
 });
 
-/** A circle count that fits the series: one of its options, the default if the asked-for one isn't. */
-const fitCircles = (algorithm: FourierAlgorithm, circles: number | undefined) => {
-  const kind = isWave(algorithm) ? "wave" : "drawing";
-  return circles !== undefined && circleOptions[kind].includes(circles) ? circles : defaultCircles[kind];
-};
-
 /** Race lanes are a quarter of the stage: graphs there stay at a size that reads. */
 const fitGraphSize = (size: GraphSize, view: View, isMobile: boolean): GraphSize => {
   const cap: GraphSize = isMobile ? "small" : "medium";
@@ -485,6 +474,55 @@ export type StoreEnv = {
   theme: Theme;
 };
 
+/**
+ * The slices without their own types, so the store can loop over them. Each slice's
+ * types still hold where it's declared (defineModule) and for callers (SliceActions).
+ */
+type LooseSlice = {
+  hydrate: (link: StoreEnv["url"], ctx: SliceContext) => object;
+  pick: (slice: object, ctx: SliceContext, algorithm: string) => object;
+  actions: Record<string, (slice: object, ctx: SliceContext, ...args: unknown[]) => Patch<object>>;
+  newInput: (slice: object, ctx: SliceContext) => Patch<object>;
+};
+const looseSlices = slices as unknown as Record<SlicedModule, LooseSlice>;
+
+const slicedOn = (s: StoreState): SlicedModule | null => (s.module in slices ? (s.module as SlicedModule) : null);
+
+/** One module's slice changed, as a store update; null when nothing changes. */
+const patchSlice = (
+  state: StoreState,
+  module: SlicedModule,
+  change: (slice: object, ctx: SliceContext) => Patch<object>,
+  ctx = contextFor(state, module),
+): Partial<StoreState> | null => {
+  const patch = change(state[module], ctx);
+  return patch && ({ [module]: { ...state[module], ...patch } } as Partial<StoreState>);
+};
+
+/** Every sliced module's state, from the link and the screen. */
+const hydrateSlices = ({ url, isMobile, isPortrait }: Omit<StoreEnv, "theme">) =>
+  Object.fromEntries(
+    SLICED.map((module) => {
+      const ctx: SliceContext = {
+        view: url.module === module ? (url.view ?? "single") : "single",
+        isModuleStart: url.isModuleStart,
+        speedPreset: url.speed ?? DEFAULT_PRESET,
+        isMobile,
+        isPortrait,
+      };
+      return [module, looseSlices[module].hydrate(url, ctx)];
+    }),
+  ) as SliceStates;
+
+// The race runs of the modules that still live flat in the store, which picking an algorithm drops.
+const LEGACY_RACES_DROPPED = {
+  raceTimelines: [],
+  pathRaceTimelines: [],
+  graphRaceTimelines: [],
+  structureRaceRuns: [],
+  dpRaceRuns: [],
+} satisfies Partial<StoreState>;
+
 const initialState = ({ url, isMobile, isPortrait }: StoreEnv) => {
   const narrow = isNarrow({ isMobile, isPortrait });
   const displayMode = url.displayMode ?? "bars";
@@ -520,10 +558,6 @@ const initialState = ({ url, isMobile, isPortrait }: StoreEnv) => {
   const queensN = url.backtracking.n ?? DEFAULT_QUEENS;
   const sudokuPuzzle = url.backtracking.puzzle ?? "easy";
   const sudokuOrder = url.backtracking.order ?? "rows";
-  const fourierAlgorithm = url.fourierAlgorithm ?? "square";
-  const fourierShape = url.fourier.shape ?? "heart";
-  const fourierPath = url.fourier.path ? decodePath(url.fourier.path) : null;
-  const fourierCircles = fitCircles(fourierAlgorithm, url.fourier.circles);
   const graphAlgorithm = url.graphAlgorithm ?? "bfs";
   const graphSize = fitGraphSize(url.graph.size ?? "medium", module === "graphs" ? view : "single", isMobile);
   const graphPreset = url.graph.preset ?? "random";
@@ -546,11 +580,7 @@ const initialState = ({ url, isMobile, isPortrait }: StoreEnv) => {
     graphPreset,
     graph,
     graphTimeline: graphTimelineFor(graphAlgorithm, graph),
-    fourierAlgorithm,
-    fourierCircles,
-    fourierShape,
-    fourierPath,
-    fourierRun: new FourierRun(fourierAlgorithm, fourierCircles, fourierShape, fourierPath),
+    ...hydrateSlices({ url, isMobile, isPortrait }),
     dpAlgorithm,
     dpA,
     dpB,
@@ -640,6 +670,32 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
         // Blocked storage: the tour may open again next visit.
       }
       set({ isTourOpen: false });
+    },
+
+    actions: Object.fromEntries(
+      SLICED.map((module) => [
+        module,
+        Object.fromEntries(
+          Object.entries(looseSlices[module].actions).map(([name, action]) => [
+            name,
+            (...args: unknown[]) => replaceRun((state) => patchSlice(state, module, (s, ctx) => action(s, ctx, ...args))),
+          ]),
+        ),
+      ]),
+    ) as SliceActions,
+
+    pick: (module, algorithm) => {
+      replaceRun((state) => ({
+        module,
+        view: "single",
+        isModuleStart: false,
+        ...LEGACY_RACES_DROPPED,
+        ...patchSlice(state, module, (s, ctx) => looseSlices[module].pick(s, ctx, algorithm), {
+          ...contextFor(state, module),
+          view: "single",
+          isModuleStart: false,
+        }),
+      }));
     },
 
     setTheme: (theme) => {
@@ -816,6 +872,11 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
     setHelpOpen: (isHelpOpen) => set({ isHelpOpen }),
 
     createNewArray: () => {
+      const sliced = slicedOn(get());
+      if (sliced) {
+        replaceRun((state) => patchSlice(state, sliced, (s, ctx) => looseSlices[sliced].newInput(s, ctx)));
+        return;
+      }
       const { module, gridPreset, applyGridPreset, graphPreset, applyGraphPreset, setSize, size } = get();
       // In pathfinding, "new" means another layout of the same kind (a clear grid becomes a maze).
       if (module === "pathfinding") applyGridPreset(gridPreset === "clear" ? "maze" : gridPreset);
@@ -837,12 +898,6 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
         const { backtrackingProblem, queensN, setQueensN, sudokuPuzzle, setSudokuPuzzle } = get();
         if (backtrackingProblem === "sudoku") setSudokuPuzzle(sudokuPuzzle === "easy" ? "hard" : "easy");
         else setQueensN(queensN >= MAX_QUEENS ? MIN_QUEENS : queensN + 1);
-      }
-      else if (module === "fourier") {
-        // "New" adds circles, wrapping back to the fewest: the quickest way to see the series converge.
-        const { fourierAlgorithm, fourierCircles, setFourierCircles } = get();
-        const options = circleOptions[isWave(fourierAlgorithm) ? "wave" : "drawing"];
-        setFourierCircles(options[(options.indexOf(fourierCircles) + 1) % options.length]);
       }
       else setSize(size);
     },
@@ -1005,49 +1060,6 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
         dpCapacity,
         dpRun: dpRunFor(state.dpAlgorithm, state.dpA, state.dpB, dpItems, dpCapacity),
         dpRaceRuns: dpRaceRunsFor(state.module === "dp" ? state.view : "single", dpItems, dpCapacity),
-      }));
-    },
-
-    setFourierAlgorithm: (algorithm) => {
-      replaceRun((state) => {
-        const fourierCircles = fitCircles(algorithm, state.fourierCircles);
-        return {
-          module: "fourier",
-          view: "single",
-          isModuleStart: false,
-          fourierAlgorithm: algorithm,
-          fourierCircles,
-          fourierRun: new FourierRun(algorithm, fourierCircles, state.fourierShape, state.fourierPath),
-          raceTimelines: [],
-          pathRaceTimelines: [],
-          graphRaceTimelines: [],
-        };
-      });
-    },
-
-    setFourierCircles: (fourierCircles) => {
-      replaceRun((state) => ({
-        fourierCircles,
-        fourierRun: new FourierRun(state.fourierAlgorithm, fourierCircles, state.fourierShape, state.fourierPath),
-      }));
-    },
-
-    setFourierShape: (fourierShape) => {
-      replaceRun((state) => {
-        const fourierPath = fourierShape === "custom" ? null : state.fourierPath;
-        return {
-          fourierShape,
-          fourierPath,
-          fourierRun: new FourierRun(state.fourierAlgorithm, state.fourierCircles, fourierShape, fourierPath),
-        };
-      });
-    },
-
-    setFourierPath: (path) => {
-      replaceRun((state) => ({
-        fourierShape: "custom",
-        fourierPath: path,
-        fourierRun: new FourierRun(state.fourierAlgorithm, state.fourierCircles, "custom", path),
       }));
     },
 

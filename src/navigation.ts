@@ -35,8 +35,8 @@ export const applyRoute = (app: AppStore, route: Route) => {
     if (store.module !== "structures") store.setStructureAlgorithm(store.structureAlgorithm);
     if (app.getState().view !== "race") store.setView("race");
   } else if (route.kind === "series" || route.kind === "fourier") {
-    const algorithm = route.kind === "series" ? route.algorithm : store.fourierAlgorithm;
-    if (store.module !== "fourier" || store.fourierAlgorithm !== algorithm) store.setFourierAlgorithm(algorithm);
+    const algorithm = route.kind === "series" ? route.algorithm : store.fourier.algorithm;
+    if (store.module !== "fourier" || store.fourier.algorithm !== algorithm) store.pick("fourier", algorithm);
   } else if (route.kind === "graph" || route.kind === "graphs") {
     const algorithm = route.kind === "graph" ? route.algorithm : store.graphAlgorithm;
     if (store.module !== "graphs" || store.view !== "single" || store.graphAlgorithm !== algorithm)
