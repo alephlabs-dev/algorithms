@@ -24,6 +24,10 @@ const PAGES: { module: string; url: string }[] = [
   { module: 'fourier', url: '/fourier' },
 ];
 const TOUR_KEYS = ['tour-done', 'tour-done-pathfinding', 'tour-done-graphs', 'tour-done-fourier', 'tour-done-structures', 'tour-done-dp', 'tour-done-backtracking'];
+// About 2 minutes across the four projects, enough to slow the rest of the suite into timeouts on a
+// laptop. CI always runs it (STEP_SENTENCES=1 in .github/workflows/ci.yml); locally: make e2e-sentences.
+test.skip(!process.env.STEP_SENTENCES, 'slow: set STEP_SENTENCES=1 (make e2e-sentences); CI always runs it');
+
 /** As src/utils/stepSentences.ts returns them (it isn't imported: this project doesn't typecheck src). */
 type StepSentence = { sentence: string; run: string };
 
