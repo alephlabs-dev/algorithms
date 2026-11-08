@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { shapeOptions } from "@/consts/fourierSeries";
-import { circleOptions, decodePath, dft, encodePath, FourierRun, shapePoints, strokeWalk, waveAt, waveTerms } from ".";
+import { circleOptions, decodePath, dft, encodePath, FourierRun, linkShape, shapePoints, strokeWalk, waveAt, waveTerms } from ".";
 
 describe("fourier", () => {
   it("rebuilds each wave better with more circles, and nearly exactly with many", () => {
@@ -78,9 +78,23 @@ describe("fourier", () => {
 
   it("packs a hand-drawn path into a link and back", () => {
     const path = Array.from({ length: 30 }, (_, k) => ({ x: Math.cos(k / 5), y: Math.sin(k / 3) }));
-    const back = decodePath(encodePath(path))!;
+    const back = decodePath(encodePath(linkShape(path)))!;
     expect(back).toHaveLength(64);
     expect(decodePath("nope")).toBeNull();
     expect(new FourierRun("epicycles", 25, "custom", back).error).toBeLessThan(0.1);
+  });
+
+  it("a hand-drawn shape's link comes back the same each time it's opened (#132)", () => {
+    const stroke = Array.from({ length: 90 }, (_, k) => ({ x: 40 + 30 * Math.cos(k / 7), y: 25 * Math.sin(k / 4) }));
+    const link = encodePath(linkShape(stroke));
+    expect(encodePath(decodePath(link)!)).toBe(link);
+    expect(encodePath(decodePath(encodePath(decodePath(link)!))!)).toBe(link);
+  });
+
+  it("a drawing fitted for its link goes through the link unchanged", () => {
+    const stroke = Array.from({ length: 50 }, (_, k) => ({ x: k * 3, y: (k % 7) * 11 }));
+    const fitted = linkShape(stroke);
+    expect(fitted).toHaveLength(64);
+    expect(decodePath(encodePath(fitted))).toEqual(fitted);
   });
 });

@@ -69,3 +69,9 @@ _Avoid_: Heuristic, strategy, search order
 **Backtrack**:
 Undoing the most recent choice that still stands, so the next value can be tried there.
 _Avoid_: Undo, rollback, retreat
+
+### Fourier
+
+**Hand-drawn shape**:
+A shape the learner draws in the Fourier module instead of picking a preset. It travels in the link, and whoever opens the link sees the same drawing.
+_Avoid_: Custom shape, sketch

@@ -40,8 +40,9 @@ describe("fourier slice", () => {
       const reopened = at(path, slice.engine.search(s, ctx));
       expect(routePath(slice.engine.route(reopened, ctx))).toBe(path);
       expect({ ...settings(reopened), path: null }).toEqual({ ...settings(s), path: null });
-      // A hand-drawn shape travels resampled (and drifts on each round trip, #132): it only has to come back.
-      expect(reopened.path === null).toBe(s.path === null);
+      expect(reopened.path).toEqual(s.path);
+      // Opening the link writes the same link back, so the address bar doesn't drift (#132).
+      expect(slice.engine.search(reopened, ctx)).toBe(slice.engine.search(s, ctx));
     }
   });
 
@@ -56,8 +57,9 @@ describe("fourier slice", () => {
   it("choosing to draw clears the last hand-drawn shape; a ready-made one keeps it", () => {
     const s = drawn([{ x: 0, y: 0 }]);
     expect(s.shape).toBe("custom");
+    expect(s.path).toHaveLength(64);
     expect(slice.actions.setShape(s, ctx, "custom")?.path).toBeNull();
-    expect(slice.actions.setShape(s, ctx, "star")?.path).toEqual([{ x: 0, y: 0 }]);
+    expect(slice.actions.setShape(s, ctx, "star")?.path).toEqual(s.path);
   });
 
   it("new input adds circles, wrapping back to the fewest", () => {

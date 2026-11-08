@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { FourierRenderer } from "@/canvas/fourierRenderer";
 import { fourierSeries } from "@/consts/fourierSeries";
-import { normalize, resample, type Point } from "@/fourier";
+import type { Point } from "@/fourier";
 import { useElementSize } from "@/hooks/useElementSize";
 import { useStore } from "@/store";
 import { count } from "@/utils/count";
@@ -99,7 +99,7 @@ export const FourierStage = () => {
     const size = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
     setStroke(null);
     if (current.length < MIN_POINTS || size < MIN_SIZE) return;
-    useStore.getState().actions.fourier.setPath(normalize(resample(current, 128)));
+    useStore.getState().actions.fourier.setPath(current);
   };
 
   const { title } = fourierSeries[algorithm];
