@@ -24,6 +24,8 @@ import { generateItems } from "@/utils/generateItems";
 import { seededRandom } from "@/utils/random";
 import { engines, type ModuleId, type SliceStates } from "./engine";
 
+const SPEED = "2x";
+
 // Each module opens on a link to one of its pages, carrying settings that differ from its defaults.
 const maze = applyPreset(emptyGrid(17, 33), "maze", seededRandom(3));
 const LINKS: Record<ModuleId, { page: Route; search: string }> = {
@@ -35,7 +37,7 @@ const LINKS: Record<ModuleId, { page: Route; search: string }> = {
       displayMode: "bars",
       seed: 12345,
       raceAlgorithms: ["insertion", "quick", "merge"],
-      speed: "2x",
+      speed: SPEED,
     }),
   },
   pathfinding: {
@@ -46,7 +48,7 @@ const LINKS: Record<ModuleId, { page: Route; search: string }> = {
       start: maze.start,
       end: maze.end,
       racers: ["bfs", "astar"],
-      speed: "2x",
+      speed: SPEED,
     }),
   },
   graphs: {
@@ -56,7 +58,7 @@ const LINKS: Record<ModuleId, { page: Route; search: string }> = {
       size: "large",
       preset: "tree",
       racers: ["prim", "kruskal"],
-      speed: "2x",
+      speed: SPEED,
     }),
   },
   dp: {
@@ -69,7 +71,7 @@ const LINKS: Record<ModuleId, { page: Route; search: string }> = {
         { weight: 4, value: 5 },
       ]),
       capacity: 7,
-      speed: "2x",
+      speed: SPEED,
     }),
   },
   structures: {
@@ -81,12 +83,12 @@ const LINKS: Record<ModuleId, { page: Route; search: string }> = {
       ]),
       size: "medium",
       preset: "ascending",
-      speed: "2x",
+      speed: SPEED,
     }),
   },
   backtracking: {
     page: { kind: "backtrackingProblem", algorithm: "queens" },
-    search: toBacktrackingSearch({ n: 5, puzzle: "easy", order: "rows", speed: "2x" }),
+    search: toBacktrackingSearch({ n: 5, puzzle: "easy", order: "rows", speed: SPEED }),
   },
   fourier: {
     page: { kind: "series", algorithm: "epicycles" },
@@ -101,7 +103,7 @@ const LINKS: Record<ModuleId, { page: Route; search: string }> = {
           { x: 0, y: 1 },
         ]),
       ),
-      speed: "2x",
+      speed: SPEED,
     }),
   },
 };
@@ -140,7 +142,7 @@ describe("module engines", () => {
           // Fourier and backtracking have no race: their pages are single view whatever the store's view says.
           const hasRace = module !== "fourier" && module !== "backtracking";
           expect(location.view ?? "single").toBe(hasRace ? view : "single");
-          expect(location.speed).toBe("2x");
+          expect(location.speed).toBe(SPEED);
         }
       }
     });
@@ -162,7 +164,16 @@ describe("module engines", () => {
       ["graphs", within("graphs", { racers: ["bfs", "topo"] })],
       ["fourier", within("fourier", { circles: 100 })],
       ["fourier", within("fourier", { shape: "star" })],
-      ["fourier", within("fourier", { path: [{ x: 0, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }] })],
+      [
+        "fourier",
+        within("fourier", {
+          path: linkShape([
+            { x: 0, y: 0 },
+            { x: 0, y: 1 },
+            { x: 1, y: 1 },
+          ]),
+        }),
+      ],
       ["fourier", (state) => ({ ...state, speedPreset: "4x" })],
       [
         "structures",
