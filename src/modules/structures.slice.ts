@@ -128,10 +128,6 @@ export const structuresSlice = defineModule<StructuresState, StructureAlgorithm>
       view === "race" ? Math.max(0, ...s.raceRuns.map((r) => r.frames.length - 1)) : s.run.frames.length - 1,
     stepWeight: (s, index) => STEP_WEIGHT[s.run.frames[index]?.event.type ?? "done"],
     pace: (view) => (view === "race" ? "structureRace" : "structures"),
-    route: (s, ctx) => {
-      if (ctx.view === "race") return { kind: "structureRace" };
-      return ctx.isModuleStart ? { kind: "structures" } : { kind: "structure", algorithm: s.algorithm };
-    },
     search: (s, ctx) =>
       toStructureSearch({
         ops: encodeOperations(s.ops),

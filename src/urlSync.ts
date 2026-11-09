@@ -78,7 +78,7 @@ export const startUrlSync = () => {
   });
 
   window.addEventListener("popstate", () => {
-    const route = routeFromPath(window.location.pathname) ?? { kind: "home" };
+    const route = routeFromPath(window.location.pathname) ?? { page: "home" };
     fromHistory = true;
     navigate(route);
     fromHistory = false;

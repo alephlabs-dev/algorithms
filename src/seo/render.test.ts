@@ -7,7 +7,7 @@ import template from "../../index.html?raw";
 const escaped = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/'/g, "&#x27;").replace(/"/g, "&quot;");
 
 describe("renderPage", () => {
-  const html = renderPage(template, { kind: "algorithm", algorithm: "insertion" });
+  const html = renderPage(template, { module: "sorting", page: "algorithm", algorithm: "insertion" });
 
   it("prerenders the explanation closed, with its text still in the page", () => {
     const trigger = html.match(/<h2[^>]*><button[^>]*aria-expanded="false"[^>]*aria-controls="([^"]+)"[^>]*>(.*?)<\/button><\/h2>/);

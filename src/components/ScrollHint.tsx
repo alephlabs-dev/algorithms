@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { Route } from "@/routes";
 import { cn } from "@/utils/cn";
 import { openFirstDisclosure } from "./ui/open-disclosure";
-import { hintFor, hintLabel } from "./scroll-hint";
+import { hintLabel, hintOpens } from "./scroll-hint";
 
 /**
  * Under the dock: says there's more to read below the stage, and takes you
@@ -27,7 +27,7 @@ export const ScrollHint = ({ route, className }: { route: Route; className?: str
       onClick={() => {
         const about = document.getElementById("about");
         if (!about) return;
-        if (hintFor(route).opens) openFirstDisclosure(about);
+        if (hintOpens(route)) openFirstDisclosure(about);
         const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         about.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
       }}

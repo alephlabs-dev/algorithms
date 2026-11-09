@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 import { pseudocode } from "@/algorithms";
 import { dpProblems } from "@/consts/dp";
 import { dpPseudocode, type DpAlgorithm } from "@/dp";
@@ -17,7 +17,7 @@ import { algorithmGroups } from "@/consts/algorithmGroups";
 import { GRAPH_RACE_DESCRIPTION, PATH_RACE_DESCRIPTION, RACE_DESCRIPTION } from "@/consts/race";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { localized } from "@/i18n";
-import type { Route } from "@/routes";
+import type { AlgorithmOf, ModuleId, RacingModule, Route } from "@/routes";
 import type { Algorithm } from "@/types";
 import { PageLink } from "./PageLink";
 import { Disclosure } from "./ui/disclosure";
@@ -432,7 +432,7 @@ const AlgorithmIndex = ({ current, onNavigate }: { current?: Algorithm; onNaviga
               {algorithm === current ? (
                 <span className="font-semibold">{sortingAlgorithms[algorithm].title}</span>
               ) : (
-                <PageLink to={{ kind: "algorithm", algorithm }} onNavigate={onNavigate}>
+                <PageLink to={{ module: "sorting", page: "algorithm", algorithm }} onNavigate={onNavigate}>
                   {sortingAlgorithms[algorithm].title}
                 </PageLink>
               )}
@@ -468,7 +468,7 @@ const AlgorithmArticle = ({ algorithm, onNavigate }: { algorithm: Algorithm; onN
         <AlgorithmIndex current={algorithm} onNavigate={onNavigate} />
         <p className="text-foreground/80">
           {text.orRace(title, (children) => (
-            <PageLink to={{ kind: "race" }} onNavigate={onNavigate}>
+            <PageLink to={{ module: "sorting", page: "race" }} onNavigate={onNavigate}>
               {children}
             </PageLink>
           ))}
@@ -488,7 +488,7 @@ const PathIndex = ({ current, onNavigate }: { current?: PathAlgorithm; onNavigat
         {algorithm === current ? (
           <span className="font-semibold">{pathAlgorithms[algorithm].title}</span>
         ) : (
-          <PageLink to={{ kind: "path", algorithm }} onNavigate={onNavigate}>
+          <PageLink to={{ module: "pathfinding", page: "algorithm", algorithm }} onNavigate={onNavigate}>
             {pathAlgorithms[algorithm].title}
           </PageLink>
         )}
@@ -548,7 +548,7 @@ const PathArticle = ({ algorithm, onNavigate }: { algorithm: PathAlgorithm; onNa
         <PathIndex current={algorithm} onNavigate={onNavigate} />
         <p className="text-foreground/80">
           {pathText.orRace((children) => (
-            <PageLink to={{ kind: "pathRace" }} onNavigate={onNavigate}>
+            <PageLink to={{ module: "pathfinding", page: "race" }} onNavigate={onNavigate}>
               {children}
             </PageLink>
           ))}
@@ -571,7 +571,7 @@ const SortingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) =>
           return (
             <li key={algorithm} className="flex flex-col gap-1 py-4">
               <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-                <PageLink to={{ kind: "algorithm", algorithm }} onNavigate={onNavigate}>
+                <PageLink to={{ module: "sorting", page: "algorithm", algorithm }} onNavigate={onNavigate}>
                   {title}
                 </PageLink>
                 <span className="font-mono text-xs text-foreground/60">{text.average(timeComplexity.average)}</span>
@@ -585,7 +585,7 @@ const SortingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) =>
     <Section title={text.raceThem}>
       <p className="leading-relaxed text-foreground/80">
         {RACE_DESCRIPTION}{" "}
-        <PageLink to={{ kind: "race" }} onNavigate={onNavigate}>
+        <PageLink to={{ module: "sorting", page: "race" }} onNavigate={onNavigate}>
           {text.startRace}
         </PageLink>
         .
@@ -604,7 +604,7 @@ const PathfindingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }
       <ul className="tap-rows flex flex-col divide-y divide-edge">
         {pathOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
-            <PageLink to={{ kind: "path", algorithm }} onNavigate={onNavigate}>
+            <PageLink to={{ module: "pathfinding", page: "algorithm", algorithm }} onNavigate={onNavigate}>
               {pathAlgorithms[algorithm].title}
             </PageLink>
             <p className="text-sm text-foreground/75">{pathAlgorithms[algorithm].shortDescription}</p>
@@ -615,7 +615,7 @@ const PathfindingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }
     <Section title={text.raceThem}>
       <p className="leading-relaxed text-foreground/80">
         {PATH_RACE_DESCRIPTION}{" "}
-        <PageLink to={{ kind: "pathRace" }} onNavigate={onNavigate}>
+        <PageLink to={{ module: "pathfinding", page: "race" }} onNavigate={onNavigate}>
           {text.startRace}
         </PageLink>
         .
@@ -668,7 +668,7 @@ const GraphIndex = ({ current, onNavigate }: { current?: GraphAlgorithm; onNavig
         {algorithm === current ? (
           <span className="font-semibold">{graphAlgorithms[algorithm].title}</span>
         ) : (
-          <PageLink to={{ kind: "graph", algorithm }} onNavigate={onNavigate}>
+          <PageLink to={{ module: "graphs", page: "algorithm", algorithm }} onNavigate={onNavigate}>
             {graphAlgorithms[algorithm].title}
           </PageLink>
         )}
@@ -688,7 +688,7 @@ const GraphsArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => 
         {graphOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-              <PageLink to={{ kind: "graph", algorithm }} onNavigate={onNavigate}>
+              <PageLink to={{ module: "graphs", page: "algorithm", algorithm }} onNavigate={onNavigate}>
                 {graphAlgorithms[algorithm].title}
               </PageLink>
               <span className="font-mono text-xs text-foreground/60">{graphAlgorithms[algorithm].structure}</span>
@@ -701,7 +701,7 @@ const GraphsArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => 
     <Section title={text.raceThem}>
       <p className="leading-relaxed text-foreground/80">
         {GRAPH_RACE_DESCRIPTION}{" "}
-        <PageLink to={{ kind: "graphRace" }} onNavigate={onNavigate}>
+        <PageLink to={{ module: "graphs", page: "race" }} onNavigate={onNavigate}>
           {text.startRace}
         </PageLink>
         .
@@ -755,7 +755,7 @@ const GraphArticle = ({ algorithm, onNavigate }: { algorithm: GraphAlgorithm; on
         <GraphIndex current={algorithm} onNavigate={onNavigate} />
         <p className="text-foreground/80">
           {graphText.orRace((children) => (
-            <PageLink to={{ kind: "graphRace" }} onNavigate={onNavigate}>
+            <PageLink to={{ module: "graphs", page: "race" }} onNavigate={onNavigate}>
               {children}
             </PageLink>
           ))}
@@ -794,7 +794,7 @@ const FourierArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) =>
         {seriesOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-              <PageLink to={{ kind: "series", algorithm }} onNavigate={onNavigate}>
+              <PageLink to={{ module: "fourier", page: "algorithm", algorithm }} onNavigate={onNavigate}>
                 {fourierSeries[algorithm].title}
               </PageLink>
               <span className="font-mono text-xs text-foreground/60">{fourierSeries[algorithm].speeds}</span>
@@ -836,7 +836,7 @@ const SeriesArticle = ({ algorithm, onNavigate }: { algorithm: FourierAlgorithm;
               {other === algorithm ? (
                 <span className="font-semibold">{fourierSeries[other].title}</span>
               ) : (
-                <PageLink to={{ kind: "series", algorithm: other }} onNavigate={onNavigate}>
+                <PageLink to={{ module: "fourier", page: "algorithm", algorithm: other }} onNavigate={onNavigate}>
                   {fourierSeries[other].title}
                 </PageLink>
               )}
@@ -861,7 +861,7 @@ const BacktrackingArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] 
         {problemOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-              <PageLink to={{ kind: "backtrackingProblem", algorithm }} onNavigate={onNavigate}>
+              <PageLink to={{ module: "backtracking", page: "algorithm", algorithm }} onNavigate={onNavigate}>
                 {backtrackingProblems[algorithm].title}
               </PageLink>
               <span className="font-mono text-xs text-foreground/60">{backtrackingProblems[algorithm].cost}</span>
@@ -909,7 +909,7 @@ const StructureIndex = ({ current, onNavigate }: { current?: StructureAlgorithm;
         {algorithm === current ? (
           <span className="font-semibold">{structures[algorithm].title}</span>
         ) : (
-          <PageLink to={{ kind: "structure", algorithm }} onNavigate={onNavigate}>
+          <PageLink to={{ module: "structures", page: "algorithm", algorithm }} onNavigate={onNavigate}>
             {structures[algorithm].title}
           </PageLink>
         )}
@@ -932,7 +932,7 @@ const StructuresArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] })
             .map((algorithm) => (
               <li key={algorithm} className="flex flex-col gap-1 py-4">
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-                  <PageLink to={{ kind: "structure", algorithm }} onNavigate={onNavigate}>
+                  <PageLink to={{ module: "structures", page: "algorithm", algorithm }} onNavigate={onNavigate}>
                     {structures[algorithm].title}
                   </PageLink>
                   <span className="font-mono text-xs text-foreground/60">{structures[algorithm].cost}</span>
@@ -946,7 +946,7 @@ const StructuresArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] })
     <Section title={structureText.raceTrees}>
       <p className="leading-relaxed text-foreground/80">
         {STRUCTURE_RACE_DESCRIPTION}{" "}
-        <PageLink to={{ kind: "structureRace" }} onNavigate={onNavigate}>
+        <PageLink to={{ module: "structures", page: "race" }} onNavigate={onNavigate}>
           {text.startRace}
         </PageLink>
         .
@@ -994,7 +994,7 @@ const StructureArticle = ({ algorithm, onNavigate }: { algorithm: StructureAlgor
         <StructureIndex current={algorithm} onNavigate={onNavigate} />
         <p className="text-foreground/80">
           {structureText.orRace((children) => (
-            <PageLink to={{ kind: "structureRace" }} onNavigate={onNavigate}>
+            <PageLink to={{ module: "structures", page: "race" }} onNavigate={onNavigate}>
               {children}
             </PageLink>
           ))}
@@ -1034,7 +1034,7 @@ const DpArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
         {dpOrder.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-              <PageLink to={{ kind: "dpProblem", algorithm }} onNavigate={onNavigate}>
+              <PageLink to={{ module: "dp", page: "algorithm", algorithm }} onNavigate={onNavigate}>
                 {dpProblems[algorithm].title}
               </PageLink>
               <span className="font-mono text-xs text-foreground/60">{dpProblems[algorithm].cost}</span>
@@ -1047,7 +1047,7 @@ const DpArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
     <Section title={dpText.raceMethods}>
       <p className="leading-relaxed text-foreground/80">
         {DP_RACE_DESCRIPTION}{" "}
-        <PageLink to={{ kind: "dpRace" }} onNavigate={onNavigate}>
+        <PageLink to={{ module: "dp", page: "race" }} onNavigate={onNavigate}>
           {text.startRace}
         </PageLink>
         .
@@ -1073,7 +1073,7 @@ const DpRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => 
       <ul className="tap-rows flex flex-wrap gap-x-6 gap-y-2">
         {dpOrder.map((algorithm) => (
           <li key={algorithm}>
-            <PageLink to={{ kind: "dpProblem", algorithm }} onNavigate={onNavigate}>
+            <PageLink to={{ module: "dp", page: "algorithm", algorithm }} onNavigate={onNavigate}>
               {dpProblems[algorithm].title}
             </PageLink>
           </li>
@@ -1122,11 +1122,11 @@ const DpProblemArticle = ({ algorithm, onNavigate }: { algorithm: DpAlgorithm; o
       <Section title={dpText.compare}>
         <p className="text-foreground/80">
           {dpText.compareLine(
-            <PageLink to={{ kind: "dpProblem", algorithm: other }} onNavigate={onNavigate}>
+            <PageLink to={{ module: "dp", page: "algorithm", algorithm: other }} onNavigate={onNavigate}>
               {dpProblems[other].title}
             </PageLink>,
             (children) => (
-              <PageLink to={{ kind: "dpRace" }} onNavigate={onNavigate}>
+              <PageLink to={{ module: "dp", page: "race" }} onNavigate={onNavigate}>
                 {children}
               </PageLink>
             ),
@@ -1137,30 +1137,42 @@ const DpProblemArticle = ({ algorithm, onNavigate }: { algorithm: DpAlgorithm; o
   );
 };
 
+type Nav = Pick<Props, "onNavigate">;
+type Articles<M extends ModuleId> = {
+  start: ComponentType<Nav>;
+  algorithm: ComponentType<Nav & { algorithm: AlgorithmOf<M> }>;
+} & (M extends RacingModule ? { race: ComponentType<Nav> } : unknown);
+
+/** Every module's articles, one per page. A module or a race page without one fails the typecheck. */
+const articles: { [M in ModuleId]: Articles<M> } = {
+  sorting: { start: SortingArticle, algorithm: AlgorithmArticle, race: RaceArticle },
+  pathfinding: { start: PathfindingArticle, algorithm: PathArticle, race: PathRaceArticle },
+  graphs: { start: GraphsArticle, algorithm: GraphArticle, race: GraphRaceArticle },
+  fourier: { start: FourierArticle, algorithm: SeriesArticle },
+  structures: { start: StructuresArticle, algorithm: StructureArticle, race: StructureRaceArticle },
+  dp: { start: DpArticle, algorithm: DpProblemArticle, race: DpRaceArticle },
+  backtracking: { start: BacktrackingArticle, algorithm: BacktrackingProblemArticle },
+};
+
+/** The page's article; the landing page has none. */
+const PageArticle = ({ route, onNavigate }: Props) => {
+  if (route.page === "home") return null;
+  const pages = articles[route.module] as {
+    start: ComponentType<Nav>;
+    algorithm: ComponentType<Nav & { algorithm: string }>;
+    race?: ComponentType<Nav>;
+  };
+  if (route.page === "algorithm") return <pages.algorithm algorithm={route.algorithm} onNavigate={onNavigate} />;
+  const Article = route.page === "race" ? pages.race! : pages.start;
+  return <Article onNavigate={onNavigate} />;
+};
+
 export const About = ({ route, onNavigate }: Props) => (
   <article id="about" className="mx-auto flex w-full max-w-3xl flex-col gap-12 px-4 pb-20 pt-16 text-foreground md:px-6">
-    {route.kind === "sorting" && <SortingArticle onNavigate={onNavigate} />}
-    {route.kind === "pathfinding" && <PathfindingArticle onNavigate={onNavigate} />}
-    {route.kind === "race" && <RaceArticle onNavigate={onNavigate} />}
-    {route.kind === "algorithm" && <AlgorithmArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
-    {route.kind === "path" && <PathArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
-    {route.kind === "pathRace" && <PathRaceArticle onNavigate={onNavigate} />}
-    {route.kind === "graphs" && <GraphsArticle onNavigate={onNavigate} />}
-    {route.kind === "graph" && <GraphArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
-    {route.kind === "graphRace" && <GraphRaceArticle onNavigate={onNavigate} />}
-    {route.kind === "fourier" && <FourierArticle onNavigate={onNavigate} />}
-    {route.kind === "series" && <SeriesArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
-    {route.kind === "structures" && <StructuresArticle onNavigate={onNavigate} />}
-    {route.kind === "structure" && <StructureArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
-    {route.kind === "structureRace" && <StructureRaceArticle onNavigate={onNavigate} />}
-    {route.kind === "dp" && <DpArticle onNavigate={onNavigate} />}
-    {route.kind === "dpProblem" && <DpProblemArticle algorithm={route.algorithm} onNavigate={onNavigate} />}
-    {route.kind === "dpRace" && <DpRaceArticle onNavigate={onNavigate} />}
-    {route.kind === "backtracking" && <BacktrackingArticle onNavigate={onNavigate} />}
-    {route.kind === "backtrackingProblem" && <BacktrackingProblemArticle algorithm={route.algorithm} />}
+    <PageArticle route={route} onNavigate={onNavigate} />
     <footer className="border-t border-edge pt-6 text-sm text-foreground/60">
       <PageLink
-        to={{ kind: "home" }}
+        to={{ page: "home" }}
         onNavigate={onNavigate}
         className="tap-target relative underline decoration-line underline-offset-4 hover:text-foreground"
       >

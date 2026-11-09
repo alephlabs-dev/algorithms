@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createAppStore, selectLastIndex, selectRaceRuns } from "@/appStore";
 import { href, routePath } from "@/routes";
+import { routeIn } from "./engine";
 import { readLocation } from "@/urlState";
 import { pathfindingSlice as slice, type PathfindingState } from "./pathfinding.slice";
 import { MAX_RACERS, type SliceContext } from "./slice";
@@ -26,7 +27,7 @@ describe("pathfinding slice", () => {
   it("survives its own link", () => {
     const start = at("/pathfinding");
     const s = apply(start, slice.actions.toggleRacer(start, single, "bfs"));
-    const reopened = at(routePath(slice.engine.route(s, single)), slice.engine.search(s, single));
+    const reopened = at(routePath(routeIn("pathfinding", slice.current(s), single)), slice.engine.search(s, single));
     expect([reopened.algorithm, reopened.gridSize, reopened.racers]).toEqual([s.algorithm, s.gridSize, s.racers]);
     expect(reopened.grid).toEqual(s.grid);
   });
@@ -64,7 +65,7 @@ describe("pathfinding in the store", () => {
     createAppStore({ url: readLocation(path, ""), isMobile: false, isPortrait: false, theme: "dark" });
 
   it("changing the brush leaves playback where it is", () => {
-    const app = storeAt(href({ kind: "path", algorithm: "bfs" }));
+    const app = storeAt(href({ module: "pathfinding", page: "algorithm", algorithm: "bfs" }));
     app.getState().seek(5);
     app.getState().actions.pathfinding.setBrush("mud");
     expect(app.getState().pathfinding.brush).toBe("mud");
@@ -72,7 +73,7 @@ describe("pathfinding in the store", () => {
   });
 
   it("racing an algorithm from another module opens the pathfinding race with it", () => {
-    const app = storeAt(href({ kind: "algorithm", algorithm: "heap" }));
+    const app = storeAt(href({ module: "sorting", page: "algorithm", algorithm: "heap" }));
     app.getState().raceWith("pathfinding", "dfs");
     const state = app.getState();
     expect([state.module, state.view]).toEqual(["pathfinding", "race"]);

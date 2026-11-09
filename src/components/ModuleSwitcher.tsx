@@ -64,7 +64,7 @@ const ModuleList = ({ onPick }: { onPick: () => void }) => {
       <ListItem
         selected={false}
         onClick={() => {
-          navigate({ kind: "home" });
+          navigate({ page: "home" });
           onPick();
         }}
       >
@@ -87,7 +87,7 @@ export const ModuleMenu = ({ className }: { className?: string }) => {
         type="button"
         aria-label={text.allModules}
         title={text.allModules}
-        onClick={() => navigate({ kind: "home" })}
+        onClick={() => navigate({ page: "home" })}
         className={logoClass}
       >
         <AlephMark />

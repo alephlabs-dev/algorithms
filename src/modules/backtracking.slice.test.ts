@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { routePath } from "@/routes";
+import { routeIn } from "./engine";
 import { readLocation } from "@/urlState";
 import { backtrackingSlice as slice, type BacktrackingState } from "./backtracking.slice";
 import type { SliceContext } from "./slice";
@@ -36,7 +37,7 @@ describe("backtracking slice", () => {
       apply(sudoku, slice.actions.setSudokuPuzzle(sudoku, ctx, "hard")),
       apply(sudoku, slice.actions.setSudokuOrder(sudoku, ctx, "mrv")),
     ]) {
-      const path = routePath(slice.engine.route(s, ctx));
+      const path = routePath(routeIn("backtracking", slice.current(s), ctx));
       const reopened = at(path, slice.engine.search(s, ctx));
       // The link carries only the problem on stage's settings.
       expect(reopened.problem).toBe(s.problem);

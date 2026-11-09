@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EXAMPLE_CAPACITY, EXAMPLE_ITEMS, methods, RACE_CAPACITY, RACE_ITEMS, wordPairs } from "@/dp";
 import { routePath } from "@/routes";
+import { routeIn } from "./engine";
 import { readLocation } from "@/urlState";
 import { dpSlice as slice, type DpState } from "./dp.slice";
 import type { SliceContext } from "./slice";
@@ -49,7 +50,7 @@ describe("dp slice", () => {
     const knapsack = at("/dynamic-programming/knapsack");
     const bag = apply(knapsack, slice.actions.setItems(knapsack, single, BAG, 9));
     for (const s of [words, bag]) {
-      const reopened = at(routePath(slice.engine.route(s, single)), slice.engine.search(s, single));
+      const reopened = at(routePath(routeIn("dp", slice.current(s), single)), slice.engine.search(s, single));
       expect(reopened.algorithm).toBe(s.algorithm);
       const carried = (x: DpState) => (x.algorithm === "knapsack" ? [x.items, x.capacity] : [x.a, x.b]);
       expect(carried(reopened)).toEqual(carried(s));

@@ -6,7 +6,7 @@ import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { structures } from "@/consts/structures";
 import { localized } from "@/i18n";
-import type { Route } from "@/routes";
+import type { AlgorithmOf, ModuleId, RacingModule, Route } from "@/routes";
 
 const text = localized({
   en: {
@@ -18,9 +18,9 @@ const text = localized({
     dp: "About dynamic programming",
     backtracking: "About backtracking",
     dpRace: "What memoizing saves",
-    dpProblem: (title: string) => `How ${title.toLowerCase()} works`,
+    dpHowItWorks: (title: string) => `How ${title.toLowerCase()} works`,
     structure: (title: string) => `How the ${title} works`,
-    structureRace: "Why balancing matters",
+    balancing: "Why balancing matters",
     series: ({ title }: { title: string; named: string }) => `How the ${title} works`,
     algorithm: (title: string) => `How ${title} works`,
     race: "How the race works",
@@ -34,57 +34,59 @@ const text = localized({
     dp: "Sobre la programación dinámica",
     backtracking: "Sobre el backtracking",
     dpRace: "Lo que ahorra memorizar",
-    dpProblem: (named) => `Cómo funciona ${named}`,
+    dpHowItWorks: (named) => `Cómo funciona ${named}`,
     structure: (named) => `Cómo funciona ${named}`,
-    structureRace: "Por qué importa balancear",
+    balancing: "Por qué importa balancear",
     series: ({ named }) => `${/^l(o|a)s /.test(named) ? "Cómo funcionan" : "Cómo funciona"} ${named}`,
     algorithm: (title) => `Cómo funciona ${title}`,
     race: "Cómo funciona la carrera",
   },
 });
 
-type Hint<K extends Route["kind"]> = {
-  label: (route: Extract<Route, { kind: K }>) => string;
-  /** Whether tapping the hint also opens the explanation it names. */
-  opens: boolean;
-};
+type Hints<M extends ModuleId> = {
+  /** "About …": the start page's hint just takes you to the article. */
+  start: string;
+  /** Other pages' hints name the article's first explanation ("How X works"), so they open it too. */
+  algorithm: (algorithm: AlgorithmOf<M>) => string;
+} & (M extends RacingModule ? { race: string } : unknown);
 
-/**
- * Every route kind's hint. A module's start page says "About …": the hint just
- * takes you to the article. Every other page's hint names the article's first
- * explanation ("How X works", "Why balancing matters"), so it opens that one too.
- * A route kind without an entry fails the typecheck.
- */
-const HINTS: { [K in Route["kind"]]: Hint<K> } = {
-  home: { label: () => text.sorting, opens: false },
-  sorting: { label: () => text.sorting, opens: false },
-  pathfinding: { label: () => text.pathfinding, opens: false },
-  graphs: { label: () => text.graphs, opens: false },
-  fourier: { label: () => text.fourier, opens: false },
-  structures: { label: () => text.structures, opens: false },
-  dp: { label: () => text.dp, opens: false },
-  backtracking: { label: () => text.backtracking, opens: false },
-  dpRace: { label: () => text.dpRace, opens: true },
-  dpProblem: { label: (route) => text.dpProblem(dpProblems[route.algorithm].named), opens: true },
-  structure: { label: (route) => text.structure(structures[route.algorithm].named), opens: true },
-  structureRace: { label: () => text.structureRace, opens: true },
-  series: { label: (route) => text.series(fourierSeries[route.algorithm]), opens: true },
-  graph: { label: (route) => text.algorithm(graphAlgorithms[route.algorithm].named), opens: true },
-  race: { label: () => text.race, opens: true },
-  pathRace: { label: () => text.race, opens: true },
-  graphRace: { label: () => text.race, opens: true },
-  path: { label: (route) => text.algorithm(pathAlgorithms[route.algorithm].named), opens: true },
-  algorithm: { label: (route) => text.algorithm(sortingAlgorithms[route.algorithm].title), opens: true },
-  backtrackingProblem: {
-    label: (route) => backtrackingProblems[route.algorithm].howItWorks,
-    opens: true,
+/** Every module's hints, one per page. A module or a race page without one fails the typecheck. */
+const HINTS: { [M in ModuleId]: Hints<M> } = {
+  sorting: {
+    start: text.sorting,
+    algorithm: (algorithm) => text.algorithm(sortingAlgorithms[algorithm].title),
+    race: text.race,
   },
+  pathfinding: {
+    start: text.pathfinding,
+    algorithm: (algorithm) => text.algorithm(pathAlgorithms[algorithm].named),
+    race: text.race,
+  },
+  graphs: {
+    start: text.graphs,
+    algorithm: (algorithm) => text.algorithm(graphAlgorithms[algorithm].named),
+    race: text.race,
+  },
+  fourier: { start: text.fourier, algorithm: (algorithm) => text.series(fourierSeries[algorithm]) },
+  structures: {
+    start: text.structures,
+    algorithm: (algorithm) => text.structure(structures[algorithm].named),
+    race: text.balancing,
+  },
+  dp: { start: text.dp, algorithm: (algorithm) => text.dpHowItWorks(dpProblems[algorithm].named), race: text.dpRace },
+  backtracking: { start: text.backtracking, algorithm: (algorithm) => backtrackingProblems[algorithm].howItWorks },
 };
 
-export const hintFor = <K extends Route["kind"]>(route: Extract<Route, { kind: K }>): Hint<K> => HINTS[route.kind as K];
+/** The modules with hints, from the table. */
+export const hintModules = Object.keys(HINTS) as ModuleId[];
 
-/** Every route kind, from the table. */
-export const hintKinds = Object.keys(HINTS) as Route["kind"][];
+/** Whether tapping the hint also opens the explanation it names: everywhere but a start page (and the landing page). */
+export const hintOpens = (route: Route): boolean => route.page === "algorithm" || route.page === "race";
 
-/** The hint's text on a route. */
-export const hintLabel = (route: Route): string => hintFor(route).label(route as never);
+/** The hint's text on a page. The landing page reads like sorting's start page. */
+export const hintLabel = (route: Route): string => {
+  if (route.page === "home") return HINTS.sorting.start;
+  const hints = HINTS[route.module] as { start: string; algorithm: (algorithm: string) => string; race?: string };
+  if (route.page === "algorithm") return hints.algorithm(route.algorithm);
+  return route.page === "race" ? hints.race! : hints.start;
+};

@@ -122,10 +122,6 @@ export const dpSlice = defineModule<DpState, DpAlgorithm>()({
     lastIndex: (s, view) => (view === "race" ? Math.max(0, ...s.raceRuns.map((r) => r.length - 1)) : s.run.length - 1),
     stepWeight: (s, index) => STEP_WEIGHT[s.run.frames[index]?.event.type ?? "done"],
     pace: (view) => (view === "race" ? "dpRace" : "dp"),
-    route: (s, ctx) => {
-      if (ctx.view === "race") return { kind: "dpRace" };
-      return ctx.isModuleStart ? { kind: "dp" } : { kind: "dpProblem", algorithm: s.algorithm };
-    },
     // A knapsack (or its race) links its items; the word problems their words.
     search: (s, ctx) =>
       s.algorithm === "knapsack" || ctx.view === "race"

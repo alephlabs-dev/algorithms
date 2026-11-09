@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createAppStore } from "@/appStore";
 import { graphAspect } from "@/graphs";
 import { href, routePath } from "@/routes";
+import { routeIn } from "./engine";
 import { readLocation } from "@/urlState";
 import { graphsSlice as slice, type GraphsState } from "./graphs.slice";
 import { MAX_RACERS, MIN_RACERS, type SliceContext } from "./slice";
@@ -30,7 +31,7 @@ describe("graphs slice", () => {
     const big = large();
     const s = apply(big, slice.actions.toggleRacer(big, single, "bfs"));
     const search = slice.engine.search(s, single);
-    const reopened = at(routePath(slice.engine.route(s, single)), search);
+    const reopened = at(routePath(routeIn("graphs", slice.current(s), single)), search);
     const settings = ({ algorithm, size, preset, racers }: GraphsState) => ({ algorithm, size, preset, racers });
     expect(settings(reopened)).toEqual(settings(s));
     // Node positions travel rounded, so the graph has to come back as the same link.
@@ -73,7 +74,7 @@ describe("graphs slice", () => {
 describe("graphs in the store", () => {
   it("turning the screen upright reshapes the graph even while another module is on stage", () => {
     const app = createAppStore({
-      url: readLocation(href({ kind: "algorithm", algorithm: "heap" }), ""),
+      url: readLocation(href({ module: "sorting", page: "algorithm", algorithm: "heap" }), ""),
       isMobile: false,
       isPortrait: false,
       theme: "dark",

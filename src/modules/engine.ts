@@ -1,5 +1,5 @@
 import type { Question } from "@/game";
-import type { Route } from "@/routes";
+import { modulePages, moduleRoute, type ModuleId, type Route } from "@/routes";
 import type { StoreState, View } from "@/store";
 import { speedFor, type Pace } from "@/utils/speed";
 import { backtrackingSlice } from "./backtracking.slice";
@@ -11,8 +11,8 @@ import type { BoundSlice, ModuleSlice, SliceContext } from "./slice";
 import { sortingSlice } from "./sorting.slice";
 import { structuresSlice } from "./structures.slice";
 
-/** The modules the app has. Each one declares its slice in ./<id>.slice.ts and its interface in ./<id>.tsx. */
-export type ModuleId = "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | "backtracking";
+/** The modules the app has (their pages are in @/routes). Each one declares its slice in ./<id>.slice.ts and its interface in ./<id>.tsx. */
+export type { ModuleId };
 
 /**
  * Every module's slice, by id: the one place a module is registered with the store.
@@ -47,6 +47,15 @@ export const contextFor = (s: StoreState, module: ModuleId): SliceContext => ({
 });
 
 /**
+ * The page a module is on, the same way for every module: its race (if it has
+ * one), its start page, or `algorithm`'s page.
+ */
+export const routeIn = (module: ModuleId, algorithm: string, ctx: SliceContext): Route => {
+  if (ctx.view === "race" && modulePages[module].race) return moduleRoute(module, "race");
+  return ctx.isModuleStart ? moduleRoute(module, "start") : moduleRoute(module, "algorithm", algorithm);
+};
+
+/**
  * What playback needs from a module, without React: how long a run is and
  * how its steps are paced. Read by the store and the playback loop.
  */
@@ -57,6 +66,8 @@ export type ModuleEngine = {
   stepWeight: (s: StoreState, index: number) => number;
   /** Which target pace 1× is tuned to (see utils/speed). */
   pace: (view: View) => Pace;
+  /** The algorithm on stage in this module (in backtracking, the problem), on stage or not. */
+  current: (s: StoreState) => string;
   /** The page the store is on, within this module. */
   route: (s: StoreState) => Route;
   /** The query string that reproduces the run (array, grid, racers, speed). */
@@ -70,14 +81,16 @@ export type ModuleEngine = {
 /** A slice's engine, read from the whole store. */
 const engineOf = (module: ModuleId): ModuleEngine => {
   // Each slice's types hold where it's declared; here they're read through one shape.
-  const engine = slices[module].engine as ModuleSlice<object, never, never>["engine"];
+  const slice = slices[module] as unknown as ModuleSlice<object, string, never>;
+  const { engine } = slice;
   const read = (s: StoreState) => s[module] as object;
   const { game, gameUnavailable } = engine;
   return {
     lastIndex: (s, view) => engine.lastIndex(read(s), view),
     stepWeight: (s, index) => engine.stepWeight(read(s), index),
     pace: engine.pace,
-    route: (s) => engine.route(read(s), contextFor(s, module)),
+    current: (s) => slice.current(read(s)),
+    route: (s) => routeIn(module, slice.current(read(s)), contextFor(s, module)),
     search: (s) => engine.search(read(s), contextFor(s, module)),
     ...(game && { game: (s: StoreState) => game(read(s)) }),
     ...(gameUnavailable && { gameUnavailable: (s: StoreState) => gameUnavailable(read(s)) }),

@@ -1,7 +1,7 @@
 import { renderToString } from "react-dom/server";
 import { About } from "@/components/About";
 import { Landing } from "@/components/Landing/Landing";
-import { allRoutes, href, isTranslated, pathIn, SITE_URL, type Route } from "@/routes";
+import { allRoutes, href, isTranslated, pathIn, SITE_URL, type ModuleId, type Route } from "@/routes";
 import { renderHead } from "./head";
 
 /**
@@ -23,11 +23,14 @@ export const renderPage = (template: string, route: Route): string => {
   if (!template.includes(ROOT)) throw new Error(`index.html is missing ${ROOT}`);
   // The landing page is all content; other pages are a visualizer with their article below.
   const body =
-    route.kind === "home"
+    route.page === "home"
       ? renderToString(<Landing />)
       : `<div class="h-dvh"></div>${renderToString(<About route={route} />)}`;
   return renderHead(template, route).replace(ROOT, `<div id="root">${body}</div>`);
 };
+
+/** Modules whose start page ranks above the other module pages in the sitemap. */
+const FEATURED: ReadonlySet<ModuleId> = new Set(["sorting", "pathfinding"]);
 
 export const sitemap = (lastModified: string): string => {
   // Spanish pages are listed once their module is translated.
@@ -37,7 +40,8 @@ export const sitemap = (lastModified: string): string => {
   ];
   const urls = pages
     .map(({ route, path }) => {
-      const priority = route.kind === "home" ? "1.0" : route.kind === "sorting" || route.kind === "pathfinding" ? "0.9" : "0.8";
+      const priority =
+        route.page === "home" ? "1.0" : route.page === "start" && FEATURED.has(route.module) ? "0.9" : "0.8";
       return `  <url><loc>${SITE_URL}${path === "/" ? "/" : path}</loc><lastmod>${lastModified}</lastmod><priority>${priority}</priority></url>`;
     })
     .join("\n");

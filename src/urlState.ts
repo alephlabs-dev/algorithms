@@ -11,7 +11,7 @@ import type { DpAlgorithm } from "./dp/types";
 import { graphPresets, graphSizes, type GraphPreset, type GraphSize } from "./graphs/graph";
 import type { GraphAlgorithm } from "./graphs/types";
 import type { PathAlgorithm } from "./pathfinding/types";
-import { routeFromPath } from "./routes";
+import { routeFromPath, type AlgorithmOf, type ModuleId } from "./routes";
 import { displayModes } from "./consts/displayModes";
 import { inputOrders } from "./consts/inputOrders";
 import { sizes } from "./consts/sizesMap";
@@ -263,14 +263,8 @@ export const toBacktrackingSearch = (state: BacktrackingUrlState & { speed?: Spe
     ...(state.speed !== undefined && state.speed !== DEFAULT_PRESET && { speed: state.speed }),
   }).toString();
 
-/** Settings from a full location: the page (path) wins over legacy query parameters. */
-export const readLocation = (
-  pathname: string,
-  search: string,
-): Partial<UrlState> & {
-  isLanding: boolean;
-  isModuleStart: boolean;
-  module: "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | "backtracking";
+/** Each module's settings from a link, beyond sorting's (which are the top-level ones). */
+type ModuleLinks = {
   pathAlgorithm?: PathAlgorithm;
   path: PathUrlState;
   graphAlgorithm?: GraphAlgorithm;
@@ -283,115 +277,63 @@ export const readLocation = (
   dp: DpUrlState;
   backtrackingProblem?: BacktrackingProblem;
   backtracking: BacktrackingUrlState;
-} => {
+};
+
+const NO_MODULE_LINKS: ModuleLinks = { path: {}, graph: {}, fourier: {}, structure: {}, dp: {}, backtracking: {} };
+
+/** What a module's link carries besides the page: its settings, and the algorithm on an algorithm page. */
+const moduleLinks: {
+  [M in Exclude<ModuleId, "sorting">]: (params: URLSearchParams, algorithm?: AlgorithmOf<M>) => Partial<ModuleLinks>;
+} = {
+  pathfinding: (params, algorithm) => ({ path: readPathParams(params), ...(algorithm && { pathAlgorithm: algorithm }) }),
+  graphs: (params, algorithm) => ({ graph: readGraphParams(params), ...(algorithm && { graphAlgorithm: algorithm }) }),
+  fourier: (params, algorithm) => ({ fourier: readFourierParams(params), ...(algorithm && { fourierAlgorithm: algorithm }) }),
+  structures: (params, algorithm) => ({
+    structure: readStructureParams(params),
+    ...(algorithm && { structureAlgorithm: algorithm }),
+  }),
+  dp: (params, algorithm) => ({ dp: readDpParams(params), ...(algorithm && { dpAlgorithm: algorithm }) }),
+  backtracking: (params, algorithm) => ({
+    backtracking: readBacktrackingParams(params),
+    ...(algorithm && { backtrackingProblem: algorithm }),
+  }),
+};
+
+/** Settings from a full location: the page (path) wins over legacy query parameters. */
+export const readLocation = (
+  pathname: string,
+  search: string,
+): Partial<UrlState> &
+  ModuleLinks & {
+    isLanding: boolean;
+    isModuleStart: boolean;
+    module: ModuleId;
+  } => {
   const state = readUrlState(search);
   const route = routeFromPath(pathname);
-  if (route?.kind === "backtracking" || route?.kind === "backtrackingProblem") {
+  if (route && route.page !== "home" && route.module !== "sorting") {
+    const algorithm = route.page === "algorithm" ? route.algorithm : undefined;
+    const read = moduleLinks[route.module] as (params: URLSearchParams, algorithm?: string) => Partial<ModuleLinks>;
     return {
       ...state,
       isLanding: false,
-      isModuleStart: route.kind === "backtracking",
-      module: "backtracking",
-      view: "single",
-      ...(route.kind === "backtrackingProblem" && { backtrackingProblem: route.algorithm }),
-      path: {},
-      graph: {},
-      fourier: {},
-      structure: {},
-      dp: {},
-      backtracking: readBacktrackingParams(new URLSearchParams(search)),
+      isModuleStart: route.page === "start",
+      module: route.module,
+      view: route.page === "race" ? "race" : "single",
+      ...NO_MODULE_LINKS,
+      ...read(new URLSearchParams(search), algorithm),
     };
   }
-  if (route?.kind === "dp" || route?.kind === "dpProblem" || route?.kind === "dpRace") {
-    return {
-      ...state,
-      isLanding: false,
-      isModuleStart: route.kind === "dp",
-      module: "dp",
-      view: route.kind === "dpRace" ? "race" : "single",
-      ...(route.kind === "dpProblem" && { dpAlgorithm: route.algorithm }),
-      path: {},
-      graph: {},
-      fourier: {},
-      structure: {},
-      dp: readDpParams(new URLSearchParams(search)),
-      backtracking: {},
-    };
-  }
-  if (route?.kind === "structures" || route?.kind === "structure" || route?.kind === "structureRace") {
-    return {
-      ...state,
-      isLanding: false,
-      isModuleStart: route.kind === "structures",
-      module: "structures",
-      view: route.kind === "structureRace" ? "race" : "single",
-      ...(route.kind === "structure" && { structureAlgorithm: route.algorithm }),
-      path: {},
-      graph: {},
-      fourier: {},
-      structure: readStructureParams(new URLSearchParams(search)),
-      dp: {},
-      backtracking: {},
-    };
-  }
-  if (route?.kind === "fourier" || route?.kind === "series") {
-    return {
-      ...state,
-      isLanding: false,
-      isModuleStart: route.kind === "fourier",
-      module: "fourier",
-      view: "single",
-      ...(route.kind === "series" && { fourierAlgorithm: route.algorithm }),
-      path: {},
-      graph: {},
-      fourier: readFourierParams(new URLSearchParams(search)),
-      structure: {},
-      dp: {},
-      backtracking: {},
-    };
-  }
-  if (route?.kind === "graph" || route?.kind === "graphs" || route?.kind === "graphRace") {
-    return {
-      ...state,
-      isLanding: false,
-      isModuleStart: route.kind === "graphs",
-      module: "graphs",
-      view: route.kind === "graphRace" ? "race" : "single",
-      ...(route.kind === "graph" && { graphAlgorithm: route.algorithm }),
-      path: {},
-      graph: readGraphParams(new URLSearchParams(search)),
-      fourier: {},
-      structure: {},
-      dp: {},
-      backtracking: {},
-    };
-  }
-  if (route?.kind === "path" || route?.kind === "pathRace" || route?.kind === "pathfinding") {
-    return {
-      ...state,
-      isLanding: false,
-      isModuleStart: route.kind === "pathfinding",
-      module: "pathfinding",
-      view: route.kind === "pathRace" ? "race" : "single",
-      ...(route.kind === "path" && { pathAlgorithm: route.algorithm }),
-      path: readPathParams(new URLSearchParams(search)),
-      graph: {},
-      fourier: {},
-      structure: {},
-      dp: {},
-      backtracking: {},
-    };
-  }
-  if (route?.kind === "algorithm") {
+  if (route?.page === "algorithm") {
     state.algorithm = route.algorithm;
     state.view = "single";
-  } else if (route?.kind === "race") {
+  } else if (route?.page === "race") {
     state.view = "race";
   }
   // Old links put the algorithm in the query string of the home page (/?algo=quick): they open that algorithm.
   const legacy = state.algorithm !== undefined || state.view !== undefined;
-  const isLanding = (route === null || route.kind === "home") && !legacy;
-  return { ...state, isLanding, isModuleStart: route?.kind === "sorting", module: "sorting", path: {}, graph: {}, fourier: {}, structure: {}, dp: {}, backtracking: {} };
+  const isLanding = (route === null || route.page === "home") && !legacy;
+  return { ...state, isLanding, isModuleStart: route?.page === "start", module: "sorting", ...NO_MODULE_LINKS };
 };
 
 /** The query string for the settings that aren't part of the path. */

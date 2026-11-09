@@ -94,7 +94,7 @@ export const Landing = ({ onNavigate, actions }: Props) => {
     <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-24 px-4 pb-16 text-foreground md:px-8 lg:gap-32">
       <header className="flex flex-wrap items-center justify-between gap-2 pt-5 sm:gap-4 md:pt-7">
         <PageLink
-          to={{ kind: "home" }}
+          to={{ page: "home" }}
           onNavigate={onNavigate}
           className="tap-target relative flex items-center gap-2 rounded-full text-base font-semibold sm:gap-2.5 sm:text-lg focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
         >
@@ -142,14 +142,14 @@ export const Landing = ({ onNavigate, actions }: Props) => {
           </p>
           <div className="flex flex-wrap gap-3">
             <PageLink
-              to={{ kind: "sorting" }}
+              to={{ module: "sorting", page: "start" }}
               onNavigate={onNavigate}
               className={cn(buttonClass, "bg-foreground text-background hover:bg-foreground/90")}
             >
               {text.startSorting}
             </PageLink>
             <PageLink
-              to={{ kind: "pathfinding" }}
+              to={{ module: "pathfinding", page: "start" }}
               onNavigate={onNavigate}
               className={cn(buttonClass, "border border-line hover:bg-accent")}
             >

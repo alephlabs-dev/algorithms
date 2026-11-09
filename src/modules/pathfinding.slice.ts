@@ -201,10 +201,6 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm>()(
     game: (s) => questionsOf(s.run, (run) => pathQuestions(run, s.algorithm)),
     // Enabled by how big cells are on screen, not by grid size: a big grid on a big screen still has room.
     gameUnavailable: cellsTooSmall,
-    route: (s, ctx) => {
-      if (ctx.view === "race") return { kind: "pathRace" };
-      return ctx.isModuleStart ? { kind: "pathfinding" } : { kind: "path", algorithm: s.algorithm };
-    },
     search: (s, ctx) =>
       toPathSearch({
         gridSize: s.gridSize,

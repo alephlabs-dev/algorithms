@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LANGS } from "@/i18n";
-import { allRoutes } from "@/routes";
+import { allRoutes, modulePages } from "@/routes";
 
 afterEach(() => {
   globalThis.__LANG__ = undefined;
@@ -22,7 +22,7 @@ describe.each(LANGS)("scroll hint in %s", (language) => {
   });
 });
 
-it("checks a route of every kind", async () => {
-  const { hintKinds } = await load("en");
-  expect(new Set(allRoutes.map((route) => route.kind))).toEqual(new Set(hintKinds));
+it("has hints for every module in the route table", async () => {
+  const { hintModules } = await load("en");
+  expect(new Set(hintModules)).toEqual(new Set(Object.keys(modulePages)));
 });
