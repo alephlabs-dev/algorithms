@@ -1,5 +1,5 @@
 import { lang, LANGS } from "@/i18n";
-import { isTranslated, pathIn, SITE_URL, TRANSLATED_MODULES, type ModuleName, type Route } from "@/routes";
+import { isTranslated, pathIn, SITE_URL, TRANSLATED_MODULES, type ModuleId, type Route } from "@/routes";
 import { pageMeta, structuredData } from "./pages";
 
 const absolute = (path: string) => SITE_URL + (path === "/" ? "/" : path);
@@ -42,7 +42,7 @@ const metaContent = (route: Route): [selector: string, content: string][] => {
  * Build time: rewrites the head of index.html for a page. index.html holds
  * the home page's tags; every one listed here must exist there.
  */
-export const renderHead = (html: string, route: Route, translated: ReadonlySet<ModuleName> = TRANSLATED_MODULES): string => {
+export const renderHead = (html: string, route: Route, translated: ReadonlySet<ModuleId> = TRANSLATED_MODULES): string => {
   const meta = pageMeta(route);
   let out = html.replace(/<title>[^<]*<\/title>/, `<title>${escapeAttr(meta.title)}</title>`);
   for (const [selector, content] of metaContent(route)) {

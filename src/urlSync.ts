@@ -1,5 +1,5 @@
 import { applyRoute, routeFor, searchFor } from "./navigation";
-import { href, routeFromPath, routePath, type Route } from "./routes";
+import { HOME, href, routeFromPath, routePath, type Route } from "./routes";
 import { applyHead } from "./seo/head";
 import { tourDone, useStore, type StoreState } from "./store";
 
@@ -78,7 +78,7 @@ export const startUrlSync = () => {
   });
 
   window.addEventListener("popstate", () => {
-    const route = routeFromPath(window.location.pathname) ?? { kind: "home" };
+    const route = routeFromPath(window.location.pathname) ?? HOME;
     fromHistory = true;
     navigate(route);
     fromHistory = false;

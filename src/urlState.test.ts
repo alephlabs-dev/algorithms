@@ -28,7 +28,7 @@ describe("url state", () => {
 
   it("round-trips through the path and query string", () => {
     const single = { ...state, view: "single" as const };
-    expect(readLocation(routePath({ kind: "algorithm", algorithm: "heap" }), toSearch(single))).toEqual({
+    expect(readLocation(routePath({ module: "sorting", page: "algorithm", algorithm: "heap" }), toSearch(single))).toEqual({
       ...single,
       isLanding: false,
       isModuleStart: false,
@@ -41,7 +41,7 @@ describe("url state", () => {
       backtracking: {},
     });
     // The race page has no algorithm of its own (toEqual ignores undefined keys).
-    expect(readLocation(routePath({ kind: "race" }), toSearch(state))).toEqual({
+    expect(readLocation(routePath({ module: "sorting", page: "race" }), toSearch(state))).toEqual({
       ...state,
       algorithm: undefined,
       isLanding: false,
@@ -105,13 +105,13 @@ describe("url state", () => {
       end: 12,
       racers: ["bfs", "astar", "greedy"] as PathAlgorithm[],
     };
-    expect(readLocation(routePath({ kind: "path", algorithm: "astar" }), toPathSearch(grid))).toMatchObject({
+    expect(readLocation(routePath({ module: "pathfinding", page: "algorithm", algorithm: "astar" }), toPathSearch(grid))).toMatchObject({
       pathAlgorithm: "astar",
       module: "pathfinding",
       view: "single",
       path: grid,
     });
-    expect(readLocation(routePath({ kind: "pathRace" }), toPathSearch(grid))).toMatchObject({
+    expect(readLocation(routePath({ module: "pathfinding", page: "race" }), toPathSearch(grid))).toMatchObject({
       module: "pathfinding",
       view: "race",
       path: grid,
@@ -125,7 +125,7 @@ describe("url state", () => {
       preset: "tree" as const,
       racers: ["dfs", "kruskal"] as GraphAlgorithm[],
     };
-    expect(readLocation(routePath({ kind: "graph", algorithm: "dfs" }), toGraphSearch(graph))).toMatchObject({
+    expect(readLocation(routePath({ module: "graphs", page: "algorithm", algorithm: "dfs" }), toGraphSearch(graph))).toMatchObject({
       module: "graphs",
       graphAlgorithm: "dfs",
       graph,
@@ -135,7 +135,7 @@ describe("url state", () => {
 
   it("round-trips a Fourier page, with a hand-drawn shape", () => {
     const search = toFourierSearch({ circles: 25, shape: "custom", path: "AbC-_", speed: "2x" });
-    expect(readLocation(routePath({ kind: "series", algorithm: "epicycles" }), search)).toMatchObject({
+    expect(readLocation(routePath({ module: "fourier", page: "algorithm", algorithm: "epicycles" }), search)).toMatchObject({
       module: "fourier",
       fourierAlgorithm: "epicycles",
       speed: "2x",

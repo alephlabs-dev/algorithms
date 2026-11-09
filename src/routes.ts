@@ -10,114 +10,135 @@ import { lang, LANG_PREFIX, stripLang, type Lang } from "./i18n";
 /** Where the site is published; canonical URLs, the sitemap and social cards use it. */
 export const SITE_URL = "https://algorithms-aleph.vercel.app";
 
-/** URL slug for each algorithm, e.g. /sorting/quick-sort. */
-export const algorithmSlugs: Record<Algorithm, string> = {
-  selection: "selection-sort",
-  insertion: "insertion-sort",
-  bubble: "bubble-sort",
-  cocktail: "cocktail-shaker-sort",
-  shell: "shell-sort",
-  quick: "quick-sort",
-  merge: "merge-sort",
-  heap: "heap-sort",
-  radix: "radix-sort",
+/** The modules the app has. */
+export type ModuleId = "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | "backtracking";
+
+type Pages = {
+  /** The start page's path; the module's other pages hang under it. */
+  base: string;
+  /** Each algorithm's slug (in backtracking, each problem's): /sorting/quick-sort. */
+  slugs: Record<string, string>;
+  /** Whether the module has a race page, at <base>/race. */
+  race: boolean;
 };
 
-/** URL slug for each pathfinding algorithm, e.g. /pathfinding/dijkstra. */
-export const pathSlugs: Record<PathAlgorithm, string> = {
-  bfs: "breadth-first-search",
-  dfs: "depth-first-search",
-  dijkstra: "dijkstra",
-  astar: "a-star",
-  greedy: "greedy-best-first-search",
-};
+/**
+ * Every module's pages: a start page, one page per algorithm, and a race page
+ * if it has one. Adding a module or an algorithm means editing this table only.
+ */
+export const modulePages = {
+  sorting: {
+    base: "/sorting",
+    slugs: {
+      selection: "selection-sort",
+      insertion: "insertion-sort",
+      bubble: "bubble-sort",
+      cocktail: "cocktail-shaker-sort",
+      shell: "shell-sort",
+      quick: "quick-sort",
+      merge: "merge-sort",
+      heap: "heap-sort",
+      radix: "radix-sort",
+    } satisfies Record<Algorithm, string>,
+    race: true,
+  },
+  pathfinding: {
+    base: "/pathfinding",
+    slugs: {
+      bfs: "breadth-first-search",
+      dfs: "depth-first-search",
+      dijkstra: "dijkstra",
+      astar: "a-star",
+      greedy: "greedy-best-first-search",
+    } satisfies Record<PathAlgorithm, string>,
+    race: true,
+  },
+  graphs: {
+    base: "/graphs",
+    slugs: {
+      bfs: "breadth-first-search",
+      dfs: "depth-first-search",
+      dijkstra: "dijkstra",
+      prim: "prim",
+      kruskal: "kruskal",
+      topo: "topological-sort",
+    } satisfies Record<GraphAlgorithm, string>,
+    race: true,
+  },
+  fourier: {
+    base: "/fourier",
+    slugs: {
+      square: "square-wave",
+      sawtooth: "sawtooth-wave",
+      triangle: "triangle-wave",
+      epicycles: "epicycles",
+    } satisfies Record<FourierAlgorithm, string>,
+    race: false,
+  },
+  structures: {
+    base: "/structures",
+    slugs: {
+      bst: "binary-search-tree",
+      avl: "avl-tree",
+      heap: "min-heap",
+      chaining: "hash-table-chaining",
+      probing: "hash-table-linear-probing",
+    } satisfies Record<StructureAlgorithm, string>,
+    race: true,
+  },
+  dp: {
+    base: "/dynamic-programming",
+    slugs: {
+      edit: "edit-distance",
+      lcs: "longest-common-subsequence",
+      knapsack: "knapsack",
+    } satisfies Record<DpAlgorithm, string>,
+    race: true,
+  },
+  backtracking: {
+    base: "/backtracking",
+    slugs: {
+      queens: "n-queens",
+      sudoku: "sudoku",
+    } satisfies Record<BacktrackingProblem, string>,
+    race: false,
+  },
+} as const satisfies Record<ModuleId, Pages>;
 
-/** URL slug for each graph algorithm, e.g. /graphs/dijkstra. */
-export const graphSlugs: Record<GraphAlgorithm, string> = {
-  bfs: "breadth-first-search",
-  dfs: "depth-first-search",
-  dijkstra: "dijkstra",
-  prim: "prim",
-  kruskal: "kruskal",
-  topo: "topological-sort",
-};
+const MODULES = Object.keys(modulePages) as ModuleId[];
 
-/** URL slug for each Fourier series, e.g. /fourier/square-wave. */
-export const seriesSlugs: Record<FourierAlgorithm, string> = {
-  square: "square-wave",
-  sawtooth: "sawtooth-wave",
-  triangle: "triangle-wave",
-  epicycles: "epicycles",
-};
+/** The algorithms a module has pages for (in backtracking, the problems). */
+export type AlgorithmOf<M extends ModuleId> = keyof (typeof modulePages)[M]["slugs"] & string;
 
-/** URL slug for each data structure, e.g. /structures/avl-tree. */
-export const structureSlugs: Record<StructureAlgorithm, string> = {
-  bst: "binary-search-tree",
-  avl: "avl-tree",
-  heap: "min-heap",
-  chaining: "hash-table-chaining",
-  probing: "hash-table-linear-probing",
-};
+/** The modules with a race page. */
+export type RacingModule = { [M in ModuleId]: (typeof modulePages)[M]["race"] extends true ? M : never }[ModuleId];
 
-/** URL slug for each dynamic programming problem, e.g. /dynamic-programming/edit-distance. */
-export const dpSlugs: Record<DpAlgorithm, string> = {
-  edit: "edit-distance",
-  lcs: "longest-common-subsequence",
-  knapsack: "knapsack",
-};
+/** The kinds of page every module has (the race only in some). */
+export type ModulePage = "start" | "algorithm" | "race";
 
-/** URL slug for each backtracking problem, e.g. /backtracking/n-queens. */
-export const backtrackingSlugs: Record<BacktrackingProblem, string> = {
-  queens: "n-queens",
-  sudoku: "sudoku",
-};
+/** A module's pages. */
+export type ModuleRoute<M extends ModuleId = ModuleId> = M extends ModuleId
+  ?
+      | { module: M; page: "start" }
+      | { module: M; page: "algorithm"; algorithm: AlgorithmOf<M> }
+      | (M extends RacingModule ? { module: M; page: "race" } : never)
+  : never;
 
-/** Every page the site has. Settings (size, input, speed, seed…) stay in the query string. */
-export type Route =
-  /** The landing page. */
-  | { kind: "home" }
-  /** A module's own page: its visualizer with the default algorithm, and an index of the module. */
-  | { kind: "sorting" }
-  | { kind: "pathfinding" }
-  | { kind: "graphs" }
-  | { kind: "algorithm"; algorithm: Algorithm }
-  | { kind: "race" }
-  | { kind: "path"; algorithm: PathAlgorithm }
-  | { kind: "pathRace" }
-  | { kind: "graph"; algorithm: GraphAlgorithm }
-  | { kind: "graphRace" }
-  | { kind: "fourier" }
-  | { kind: "series"; algorithm: FourierAlgorithm }
-  | { kind: "structures" }
-  | { kind: "structure"; algorithm: StructureAlgorithm }
-  | { kind: "structureRace" }
-  | { kind: "dp" }
-  | { kind: "dpProblem"; algorithm: DpAlgorithm }
-  | { kind: "dpRace" }
-  | { kind: "backtracking" }
-  | { kind: "backtrackingProblem"; algorithm: BacktrackingProblem };
+/** Every page the site has: the landing page, or a module's page. Settings (size, input, speed, seed…) stay in the query string. */
+export type Route = { page: "home" } | ModuleRoute;
+
+export const HOME: Route = { page: "home" };
+
+/** A module's page without checking its algorithm or race against the module; callers that build one generically use it. */
+export const moduleRoute = (module: ModuleId, page: ModulePage, algorithm?: string): ModuleRoute =>
+  (page === "algorithm" ? { module, page, algorithm } : { module, page }) as ModuleRoute;
 
 export const routePath = (route: Route): string => {
-  if (route.kind === "home") return "/";
-  if (route.kind === "sorting") return "/sorting";
-  if (route.kind === "pathfinding") return "/pathfinding";
-  if (route.kind === "graphs") return "/graphs";
-  if (route.kind === "graph") return `/graphs/${graphSlugs[route.algorithm]}`;
-  if (route.kind === "graphRace") return "/graphs/race";
-  if (route.kind === "fourier") return "/fourier";
-  if (route.kind === "series") return `/fourier/${seriesSlugs[route.algorithm]}`;
-  if (route.kind === "structures") return "/structures";
-  if (route.kind === "structure") return `/structures/${structureSlugs[route.algorithm]}`;
-  if (route.kind === "structureRace") return "/structures/race";
-  if (route.kind === "backtracking") return "/backtracking";
-  if (route.kind === "backtrackingProblem") return `/backtracking/${backtrackingSlugs[route.algorithm]}`;
-  if (route.kind === "dp") return "/dynamic-programming";
-  if (route.kind === "dpRace") return "/dynamic-programming/race";
-  if (route.kind === "dpProblem") return `/dynamic-programming/${dpSlugs[route.algorithm]}`;
-  if (route.kind === "race") return "/sorting/race";
-  if (route.kind === "pathRace") return "/pathfinding/race";
-  if (route.kind === "path") return `/pathfinding/${pathSlugs[route.algorithm]}`;
-  return `/sorting/${algorithmSlugs[route.algorithm]}`;
+  if (route.page === "home") return "/";
+  const { base, slugs } = modulePages[route.module];
+  if (route.page === "start") return base;
+  if (route.page === "race") return `${base}/race`;
+  return `${base}/${(slugs as Record<string, string>)[route.algorithm]}`;
 };
 
 /** A page's path in a language: /sorting in English, /es/sorting in Spanish. */
@@ -125,7 +146,7 @@ export const pathIn = (route: Route, language: Lang): string => {
   const path = routePath(route);
   if (language === "en") return path;
   return LANG_PREFIX[language] + (path === "/" ? "" : path);
-}
+};
 
 /** A page's path in this page load's language, for links. */
 export const href = (route: Route): string => pathIn(route, lang);
@@ -133,100 +154,41 @@ export const href = (route: Route): string => pathIn(route, lang);
 /** The page a path points at, in either language, or null for paths the site doesn't have. */
 export const routeFromPath = (pathname: string): Route | null => {
   const path = stripLang(pathname).replace(/\/+$/, "") || "/";
-  if (path === "/") return { kind: "home" };
-  if (path === "/sorting") return { kind: "sorting" };
-  if (path === "/pathfinding") return { kind: "pathfinding" };
-  if (path === "/graphs") return { kind: "graphs" };
-  if (path === "/graphs/race") return { kind: "graphRace" };
-  if (path === "/fourier") return { kind: "fourier" };
-  if (path === "/structures") return { kind: "structures" };
-  if (path === "/structures/race") return { kind: "structureRace" };
-  if (path === "/backtracking") return { kind: "backtracking" };
-  const btMatch = /^\/backtracking\/([a-z-]+)$/.exec(path);
-  if (btMatch) {
-    const found = Object.entries(backtrackingSlugs).find(([, slug]) => slug === btMatch[1]);
-    return found ? { kind: "backtrackingProblem", algorithm: found[0] as BacktrackingProblem } : null;
+  if (path === "/") return HOME;
+  for (const module of MODULES) {
+    const { base, slugs, race } = modulePages[module] as Pages;
+    if (path === base) return moduleRoute(module, "start");
+    if (!path.startsWith(`${base}/`)) continue;
+    const slug = path.slice(base.length + 1);
+    if (race && slug === "race") return moduleRoute(module, "race");
+    const algorithm = Object.keys(slugs).find((id) => slugs[id] === slug);
+    return algorithm ? moduleRoute(module, "algorithm", algorithm) : null;
   }
-  if (path === "/dynamic-programming") return { kind: "dp" };
-  if (path === "/dynamic-programming/race") return { kind: "dpRace" };
-  const dpMatch = /^\/dynamic-programming\/([a-z-]+)$/.exec(path);
-  if (dpMatch) {
-    const found = Object.entries(dpSlugs).find(([, slug]) => slug === dpMatch[1]);
-    return found ? { kind: "dpProblem", algorithm: found[0] as DpAlgorithm } : null;
-  }
-  const structureMatch = /^\/structures\/([a-z-]+)$/.exec(path);
-  if (structureMatch) {
-    const found = Object.entries(structureSlugs).find(([, slug]) => slug === structureMatch[1]);
-    return found ? { kind: "structure", algorithm: found[0] as StructureAlgorithm } : null;
-  }
-  const seriesMatch = /^\/fourier\/([a-z-]+)$/.exec(path);
-  if (seriesMatch) {
-    const found = Object.entries(seriesSlugs).find(([, slug]) => slug === seriesMatch[1]);
-    return found ? { kind: "series", algorithm: found[0] as FourierAlgorithm } : null;
-  }
-  const graphMatch = /^\/graphs\/([a-z-]+)$/.exec(path);
-  if (graphMatch) {
-    const found = Object.entries(graphSlugs).find(([, slug]) => slug === graphMatch[1]);
-    return found ? { kind: "graph", algorithm: found[0] as GraphAlgorithm } : null;
-  }
-  if (path === "/sorting/race") return { kind: "race" };
-  if (path === "/pathfinding/race") return { kind: "pathRace" };
-  const pathMatch = /^\/pathfinding\/([a-z-]+)$/.exec(path);
-  if (pathMatch) {
-    const found = Object.entries(pathSlugs).find(([, slug]) => slug === pathMatch[1]);
-    return found ? { kind: "path", algorithm: found[0] as PathAlgorithm } : null;
-  }
-  const match = /^\/sorting\/([a-z-]+)$/.exec(path);
-  if (!match) return null;
-  const entry = Object.entries(algorithmSlugs).find(([, slug]) => slug === match[1]);
-  return entry ? { kind: "algorithm", algorithm: entry[0] as Algorithm } : null;
+  return null;
 };
 
-/** All pages, for prerendering and the sitemap. */
+/** All pages, for prerendering and the sitemap: home, then each module's start page, algorithms and race. */
 export const allRoutes: Route[] = [
-  { kind: "home" },
-  { kind: "sorting" },
-  ...(Object.keys(algorithmSlugs) as Algorithm[]).map((algorithm) => ({ kind: "algorithm" as const, algorithm })),
-  { kind: "race" },
-  { kind: "pathfinding" },
-  ...(Object.keys(pathSlugs) as PathAlgorithm[]).map((algorithm) => ({ kind: "path" as const, algorithm })),
-  { kind: "pathRace" },
-  { kind: "graphs" },
-  ...(Object.keys(graphSlugs) as GraphAlgorithm[]).map((algorithm) => ({ kind: "graph" as const, algorithm })),
-  { kind: "graphRace" },
-  { kind: "fourier" },
-  ...(Object.keys(seriesSlugs) as FourierAlgorithm[]).map((algorithm) => ({ kind: "series" as const, algorithm })),
-  { kind: "structures" },
-  ...(Object.keys(structureSlugs) as StructureAlgorithm[]).map((algorithm) => ({ kind: "structure" as const, algorithm })),
-  { kind: "structureRace" },
-  { kind: "dp" },
-  ...(Object.keys(dpSlugs) as DpAlgorithm[]).map((algorithm) => ({ kind: "dpProblem" as const, algorithm })),
-  { kind: "dpRace" },
-  { kind: "backtracking" },
-  ...(Object.keys(backtrackingSlugs) as BacktrackingProblem[]).map((algorithm) => ({ kind: "backtrackingProblem" as const, algorithm })),
+  HOME,
+  ...MODULES.flatMap((module) => {
+    const { slugs, race } = modulePages[module] as Pages;
+    return [
+      moduleRoute(module, "start"),
+      ...Object.keys(slugs).map((algorithm) => moduleRoute(module, "algorithm", algorithm)),
+      ...(race ? [moduleRoute(module, "race")] : []),
+    ];
+  }),
 ];
 
 /** Which module a page belongs to, if any (the landing page belongs to none). */
-export const moduleOf = (
-  route: Route,
-): "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | "backtracking" | null => {
-  if (route.kind === "home") return null;
-  if (route.kind === "backtracking" || route.kind === "backtrackingProblem") return "backtracking";
-  if (route.kind === "dp" || route.kind === "dpProblem" || route.kind === "dpRace") return "dp";
-  if (route.kind === "structures" || route.kind === "structure" || route.kind === "structureRace") return "structures";
-  if (route.kind === "fourier" || route.kind === "series") return "fourier";
-  if (route.kind === "graphs" || route.kind === "graph" || route.kind === "graphRace") return "graphs";
-  return route.kind === "pathfinding" || route.kind === "path" || route.kind === "pathRace" ? "pathfinding" : "sorting";
-};
-
-export type ModuleName = NonNullable<ReturnType<typeof moduleOf>>;
+export const moduleOf = (route: Route): ModuleId | null => (route.page === "home" ? null : route.module);
 
 /**
  * Modules whose text is in Spanish. Their /es pages are indexed and linked
  * with hreflang. A new module that isn't translated yet still gets /es pages,
  * in English and marked noindex, until it's added here.
  */
-export const TRANSLATED_MODULES: ReadonlySet<ModuleName> = new Set([
+export const TRANSLATED_MODULES: ReadonlySet<ModuleId> = new Set([
   "sorting",
   "pathfinding",
   "graphs",
@@ -237,7 +199,7 @@ export const TRANSLATED_MODULES: ReadonlySet<ModuleName> = new Set([
 ]);
 
 /** Whether a page has a Spanish version worth indexing. The landing page does. */
-export const isTranslated = (route: Route, translated: ReadonlySet<ModuleName> = TRANSLATED_MODULES): boolean => {
+export const isTranslated = (route: Route, translated: ReadonlySet<ModuleId> = TRANSLATED_MODULES): boolean => {
   const module = moduleOf(route);
   return module === null || translated.has(module);
 };

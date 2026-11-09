@@ -99,8 +99,6 @@ export const backtrackingSlice = defineModule<BacktrackingState, BacktrackingPro
     // Sudoku asks nothing yet (#143).
     game: (s) => (s.problem === "queens" ? questionsOf(s.queensRun, queensQuestions) : []),
     gameUnavailable: (s) => (s.problem === "queens" ? null : guessText.queensOnly),
-    route: (s, ctx) =>
-      ctx.isModuleStart ? { kind: "backtracking" } : { kind: "backtrackingProblem", algorithm: s.problem },
     // N-Queens links its board size; Sudoku its puzzle.
     search: (s, ctx) =>
       toBacktrackingSearch(

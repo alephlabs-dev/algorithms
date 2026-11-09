@@ -115,10 +115,6 @@ export const graphsSlice = defineModule<GraphsState, GraphAlgorithm>()({
     lastIndex: (s, view) => (view === "race" ? Math.max(0, ...s.raceRuns.map((t) => t.length - 1)) : s.run.length - 1),
     stepWeight: (s, index) => GRAPH_STEP_WEIGHT[s.run.stepAt(index)?.type ?? "done"],
     pace: (view) => (view === "race" ? "graphRace" : "graphs"),
-    route: (s, ctx) => {
-      if (ctx.view === "race") return { kind: "graphRace" };
-      return ctx.isModuleStart ? { kind: "graphs" } : { kind: "graph", algorithm: s.algorithm };
-    },
     search: (s, ctx) =>
       toGraphSearch({
         graph: encodeGraph(s.graph),

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createAppStore } from "@/appStore";
 import { href, routePath } from "@/routes";
+import { routeIn } from "./engine";
 import { readLocation } from "@/urlState";
 import { structuresSlice as slice, type StructuresState } from "./structures.slice";
 import type { SliceContext } from "./slice";
@@ -28,7 +29,7 @@ describe("structures slice", () => {
   it("survives its own link", () => {
     const start = at("/structures");
     const s = apply(start, slice.actions.runOperation(start, single, { kind: "insert", value: 7 }));
-    const reopened = at(routePath(slice.engine.route(s, single)), slice.engine.search(s, single));
+    const reopened = at(routePath(routeIn("structures", slice.current(s), single)), slice.engine.search(s, single));
     const settings = ({ algorithm, preset, size, ops }: StructuresState) => ({ algorithm, preset, size, ops });
     expect(settings(reopened)).toEqual(settings(s));
   });
@@ -56,7 +57,7 @@ describe("structures in the store", () => {
     createAppStore({ url: readLocation(path, ""), isMobile: false, isPortrait: false, theme: "dark" });
 
   it("one more operation plays just that operation", () => {
-    const app = storeAt(href({ kind: "structure", algorithm: "avl" }));
+    const app = storeAt(href({ module: "structures", page: "algorithm", algorithm: "avl" }));
     app.getState().actions.structures.runOperation({ kind: "insert", value: 99 });
     const { frameIndex, isPlaying, structures } = app.getState();
     expect(frameIndex).toBe(structures.run.opStarts[structures.run.opStarts.length - 1]);
@@ -65,7 +66,7 @@ describe("structures in the store", () => {
   });
 
   it("in a race, one more operation replays everything so both trees start even", () => {
-    const app = storeAt(href({ kind: "structureRace" }));
+    const app = storeAt(href({ module: "structures", page: "race" }));
     app.getState().actions.structures.runOperation({ kind: "insert", value: 99 });
     const { frameIndex, isPlaying, structures } = app.getState();
     expect(frameIndex).toBe(0);

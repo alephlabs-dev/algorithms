@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { circleOptions, type Point } from "@/fourier";
 import { routePath } from "@/routes";
+import { routeIn } from "./engine";
 import { readLocation } from "@/urlState";
 import { fourierSlice as slice, type FourierState } from "./fourier.slice";
 import type { SliceContext } from "./slice";
@@ -36,9 +37,9 @@ describe("fourier slice", () => {
       { x: 0, y: 1 },
     ];
     for (const s of [at("/fourier/sawtooth"), withCircles(25), drawn(triangle)]) {
-      const path = routePath(slice.engine.route(s, ctx));
+      const path = routePath(routeIn("fourier", slice.current(s), ctx));
       const reopened = at(path, slice.engine.search(s, ctx));
-      expect(routePath(slice.engine.route(reopened, ctx))).toBe(path);
+      expect(routePath(routeIn("fourier", slice.current(reopened), ctx))).toBe(path);
       expect({ ...settings(reopened), path: null }).toEqual({ ...settings(s), path: null });
       expect(reopened.path).toEqual(s.path);
       // Opening the link writes the same link back, so the address bar doesn't drift (#132).

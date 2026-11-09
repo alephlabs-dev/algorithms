@@ -48,7 +48,7 @@ const drawing = linkShape([
 ]);
 const LINKS: { [M in ModuleId]: { page: Route; search: string; carries: Partial<SliceStates[M]> } } = {
   sorting: {
-    page: { kind: "algorithm", algorithm: "heap" },
+    page: { module: "sorting", page: "algorithm", algorithm: "heap" },
     search: toSearch({
       size: 40,
       inputOrder: "reversed",
@@ -60,7 +60,7 @@ const LINKS: { [M in ModuleId]: { page: Route; search: string; carries: Partial<
     carries: { algorithm: "heap", size: 40, inputOrder: "reversed", seed: 12345, racers: ["insertion", "quick", "merge"] },
   },
   pathfinding: {
-    page: { kind: "path", algorithm: "dijkstra" },
+    page: { module: "pathfinding", page: "algorithm", algorithm: "dijkstra" },
     search: toPathSearch({
       gridSize: "medium",
       cells: encodeCells(maze.cells),
@@ -72,27 +72,27 @@ const LINKS: { [M in ModuleId]: { page: Route; search: string; carries: Partial<
     carries: { algorithm: "dijkstra", gridSize: "medium", grid: maze, racers: ["bfs", "astar"] },
   },
   graphs: {
-    page: { kind: "graph", algorithm: "dijkstra" },
+    page: { module: "graphs", page: "algorithm", algorithm: "dijkstra" },
     search: toGraphSearch({ graph: encodeGraph(tree), size: "large", preset: "tree", racers: ["prim", "kruskal"], speed: SPEED }),
     carries: { algorithm: "dijkstra", size: "large", preset: "tree", graph: tree, racers: ["prim", "kruskal"] },
   },
   dp: {
-    page: { kind: "dpProblem", algorithm: "lcs" },
+    page: { module: "dp", page: "algorithm", algorithm: "lcs" },
     search: toDpSearch({ a: "KITTEN", b: "SITTING", items: encodeItems(items), capacity: 7, speed: SPEED }),
     carries: { algorithm: "lcs", a: "KITTEN", b: "SITTING", items, capacity: 7 },
   },
   structures: {
-    page: { kind: "structure", algorithm: "avl" },
+    page: { module: "structures", page: "algorithm", algorithm: "avl" },
     search: toStructureSearch({ ops: encodeOperations([...ops]), size: "medium", preset: "ascending", speed: SPEED }),
     carries: { algorithm: "avl", ops: [...ops], size: "medium", preset: "ascending" },
   },
   backtracking: {
-    page: { kind: "backtrackingProblem", algorithm: "queens" },
+    page: { module: "backtracking", page: "algorithm", algorithm: "queens" },
     search: toBacktrackingSearch({ n: 5, puzzle: "easy", order: "rows", speed: SPEED }),
     carries: { problem: "queens", queensN: 5, sudokuPuzzle: "easy", sudokuOrder: "rows" },
   },
   fourier: {
-    page: { kind: "series", algorithm: "epicycles" },
+    page: { module: "fourier", page: "algorithm", algorithm: "epicycles" },
     search: toFourierSearch({ circles: 25, shape: "custom", path: encodePath(drawing), speed: SPEED }),
     carries: { algorithm: "epicycles", circles: 25, shape: "custom", path: drawing },
   },

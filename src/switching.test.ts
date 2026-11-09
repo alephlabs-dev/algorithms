@@ -19,37 +19,37 @@ type Racing = { single: Route; other: Route; race: Route };
 // The modules with a race view: an algorithm page, another algorithm of the same module, and the race.
 const RACING: Racing[] = [
   {
-    single: { kind: "algorithm", algorithm: "heap" },
-    other: { kind: "algorithm", algorithm: "quick" },
-    race: { kind: "race" },
+    single: { module: "sorting", page: "algorithm", algorithm: "heap" },
+    other: { module: "sorting", page: "algorithm", algorithm: "quick" },
+    race: { module: "sorting", page: "race" },
   },
   {
-    single: { kind: "path", algorithm: "bfs" },
-    other: { kind: "path", algorithm: "astar" },
-    race: { kind: "pathRace" },
+    single: { module: "pathfinding", page: "algorithm", algorithm: "bfs" },
+    other: { module: "pathfinding", page: "algorithm", algorithm: "astar" },
+    race: { module: "pathfinding", page: "race" },
   },
   {
-    single: { kind: "graph", algorithm: "dfs" },
-    other: { kind: "graph", algorithm: "prim" },
-    race: { kind: "graphRace" },
+    single: { module: "graphs", page: "algorithm", algorithm: "dfs" },
+    other: { module: "graphs", page: "algorithm", algorithm: "prim" },
+    race: { module: "graphs", page: "race" },
   },
   {
-    single: { kind: "structure", algorithm: "bst" },
-    other: { kind: "structure", algorithm: "avl" },
-    race: { kind: "structureRace" },
+    single: { module: "structures", page: "algorithm", algorithm: "bst" },
+    other: { module: "structures", page: "algorithm", algorithm: "avl" },
+    race: { module: "structures", page: "race" },
   },
   {
-    single: { kind: "dpProblem", algorithm: "lcs" },
-    other: { kind: "dpProblem", algorithm: "edit" },
-    race: { kind: "dpRace" },
+    single: { module: "dp", page: "algorithm", algorithm: "lcs" },
+    other: { module: "dp", page: "algorithm", algorithm: "edit" },
+    race: { module: "dp", page: "race" },
   },
 ];
 
 // One algorithm page per module, races or not.
 const PAGES: Route[] = [
   ...RACING.map((m) => m.single),
-  { kind: "series", algorithm: "square" },
-  { kind: "backtrackingProblem", algorithm: "queens" },
+  { module: "fourier", page: "algorithm", algorithm: "square" },
+  { module: "backtracking", page: "algorithm", algorithm: "queens" },
 ];
 
 const lanes = (app: AppStore) => selectRaceRuns(app.getState());

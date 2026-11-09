@@ -1,6 +1,5 @@
 import type { View } from "@/appStore";
 import type { Question } from "@/game";
-import type { Route } from "@/routes";
 import type { readLocation } from "@/urlState";
 import type { Pace, SpeedPreset } from "@/utils/speed";
 
@@ -62,7 +61,7 @@ export type ModuleSlice<
   fit?: (slice: S, ctx: SliceContext) => Patch<S>;
   /** "New": another input of the same kind. */
   newInput: (slice: S, ctx: SliceContext) => Patch<S>;
-  /** What playback needs: how long a run is and how its steps are paced, and the page and link it's on. */
+  /** What playback needs: how long a run is and how its steps are paced, and the query string of its link. */
   engine: {
     /** The last playback position: a frame index in single view, the race clock in race view. */
     lastIndex: (slice: S, view: View) => number;
@@ -70,8 +69,6 @@ export type ModuleSlice<
     stepWeight: (slice: S, index: number) => number;
     /** Which target pace 1× is tuned to (see utils/speed). */
     pace: (view: View) => Pace;
-    /** The page the store is on, within this module. */
-    route: (slice: S, ctx: SliceContext) => Route;
     /** The query string that reproduces the run. */
     search: (slice: S, ctx: SliceContext) => string;
     /** Guess mode: the questions for the run on stage, in frame order. Without it, the module has no guess mode. */

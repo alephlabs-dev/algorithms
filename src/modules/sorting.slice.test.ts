@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createAppStore } from "@/appStore";
 import { href, routePath } from "@/routes";
+import { routeIn } from "./engine";
 import { readLocation } from "@/urlState";
 import type { SliceContext } from "./slice";
 import { sortingSlice as slice, type SortingState } from "./sorting.slice";
@@ -28,7 +29,7 @@ describe("sorting slice", () => {
   it("survives its own link, array included", () => {
     const start = at("/sorting");
     const s = apply(start, slice.actions.setInputOrder(start, single, "reversed"));
-    const reopened = at(routePath(slice.engine.route(s, single)), slice.engine.search(s, single));
+    const reopened = at(routePath(routeIn("sorting", slice.current(s), single)), slice.engine.search(s, single));
     const settings = ({ algorithm, size, inputOrder, displayMode, seed, racers }: SortingState) => ({
       algorithm,
       size,
@@ -70,13 +71,13 @@ describe("sorting in the store", () => {
     createAppStore({ url: readLocation(path, ""), isMobile, isPortrait: false, theme: "dark" });
 
   it("switching to numbers keeps playback when the array fits, and shrinks it when it doesn't", () => {
-    const small = storeAt(href({ kind: "algorithm", algorithm: "heap" }));
+    const small = storeAt(href({ module: "sorting", page: "algorithm", algorithm: "heap" }));
     small.getState().actions.sorting.setSize(20);
     small.getState().seek(3);
     small.getState().actions.sorting.setDisplayMode("numbers");
     expect([small.getState().sorting.size, small.getState().frameIndex]).toEqual([20, 3]);
 
-    const big = storeAt(href({ kind: "algorithm", algorithm: "heap" }));
+    const big = storeAt(href({ module: "sorting", page: "algorithm", algorithm: "heap" }));
     big.getState().seek(3);
     big.getState().actions.sorting.setDisplayMode("numbers");
     expect(big.getState().sorting.displayMode).toBe("numbers");
@@ -84,7 +85,7 @@ describe("sorting in the store", () => {
   });
 
   it("a phone gets at most 200 bars, even when the screen shrinks later", () => {
-    const app = storeAt(href({ kind: "algorithm", algorithm: "heap" }));
+    const app = storeAt(href({ module: "sorting", page: "algorithm", algorithm: "heap" }));
     app.getState().actions.sorting.setSize(400);
     app.getState().setIsMobile(true);
     expect(app.getState().sorting.size).toBe(200);

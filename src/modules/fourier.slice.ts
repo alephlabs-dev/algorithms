@@ -79,7 +79,6 @@ export const fourierSlice = defineModule<FourierState, FourierAlgorithm>()({
     lastIndex: (s) => s.run.length - 1,
     stepWeight: () => 1,
     pace: () => "fourier",
-    route: (s, ctx) => (ctx.isModuleStart ? { kind: "fourier" } : { kind: "series", algorithm: s.algorithm }),
     search: (s, ctx) =>
       toFourierSearch({
         circles: s.circles,

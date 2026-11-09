@@ -131,10 +131,6 @@ export const sortingSlice = defineModule<SortingState, Algorithm>()({
     lastIndex: (s, view) => (view === "race" ? Math.max(0, ...s.raceRuns.map((t) => t.totalOps)) : s.run.length - 1),
     stepWeight: (s, index) => STEP_WEIGHT[s.run.kindAt(index) ?? "finish"],
     pace: (view) => view,
-    route: (s, ctx) => {
-      if (ctx.view === "race") return { kind: "race" };
-      return ctx.isModuleStart ? { kind: "sorting" } : { kind: "algorithm", algorithm: s.algorithm };
-    },
     search: (s, ctx) =>
       toSearch({
         // The slice only ever holds sizes from the sizes list.

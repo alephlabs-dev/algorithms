@@ -19,27 +19,27 @@ describe("renderHead in Spanish", () => {
   });
 
   it("marks a translated page as Spanish and links both languages", () => {
-    const html = renderHead(template, { kind: "algorithm", algorithm: "quick" });
+    const html = renderHead(template, { module: "sorting", page: "algorithm", algorithm: "quick" });
     expect(html).toContain('<html lang="es">');
     expect(html).toContain('<link rel="canonical" href="https://algorithms-aleph.vercel.app/es/sorting/quick-sort"');
     expect(html).toContain('<link rel="alternate" hreflang="es" href="https://algorithms-aleph.vercel.app/es/sorting/quick-sort" />');
     expect(html).toContain('<link rel="alternate" hreflang="en" href="https://algorithms-aleph.vercel.app/sorting/quick-sort" />');
     expect(html).toContain('hreflang="x-default" href="https://algorithms-aleph.vercel.app/sorting/quick-sort"');
     expect(html).not.toContain('name="robots"');
-    expect(pageMeta({ kind: "algorithm", algorithm: "quick" }).title).toMatch(/paso a paso/);
+    expect(pageMeta({ module: "sorting", page: "algorithm", algorithm: "quick" }).title).toMatch(/paso a paso/);
   });
 
   it("gives the Spanish home page its own address and both languages", () => {
-    const html = renderHead(template, { kind: "home" });
+    const html = renderHead(template, { page: "home" });
     expect(html).toContain('<link rel="canonical" href="https://algorithms-aleph.vercel.app/es"');
     expect(html).toContain('<link rel="alternate" hreflang="en" href="https://algorithms-aleph.vercel.app/" />');
     expect(html).not.toContain('name="robots"');
-    expect(pageMeta({ kind: "home" }).title).toMatch(/^Visualizador de algoritmos/);
+    expect(pageMeta({ page: "home" }).title).toMatch(/^Visualizador de algoritmos/);
   });
 
   it("keeps a page whose module isn't translated yet out of search", () => {
     // Every module is translated today; a new one starts outside the list.
-    const html = renderHead(template, { kind: "fourier" }, new Set(["sorting", "pathfinding", "graphs", "structures", "dp"]));
+    const html = renderHead(template, { module: "fourier", page: "start" }, new Set(["sorting", "pathfinding", "graphs", "structures", "dp"]));
     expect(html).toContain('<meta name="robots" content="noindex" />');
     expect(html).not.toContain('rel="alternate"');
   });

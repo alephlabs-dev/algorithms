@@ -7,7 +7,7 @@ import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { RACE_DESCRIPTION } from "@/consts/race";
 import { localized } from "@/i18n";
-import { href, moduleOf, SITE_URL, type Route } from "@/routes";
+import { HOME, href, SITE_URL, type AlgorithmOf, type ModuleId, type RacingModule, type Route } from "@/routes";
 
 export const SITE_NAME = "Aleph Labs Algorithms";
 
@@ -207,185 +207,124 @@ export type PageMeta = {
   description: string;
 };
 
+type Meta = { title: string; description: string };
+
+type ModuleSeo<M extends ModuleId> = {
+  /** The module's name in the breadcrumb trail. */
+  section: string;
+  start: Meta;
+  /** An algorithm page's meta, plus its own name in the breadcrumb trail. */
+  algorithm: (algorithm: AlgorithmOf<M>) => Meta & { crumb: string };
+} & (M extends RacingModule ? { race: Meta } : unknown);
+
+/** Every module's search metadata, one entry per page. A module or a race page without one fails the typecheck. */
+const seo: { [M in ModuleId]: ModuleSeo<M> } = {
+  sorting: {
+    section: sortingText.section,
+    start: { title: sortingText.moduleTitle, description: sortingText.moduleDescription },
+    race: { title: sortingText.raceTitle, description: sortingText.raceDescription(RACE_DESCRIPTION) },
+    algorithm: (algorithm) => {
+      const { title, timeComplexity } = sortingAlgorithms[algorithm];
+      return {
+        title: sortingText.algorithmTitle(title),
+        description: sortingText.algorithmDescription(title, timeComplexity.average),
+        crumb: title,
+      };
+    },
+  },
+  pathfinding: {
+    section: pathText.section,
+    start: { title: pathText.moduleTitle, description: pathText.moduleDescription },
+    race: { title: pathText.raceTitle, description: pathText.raceDescription },
+    algorithm: (algorithm) => {
+      const { title, short, named } = pathAlgorithms[algorithm];
+      return {
+        title: pathText.algorithmTitle(pathText.name(title, short)),
+        description: pathText.algorithmDescription(named),
+        crumb: title,
+      };
+    },
+  },
+  graphs: {
+    section: graphText.section,
+    start: { title: graphText.moduleTitle, description: graphText.moduleDescription },
+    race: { title: graphText.raceTitle, description: graphText.raceDescription },
+    algorithm: (algorithm) => {
+      const { title, short, structure, named } = graphAlgorithms[algorithm];
+      // Acronyms people search for (BFS, DFS) go in brackets; other short names don't.
+      const name = /^[A-Z]{2,4}$/.test(short) ? `${title} (${short})` : title;
+      return {
+        title: graphText.algorithmTitle(name),
+        description: graphText.algorithmDescription(named, structure),
+        crumb: graphText.onAGraph(title),
+      };
+    },
+  },
+  fourier: {
+    section: fourierText.section,
+    start: { title: fourierText.moduleTitle, description: fourierText.moduleDescription },
+    algorithm: (algorithm) => {
+      const { title, shortDescription } = fourierSeries[algorithm];
+      return {
+        title: algorithm === "epicycles" ? fourierText.epicyclesTitle : fourierText.seriesTitle(title),
+        description: shortDescription.slice(0, 200),
+        crumb: title,
+      };
+    },
+  },
+  structures: {
+    section: structureText.section,
+    start: { title: structureText.moduleTitle, description: structureText.moduleDescription },
+    race: { title: structureText.raceTitle, description: structureText.raceDescription },
+    algorithm: (algorithm) => {
+      const { title, shortDescription } = structures[algorithm];
+      return { title: structureText.algorithmTitle(title), description: shortDescription.slice(0, 200), crumb: title };
+    },
+  },
+  dp: {
+    section: dpText.section,
+    start: { title: dpText.moduleTitle, description: dpText.moduleDescription },
+    race: { title: dpText.raceTitle, description: dpText.raceDescription },
+    algorithm: (algorithm) => {
+      const { title, shortDescription } = dpProblems[algorithm];
+      return { title: dpText.problemTitle(title), description: shortDescription.slice(0, 200), crumb: title };
+    },
+  },
+  backtracking: {
+    section: backtrackingText.section,
+    start: { title: backtrackingText.moduleTitle, description: backtrackingText.moduleDescription },
+    algorithm: (algorithm) => {
+      const { title, shortDescription } = backtrackingProblems[algorithm];
+      return { title: backtrackingText.problemTitle(title), description: shortDescription.slice(0, 200), crumb: title };
+    },
+  },
+};
+
+/** A page's meta, and its own name in the breadcrumb trail (a module's start page and the landing page have none). */
+const metaOf = (route: Route): Meta & { crumb?: string } => {
+  if (route.page === "home") return { title: homeText.title, description: homeText.description };
+  const pages = seo[route.module] as {
+    start: Meta;
+    algorithm: (algorithm: string) => Meta & { crumb: string };
+    race?: Meta;
+  };
+  if (route.page === "algorithm") return pages.algorithm(route.algorithm);
+  if (route.page === "race") return { ...pages.race!, crumb: sortingText.race };
+  return pages.start;
+};
+
 export const pageMeta = (route: Route): PageMeta => {
   const path = href(route);
   const url = SITE_URL + (path === "/" ? "/" : path);
-
-  if (route.kind === "home") {
-    return {
-      path,
-      url,
-      title: homeText.title,
-      description: homeText.description,
-    };
-  }
-  if (route.kind === "sorting") {
-    return {
-      path,
-      url,
-      title: sortingText.moduleTitle,
-      description: sortingText.moduleDescription,
-    };
-  }
-  if (route.kind === "pathfinding") {
-    return {
-      path,
-      url,
-      title: pathText.moduleTitle,
-      description: pathText.moduleDescription,
-    };
-  }
-  if (route.kind === "graphs") {
-    return {
-      path,
-      url,
-      title: graphText.moduleTitle,
-      description: graphText.moduleDescription,
-    };
-  }
-  if (route.kind === "graph") {
-    const { title, short, structure } = graphAlgorithms[route.algorithm];
-    // Acronyms people search for (BFS, DFS) go in brackets; other short names don't.
-    const name = /^[A-Z]{2,4}$/.test(short) ? `${title} (${short})` : title;
-    return {
-      path,
-      url,
-      title: graphText.algorithmTitle(name),
-      description: graphText.algorithmDescription(graphAlgorithms[route.algorithm].named, structure),
-    };
-  }
-  if (route.kind === "structures") {
-    return {
-      path,
-      url,
-      title: structureText.moduleTitle,
-      description: structureText.moduleDescription,
-    };
-  }
-  if (route.kind === "structure") {
-    const { title, shortDescription } = structures[route.algorithm];
-    return {
-      path,
-      url,
-      title: structureText.algorithmTitle(title),
-      description: shortDescription.slice(0, 200),
-    };
-  }
-  if (route.kind === "structureRace") {
-    return {
-      path,
-      url,
-      title: structureText.raceTitle,
-      description: structureText.raceDescription,
-    };
-  }
-  if (route.kind === "fourier") {
-    return {
-      path,
-      url,
-      title: fourierText.moduleTitle,
-      description: fourierText.moduleDescription,
-    };
-  }
-  if (route.kind === "series") {
-    const { title, shortDescription } = fourierSeries[route.algorithm];
-    return {
-      path,
-      url,
-      title:
-        route.algorithm === "epicycles" ? fourierText.epicyclesTitle : fourierText.seriesTitle(title),
-      description: shortDescription.slice(0, 200),
-    };
-  }
-  if (route.kind === "graphRace") {
-    return {
-      path,
-      url,
-      title: graphText.raceTitle,
-      description: graphText.raceDescription,
-    };
-  }
-  if (route.kind === "race") {
-    return {
-      path,
-      url,
-      title: sortingText.raceTitle,
-      description: sortingText.raceDescription(RACE_DESCRIPTION),
-    };
-  }
-  if (route.kind === "pathRace") {
-    return {
-      path,
-      url,
-      title: pathText.raceTitle,
-      description: pathText.raceDescription,
-    };
-  }
-  if (route.kind === "dp") {
-    return {
-      path,
-      url,
-      title: dpText.moduleTitle,
-      description: dpText.moduleDescription,
-    };
-  }
-  if (route.kind === "dpRace") {
-    return {
-      path,
-      url,
-      title: dpText.raceTitle,
-      description: dpText.raceDescription,
-    };
-  }
-  if (route.kind === "dpProblem") {
-    const { title, shortDescription } = dpProblems[route.algorithm];
-    return {
-      path,
-      url,
-      title: dpText.problemTitle(title),
-      description: shortDescription.slice(0, 200),
-    };
-  }
-  if (route.kind === "backtracking") {
-    return {
-      path,
-      url,
-      title: backtrackingText.moduleTitle,
-      description: backtrackingText.moduleDescription,
-    };
-  }
-  if (route.kind === "backtrackingProblem") {
-    const { title, shortDescription } = backtrackingProblems[route.algorithm];
-    return {
-      path,
-      url,
-      title: backtrackingText.problemTitle(title),
-      description: shortDescription.slice(0, 200),
-    };
-  }
-  if (route.kind === "path") {
-    const { title, short } = pathAlgorithms[route.algorithm];
-    return {
-      path,
-      url,
-      title: pathText.algorithmTitle(pathText.name(title, short)),
-      description: pathText.algorithmDescription(pathAlgorithms[route.algorithm].named),
-    };
-  }
-  const { title, timeComplexity } = sortingAlgorithms[route.algorithm];
-  return {
-    path,
-    url,
-    title: sortingText.algorithmTitle(title),
-    description: sortingText.algorithmDescription(title, timeComplexity.average),
-  };
+  const { title, description } = metaOf(route);
+  return { path, url, title, description };
 };
 
 /** Structured data (JSON-LD) so search engines know what each page is. */
 export const structuredData = (route: Route): object[] => {
   const meta = pageMeta(route);
   const publisher = { "@type": "Organization", name: "Aleph Labs" };
-  if (route.kind === "home") {
+  if (route.page === "home") {
     return [
       {
         "@context": "https://schema.org",
@@ -400,50 +339,10 @@ export const structuredData = (route: Route): object[] => {
       },
     ];
   }
-  const module = moduleOf(route) ?? "sorting";
-  const sectionNames = {
-    sorting: sortingText.section,
-    pathfinding: pathText.section,
-    graphs: graphText.section,
-    fourier: fourierText.section,
-    structures: structureText.section,
-    dp: dpText.section,
-    backtracking: backtrackingText.section,
-  };
-  const sectionRoutes = {
-    sorting: { kind: "sorting" },
-    pathfinding: { kind: "pathfinding" },
-    graphs: { kind: "graphs" },
-    fourier: { kind: "fourier" },
-    structures: { kind: "structures" },
-    dp: { kind: "dp" },
-    backtracking: { kind: "backtracking" },
-  } as const;
-  const section = { name: sectionNames[module], url: `${SITE_URL}${href(sectionRoutes[module])}` };
-  const name =
-    route.kind === "race" ||
-    route.kind === "pathRace" ||
-    route.kind === "graphRace" ||
-    route.kind === "structureRace" ||
-    route.kind === "dpRace"
-      ? sortingText.race
-      : route.kind === "path"
-        ? pathAlgorithms[route.algorithm].title
-        : route.kind === "graph"
-          ? graphText.onAGraph(graphAlgorithms[route.algorithm].title)
-          : route.kind === "series"
-            ? fourierSeries[route.algorithm].title
-            : route.kind === "structure"
-              ? structures[route.algorithm].title
-            : route.kind === "dpProblem"
-              ? dpProblems[route.algorithm].title
-            : route.kind === "backtrackingProblem"
-              ? backtrackingProblems[route.algorithm].title
-        : route.kind === "algorithm"
-          ? sortingAlgorithms[route.algorithm].title
-          : null;
+  const section = { name: seo[route.module].section, url: `${SITE_URL}${href({ module: route.module, page: "start" })}` };
+  const name = metaOf(route).crumb;
   // Home › module › page; a module's own page stops at the module.
-  const trail = [{ name: ROOT_NAME, url: `${SITE_URL}${href({ kind: "home" })}` }, section, ...(name ? [{ name, url: meta.url }] : [])];
+  const trail = [{ name: ROOT_NAME, url: `${SITE_URL}${href(HOME)}` }, section, ...(name ? [{ name, url: meta.url }] : [])];
   return [
     {
       "@context": "https://schema.org",
