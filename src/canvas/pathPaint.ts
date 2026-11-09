@@ -1,11 +1,12 @@
-import { FRONTIER, MUD, ON_PATH, VISITED, WALL, type Grid, type PathFrame } from "@/pathfinding";
+/* How pathfinding looks on the shared grid renderer: a tone for each terrain × search state. */
+
+import { FRONTIER, MUD, ON_PATH, VISITED, WALL, type Grid, type PathFrame, type Terrain } from "@/pathfinding";
 import type { GridCells, GridTone } from "./gridRenderer";
 import { hexToRgb, type CanvasColors, type RGB } from "./theme";
 
 const mix = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
 
-/* How pathfinding looks on the shared grid renderer: a tone for each terrain × search state. */
-
+// Indexes into the palette below, in its order.
 const EMPTY_TONE = 0;
 const WALL_TONE = 1;
 const MUD_TONE = 2;
@@ -24,21 +25,21 @@ export const pathPalette = (colors: CanvasColors): GridTone[] => {
   // Visited cells keep a wash of the search color over whatever terrain they are;
   // lighter on paper, where a strong color would flood the grid.
   const wash = isLight ? 0.24 : 0.38;
-  const tones: GridTone[] = [];
-  tones[EMPTY_TONE] = { rgb: mix(background, hexToRgb(colors.edge), 0.55) };
-  // Walls are solid but quieter than the search colors, so the search stays the subject.
-  tones[WALL_TONE] = { rgb: mix(background, hexToRgb(colors.bar), 0.55) };
-  // Mud gets a few dots, so it reads without relying on color alone; the path covers them.
-  tones[MUD_TONE] = { rgb: mud, dots: true };
-  tones[FRONTIER_TONE] = { rgb: secondary };
-  tones[FRONTIER_MUD_TONE] = { rgb: secondary, dots: true };
-  tones[VISITED_TONE] = { rgb: mix(background, secondary, wash) };
-  tones[VISITED_MUD_TONE] = { rgb: mix(mud, secondary, wash), dots: true };
-  tones[PATH_TONE] = { rgb: hexToRgb(colors.primary) };
-  return tones;
+  return [
+    /* EMPTY_TONE */ { rgb: mix(background, hexToRgb(colors.edge), 0.55) },
+    // Walls are solid but quieter than the search colors, so the search stays the subject.
+    /* WALL_TONE */ { rgb: mix(background, hexToRgb(colors.bar), 0.55) },
+    // Mud gets a few dots, so it reads without relying on color alone; the path covers them.
+    /* MUD_TONE */ { rgb: mud, dots: true },
+    /* FRONTIER_TONE */ { rgb: secondary },
+    /* FRONTIER_MUD_TONE */ { rgb: secondary, dots: true },
+    /* VISITED_TONE */ { rgb: mix(background, secondary, wash) },
+    /* VISITED_MUD_TONE */ { rgb: mix(mud, secondary, wash), dots: true },
+    /* PATH_TONE */ { rgb: hexToRgb(colors.primary) },
+  ];
 };
 
-const toneOf = (terrain: number, state: number) => {
+const toneOf = (terrain: Terrain, state: number) => {
   if (terrain === WALL) return WALL_TONE;
   const mud = terrain === MUD;
   switch (state) {
@@ -59,7 +60,7 @@ const toneOf = (terrain: number, state: number) => {
  */
 export const pathGridCells = (grid: Grid, frame: PathFrame): GridCells => {
   const tones = new Uint8Array(grid.cells.length);
-  for (let cell = 0; cell < tones.length; cell++) tones[cell] = toneOf(grid.cells[cell], frame.states[cell]);
+  for (let cell = 0; cell < tones.length; cell++) tones[cell] = toneOf(grid.cells[cell] as Terrain, frame.states[cell]);
   return {
     rows: grid.rows,
     cols: grid.cols,
