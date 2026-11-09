@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { GridRenderer } from "@/canvas/gridRenderer";
+import { pathGridCells, pathPalette } from "@/canvas/pathPaint";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { useElementSize } from "@/hooks/useElementSize";
 import { EMPTY, MUD, WALL, withMarker, withTerrain, type Grid, type PathFrame, type Terrain } from "@/pathfinding";
@@ -94,7 +95,7 @@ export const GridCanvas = ({
   );
 
   useEffect(() => {
-    const renderer = new GridRenderer(canvasRef.current!);
+    const renderer = new GridRenderer(canvasRef.current!, pathPalette);
     rendererRef.current = renderer;
     return () => renderer.destroy();
   }, []);
@@ -115,8 +116,7 @@ export const GridCanvas = ({
   useEffect(() => {
     // Colors follow the playback pace, like bar moves do.
     rendererRef.current?.update({
-      grid,
-      frame,
+      ...pathGridCells(grid, frame),
       gridId,
       fade: isScrubbing ? 0 : Math.min(0.25, moveDuration(speed) * 2),
       marks,

@@ -1,9 +1,28 @@
-import { FRONTIER, MUD, ON_PATH, VISITED, WALL, type Grid, type PathFrame } from "@/pathfinding";
-import { hexToRgb, readColors, type CanvasColors, type RGB } from "./theme";
+import { readColors, type CanvasColors, type RGB } from "./theme";
 
-export type GridRenderInput = {
-  grid: Grid;
-  frame: PathFrame;
+/** A color a cell can take. Dotted tones get a few dark dots, so they read without relying on color alone. */
+export type GridTone = { rgb: RGB; dots?: boolean };
+
+/** A module's tones in the current theme. Cells name a tone by its index. */
+export type GridPalette = (colors: CanvasColors) => GridTone[];
+
+/** What each cell of the grid shows. Cells are numbered row by row: cell = row * cols + col. */
+export type GridCells = {
+  rows: number;
+  cols: number;
+  /** Per cell, its tone in the palette. */
+  tones: ArrayLike<number>;
+  /** Per cell, a number that grows as the cell moves along. A cell whose rank goes up pops in. */
+  ranks: ArrayLike<number>;
+  /** The cell being looked at, outlined. */
+  current?: number | null;
+  /** A filled dot on this cell. */
+  start?: number;
+  /** A target of two rings on this cell. */
+  end?: number;
+};
+
+export type GridRenderInput = GridCells & {
   /** Changes when the grid is replaced wholesale; cells snap instead of animating. */
   gridId: number;
   /** Seconds a color change takes. 0 snaps (scrubbing, very fast playback). */
@@ -19,14 +38,14 @@ export type GridMark = { cell: number; label: string };
 const MARK_MIN_FONT = 11;
 
 const GAP = 0.08; // share of a cell left as a gap between cells
-const POP_FROM = 0.45; // a cell that changes state grows from this scale
-
-const mix = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+const POP_FROM = 0.45; // a cell whose rank goes up grows from this scale
 
 /**
- * Draws a pathfinding grid on a canvas and animates changes: cells fade
- * between colors and pop in when they join the frontier, get visited or become
- * part of the path. Runs its own loop only while something is moving.
+ * Draws a grid of cells on a canvas and animates changes: cells fade between
+ * tones and pop in when their rank goes up (in pathfinding, when they join the
+ * frontier, get visited or become part of the path). Knows nothing about what
+ * the tones mean: each module brings its palette and says which tone each cell
+ * shows. Runs its own loop only while something is moving.
  */
 export class GridRenderer {
   private readonly ctx: CanvasRenderingContext2D;
@@ -36,8 +55,8 @@ export class GridRenderer {
   private dpr = 1;
   private input: GridRenderInput | null = null;
   private colors = readColors();
-  private palette = this.paletteFor(this.colors);
-  // Per cell: current color, the state it last showed, and a pop spring.
+  private tones: GridTone[];
+  // Per cell: current color, the rank it last showed, and a pop spring.
   private rgb = new Float32Array(0);
   private shown = new Int16Array(0);
   private scale = new Float32Array(0);
@@ -45,8 +64,12 @@ export class GridRenderer {
   private lastTick = 0;
   private frameRequest = 0;
 
-  constructor(private readonly canvas: HTMLCanvasElement) {
+  constructor(
+    private readonly canvas: HTMLCanvasElement,
+    private readonly palette: GridPalette,
+  ) {
     this.ctx = canvas.getContext("2d")!;
+    this.tones = palette(this.colors);
     // Guess mode's letters use a web font; draw again once it's ready instead of keeping the fallback.
     document.fonts?.ready.then(() => this.draw());
   }
@@ -58,7 +81,7 @@ export class GridRenderer {
 
   refreshColors() {
     this.colors = readColors();
-    this.palette = this.paletteFor(this.colors);
+    this.tones = this.palette(this.colors);
     this.start();
   }
 
@@ -74,7 +97,7 @@ export class GridRenderer {
   update(input: GridRenderInput) {
     const previous = this.input;
     this.input = input;
-    const count = input.grid.rows * input.grid.cols;
+    const count = input.rows * input.cols;
     const fresh = !previous || previous.gridId !== input.gridId || this.rgb.length !== count * 3;
     if (fresh) {
       this.rgb = new Float32Array(count * 3);
@@ -83,17 +106,17 @@ export class GridRenderer {
       this.scaleVelocity = new Float32Array(count);
       for (let cell = 0; cell < count; cell++) {
         this.rgb.set(this.targetColor(cell), cell * 3);
-        this.shown[cell] = this.stateKey(cell);
+        this.shown[cell] = input.ranks[cell];
       }
     } else if (!this.reducedMotion.matches && input.fade > 0) {
-      // New states pop in; cells going back (stepping backwards) just fade.
+      // Cells moving along pop in; cells going back (stepping backwards) just fade.
       for (let cell = 0; cell < count; cell++) {
-        const key = this.stateKey(cell);
-        if (key !== this.shown[cell] && key > this.shown[cell]) this.scale[cell] = POP_FROM;
-        this.shown[cell] = key;
+        const rank = input.ranks[cell];
+        if (rank > this.shown[cell]) this.scale[cell] = POP_FROM;
+        this.shown[cell] = rank;
       }
     } else {
-      for (let cell = 0; cell < count; cell++) this.shown[cell] = this.stateKey(cell);
+      for (let cell = 0; cell < count; cell++) this.shown[cell] = input.ranks[cell];
     }
     this.start();
   }
@@ -105,55 +128,16 @@ export class GridRenderer {
     const { size, left, top } = this.layout();
     const col = Math.floor((x - left) / size);
     const row = Math.floor((y - top) / size);
-    if (row < 0 || col < 0 || row >= input.grid.rows || col >= input.grid.cols) return null;
-    return row * input.grid.cols + col;
-  }
-
-  private paletteFor(colors: CanvasColors) {
-    const background = hexToRgb(colors.background);
-    const edge = hexToRgb(colors.edge);
-    const secondary = hexToRgb(colors.secondary);
-    const mud = hexToRgb(colors.mud);
-    const isLight = background[0] + background[1] + background[2] > 384;
-    const wash = isLight ? 0.24 : 0.38;
-    return {
-      empty: mix(background, edge, 0.55),
-      // Walls are solid but quieter than the search colors, so the search stays the subject.
-      wall: mix(background, hexToRgb(colors.bar), 0.55),
-      mud,
-      frontier: secondary,
-      // Visited cells keep a wash of the search color over whatever terrain they are;
-      // lighter on paper, where a strong color would flood the grid.
-      visited: mix(background, secondary, wash),
-      visitedMud: mix(mud, secondary, wash),
-      path: hexToRgb(colors.primary),
-    };
-  }
-
-  /** A number that grows as a cell moves along: unseen < frontier < visited < path. Terrain only matters at 0. */
-  private stateKey(cell: number) {
-    return this.input!.frame.states[cell];
+    if (row < 0 || col < 0 || row >= input.rows || col >= input.cols) return null;
+    return row * input.cols + col;
   }
 
   private targetColor(cell: number): RGB {
-    const { grid, frame } = this.input!;
-    const terrain = grid.cells[cell];
-    const p = this.palette;
-    if (terrain === WALL) return p.wall;
-    switch (frame.states[cell]) {
-      case ON_PATH:
-        return p.path;
-      case VISITED:
-        return terrain === MUD ? p.visitedMud : p.visited;
-      case FRONTIER:
-        return p.frontier;
-      default:
-        return terrain === MUD ? p.mud : p.empty;
-    }
+    return this.tones[this.input!.tones[cell]].rgb;
   }
 
   private layout() {
-    const { rows, cols } = this.input!.grid;
+    const { rows, cols } = this.input!;
     const size = Math.max(4, Math.floor(Math.min(this.width / cols, this.height / rows)));
     return { size, left: Math.floor((this.width - size * cols) / 2), top: Math.floor((this.height - size * rows) / 2) };
   }
@@ -178,7 +162,7 @@ export class GridRenderer {
     const snap = this.reducedMotion.matches || input.fade === 0;
     const blend = snap ? 1 : 1 - Math.exp(-dt / Math.max(0.02, input.fade / 3));
     let busy = false;
-    const count = input.grid.rows * input.grid.cols;
+    const count = input.rows * input.cols;
     for (let cell = 0; cell < count; cell++) {
       const target = this.targetColor(cell);
       for (let c = 0; c < 3; c++) {
@@ -214,14 +198,14 @@ export class GridRenderer {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
     if (!input || width === 0 || height === 0 || this.rgb.length === 0) return;
-    const { grid, frame } = input;
+    const { rows, cols } = input;
     const { size, left, top } = this.layout();
     const gap = Math.max(1, size * GAP);
     const radius = Math.min(6, size * 0.2);
 
-    for (let cell = 0; cell < grid.rows * grid.cols; cell++) {
-      const row = Math.floor(cell / grid.cols);
-      const col = cell % grid.cols;
+    for (let cell = 0; cell < rows * cols; cell++) {
+      const row = Math.floor(cell / cols);
+      const col = cell % cols;
       const s = (size - gap) * this.scale[cell];
       const x = left + col * size + (size - s) / 2;
       const y = top + row * size + (size - s) / 2;
@@ -230,9 +214,8 @@ export class GridRenderer {
       ctx.beginPath();
       ctx.roundRect(x, y, s, s, radius);
       ctx.fill();
-      // Mud gets a few dots, so it reads without relying on color alone.
-      if (grid.cells[cell] === MUD && size >= 10 && frame.states[cell] !== ON_PATH) {
-        // eslint-disable-next-line house/no-raw-colors -- translucent so the dots darken whatever color the mud cell has now (plain, visited, frontier); not a backdrop, so not --color-scrim.
+      if (this.tones[input.tones[cell]].dots && size >= 10) {
+        // eslint-disable-next-line house/no-raw-colors -- translucent so the dots darken whatever color the cell has now (in pathfinding, mud plain, visited or frontier); not a backdrop, so not --color-scrim.
         ctx.fillStyle = `rgb(0 0 0 / 0.18)`;
         const d = Math.max(1, s * 0.09);
         for (const [fx, fy] of [[0.3, 0.32], [0.68, 0.45], [0.42, 0.7]]) {
@@ -244,9 +227,9 @@ export class GridRenderer {
     }
 
     // The cell being examined: an outline that follows the search.
-    if (frame.current !== null) {
-      const row = Math.floor(frame.current / grid.cols);
-      const col = frame.current % grid.cols;
+    if (input.current != null) {
+      const row = Math.floor(input.current / cols);
+      const col = input.current % cols;
       ctx.strokeStyle = colors.outline;
       ctx.lineWidth = Math.max(1.5, size * 0.08);
       ctx.beginPath();
@@ -254,8 +237,8 @@ export class GridRenderer {
       ctx.stroke();
     }
 
-    this.drawMarker(grid.start, "start", size, left, top);
-    this.drawMarker(grid.end, "end", size, left, top);
+    if (input.start != null) this.drawMarker(input.start, "start", size, left, top);
+    if (input.end != null) this.drawMarker(input.end, "end", size, left, top);
     // Last, so a letter stays readable even on the target.
     for (const mark of input.marks ?? []) this.drawMark(mark, size, left, top, gap, radius);
   }
@@ -266,7 +249,7 @@ export class GridRenderer {
    */
   private drawMark(mark: GridMark, size: number, left: number, top: number, gap: number, radius: number) {
     const { ctx, colors, input } = this;
-    const cols = input!.grid.cols;
+    const cols = input!.cols;
     const s = size - gap;
     const x = left + (mark.cell % cols) * size + gap / 2;
     const y = top + Math.floor(mark.cell / cols) * size + gap / 2;
@@ -284,7 +267,7 @@ export class GridRenderer {
   /** Start: a filled dot. End: a target of two rings. Both sit on top of their cell. */
   private drawMarker(cell: number, kind: "start" | "end", size: number, left: number, top: number) {
     const { ctx, colors, input } = this;
-    const cols = input!.grid.cols;
+    const cols = input!.cols;
     const cx = left + (cell % cols) * size + size / 2;
     const cy = top + Math.floor(cell / cols) * size + size / 2;
     const r = size * 0.34;
