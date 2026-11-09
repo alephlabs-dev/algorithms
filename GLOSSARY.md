@@ -17,7 +17,7 @@ Every frame of one algorithm on one input, worked out before playback starts. Th
 _Avoid_: Animation, execution
 
 **Module**:
-One visualizer of the app, such as sorting, pathfinding or backtracking, with its own algorithms, inputs and tour.
+One visualizer of the app, such as sorting, pathfinding, backtracking or mazes, with its own algorithms, inputs and tour.
 _Avoid_: Section, category, visualizer type
 
 **View**:
@@ -29,7 +29,7 @@ An algorithm taking part in a race; it gets one run and one lane.
 _Avoid_: Competitor, lane, contestant
 
 **Input**:
-What a run works on: the array, the grid, the graph, the operations, the words or the bag, the board, or the shape and its circles.
+What a run works on: the array, the grid, the graph, the operations, the words or the bag, the board, the shape and its circles, or the walled-in grid a maze is carved from and the seed that drives its random choices.
 _Avoid_: Data, dataset, array (outside sorting)
 
 **New input**:
@@ -40,11 +40,11 @@ _Avoid_: New run, new array (outside sorting), shuffle
 The pacing profile of a kind of run ("single", "pathRace", …) that sets how fast 1× plays, so the run takes a comfortable time. The speed presets are multiples of it.
 _Avoid_: Base speed, tempo
 
-### Pathfinding
-
 **Frontier**:
-The cells a search has seen but not yet visited, waiting their turn. Each search orders it its own way: BFS by steps from the start, DFS newest first, Dijkstra by cost, A* by cost plus distance left, greedy by distance left.
-_Avoid_: Open set, queue, stack (outside each search's own pseudocode)
+The cells a run has seen but not yet taken in, waiting their turn. In pathfinding each search orders it its own way: BFS by steps from the start, DFS newest first, Dijkstra by cost, A* by cost plus distance left, greedy by distance left. In mazes, Prim's frontier is the cells next to the maze that are not yet part of it, taken at random.
+_Avoid_: Open set, queue, stack (outside each algorithm's own pseudocode)
+
+### Pathfinding
 
 **Visit**:
 Taking a cell out of the frontier and looking at it, which may add its neighbours to the frontier.
@@ -79,6 +79,20 @@ _Avoid_: Heuristic, strategy, search order
 **Backtrack**:
 Undoing the most recent choice that still stands, so the next value can be tried there.
 _Avoid_: Undo, rollback, retreat
+
+### Mazes
+
+**Perfect maze**:
+A maze with exactly one route between any two cells: no loops and no closed-off areas. Every maze this module carves is perfect.
+_Avoid_: Proper maze, tree maze
+
+**Carve**:
+Knocking down the wall between two cells so a passage joins them.
+_Avoid_: Dig, open, remove wall
+
+**Dead-end cell**:
+A cell of a finished maze with only one way out. How many there are is the clearest sign of a maze's texture: depth-first search leaves few, Prim many.
+_Avoid_: Dead end (that is backtracking's term), cul-de-sac, leaf
 
 ### Fourier
 
