@@ -1,10 +1,13 @@
 import type { View } from "@/appStore";
 import type { Question } from "@/game";
-import type { readLocation } from "@/urlState";
 import type { Pace, SpeedPreset } from "@/utils/speed";
 
-/** The link the app opened on, already read. */
-export type Link = ReturnType<typeof readLocation>;
+/**
+ * A module's part of the link the app opened on: the algorithm its page names (none on
+ * the start or race page), and the params its own codec read from the query (./<id>.link.ts).
+ * A module that isn't open gets no algorithm and empty params.
+ */
+export type Link<P = object, Id extends string = string> = { algorithm?: Id; params: P };
 
 /** What a slice reads from the shared store. It never writes it. */
 export type SliceContext = {
@@ -30,13 +33,16 @@ type Action<S> = (slice: S, ctx: SliceContext, ...args: never[]) => Patch<S>;
 export type ModuleSlice<
   S,
   Id extends string,
+  P,
   A extends Record<string, Action<S>>,
   B extends Record<string, Action<S>> = Record<never, never>,
 > = {
   /** Remembers that the module's tour was seen (in localStorage). */
   tourKey: string;
-  /** The slice a visit starts with, from the link and the screen. */
-  hydrate: (link: Link, ctx: SliceContext) => S;
+  /** Reads the module's own params from a link's query; anything missing or malformed is left out. */
+  readLink: (params: URLSearchParams) => P;
+  /** The slice a visit starts with, from the link (checked against the module's state, with defaults) and the screen. */
+  hydrate: (link: Link<P, Id>, ctx: SliceContext) => S;
   /** The algorithm on stage (in backtracking, the problem). */
   current: (slice: S) => Id;
   /** Puts an algorithm on stage, in single view. */
@@ -69,7 +75,7 @@ export type ModuleSlice<
     stepWeight: (slice: S, index: number) => number;
     /** Which target pace 1× is tuned to (see utils/speed). */
     pace: (view: View) => Pace;
-    /** The query string that reproduces the run. */
+    /** The query string that reproduces the run, written by the module's codec (the reverse of `readLink`). */
     search: (slice: S, ctx: SliceContext) => string;
     /** Guess mode: the questions for the run on stage, in frame order. Without it, the module has no guess mode. */
     game?: (slice: S) => Question[];
@@ -78,11 +84,11 @@ export type ModuleSlice<
   };
 };
 
-/** Declares a module's slice: `defineModule<State, AlgorithmId>()({ ... })`. */
+/** Declares a module's slice: `defineModule<State, AlgorithmId, LinkParams>()({ ... })`. */
 export const defineModule =
-  <S, Id extends string>() =>
+  <S, Id extends string, P>() =>
   <A extends Record<string, Action<S>>, B extends Record<string, Action<S>> = Record<never, never>>(
-    slice: ModuleSlice<S, Id, A, B>,
+    slice: ModuleSlice<S, Id, P, A, B>,
   ) =>
     slice;
 

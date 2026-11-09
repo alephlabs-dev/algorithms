@@ -16,7 +16,7 @@ import {
 } from "@/structures";
 import { MAX_OPERATIONS } from "@/structures/link";
 import type { View } from "@/appStore";
-import { toStructureSearch } from "@/urlState";
+import { structuresLink, type StructuresLink } from "./structures.link";
 import { newSeed, seededRandom } from "@/utils/random";
 import { defineModule, type SliceContext } from "./slice";
 
@@ -82,15 +82,16 @@ const STEP_WEIGHT: Record<TreeEvent["type"] | HashEvent["type"], number> = {
   done: 0.4,
 };
 
-export const structuresSlice = defineModule<StructuresState, StructureAlgorithm>()({
+export const structuresSlice = defineModule<StructuresState, StructureAlgorithm, StructuresLink>()({
   tourKey: "tour-done-structures",
 
+  readLink: structuresLink.read,
   hydrate: (link, ctx) => {
-    const algorithm = link.structureAlgorithm ?? "avl";
-    const preset = link.structure.preset ?? "example";
-    const size = link.structure.size ?? (ctx.isMobile ? "small" : "medium");
+    const algorithm = link.algorithm ?? "avl";
+    const preset = link.params.preset ?? "example";
+    const size = link.params.size ?? (ctx.isMobile ? "small" : "medium");
     const ops =
-      (link.structure.ops && decodeOperations(link.structure.ops)) ||
+      (link.params.ops && decodeOperations(link.params.ops)) ||
       presetOperations(preset, size, seededRandom(newSeed()));
     return {
       algorithm,
@@ -129,12 +130,11 @@ export const structuresSlice = defineModule<StructuresState, StructureAlgorithm>
     stepWeight: (s, index) => STEP_WEIGHT[s.run.frames[index]?.event.type ?? "done"],
     pace: (view) => (view === "race" ? "structureRace" : "structures"),
     search: (s, ctx) =>
-      toStructureSearch({
+      structuresLink.write({
         ops: encodeOperations(s.ops),
         size: s.size,
         preset: s.preset,
-        speed: ctx.speedPreset,
-      }),
+      }, ctx.speedPreset),
     game: (s) => questionsOf(s.run, structureQuestions),
   },
 });

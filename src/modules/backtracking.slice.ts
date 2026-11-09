@@ -13,7 +13,7 @@ import {
 import type { BacktrackingEventType } from "@/backtracking/types";
 import { questionsOf, queensQuestions } from "@/game";
 import { localized } from "@/i18n";
-import { toBacktrackingSearch } from "@/urlState";
+import { backtrackingLink, type BacktrackingLink } from "./backtracking.link";
 import { defineModule } from "./slice";
 
 /** Both problems keep their run, so switching between them doesn't lose either. */
@@ -45,15 +45,16 @@ const guessText = localized({
 
 const sudokuRunOf = (puzzle: SudokuPuzzle, order: FillOrder) => new SudokuRun(SUDOKU_PUZZLES[puzzle], order);
 
-export const backtrackingSlice = defineModule<BacktrackingState, BacktrackingProblem>()({
+export const backtrackingSlice = defineModule<BacktrackingState, BacktrackingProblem, BacktrackingLink>()({
   tourKey: "tour-done-backtracking",
 
+  readLink: backtrackingLink.read,
   hydrate: (link) => {
-    const queensN = link.backtracking.n ?? DEFAULT_QUEENS;
-    const sudokuPuzzle = link.backtracking.puzzle ?? "easy";
-    const sudokuOrder = link.backtracking.order ?? "rows";
+    const queensN = link.params.n ?? DEFAULT_QUEENS;
+    const sudokuPuzzle = link.params.puzzle ?? "easy";
+    const sudokuOrder = link.params.order ?? "rows";
     return {
-      problem: link.backtrackingProblem ?? "queens",
+      problem: link.algorithm ?? "queens",
       queensN,
       queensRun: new QueensRun(queensN),
       sudokuPuzzle,
@@ -101,10 +102,11 @@ export const backtrackingSlice = defineModule<BacktrackingState, BacktrackingPro
     gameUnavailable: (s) => (s.problem === "queens" ? null : guessText.queensOnly),
     // N-Queens links its board size; Sudoku its puzzle.
     search: (s, ctx) =>
-      toBacktrackingSearch(
+      backtrackingLink.write(
         s.problem === "sudoku"
-          ? { puzzle: s.sudokuPuzzle, order: s.sudokuOrder, speed: ctx.speedPreset }
-          : { n: s.queensN, speed: ctx.speedPreset },
+          ? { puzzle: s.sudokuPuzzle, order: s.sudokuOrder }
+          : { n: s.queensN },
+        ctx.speedPreset,
       ),
   },
 });

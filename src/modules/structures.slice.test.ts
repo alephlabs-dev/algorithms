@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createAppStore } from "@/appStore";
 import { href, routePath } from "@/routes";
 import { routeIn } from "./engine";
-import { readLocation } from "@/urlState";
+import { linkFor, readLocation } from "@/urlState";
 import { structuresSlice as slice, type StructuresState } from "./structures.slice";
 import type { SliceContext } from "./slice";
 
@@ -14,7 +14,7 @@ const single: SliceContext = {
   isPortrait: false,
 };
 const race: SliceContext = { ...single, view: "race" };
-const at = (path: string, search = "", ctx = single) => slice.hydrate(readLocation(path, search), ctx);
+const at = (path: string, search = "", ctx = single) => slice.hydrate(linkFor(readLocation(path, search), "structures"), ctx);
 const apply = (s: StructuresState, patch: Partial<StructuresState> | null) => ({ ...s, ...patch });
 
 describe("structures slice", () => {

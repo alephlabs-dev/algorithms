@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createAppStore, selectLastIndex, selectRaceRuns } from "@/appStore";
 import { href, routePath } from "@/routes";
 import { routeIn } from "./engine";
-import { readLocation } from "@/urlState";
+import { linkFor, readLocation } from "@/urlState";
 import { pathfindingSlice as slice, type PathfindingState } from "./pathfinding.slice";
 import { MAX_RACERS, type SliceContext } from "./slice";
 
@@ -14,7 +14,7 @@ const single: SliceContext = {
   isPortrait: false,
 };
 const race: SliceContext = { ...single, view: "race" };
-const at = (path: string, search = "", ctx = single) => slice.hydrate(readLocation(path, search), ctx);
+const at = (path: string, search = "", ctx = single) => slice.hydrate(linkFor(readLocation(path, search), "pathfinding"), ctx);
 const apply = (s: PathfindingState, patch: Partial<PathfindingState> | null) => ({ ...s, ...patch });
 
 describe("pathfinding slice", () => {

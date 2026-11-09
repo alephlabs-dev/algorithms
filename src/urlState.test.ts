@@ -1,64 +1,48 @@
 import { describe, expect, it } from "vitest";
+import { backtrackingLink } from "./modules/backtracking.link";
+import { dpLink } from "./modules/dp.link";
+import { fourierLink } from "./modules/fourier.link";
+import { graphsLink } from "./modules/graphs.link";
+import { pathfindingLink } from "./modules/pathfinding.link";
+import { sortingLink } from "./modules/sorting.link";
 import { routePath } from "./routes";
 import type { GraphAlgorithm } from "./graphs/types";
 import type { PathAlgorithm } from "./pathfinding/types";
-import {
-  readLocation,
-  readUrlState,
-  toBacktrackingSearch,
-  toDpSearch,
-  toFourierSearch,
-  toGraphSearch,
-  toPathSearch,
-  toSearch,
-  type UrlState,
-} from "./urlState";
+import { readLocation } from "./urlState";
 
 describe("url state", () => {
-  const state: UrlState = {
-    algorithm: "heap",
+  const sorting = {
     size: 100,
     inputOrder: "reversed",
     displayMode: "bars",
-    speed: "2x",
     seed: 123456789,
-    view: "race",
-    raceAlgorithms: ["shell", "quick", "heap"],
-  };
+    racers: ["shell", "quick", "heap"],
+  } as const;
+  const search = sortingLink.write({ ...sorting, racers: [...sorting.racers] }, "2x");
 
   it("round-trips through the path and query string", () => {
-    const single = { ...state, view: "single" as const };
-    expect(readLocation(routePath({ module: "sorting", page: "algorithm", algorithm: "heap" }), toSearch(single))).toEqual({
-      ...single,
+    expect(readLocation(routePath({ module: "sorting", page: "algorithm", algorithm: "heap" }), search)).toEqual({
       isLanding: false,
       isModuleStart: false,
       module: "sorting",
-      path: {},
-      graph: {},
-      fourier: {},
-      structure: {},
-      dp: {},
-      backtracking: {},
+      view: "single",
+      speed: "2x",
+      link: { algorithm: "heap", params: sorting },
     });
-    // The race page has no algorithm of its own (toEqual ignores undefined keys).
-    expect(readLocation(routePath({ module: "sorting", page: "race" }), toSearch(state))).toEqual({
-      ...state,
-      algorithm: undefined,
+    // The race page has no algorithm of its own.
+    expect(readLocation(routePath({ module: "sorting", page: "race" }), search)).toEqual({
       isLanding: false,
       isModuleStart: false,
       module: "sorting",
-      path: {},
-      graph: {},
-      fourier: {},
-      structure: {},
-      dp: {},
-      backtracking: {},
+      view: "race",
+      speed: "2x",
+      link: { params: sorting },
     });
   });
 
   it("treats / as the landing page unless an old link picked an algorithm", () => {
     expect(readLocation("/", "").isLanding).toBe(true);
-    expect(readLocation("/", "?algo=quick")).toMatchObject({ algorithm: "quick", isLanding: false });
+    expect(readLocation("/", "?algo=quick")).toMatchObject({ link: { algorithm: "quick" }, isLanding: false });
   });
 
   it("opens each module's own page at its start", () => {
@@ -69,32 +53,35 @@ describe("url state", () => {
 
   it("lets the path win over legacy query parameters", () => {
     expect(readLocation("/sorting/merge-sort", "?algo=quick&view=race")).toMatchObject({
-      algorithm: "merge",
+      link: { algorithm: "merge" },
       view: "single",
     });
   });
 
   it("ignores unknown or malformed values", () => {
-    expect(
-      readUrlState("?algo=bogo&size=37&input=shuffled&mode=dots&speed=4&seed=-1&view=grid&race=quick")
-    ).toEqual({});
+    const location = readLocation("/sorting", "?algo=bogo&size=37&input=shuffled&mode=dots&speed=4&seed=-1&view=grid&race=quick");
+    expect(location.link).toEqual({ params: {} });
+    expect(location.speed).toBeUndefined();
+    expect(location.view).toBeUndefined();
   });
 
   it("moves links with a dropped speed preset to the nearest kept one", () => {
-    expect(readUrlState("?speed=0.25x")).toEqual({ speed: "0.5x" });
-    expect(readUrlState("?speed=16x")).toEqual({ speed: "8x" });
-    expect(readUrlState("?speed=max")).toEqual({ speed: "8x" });
-    expect(readUrlState("?speed=4x")).toEqual({ speed: "4x" });
+    const speed = (query: string) => readLocation("/sorting", query).speed;
+    expect(speed("?speed=0.25x")).toBe("0.5x");
+    expect(speed("?speed=16x")).toBe("8x");
+    expect(speed("?speed=max")).toBe("8x");
+    expect(speed("?speed=4x")).toBe("4x");
   });
 
   it("ignores a speed that was never a preset", () => {
-    expect(readUrlState("?speed=3x")).toEqual({});
-    expect(readUrlState("?speed=constructor")).toEqual({});
-    expect(readUrlState("?speed=toString")).toEqual({});
+    const speed = (query: string) => readLocation("/sorting", query).speed;
+    expect(speed("?speed=3x")).toBeUndefined();
+    expect(speed("?speed=constructor")).toBeUndefined();
+    expect(speed("?speed=toString")).toBeUndefined();
   });
 
   it("keeps the valid values when some are wrong", () => {
-    expect(readUrlState("?algo=quick&size=abc")).toEqual({ algorithm: "quick" });
+    expect(readLocation("/sorting", "?algo=quick&size=abc").link).toEqual({ algorithm: "quick", params: {} });
   });
 
   it("round-trips a pathfinding grid", () => {
@@ -105,16 +92,16 @@ describe("url state", () => {
       end: 12,
       racers: ["bfs", "astar", "greedy"] as PathAlgorithm[],
     };
-    expect(readLocation(routePath({ module: "pathfinding", page: "algorithm", algorithm: "astar" }), toPathSearch(grid))).toMatchObject({
-      pathAlgorithm: "astar",
+    const query = pathfindingLink.write(grid, "1x");
+    expect(readLocation(routePath({ module: "pathfinding", page: "algorithm", algorithm: "astar" }), query)).toMatchObject({
       module: "pathfinding",
       view: "single",
-      path: grid,
+      link: { algorithm: "astar", params: grid },
     });
-    expect(readLocation(routePath({ module: "pathfinding", page: "race" }), toPathSearch(grid))).toMatchObject({
+    expect(readLocation(routePath({ module: "pathfinding", page: "race" }), query)).toMatchObject({
       module: "pathfinding",
       view: "race",
-      path: grid,
+      link: { params: grid },
     });
   });
 
@@ -125,68 +112,69 @@ describe("url state", () => {
       preset: "tree" as const,
       racers: ["dfs", "kruskal"] as GraphAlgorithm[],
     };
-    expect(readLocation(routePath({ module: "graphs", page: "algorithm", algorithm: "dfs" }), toGraphSearch(graph))).toMatchObject({
+    const query = graphsLink.write(graph, "1x");
+    expect(readLocation(routePath({ module: "graphs", page: "algorithm", algorithm: "dfs" }), query)).toMatchObject({
       module: "graphs",
-      graphAlgorithm: "dfs",
-      graph,
+      link: { algorithm: "dfs", params: graph },
     });
     expect(readLocation("/graphs", "").isModuleStart).toBe(true);
   });
 
   it("round-trips a Fourier page, with a hand-drawn shape", () => {
-    const search = toFourierSearch({ circles: 25, shape: "custom", path: "AbC-_", speed: "2x" });
-    expect(readLocation(routePath({ module: "fourier", page: "algorithm", algorithm: "epicycles" }), search)).toMatchObject({
+    const query = fourierLink.write({ circles: 25, shape: "custom", path: "AbC-_" }, "2x");
+    expect(readLocation(routePath({ module: "fourier", page: "algorithm", algorithm: "epicycles" }), query)).toMatchObject({
       module: "fourier",
-      fourierAlgorithm: "epicycles",
       speed: "2x",
-      fourier: { circles: 25, shape: "custom", path: "AbC-_" },
+      link: { algorithm: "epicycles", params: { circles: 25, shape: "custom", path: "AbC-_" } },
     });
-    expect(readLocation("/fourier/square-wave", "?circles=999").fourier).toEqual({});
+    expect(readLocation("/fourier/square-wave", "?circles=999").link.params).toEqual({});
   });
 
   it("keeps pathfinding racers valid and in order", () => {
-    const at = (race: string) => readLocation("/pathfinding/race", `?race=${race}`).path.racers;
+    const at = (race: string) => (readLocation("/pathfinding/race", `?race=${race}`).link.params as { racers?: string[] }).racers;
     expect(at("greedy,bfs,greedy")).toEqual(["bfs", "greedy"]);
     expect(at("astar")).toBeUndefined();
     expect(at("quick,merge")).toBeUndefined();
   });
 
   it("round-trips dynamic programming words with Ñ and accents through the link", () => {
-    const search = toDpSearch({ a: "AÑO", b: "CAÑÓN" });
-    expect(readLocation("/dynamic-programming/edit-distance", search).dp).toMatchObject({ a: "AÑO", b: "CAÑÓN" });
-    expect(readLocation("/dynamic-programming/edit-distance", "?a=a%C3%B1o").dp).toMatchObject({ a: "AÑO" });
-    expect(readLocation("/dynamic-programming/edit-distance", "?a=A1").dp.a).toBeUndefined();
+    const words = (query: string) => readLocation("/dynamic-programming/edit-distance", query).link.params as { a?: string; b?: string };
+    expect(words(dpLink.write({ a: "AÑO", b: "CAÑÓN" }, "1x"))).toMatchObject({ a: "AÑO", b: "CAÑÓN" });
+    expect(words("?a=a%C3%B1o")).toMatchObject({ a: "AÑO" });
+    expect(words("?a=A1").a).toBeUndefined();
   });
 
   it("round-trips an N-Queens board size, and ignores sizes out of range", () => {
-    const search = toBacktrackingSearch({ n: 7, speed: "2x" });
-    expect(readLocation("/backtracking/n-queens", search)).toMatchObject({
+    const query = backtrackingLink.write({ n: 7 }, "2x");
+    expect(readLocation("/backtracking/n-queens", query)).toMatchObject({
       module: "backtracking",
       isModuleStart: false,
-      backtrackingProblem: "queens",
       speed: "2x",
-      backtracking: { n: 7 },
+      link: { algorithm: "queens", params: { n: 7 } },
     });
     expect(readLocation("/backtracking", "").isModuleStart).toBe(true);
-    expect(readLocation("/backtracking/n-queens", "?n=3").backtracking).toEqual({});
-    expect(readLocation("/backtracking/n-queens", "?n=9").backtracking).toEqual({});
+    expect(readLocation("/backtracking/n-queens", "?n=3").link.params).toEqual({});
+    expect(readLocation("/backtracking/n-queens", "?n=9").link.params).toEqual({});
   });
 
   it("round-trips a Sudoku puzzle, and ignores puzzles it doesn't have", () => {
-    const search = toBacktrackingSearch({ puzzle: "hard" });
-    expect(readLocation("/es/backtracking/sudoku", search)).toMatchObject({
+    const query = backtrackingLink.write({ puzzle: "hard" }, "1x");
+    expect(readLocation("/es/backtracking/sudoku", query)).toMatchObject({
       module: "backtracking",
-      backtrackingProblem: "sudoku",
-      backtracking: { puzzle: "hard" },
+      link: { algorithm: "sudoku", params: { puzzle: "hard" } },
     });
-    expect(readLocation("/backtracking/sudoku", "?puzzle=evil").backtracking).toEqual({});
+    expect(readLocation("/backtracking/sudoku", "?puzzle=evil").link.params).toEqual({});
   });
 
   it("round-trips the fill order, and ignores orders it doesn't have", () => {
-    const search = toBacktrackingSearch({ puzzle: "hard", order: "mrv" });
-    expect(readLocation("/backtracking/sudoku", search).backtracking).toEqual({ puzzle: "hard", order: "mrv" });
+    const query = backtrackingLink.write({ puzzle: "hard", order: "mrv" }, "1x");
+    expect(readLocation("/backtracking/sudoku", query).link.params).toEqual({ puzzle: "hard", order: "mrv" });
     // Row by row is the default and stays out of the link.
-    expect(toBacktrackingSearch({ puzzle: "hard", order: "rows" })).toBe("?puzzle=hard");
-    expect(readLocation("/backtracking/sudoku", "?order=random").backtracking).toEqual({});
+    expect(backtrackingLink.write({ puzzle: "hard", order: "rows" }, "1x")).toBe("?puzzle=hard");
+    expect(readLocation("/backtracking/sudoku", "?order=random").link.params).toEqual({});
+  });
+
+  it("only lets the open module read the query", () => {
+    expect(readLocation("/pathfinding/dijkstra", "?size=10&seed=1&circles=25").link.params).toEqual({});
   });
 });

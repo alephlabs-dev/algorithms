@@ -3,7 +3,7 @@ import { createAppStore } from "@/appStore";
 import { graphAspect } from "@/graphs";
 import { href, routePath } from "@/routes";
 import { routeIn } from "./engine";
-import { readLocation } from "@/urlState";
+import { linkFor, readLocation } from "@/urlState";
 import { graphsSlice as slice, type GraphsState } from "./graphs.slice";
 import { MAX_RACERS, MIN_RACERS, type SliceContext } from "./slice";
 
@@ -15,7 +15,7 @@ const single: SliceContext = {
   isPortrait: false,
 };
 const race: SliceContext = { ...single, view: "race" };
-const at = (path: string, search = "", ctx = single) => slice.hydrate(readLocation(path, search), ctx);
+const at = (path: string, search = "", ctx = single) => slice.hydrate(linkFor(readLocation(path, search), "graphs"), ctx);
 const apply = (s: GraphsState, patch: Partial<GraphsState> | null) => ({ ...s, ...patch });
 const large = () => apply(at("/graphs"), slice.actions.setSize(at("/graphs"), single, "large"));
 

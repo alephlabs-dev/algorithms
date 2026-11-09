@@ -10,7 +10,7 @@ import {
   type FourierShape,
   type Point,
 } from "@/fourier";
-import { toFourierSearch } from "@/urlState";
+import { fourierLink, type FourierLink } from "./fourier.link";
 import { defineModule } from "./slice";
 
 export type FourierState = {
@@ -33,16 +33,17 @@ const fitCircles = (algorithm: FourierAlgorithm, circles: number | undefined) =>
 const runOf = (s: Pick<FourierState, "algorithm" | "circles" | "shape" | "path">) =>
   new FourierRun(s.algorithm, s.circles, s.shape, s.path);
 
-export const fourierSlice = defineModule<FourierState, FourierAlgorithm>()({
+export const fourierSlice = defineModule<FourierState, FourierAlgorithm, FourierLink>()({
   tourKey: "tour-done-fourier",
 
+  readLink: fourierLink.read,
   hydrate: (link) => {
-    const algorithm = link.fourierAlgorithm ?? "square";
+    const algorithm = link.algorithm ?? "square";
     const settings = {
       algorithm,
-      circles: fitCircles(algorithm, link.fourier.circles),
-      shape: link.fourier.shape ?? "heart",
-      path: link.fourier.path ? decodePath(link.fourier.path) : null,
+      circles: fitCircles(algorithm, link.params.circles),
+      shape: link.params.shape ?? "heart",
+      path: link.params.path ? decodePath(link.params.path) : null,
     };
     return { ...settings, run: runOf(settings) };
   },
@@ -80,12 +81,11 @@ export const fourierSlice = defineModule<FourierState, FourierAlgorithm>()({
     stepWeight: () => 1,
     pace: () => "fourier",
     search: (s, ctx) =>
-      toFourierSearch({
+      fourierLink.write({
         circles: s.circles,
         // Only drawings have a shape; a hand-drawn one travels in the link.
         ...(s.algorithm === "epicycles" && { shape: s.shape }),
         ...(s.algorithm === "epicycles" && s.shape === "custom" && s.path && { path: encodePath(s.path) }),
-        speed: ctx.speedPreset,
-      }),
+      }, ctx.speedPreset),
   },
 });

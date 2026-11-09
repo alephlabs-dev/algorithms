@@ -4,7 +4,9 @@
  * GraphTimeline records the steps so playback can go back and forth.
  */
 
-export type GraphAlgorithm = "bfs" | "dfs" | "dijkstra" | "prim" | "kruskal" | "topo";
+/** Every graph algorithm, in the pickers' order. */
+export const GRAPH_ALGORITHMS = ["bfs", "dfs", "dijkstra", "prim", "kruskal", "topo"] as const;
+export type GraphAlgorithm = (typeof GRAPH_ALGORITHMS)[number];
 
 /** A node's place, as a share of the layout's width and height (0–1). */
 export type GraphNode = { x: number; y: number };

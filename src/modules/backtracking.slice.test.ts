@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { routePath } from "@/routes";
 import { routeIn } from "./engine";
-import { readLocation } from "@/urlState";
+import { linkFor, readLocation } from "@/urlState";
 import { backtrackingSlice as slice, type BacktrackingState } from "./backtracking.slice";
 import type { SliceContext } from "./slice";
 
@@ -12,7 +12,7 @@ const ctx: SliceContext = {
   isMobile: false,
   isPortrait: false,
 };
-const at = (path: string, search = "") => slice.hydrate(readLocation(path, search), ctx);
+const at = (path: string, search = "") => slice.hydrate(linkFor(readLocation(path, search), "backtracking"), ctx);
 const apply = (s: BacktrackingState, patch: Partial<BacktrackingState> | null) => ({ ...s, ...patch });
 const settings = ({ problem, queensN, sudokuPuzzle, sudokuOrder }: BacktrackingState) => ({
   problem,

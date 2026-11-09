@@ -4,7 +4,7 @@ import { sizes, sizesFor } from "@/consts/sizesMap";
 import { questionsOf, SORT_GUESS_MAX_SIZE, sortQuestions } from "@/game";
 import { localized } from "@/i18n";
 import type { Algorithm, DisplayMode, InputOrder, Size } from "@/types";
-import { toSearch } from "@/urlState";
+import { sortingLink, type SortingLink } from "./sorting.link";
 import { generateItems } from "@/utils/generateItems";
 import { newSeed, seededRandom } from "@/utils/random";
 import { STEP_WEIGHT } from "@/utils/speed";
@@ -72,17 +72,18 @@ export const sortGuessSizes = sizes.filter((size) => size <= SORT_GUESS_MAX_SIZE
 const guessUnavailable = (s: SortingState) =>
   s.size <= SORT_GUESS_MAX_SIZE ? null : guessText.unavailable(sortGuessSizes);
 
-export const sortingSlice = defineModule<SortingState, Algorithm>()({
+export const sortingSlice = defineModule<SortingState, Algorithm, SortingLink>()({
   // The first module's key, from before every module had a tour.
   tourKey: "tour-done",
 
+  readLink: sortingLink.read,
   hydrate: (link, ctx) => {
-    const displayMode = link.displayMode ?? "bars";
-    const size = Math.min(link.size ?? (ctx.isMobile ? 20 : 40), maxSizeFor(displayMode, ctx.isMobile));
-    const inputOrder = link.inputOrder ?? "random";
-    const seed = link.seed ?? newSeed();
+    const displayMode = link.params.displayMode ?? "bars";
+    const size = Math.min(link.params.size ?? (ctx.isMobile ? 20 : 40), maxSizeFor(displayMode, ctx.isMobile));
+    const inputOrder = link.params.inputOrder ?? "random";
+    const seed = link.params.seed ?? newSeed();
     const algorithm = link.algorithm ?? "selection";
-    const racers = link.raceAlgorithms ?? DEFAULT_RACERS;
+    const racers = link.params.racers ?? DEFAULT_RACERS;
     const items = itemsFor(size, inputOrder, seed);
     return {
       algorithm,
@@ -132,15 +133,11 @@ export const sortingSlice = defineModule<SortingState, Algorithm>()({
     stepWeight: (s, index) => STEP_WEIGHT[s.run.kindAt(index) ?? "finish"],
     pace: (view) => view,
     search: (s, ctx) =>
-      toSearch({
+      sortingLink.write(
         // The slice only ever holds sizes from the sizes list.
-        size: s.size as Size,
-        inputOrder: s.inputOrder,
-        displayMode: s.displayMode,
-        speed: ctx.speedPreset,
-        seed: s.seed,
-        raceAlgorithms: s.racers,
-      }),
+        { size: s.size as Size, inputOrder: s.inputOrder, displayMode: s.displayMode, seed: s.seed, racers: s.racers },
+        ctx.speedPreset,
+      ),
     game: (s) => (guessUnavailable(s) ? [] : questionsOf(s.run, (run) => sortQuestions(run, s.algorithm))),
     gameUnavailable: guessUnavailable,
   },
