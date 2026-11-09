@@ -11,6 +11,7 @@ import {
   type SliceStates,
 } from "./modules/engine";
 import type { Link, Patch, SliceContext } from "./modules/slice";
+import { linkFor, type UrlLocation } from "./urlState";
 import { DEFAULT_PRESET, type SpeedPreset } from "./utils/speed";
 
 export type View = "single" | "race";
@@ -151,7 +152,7 @@ export const PORTRAIT_QUERY = "(orientation: portrait)";
  * and the screen. Passing it in keeps the store free of `window`, so tests can build one.
  */
 export type StoreEnv = {
-  url: Link;
+  url: UrlLocation;
   isMobile: boolean;
   isPortrait: boolean;
   theme: Theme;
@@ -222,7 +223,7 @@ const initialState = ({ url, isMobile, isPortrait }: StoreEnv) => {
   const modules = Object.fromEntries(
     MODULES.map((m) => {
       const ctx: SliceContext = { ...shared, view: m === url.module ? view : "single" };
-      return [m, loose[m].hydrate(url, ctx)];
+      return [m, loose[m].hydrate(linkFor(url, m), ctx)];
     }),
   ) as SliceStates;
   return { ...shared, ...modules, isLanding: url.isLanding };

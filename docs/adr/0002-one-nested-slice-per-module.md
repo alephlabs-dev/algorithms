@@ -13,4 +13,4 @@ Slice actions are pure functions `(slice, ctx) => Partial<slice> | null` that re
 
 - Components select single fields (`s.pathfinding.grid`), not a whole slice: a slice gets a new identity on every patch.
 - An inactive module keeps its settings and its single run and drops its race runs, as before. Building inactive runs lazily is #130.
-- The link codec (#128) only changes where `hydrate` gets its part of the link; the slice shape doesn't change.
+- Each module owns its whole link (#128): its slice declares a `LinkCodec` (`link`, in `src/modules/<id>.link.ts`) that reads its params and writes the same type back for `engine.search`, and `hydrate` checks them against the module's state with defaults. `readLocation` only reads the page and the params every module shares (speed, and the old sorting-only `algo` and `view`), then hands the query to the open module. Modules that aren't open hydrate from an empty link. The slice state shape didn't change.

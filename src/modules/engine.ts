@@ -34,6 +34,8 @@ export const MODULES = Object.keys(slices) as ModuleId[];
 export type SliceStates = { [M in ModuleId]: ReturnType<(typeof slices)[M]["hydrate"]> };
 /** Each module's actions, bound by the store: `s.actions.fourier.setCircles(25)`. */
 export type SliceActions = { [M in ModuleId]: BoundSlice<(typeof slices)[M]> };
+/** A module's part of the link, as its slice reads it (see ./slice.ts Link). */
+export type SliceLink<M extends ModuleId> = Parameters<(typeof slices)[M]["hydrate"]>[0];
 /** The algorithms a module can put on stage (in backtracking, the problems). */
 export type SliceAlgorithm<M extends ModuleId> = ReturnType<(typeof slices)[M]["current"]>;
 
@@ -81,7 +83,7 @@ export type ModuleEngine = {
 /** A slice's engine, read from the whole store. */
 const engineOf = (module: ModuleId): ModuleEngine => {
   // Each slice's types hold where it's declared; here they're read through one shape.
-  const slice = slices[module] as unknown as ModuleSlice<object, string, never>;
+  const slice = slices[module] as unknown as ModuleSlice<object, string, object, never>;
   const { engine } = slice;
   const read = (s: StoreState) => s[module] as object;
   const { game, gameUnavailable } = engine;

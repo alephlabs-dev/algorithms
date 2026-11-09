@@ -14,19 +14,9 @@ export type Term = { freq: number; amp: number; phase: number };
 /** A point in the plane; for drawings, a share of the drawing's size around its middle (−1 to 1). */
 export type Point = { x: number; y: number };
 
-export type FourierShape =
-  | "heart"
-  | "star"
-  | "infinity"
-  | "square"
-  | "crux"
-  | "orion"
-  | "dipper"
-  | "cassiopeia"
-  | "aleph"
-  | "butterfly"
-  | "fish"
-  | "cat"
-  | "note"
-  | "bolt"
-  | "custom";
+/** Every drawing, in the picker's order; "custom" is the learner's own. */
+export const FOURIER_SHAPES = [
+  ...(["heart", "star", "infinity", "square", "crux", "orion", "dipper", "cassiopeia"] as const),
+  ...(["aleph", "butterfly", "fish", "cat", "note", "bolt", "custom"] as const),
+] as const;
+export type FourierShape = (typeof FOURIER_SHAPES)[number];

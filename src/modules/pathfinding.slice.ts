@@ -6,6 +6,7 @@ import {
   encodeCells,
   gridDimensions,
   gridSizes,
+  PATH_ALGORITHMS,
   pathSearches,
   PathTimeline,
   type Grid,
@@ -15,10 +16,10 @@ import {
 } from "@/pathfinding";
 import { pathQuestions, questionsOf } from "@/game";
 import { localized } from "@/i18n";
-import { toPathSearch } from "@/urlState";
+import { pathfindingLink, type PathfindingLink } from "./pathfinding.link";
 import { newSeed, seededRandom } from "@/utils/random";
 import { PATH_STEP_WEIGHT } from "@/utils/speed";
-import { defineModule, isNarrow, toggleRacer, withRacer, type Link, type SliceContext } from "./slice";
+import { defineModule, isNarrow, toggleRacer, withRacer, type SliceContext } from "./slice";
 
 /** What dragging on the grid paints. */
 export type Brush = "wall" | "mud";
@@ -73,7 +74,6 @@ const cellsTooSmall = (s: PathfindingState) => {
 
 // Two that guarantee a shortest path, one that aims for the target, one that doesn't: the classic comparison.
 const DEFAULT_RACERS: PathAlgorithm[] = ["bfs", "dijkstra", "astar", "greedy"];
-const ORDER = Object.keys(pathSearches) as PathAlgorithm[];
 
 const runFor = (algorithm: PathAlgorithm, grid: Grid) => new PathTimeline(pathSearches[algorithm], grid);
 
@@ -96,7 +96,7 @@ const gridFor = (size: GridSize, narrow: boolean, preset: Preset) => {
 };
 
 /** The grid a link describes, if it's valid for the size; otherwise a fresh maze. */
-const gridFromLink = (link: Link["path"], size: GridSize, narrow: boolean) => {
+const gridFromLink = (link: PathfindingLink, size: GridSize, narrow: boolean) => {
   const { rows, cols } = gridDimensions(size, narrow);
   const cells = link.cells ? decodeCells(link.cells, rows * cols) : null;
   const inside = (cell: number | undefined): cell is number => cell !== undefined && cell < rows * cols;
@@ -127,14 +127,15 @@ const withPreset = (s: PathfindingState, ctx: SliceContext, gridPreset: Preset) 
   ...runsFor(s, ctx, applyPreset(s.grid, gridPreset, seededRandom(newSeed()))),
 });
 
-export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm>()({
+export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, PathfindingLink>()({
   tourKey: "tour-done-pathfinding",
 
+  link: pathfindingLink,
   hydrate: (link, ctx) => {
-    const algorithm = link.pathAlgorithm ?? "astar";
-    const gridSize = fitGridSize(link.path.gridSize ?? (ctx.isMobile ? "small" : "medium"), ctx.view, ctx.isMobile);
-    const grid = gridFromLink(link.path, gridSize, isNarrow(ctx));
-    const racers = link.path.racers ?? DEFAULT_RACERS;
+    const algorithm = link.algorithm ?? "astar";
+    const gridSize = fitGridSize(link.params.gridSize ?? (ctx.isMobile ? "small" : "medium"), ctx.view, ctx.isMobile);
+    const grid = gridFromLink(link.params, gridSize, isNarrow(ctx));
+    const racers = link.params.racers ?? DEFAULT_RACERS;
     return {
       algorithm,
       gridSize,
@@ -161,7 +162,7 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm>()(
     editGrid: (s, ctx, grid: Grid) => runsFor(s, ctx, grid),
     applyGridPreset: (s, ctx, preset: Preset) => withPreset(s, ctx, preset),
     toggleRacer: (s, ctx, racer: PathAlgorithm) => {
-      const racers = toggleRacer(ORDER, s.racers, racer);
+      const racers = toggleRacer(PATH_ALGORITHMS, s.racers, racer);
       return racers && { racers, raceRuns: raceRunsFor(ctx.view, racers, s.grid) };
     },
   },
@@ -175,7 +176,7 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm>()(
     }),
   },
 
-  addRacer: (s, racer) => ({ racers: withRacer(ORDER, s.racers, racer) }),
+  addRacer: (s, racer) => ({ racers: withRacer(PATH_ALGORITHMS, s.racers, racer) }),
 
   // A big grid gets a fresh layout at the largest size a race shows well.
   forView: (s, ctx) =>
@@ -202,13 +203,15 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm>()(
     // Enabled by how big cells are on screen, not by grid size: a big grid on a big screen still has room.
     gameUnavailable: cellsTooSmall,
     search: (s, ctx) =>
-      toPathSearch({
-        gridSize: s.gridSize,
-        cells: encodeCells(s.grid.cells),
-        start: s.grid.start,
-        end: s.grid.end,
-        racers: s.racers,
-        speed: ctx.speedPreset,
-      }),
+      pathfindingLink.write(
+        {
+          gridSize: s.gridSize,
+          cells: encodeCells(s.grid.cells),
+          start: s.grid.start,
+          end: s.grid.end,
+          racers: s.racers,
+        },
+        ctx.speedPreset,
+      ),
   },
 });

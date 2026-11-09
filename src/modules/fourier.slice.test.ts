@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { circleOptions, type Point } from "@/fourier";
 import { routePath } from "@/routes";
 import { routeIn } from "./engine";
-import { readLocation } from "@/urlState";
+import { linkFor, readLocation } from "@/urlState";
 import { fourierSlice as slice, type FourierState } from "./fourier.slice";
 import type { SliceContext } from "./slice";
 
@@ -13,7 +13,7 @@ const ctx: SliceContext = {
   isMobile: false,
   isPortrait: false,
 };
-const at = (path: string, search = "") => slice.hydrate(readLocation(path, search), ctx);
+const at = (path: string, search = "") => slice.hydrate(linkFor(readLocation(path, search), "fourier"), ctx);
 const apply = (s: FourierState, patch: Partial<FourierState> | null) => ({ ...s, ...patch });
 const settings = ({ algorithm, circles, shape, path }: FourierState) => ({ algorithm, circles, shape, path });
 

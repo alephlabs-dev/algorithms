@@ -18,7 +18,7 @@ import {
   type TableRun,
 } from "@/dp";
 import { dpQuestions, questionsOf } from "@/game";
-import { toDpSearch } from "@/urlState";
+import { dpLink, type DpLink } from "./dp.link";
 import { newSeed, seededRandom } from "@/utils/random";
 import { defineModule } from "./slice";
 
@@ -55,18 +55,19 @@ const STEP_WEIGHT: Record<DpEvent["type"], number> = {
   done: 0.5,
 };
 
-export const dpSlice = defineModule<DpState, DpAlgorithm>()({
+export const dpSlice = defineModule<DpState, DpAlgorithm, DpLink>()({
   tourKey: "tour-done-dp",
 
+  link: dpLink,
   hydrate: (link, ctx) => {
     // The race opens on its own example, big enough for plain recursion to show its repeats.
     const race = ctx.view === "race";
     const settings = {
-      algorithm: link.dpAlgorithm ?? "edit",
-      a: link.dp.a ?? wordPairs[0].a,
-      b: link.dp.b ?? wordPairs[0].b,
-      items: (link.dp.items && decodeItems(link.dp.items)) || (race ? RACE_ITEMS : EXAMPLE_ITEMS),
-      capacity: link.dp.capacity ?? (race ? RACE_CAPACITY : EXAMPLE_CAPACITY),
+      algorithm: link.algorithm ?? "edit",
+      a: link.params.a ?? wordPairs[0].a,
+      b: link.params.b ?? wordPairs[0].b,
+      items: (link.params.items && decodeItems(link.params.items)) || (race ? RACE_ITEMS : EXAMPLE_ITEMS),
+      capacity: link.params.capacity ?? (race ? RACE_CAPACITY : EXAMPLE_CAPACITY),
     };
     return { ...settings, run: runFor(settings), raceRuns: raceRunsFor(ctx.view, settings.items, settings.capacity) };
   },
@@ -125,8 +126,8 @@ export const dpSlice = defineModule<DpState, DpAlgorithm>()({
     // A knapsack (or its race) links its items; the word problems their words.
     search: (s, ctx) =>
       s.algorithm === "knapsack" || ctx.view === "race"
-        ? toDpSearch({ items: encodeItems(s.items), capacity: s.capacity, speed: ctx.speedPreset })
-        : toDpSearch({ a: s.a, b: s.b, speed: ctx.speedPreset }),
+        ? dpLink.write({ items: encodeItems(s.items), capacity: s.capacity }, ctx.speedPreset)
+        : dpLink.write({ a: s.a, b: s.b }, ctx.speedPreset),
     game: (s) => questionsOf(s.run, dpQuestions),
   },
 });

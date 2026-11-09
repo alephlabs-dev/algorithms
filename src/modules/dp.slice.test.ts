@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EXAMPLE_CAPACITY, EXAMPLE_ITEMS, methods, RACE_CAPACITY, RACE_ITEMS, wordPairs } from "@/dp";
 import { routePath } from "@/routes";
 import { routeIn } from "./engine";
-import { readLocation } from "@/urlState";
+import { linkFor, readLocation } from "@/urlState";
 import { dpSlice as slice, type DpState } from "./dp.slice";
 import type { SliceContext } from "./slice";
 
@@ -14,7 +14,7 @@ const single: SliceContext = {
   isPortrait: false,
 };
 const race: SliceContext = { ...single, view: "race" };
-const at = (path: string, search = "", ctx = single) => slice.hydrate(readLocation(path, search), ctx);
+const at = (path: string, search = "", ctx = single) => slice.hydrate(linkFor(readLocation(path, search), "dp"), ctx);
 const apply = (s: DpState, patch: Partial<DpState> | null) => ({ ...s, ...patch });
 const settings = ({ algorithm, a, b, items, capacity }: DpState) => ({ algorithm, a, b, items, capacity });
 const BAG = [

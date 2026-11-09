@@ -3,6 +3,7 @@ import {
   decodeGraph,
   encodeGraph,
   graphAspect,
+  GRAPH_ALGORITHMS,
   graphTimelineFor,
   makeGraph,
   type Graph,
@@ -11,7 +12,7 @@ import {
   type GraphSize,
   type GraphTimeline,
 } from "@/graphs";
-import { toGraphSearch } from "@/urlState";
+import { graphsLink, type GraphsLink } from "./graphs.link";
 import { newSeed, seededRandom } from "@/utils/random";
 import { GRAPH_STEP_WEIGHT } from "@/utils/speed";
 import { defineModule, isNarrow, toggleRacer, type SliceContext } from "./slice";
@@ -33,7 +34,6 @@ export type GraphsState = {
 };
 
 const DEFAULT_RACERS: GraphAlgorithm[] = ["bfs", "dfs", "prim", "kruskal"];
-const ORDER: GraphAlgorithm[] = ["bfs", "dfs", "dijkstra", "prim", "kruskal", "topo"];
 
 const raceRunsFor = (view: View, racers: GraphAlgorithm[], graph: Graph) =>
   view === "race" ? racers.map((a) => graphTimelineFor(a, graph)) : [];
@@ -59,17 +59,18 @@ const fresh = (s: GraphsState, ctx: SliceContext, preset: GraphPreset, requested
   return { preset, size, ...runsFor(s, ctx, graph), inputId: s.inputId + 1 };
 };
 
-export const graphsSlice = defineModule<GraphsState, GraphAlgorithm>()({
+export const graphsSlice = defineModule<GraphsState, GraphAlgorithm, GraphsLink>()({
   tourKey: "tour-done-graphs",
 
+  link: graphsLink,
   hydrate: (link, ctx) => {
-    const algorithm = link.graphAlgorithm ?? "bfs";
-    const size = fitSize(link.graph.size ?? "medium", ctx.view, ctx.isMobile);
-    const preset = link.graph.preset ?? "random";
+    const algorithm = link.algorithm ?? "bfs";
+    const size = fitSize(link.params.size ?? "medium", ctx.view, ctx.isMobile);
+    const preset = link.params.preset ?? "random";
     const graph =
-      (link.graph.graph && decodeGraph(link.graph.graph)) ||
+      (link.params.graph && decodeGraph(link.params.graph)) ||
       makeGraph(preset, size, isNarrow(ctx), seededRandom(newSeed()));
-    const racers = link.graph.racers ?? DEFAULT_RACERS;
+    const racers = link.params.racers ?? DEFAULT_RACERS;
     return {
       algorithm,
       size,
@@ -93,7 +94,7 @@ export const graphsSlice = defineModule<GraphsState, GraphAlgorithm>()({
     /** Replaces the graph after an edit (moving a node, joining two); the run restarts. */
     edit: (s, ctx, graph: Graph) => runsFor(s, ctx, graph),
     toggleRacer: (s, ctx, racer: GraphAlgorithm) => {
-      const racers = toggleRacer(ORDER, s.racers, racer);
+      const racers = toggleRacer(GRAPH_ALGORITHMS, s.racers, racer);
       return racers && { racers, raceRuns: raceRunsFor(ctx.view, racers, s.graph) };
     },
   },
@@ -116,12 +117,14 @@ export const graphsSlice = defineModule<GraphsState, GraphAlgorithm>()({
     stepWeight: (s, index) => GRAPH_STEP_WEIGHT[s.run.stepAt(index)?.type ?? "done"],
     pace: (view) => (view === "race" ? "graphRace" : "graphs"),
     search: (s, ctx) =>
-      toGraphSearch({
-        graph: encodeGraph(s.graph),
-        size: s.size,
-        preset: s.preset,
-        racers: s.racers,
-        speed: ctx.speedPreset,
-      }),
+      graphsLink.write(
+        {
+          graph: encodeGraph(s.graph),
+          size: s.size,
+          preset: s.preset,
+          racers: s.racers,
+        },
+        ctx.speedPreset,
+      ),
   },
 });

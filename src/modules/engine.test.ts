@@ -10,19 +10,17 @@ import { applyPreset, emptyGrid } from "@/pathfinding";
 import { encodeCells } from "@/pathfinding/grid";
 import { moduleOf, routeFromPath, routePath, type Route } from "@/routes";
 import { encodeOperations } from "@/structures/link";
-import {
-  readLocation,
-  toBacktrackingSearch,
-  toDpSearch,
-  toFourierSearch,
-  toGraphSearch,
-  toPathSearch,
-  toSearch,
-  toStructureSearch,
-} from "@/urlState";
+import { readLocation } from "@/urlState";
 import { generateItems } from "@/utils/generateItems";
 import { seededRandom } from "@/utils/random";
+import { backtrackingLink } from "./backtracking.link";
+import { dpLink } from "./dp.link";
 import { engines, type ModuleId, type SliceStates } from "./engine";
+import { fourierLink } from "./fourier.link";
+import { graphsLink } from "./graphs.link";
+import { pathfindingLink } from "./pathfinding.link";
+import { sortingLink } from "./sorting.link";
+import { structuresLink } from "./structures.link";
 
 const SPEED = "2x";
 
@@ -49,51 +47,43 @@ const drawing = linkShape([
 const LINKS: { [M in ModuleId]: { page: Route; search: string; carries: Partial<SliceStates[M]> } } = {
   sorting: {
     page: { module: "sorting", page: "algorithm", algorithm: "heap" },
-    search: toSearch({
-      size: 40,
-      inputOrder: "reversed",
-      displayMode: "bars",
-      seed: 12345,
-      raceAlgorithms: ["insertion", "quick", "merge"],
-      speed: SPEED,
-    }),
+    search: sortingLink.write(
+      { size: 40, inputOrder: "reversed", displayMode: "bars", seed: 12345, racers: ["insertion", "quick", "merge"] },
+      SPEED,
+    ),
     carries: { algorithm: "heap", size: 40, inputOrder: "reversed", seed: 12345, racers: ["insertion", "quick", "merge"] },
   },
   pathfinding: {
     page: { module: "pathfinding", page: "algorithm", algorithm: "dijkstra" },
-    search: toPathSearch({
-      gridSize: "medium",
-      cells: encodeCells(maze.cells),
-      start: maze.start,
-      end: maze.end,
-      racers: ["bfs", "astar"],
-      speed: SPEED,
-    }),
+    search: pathfindingLink.write(
+      { gridSize: "medium", cells: encodeCells(maze.cells), start: maze.start, end: maze.end, racers: ["bfs", "astar"] },
+      SPEED,
+    ),
     carries: { algorithm: "dijkstra", gridSize: "medium", grid: maze, racers: ["bfs", "astar"] },
   },
   graphs: {
     page: { module: "graphs", page: "algorithm", algorithm: "dijkstra" },
-    search: toGraphSearch({ graph: encodeGraph(tree), size: "large", preset: "tree", racers: ["prim", "kruskal"], speed: SPEED }),
+    search: graphsLink.write({ graph: encodeGraph(tree), size: "large", preset: "tree", racers: ["prim", "kruskal"] }, SPEED),
     carries: { algorithm: "dijkstra", size: "large", preset: "tree", graph: tree, racers: ["prim", "kruskal"] },
   },
   dp: {
     page: { module: "dp", page: "algorithm", algorithm: "lcs" },
-    search: toDpSearch({ a: "KITTEN", b: "SITTING", items: encodeItems(items), capacity: 7, speed: SPEED }),
+    search: dpLink.write({ a: "KITTEN", b: "SITTING", items: encodeItems(items), capacity: 7 }, SPEED),
     carries: { algorithm: "lcs", a: "KITTEN", b: "SITTING", items, capacity: 7 },
   },
   structures: {
     page: { module: "structures", page: "algorithm", algorithm: "avl" },
-    search: toStructureSearch({ ops: encodeOperations([...ops]), size: "medium", preset: "ascending", speed: SPEED }),
+    search: structuresLink.write({ ops: encodeOperations([...ops]), size: "medium", preset: "ascending" }, SPEED),
     carries: { algorithm: "avl", ops: [...ops], size: "medium", preset: "ascending" },
   },
   backtracking: {
     page: { module: "backtracking", page: "algorithm", algorithm: "queens" },
-    search: toBacktrackingSearch({ n: 5, puzzle: "easy", order: "rows", speed: SPEED }),
+    search: backtrackingLink.write({ n: 5, puzzle: "easy", order: "rows" }, SPEED),
     carries: { problem: "queens", queensN: 5, sudokuPuzzle: "easy", sudokuOrder: "rows" },
   },
   fourier: {
     page: { module: "fourier", page: "algorithm", algorithm: "epicycles" },
-    search: toFourierSearch({ circles: 25, shape: "custom", path: encodePath(drawing), speed: SPEED }),
+    search: fourierLink.write({ circles: 25, shape: "custom", path: encodePath(drawing) }, SPEED),
     carries: { algorithm: "epicycles", circles: 25, shape: "custom", path: drawing },
   },
 };
@@ -196,9 +186,9 @@ describe("module engines", () => {
     expect(routePath(route)).toBe("/backtracking/sudoku");
     const hard = engines.backtracking.search(sudokuWith({ sudokuPuzzle: "hard" }));
     expect(hard).not.toBe(engines.backtracking.search(sudoku));
-    expect(readLocation(routePath(route), hard).backtracking).toEqual({ puzzle: "hard" });
+    expect(readLocation(routePath(route), hard).link.params).toEqual({ puzzle: "hard" });
     const mrv = engines.backtracking.search(sudokuWith({ sudokuOrder: "mrv" }));
-    expect(readLocation(routePath(route), mrv).backtracking).toEqual({ puzzle: "easy", order: "mrv" });
+    expect(readLocation(routePath(route), mrv).link.params).toEqual({ puzzle: "easy", order: "mrv" });
   });
 
   it("sorting has guess mode with 10 or 20 items, and none with more", () => {
