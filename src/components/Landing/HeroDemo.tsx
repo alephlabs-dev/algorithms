@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { GridRenderer } from "@/canvas/gridRenderer";
+import { pathGridCells, pathPalette } from "@/canvas/pathPaint";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import {
   applyPreset,
@@ -61,7 +62,7 @@ export const HeroDemo = () => {
 
   useEffect(() => {
     const wrapper = wrapperRef.current!;
-    const renderer = new GridRenderer(canvasRef.current!);
+    const renderer = new GridRenderer(canvasRef.current!, pathPalette);
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let run = 0;
     let { grid, timeline } = layoutFor(run);
@@ -76,7 +77,7 @@ export const HeroDemo = () => {
       if (frameIndex === shown) return;
       shown = frameIndex;
       const frame = timeline.frameAt(frameIndex);
-      renderer.update({ grid, frame, gridId: run, fade: reduced ? 0 : 0.15 });
+      renderer.update({ ...pathGridCells(grid, frame), gridId: run, fade: reduced ? 0 : 0.15 });
       const { title } = pathAlgorithms[RUNS[run % RUNS.length].algorithm];
       const found = frame.found ? text.path(frame.stats.pathLength) : "";
       if (captionRef.current) captionRef.current.textContent = `${title} · ${text.visited(frame.stats.visited)}${found}`;
