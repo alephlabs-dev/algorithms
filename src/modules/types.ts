@@ -50,6 +50,11 @@ export type ModuleUI = {
   progress?: (index: number, last: number) => string;
   /** "New array", "New layout": what the dock's regenerate button makes. */
   newRunLabel: string;
+  /**
+   * When guess mode can't play the run on stage but a setting would let it, the button that
+   * changes it in one tap ("Switch to the small grid"), turning guess mode on; null otherwise.
+   */
+  gameFix?: (s: StoreState) => { label: string; apply: () => void } | null;
 
   algorithms: AlgorithmGroup[];
   /**

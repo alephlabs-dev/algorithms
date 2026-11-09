@@ -19,7 +19,7 @@ import { href } from "./routes";
 import { MOBILE_QUERY, PORTRAIT_QUERY, useStore } from "./store";
 import { routeFor } from "./navigation";
 import { navigate } from "./urlSync";
-import { GameLayer } from "./components/Game";
+import { GameDock, GameLayer } from "./components/Game";
 
 // iPad landscape and desktop: the side panel, whose Pseudocode tab replaces the sheet.
 const WIDE_QUERY = "(min-width: 1024px)";
@@ -100,7 +100,8 @@ function App() {
                   <Legend className="hidden shrink-0 md:mt-1 md:flex" />
                 </div>
                 {/* Guess mode asks under the stage, so it never covers what it's asking about. */}
-                <div className="relative flex min-h-0 flex-1 flex-col gap-2">
+                {/* The panel keeps its own space above it (GameLayer), so the stage can size itself for it. */}
+                <div className="relative flex min-h-0 flex-1 flex-col">
                   <Stage />
                   <GameLayer />
                 </div>
@@ -125,8 +126,10 @@ function App() {
             </div>
           </>
         )}
-        {/* Covered by an open sheet, but still mounted: it drives playback. */}
-        <Controls className={sheet ? "hidden" : undefined} />
+        {/* Covered by an open sheet, but still mounted: it drives playback. On phones a guess-mode question takes its place. */}
+        <GameDock hidden={sheet !== null}>
+          <Controls />
+        </GameDock>
         {sheet ?? <ScrollHint route={route} className="-my-2 h-6 lg:-my-3" />}
         <Tour />
       </main>

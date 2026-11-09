@@ -13,6 +13,8 @@ import {
   type PathAlgorithm,
   type Preset,
 } from "@/pathfinding";
+import { pathQuestions, questionsOf } from "@/game";
+import { localized } from "@/i18n";
 import { toPathSearch } from "@/urlState";
 import { newSeed, seededRandom } from "@/utils/random";
 import { PATH_STEP_WEIGHT } from "@/utils/speed";
@@ -36,6 +38,37 @@ export type PathfindingState = {
   raceRuns: PathTimeline[];
   /** Bumped when the grid is replaced wholesale (size, preset), so cells don't animate between layouts. */
   inputId: number;
+  /**
+   * How big a cell is on screen, in CSS pixels, with guess mode's panel under the stage;
+   * null until the stage has been measured. Guess mode needs room for a letter in a cell.
+   */
+  cellSize: number | null;
+  /** The screen's device pixels per CSS pixel when the stage was measured: sharp screens read smaller letters. */
+  pixelRatio: number;
+};
+
+/**
+ * Guess mode marks cells with letters (bold, at least 11px, on a badge), readable from this
+ * many CSS pixels a cell: 14 on sharp screens (2× and up), 16 on others. The buttons under
+ * the stage are the main way to answer; tapping a cell is a bonus.
+ */
+export const guessMinCell = (pixelRatio: number) => (pixelRatio >= 2 ? 14 : 16);
+
+const guessText = localized({
+  en: {
+    pickSmaller: "Guess needs bigger cells: pick a smaller grid",
+    screenTooSmall: "Guess needs bigger cells than fit on this screen",
+  },
+  es: {
+    pickSmaller: "Adivina necesita celdas más grandes: elige una cuadrícula más pequeña",
+    screenTooSmall: "Adivina necesita celdas más grandes de las que caben en esta pantalla",
+  },
+});
+
+/** Why guess mode can't play: its letters don't fit in cells this small. Null when they do, or before measuring. */
+const cellsTooSmall = (s: PathfindingState) => {
+  if (s.cellSize === null || s.cellSize >= guessMinCell(s.pixelRatio)) return null;
+  return s.gridSize === gridSizes[0] ? guessText.screenTooSmall : guessText.pickSmaller;
 };
 
 // Two that guarantee a shortest path, one that aims for the target, one that doesn't: the classic comparison.
@@ -112,6 +145,8 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm>()(
       racers,
       raceRuns: raceRunsFor(ctx.view, racers, grid),
       inputId: 0,
+      cellSize: null,
+      pixelRatio: 1,
     };
   },
 
@@ -133,6 +168,11 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm>()(
 
   settings: {
     setBrush: (_s: PathfindingState, _: SliceContext, brush: Brush) => ({ brush }),
+    /** The stage reports its cell size whenever it changes, so guess mode knows whether letters fit. */
+    setCellSize: (_s: PathfindingState, _: SliceContext, cellSize: number, pixelRatio: number) => ({
+      cellSize,
+      pixelRatio,
+    }),
   },
 
   addRacer: (s, racer) => ({ racers: withRacer(ORDER, s.racers, racer) }),
@@ -158,6 +198,9 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm>()(
       view === "race" ? Math.max(0, ...s.raceRuns.map((t) => t.totalVisits)) : s.run.length - 1,
     stepWeight: (s, index) => PATH_STEP_WEIGHT[s.run.stepAt(index)?.type ?? "done"],
     pace: (view) => (view === "race" ? "pathRace" : "pathfinding"),
+    game: (s) => questionsOf(s.run, (run) => pathQuestions(run, s.algorithm)),
+    // Enabled by how big cells are on screen, not by grid size: a big grid on a big screen still has room.
+    gameUnavailable: cellsTooSmall,
     route: (s, ctx) => {
       if (ctx.view === "race") return { kind: "pathRace" };
       return ctx.isModuleStart ? { kind: "pathfinding" } : { kind: "path", algorithm: s.algorithm };

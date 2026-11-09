@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { forgetAnswers, isAnswered, markAnswered, NEW_SCORE, type Answer, type GameScore, type Question } from "./game";
+import { FEEDBACK_MS, forgetAnswers, isAnswered, isCellQuestion, markAnswered, NEW_SCORE, type Answer, type GameScore, type Question } from "./game";
 import {
   contextFor,
   engines,
@@ -86,8 +86,8 @@ export type StoreState = SliceStates & {
   gameScore: GameScore;
   /** The question waiting for an answer, if any. */
   gameQuestion: Question | null;
-  /** How the last answer went, for a moment. */
-  gameFeedback: { right: boolean; text: string; id: number } | null;
+  /** How the last answer went, for a moment, and the question it answered. `id` is when, from Date.now(). */
+  gameFeedback: { right: boolean; text: string; id: number; question: Question } | null;
   toggleGame: () => void;
   answerGame: (answer: Answer) => void;
   /** A clean score, and every question of the run on stage asked again. */
@@ -126,6 +126,15 @@ export const selectGuessPlaying = (state: StoreState) =>
 /** The first unanswered question between the current frame and `target`: playback stops before it. */
 const nextQuestion = (state: StoreState, target: number) =>
   gameQuestionsOf(state).find((q) => q.at > state.frameIndex && q.at <= target && !isAnswered(q)) ?? null;
+
+/**
+ * A question that marks grid cells with letters waits while the last answer's explanation
+ * is still up: its letters would be the new question's too, pointing at other cells.
+ */
+const waitsForFeedback = (state: StoreState, q: Question) =>
+  isCellQuestion(q) &&
+  state.gameFeedback !== null &&
+  Date.now() - state.gameFeedback.id < FEEDBACK_MS;
 
 /** The question on screen: only while its run is on stage and playback sits right before it. */
 export const selectGameQuestion = (state: StoreState) => {
@@ -373,7 +382,7 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
         const streak = right ? state.gameScore.streak + 1 : 0;
         return {
           gameQuestion: null,
-          gameFeedback: { right, text: q.explain(right), id: Date.now() },
+          gameFeedback: { right, text: q.explain(right), id: Date.now(), question: q },
           gameScore: {
             asked: state.gameScore.asked + 1,
             right: state.gameScore.right + (right ? 1 : 0),
@@ -399,6 +408,8 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
         const lastIndex = selectLastIndex(state);
         const frameIndex = Math.min(state.frameIndex + steps, lastIndex);
         const ask = nextQuestion(state, frameIndex);
+        // Playback holds just before it, still playing, until the explanation has had its time.
+        if (ask && waitsForFeedback(state, ask)) return { frameIndex: ask.at - 1 };
         if (ask) return { frameIndex: ask.at - 1, isPlaying: false, gameQuestion: ask };
         return { frameIndex, isPlaying: frameIndex < lastIndex };
       }),

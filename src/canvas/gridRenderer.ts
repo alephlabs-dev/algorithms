@@ -8,7 +8,15 @@ export type GridRenderInput = {
   gridId: number;
   /** Seconds a color change takes. 0 snaps (scrubbing, very fast playback). */
   fade: number;
+  /** Cells guess mode asks about, each with its letter, drawn on top of everything. */
+  marks?: GridMark[];
 };
+
+/** A cell guess mode marks on the grid, and the letter it shows. */
+export type GridMark = { cell: number; label: string };
+
+/** Guess mode's letters are never drawn smaller than this, in CSS pixels. */
+const MARK_MIN_FONT = 11;
 
 const GAP = 0.08; // share of a cell left as a gap between cells
 const POP_FROM = 0.45; // a cell that changes state grows from this scale
@@ -39,6 +47,8 @@ export class GridRenderer {
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext("2d")!;
+    // Guess mode's letters use a web font; draw again once it's ready instead of keeping the fallback.
+    document.fonts?.ready.then(() => this.draw());
   }
 
   destroy() {
@@ -246,6 +256,29 @@ export class GridRenderer {
 
     this.drawMarker(grid.start, "start", size, left, top);
     this.drawMarker(grid.end, "end", size, left, top);
+    // Last, so a letter stays readable even on the target.
+    for (const mark of input.marks ?? []) this.drawMark(mark, size, left, top, gap, radius);
+  }
+
+  /**
+   * A cell guess mode asks about: a badge in the text color over the whole tile, its letter
+   * cut out in the background color, bold and never under 11px, so it reads on any cell.
+   */
+  private drawMark(mark: GridMark, size: number, left: number, top: number, gap: number, radius: number) {
+    const { ctx, colors, input } = this;
+    const cols = input!.grid.cols;
+    const s = size - gap;
+    const x = left + (mark.cell % cols) * size + gap / 2;
+    const y = top + Math.floor(mark.cell / cols) * size + gap / 2;
+    ctx.fillStyle = colors.foreground;
+    ctx.beginPath();
+    ctx.roundRect(x, y, s, s, radius);
+    ctx.fill();
+    ctx.fillStyle = colors.background;
+    ctx.font = `700 ${Math.max(MARK_MIN_FONT, Math.round(size * 0.6))}px "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(mark.label, x + s / 2, y + s / 2 + 1);
   }
 
   /** Start: a filled dot. End: a target of two rings. Both sit on top of their cell. */
