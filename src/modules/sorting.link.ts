@@ -1,4 +1,4 @@
-import { sortAlgorithms } from "@/algorithms";
+import { SORT_ALGORITHMS } from "@/algorithms";
 import { displayModes } from "@/consts/displayModes";
 import { inputOrders } from "@/consts/inputOrders";
 import { sizes } from "@/consts/sizesMap";
@@ -16,8 +16,6 @@ export type SortingLink = {
   racers?: Algorithm[];
 };
 
-const ORDER = Object.keys(sortAlgorithms) as Algorithm[];
-
 export const sortingLink = {
   read: (params: URLSearchParams): SortingLink => {
     const link: SortingLink = {};
@@ -29,7 +27,7 @@ export const sortingLink = {
     if (isOneOf(displayModes, displayMode)) link.displayMode = displayMode;
     const seed = parseInt(params.get("seed") ?? "", 36);
     if (Number.isInteger(seed) && seed >= 0 && seed < 2 ** 32) link.seed = seed;
-    const racers = readRacers(params, ORDER);
+    const racers = readRacers(params, SORT_ALGORITHMS);
     if (racers) link.racers = racers;
     return link;
   },

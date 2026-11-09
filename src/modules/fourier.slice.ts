@@ -81,11 +81,14 @@ export const fourierSlice = defineModule<FourierState, FourierAlgorithm, Fourier
     stepWeight: () => 1,
     pace: () => "fourier",
     search: (s, ctx) =>
-      fourierLink.write({
-        circles: s.circles,
-        // Only drawings have a shape; a hand-drawn one travels in the link.
-        ...(s.algorithm === "epicycles" && { shape: s.shape }),
-        ...(s.algorithm === "epicycles" && s.shape === "custom" && s.path && { path: encodePath(s.path) }),
-      }, ctx.speedPreset),
+      fourierLink.write(
+        {
+          circles: s.circles,
+          // Only drawings have a shape; a hand-drawn one travels in the link.
+          ...(s.algorithm === "epicycles" && { shape: s.shape }),
+          ...(s.algorithm === "epicycles" && s.shape === "custom" && s.path && { path: encodePath(s.path) }),
+        },
+        ctx.speedPreset,
+      ),
   },
 });

@@ -6,6 +6,7 @@ import {
   encodeCells,
   gridDimensions,
   gridSizes,
+  PATH_ALGORITHMS,
   pathSearches,
   PathTimeline,
   type Grid,
@@ -73,7 +74,6 @@ const cellsTooSmall = (s: PathfindingState) => {
 
 // Two that guarantee a shortest path, one that aims for the target, one that doesn't: the classic comparison.
 const DEFAULT_RACERS: PathAlgorithm[] = ["bfs", "dijkstra", "astar", "greedy"];
-const ORDER = Object.keys(pathSearches) as PathAlgorithm[];
 
 const runFor = (algorithm: PathAlgorithm, grid: Grid) => new PathTimeline(pathSearches[algorithm], grid);
 
@@ -162,7 +162,7 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
     editGrid: (s, ctx, grid: Grid) => runsFor(s, ctx, grid),
     applyGridPreset: (s, ctx, preset: Preset) => withPreset(s, ctx, preset),
     toggleRacer: (s, ctx, racer: PathAlgorithm) => {
-      const racers = toggleRacer(ORDER, s.racers, racer);
+      const racers = toggleRacer(PATH_ALGORITHMS, s.racers, racer);
       return racers && { racers, raceRuns: raceRunsFor(ctx.view, racers, s.grid) };
     },
   },
@@ -176,7 +176,7 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
     }),
   },
 
-  addRacer: (s, racer) => ({ racers: withRacer(ORDER, s.racers, racer) }),
+  addRacer: (s, racer) => ({ racers: withRacer(PATH_ALGORITHMS, s.racers, racer) }),
 
   // A big grid gets a fresh layout at the largest size a race shows well.
   forView: (s, ctx) =>
@@ -203,12 +203,15 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
     // Enabled by how big cells are on screen, not by grid size: a big grid on a big screen still has room.
     gameUnavailable: cellsTooSmall,
     search: (s, ctx) =>
-      pathfindingLink.write({
-        gridSize: s.gridSize,
-        cells: encodeCells(s.grid.cells),
-        start: s.grid.start,
-        end: s.grid.end,
-        racers: s.racers,
-      }, ctx.speedPreset),
+      pathfindingLink.write(
+        {
+          gridSize: s.gridSize,
+          cells: encodeCells(s.grid.cells),
+          start: s.grid.start,
+          end: s.grid.end,
+          racers: s.racers,
+        },
+        ctx.speedPreset,
+      ),
   },
 });

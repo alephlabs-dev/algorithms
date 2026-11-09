@@ -23,6 +23,9 @@ export const sortAlgorithms: Record<Algorithm, SortAlgorithm> = {
   radix: radixSort,
 };
 
+/** Every sorting algorithm, in the order the UI shows them. */
+export const SORT_ALGORITHMS = Object.keys(sortAlgorithms) as Algorithm[];
+
 /** Pseudocode per algorithm; `Frame.line` indexes into these. */
 export const pseudocode: Record<Algorithm, string[]> = {
   selection: selectionPseudocode,

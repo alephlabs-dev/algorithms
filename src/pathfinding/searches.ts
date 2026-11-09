@@ -175,6 +175,9 @@ export const pathSearches: Record<PathAlgorithm, PathSearch> = {
   greedy: bestFirst((_cost, left) => left, lines(6, 7), false),
 };
 
+/** Every search, in the order the UI shows them. */
+export const PATH_ALGORITHMS = Object.keys(pathSearches) as PathAlgorithm[];
+
 export const pathPseudocode: Record<PathAlgorithm, string[]> = {
   bfs: bfsPseudocode,
   dfs: dfsPseudocode,

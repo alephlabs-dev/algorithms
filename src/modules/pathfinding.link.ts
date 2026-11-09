@@ -1,5 +1,5 @@
 import { gridSizes, type GridSize } from "@/pathfinding/grid";
-import { pathSearches } from "@/pathfinding/searches";
+import { PATH_ALGORITHMS } from "@/pathfinding/searches";
 import type { PathAlgorithm } from "@/pathfinding/types";
 import type { SpeedPreset } from "@/utils/speed";
 import { isOneOf, isPacked, readRacers, speedParam, toQuery } from "./link";
@@ -15,8 +15,6 @@ export type PathfindingLink = {
   racers?: PathAlgorithm[];
 };
 
-const ORDER = Object.keys(pathSearches) as PathAlgorithm[];
-
 export const pathfindingLink = {
   read: (params: URLSearchParams): PathfindingLink => {
     const link: PathfindingLink = {};
@@ -28,7 +26,7 @@ export const pathfindingLink = {
     const end = parseInt(params.get("to") ?? "", 36);
     if (Number.isInteger(start) && start >= 0) link.start = start;
     if (Number.isInteger(end) && end >= 0) link.end = end;
-    const racers = readRacers(params, ORDER);
+    const racers = readRacers(params, PATH_ALGORITHMS);
     if (racers) link.racers = racers;
     return link;
   },

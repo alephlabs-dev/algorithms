@@ -1,5 +1,5 @@
 import type { View } from "@/appStore";
-import { sortAlgorithms, Timeline } from "@/algorithms";
+import { SORT_ALGORITHMS, sortAlgorithms, Timeline } from "@/algorithms";
 import { sizes, sizesFor } from "@/consts/sizesMap";
 import { questionsOf, SORT_GUESS_MAX_SIZE, sortQuestions } from "@/game";
 import { localized } from "@/i18n";
@@ -31,7 +31,6 @@ export type SortingState = {
 
 // In sidebar order, like any selection the user makes.
 const DEFAULT_RACERS: Algorithm[] = ["insertion", "bubble", "quick", "merge"];
-const ORDER = Object.keys(sortAlgorithms) as Algorithm[];
 
 const runFor = (algorithm: Algorithm, items: readonly number[]) => new Timeline(sortAlgorithms[algorithm], items);
 
@@ -107,7 +106,7 @@ export const sortingSlice = defineModule<SortingState, Algorithm, SortingLink>()
     setSize: (s, ctx, size: number) => fresh(s, ctx, size),
     setInputOrder: (s, ctx, inputOrder: InputOrder) => fresh(s, ctx, s.size, inputOrder),
     toggleRacer: (s, ctx, racer: Algorithm) => {
-      const racers = toggleRacer(ORDER, s.racers, racer);
+      const racers = toggleRacer(SORT_ALGORITHMS, s.racers, racer);
       return racers && { racers, raceRuns: raceRunsFor(ctx.view, racers, s.run.values) };
     },
   },
@@ -116,7 +115,7 @@ export const sortingSlice = defineModule<SortingState, Algorithm, SortingLink>()
     setDisplayMode: (_s: SortingState, _: SliceContext, displayMode: DisplayMode) => ({ displayMode }),
   },
 
-  addRacer: (s, racer) => ({ racers: withRacer(ORDER, s.racers, racer) }),
+  addRacer: (s, racer) => ({ racers: withRacer(SORT_ALGORITHMS, s.racers, racer) }),
 
   forView: (s, ctx) => ({ raceRuns: raceRunsFor(ctx.view, s.racers, s.run.values) }),
 

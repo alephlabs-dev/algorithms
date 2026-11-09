@@ -117,11 +117,14 @@ export const graphsSlice = defineModule<GraphsState, GraphAlgorithm, GraphsLink>
     stepWeight: (s, index) => GRAPH_STEP_WEIGHT[s.run.stepAt(index)?.type ?? "done"],
     pace: (view) => (view === "race" ? "graphRace" : "graphs"),
     search: (s, ctx) =>
-      graphsLink.write({
-        graph: encodeGraph(s.graph),
-        size: s.size,
-        preset: s.preset,
-        racers: s.racers,
-      }, ctx.speedPreset),
+      graphsLink.write(
+        {
+          graph: encodeGraph(s.graph),
+          size: s.size,
+          preset: s.preset,
+          racers: s.racers,
+        },
+        ctx.speedPreset,
+      ),
   },
 });

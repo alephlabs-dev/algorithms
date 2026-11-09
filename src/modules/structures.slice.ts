@@ -130,11 +130,14 @@ export const structuresSlice = defineModule<StructuresState, StructureAlgorithm,
     stepWeight: (s, index) => STEP_WEIGHT[s.run.frames[index]?.event.type ?? "done"],
     pace: (view) => (view === "race" ? "structureRace" : "structures"),
     search: (s, ctx) =>
-      structuresLink.write({
-        ops: encodeOperations(s.ops),
-        size: s.size,
-        preset: s.preset,
-      }, ctx.speedPreset),
+      structuresLink.write(
+        {
+          ops: encodeOperations(s.ops),
+          size: s.size,
+          preset: s.preset,
+        },
+        ctx.speedPreset,
+      ),
     game: (s) => questionsOf(s.run, structureQuestions),
   },
 });

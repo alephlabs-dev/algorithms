@@ -1,14 +1,14 @@
 // Every step sentence of representative runs of each module, in the language of this page load.
 // Not used by the app: e2e/step-sentences-fit.spec.ts loads it once per language and measures each
 // sentence in the real caption (#113). Builds each run the way src/store.ts does.
-import { pseudocode, sortAlgorithms, Timeline } from '@/algorithms';
+import { pseudocode, SORT_ALGORITHMS, sortAlgorithms, Timeline } from '@/algorithms';
 import { QueensRun, MAX_QUEENS, MIN_QUEENS, SUDOKU_PUZZLES, SudokuRun, type FillOrder, type SudokuPuzzle } from '@/backtracking';
 import { DpRun, EXAMPLE_CAPACITY, EXAMPLE_ITEMS, KnapsackRun, MAX_CAPACITY, MAX_ITEMS, MAX_WORD, RACE_CAPACITY, RACE_ITEMS, randomItems, wordPairs } from '@/dp';
-import { circleOptions, FourierRun, type FourierShape } from '@/fourier';
-import { graphTimelineFor, makeGraph, type GraphAlgorithm, type GraphPreset, type GraphSize } from '@/graphs';
-import { applyPreset, emptyGrid, gridDimensions, pathSearches, PathTimeline, type GridSize, type PathAlgorithm, type Preset } from '@/pathfinding';
-import { presetOperations, recordStructure, type Operation, type StructureAlgorithm, type StructurePreset, type StructureSize } from '@/structures';
-import type { Algorithm, InputOrder } from '@/types';
+import { circleOptions, FOURIER_SHAPES, FourierRun } from '@/fourier';
+import { GRAPH_ALGORITHMS, graphPresets, graphSizes, graphTimelineFor, makeGraph } from '@/graphs';
+import { applyPreset, emptyGrid, gridDimensions, PATH_ALGORITHMS, pathSearches, PathTimeline, type GridSize, type Preset } from '@/pathfinding';
+import { presetOperations, recordStructure, STRUCTURE_ALGORITHMS, type Operation, type StructurePreset, type StructureSize } from '@/structures';
+import type { InputOrder } from '@/types';
 import { generateItems } from '@/utils/generateItems';
 import { narrate } from '@/utils/narrate';
 import { narrateBacktracking, narrateSudoku } from '@/utils/narrateBacktracking';
@@ -28,7 +28,7 @@ const LAYOUTS = [{ narrow: true, name: 'narrow' }, { narrow: false, name: 'wide'
 
 const sortingRuns = function* () {
   const orders: InputOrder[] = ['random', 'nearlySorted', 'reversed', 'sorted', 'fewUnique'];
-  for (const algorithm of Object.keys(sortAlgorithms) as Algorithm[])
+  for (const algorithm of SORT_ALGORITHMS)
     for (const order of orders)
       // Every size offered (400 from iPad up); the big ones once, they're long.
       for (const [size, seeds] of [[10, SEEDS], [20, SEEDS], [40, [1]], [100, [1]], [200, [1]], [400, [1]]] as const)
@@ -42,7 +42,7 @@ const sortingRuns = function* () {
 const pathfindingRuns = function* () {
   const sizes: GridSize[] = ['small', 'medium', 'large'];
   const presets: Preset[] = ['clear', 'maze', 'walls', 'terrain'];
-  for (const algorithm of Object.keys(pathSearches) as PathAlgorithm[])
+  for (const algorithm of PATH_ALGORITHMS)
     for (const size of sizes)
       for (const preset of presets)
         for (const seed of SEEDS)
@@ -56,12 +56,9 @@ const pathfindingRuns = function* () {
 };
 
 const graphRuns = function* () {
-  const algorithms: GraphAlgorithm[] = ['bfs', 'dfs', 'dijkstra', 'prim', 'kruskal', 'topo'];
-  const sizes: GraphSize[] = ['small', 'medium', 'large'];
-  const presets: GraphPreset[] = ['random', 'tree', 'grid', 'dag'];
-  for (const algorithm of algorithms)
-    for (const size of sizes)
-      for (const preset of presets)
+  for (const algorithm of GRAPH_ALGORITHMS)
+    for (const size of graphSizes)
+      for (const preset of graphPresets)
         for (const seed of SEEDS)
           for (const layout of LAYOUTS) {
             const timeline = graphTimelineFor(algorithm, makeGraph(preset, size, layout.narrow, seededRandom(seed)));
@@ -126,7 +123,7 @@ const typedOperations = (ops: Operation[]): Operation[] => {
 };
 
 const structureRuns = function* () {
-  const algorithms: StructureAlgorithm[] = ['bst', 'avl', 'heap', 'chaining', 'probing'];
+  const algorithms = STRUCTURE_ALGORITHMS;
   const presets: StructurePreset[] = ['example', 'random', 'ascending'];
   const sizes: StructureSize[] = ['small', 'medium', 'large'];
   for (const algorithm of algorithms)
@@ -152,7 +149,8 @@ const backtrackingRuns = function* () {
 };
 
 const fourierRuns = function* () {
-  const shapes: FourierShape[] = ['heart', 'star', 'infinity', 'square', 'crux', 'orion', 'dipper', 'cassiopeia', 'aleph', 'butterfly', 'fish', 'cat', 'note'];
+  // Every drawing but the learner's own, which has no sentences of its own to check.
+  const shapes = FOURIER_SHAPES.filter((shape) => shape !== 'custom');
   const waves = (['square', 'sawtooth', 'triangle'] as const).flatMap((algorithm) =>
     circleOptions.wave.map((circles) => ({ run: `fourier ${algorithm} ${circles}`, fourier: new FourierRun(algorithm, circles, 'heart', null) }))
   );

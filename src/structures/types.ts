@@ -4,7 +4,9 @@
  * frame by frame, so playback can go back and forth through all of it.
  */
 
-export type StructureAlgorithm = "bst" | "avl" | "heap" | "chaining" | "probing";
+/** Every data structure, in the picker's order. */
+export const STRUCTURE_ALGORITHMS = ["bst", "avl", "heap", "chaining", "probing"] as const;
+export type StructureAlgorithm = (typeof STRUCTURE_ALGORITHMS)[number];
 /** The two search trees: the ones that race. */
 export type TreeAlgorithm = "bst" | "avl";
 export const isHashTable = (a: StructureAlgorithm): a is "chaining" | "probing" => a === "chaining" || a === "probing";

@@ -1,4 +1,4 @@
-import { sortAlgorithms } from "./algorithms";
+import { SORT_ALGORITHMS } from "./algorithms";
 import type { View } from "./appStore";
 import { isOneOf } from "./modules/link";
 import { slices, type ModuleId, type SliceLink } from "./modules/engine";
@@ -34,7 +34,7 @@ const readLegacy = (params: URLSearchParams): { algorithm?: Algorithm; view?: Vi
   const algorithm = params.get("algo");
   const view = params.get("view");
   return {
-    ...(isOneOf(Object.keys(sortAlgorithms) as Algorithm[], algorithm) && { algorithm }),
+    ...(isOneOf(SORT_ALGORITHMS, algorithm) && { algorithm }),
     ...((view === "single" || view === "race") && { view }),
   };
 };
