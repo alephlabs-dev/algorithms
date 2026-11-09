@@ -1,11 +1,10 @@
 import { FOURIER_SHAPES, type FourierShape } from "@/fourier/types";
-import type { SpeedPreset } from "@/utils/speed";
-import { isOneOf, isPacked, speedParam, toQuery } from "./link";
+import { isOneOf, isPacked, speedParam, toQuery, type LinkCodec } from "./link";
 
 /** A Fourier run as a link carries it: how many circles, and which drawing (a hand-drawn one packed in `path`). */
 export type FourierLink = { circles?: number; shape?: FourierShape; path?: string };
 
-export const fourierLink = {
+export const fourierLink: LinkCodec<FourierLink> = {
   read: (params: URLSearchParams): FourierLink => {
     const link: FourierLink = {};
     const circles = Number(params.get("circles"));
@@ -16,9 +15,9 @@ export const fourierLink = {
     if (isPacked(path)) link.path = path;
     return link;
   },
-  write: (link: FourierLink & { circles: number }, speed: SpeedPreset) =>
+  write: (link, speed) =>
     toQuery({
-      circles: String(link.circles),
+      circles: link.circles?.toString(),
       ...(link.shape && { shape: link.shape }),
       ...(link.path && { path: link.path }),
       ...speedParam(speed),

@@ -1,11 +1,10 @@
 import { structurePresets, structureSizes, type StructurePreset, type StructureSize } from "@/structures/presets";
-import type { SpeedPreset } from "@/utils/speed";
-import { isOneOf, speedParam, toQuery } from "./link";
+import { isOneOf, speedParam, toQuery, type LinkCodec } from "./link";
 
 /** A data structure's run as a link carries it: the operations so far, and what "new values" makes. */
 export type StructuresLink = { ops?: string; size?: StructureSize; preset?: StructurePreset };
 
-export const structuresLink = {
+export const structuresLink: LinkCodec<StructuresLink> = {
   read: (params: URLSearchParams): StructuresLink => {
     const link: StructuresLink = {};
     const ops = params.get("ops");
@@ -16,6 +15,6 @@ export const structuresLink = {
     if (isOneOf(structurePresets, preset)) link.preset = preset;
     return link;
   },
-  write: (link: Required<StructuresLink>, speed: SpeedPreset) =>
+  write: (link, speed) =>
     toQuery({ ops: link.ops, values: link.size, order: link.preset, ...speedParam(speed) }),
 };

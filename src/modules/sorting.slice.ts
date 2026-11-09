@@ -75,7 +75,7 @@ export const sortingSlice = defineModule<SortingState, Algorithm, SortingLink>()
   // The first module's key, from before every module had a tour.
   tourKey: "tour-done",
 
-  readLink: sortingLink.read,
+  link: sortingLink,
   hydrate: (link, ctx) => {
     const displayMode = link.params.displayMode ?? "bars";
     const size = Math.min(link.params.size ?? (ctx.isMobile ? 20 : 40), maxSizeFor(displayMode, ctx.isMobile));

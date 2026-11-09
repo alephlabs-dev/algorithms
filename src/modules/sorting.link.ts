@@ -3,8 +3,7 @@ import { displayModes } from "@/consts/displayModes";
 import { inputOrders } from "@/consts/inputOrders";
 import { sizes } from "@/consts/sizesMap";
 import type { Algorithm, DisplayMode, InputOrder, Size } from "@/types";
-import type { SpeedPreset } from "@/utils/speed";
-import { isOneOf, readRacers, speedParam, toQuery } from "./link";
+import { isOneOf, readRacers, speedParam, toQuery, type LinkCodec } from "./link";
 
 /** A sorting run as a link carries it. With the seed, a link reproduces the exact same array. */
 export type SortingLink = {
@@ -16,7 +15,7 @@ export type SortingLink = {
   racers?: Algorithm[];
 };
 
-export const sortingLink = {
+export const sortingLink: LinkCodec<SortingLink> = {
   read: (params: URLSearchParams): SortingLink => {
     const link: SortingLink = {};
     const size = Number(params.get("size"));
@@ -31,13 +30,13 @@ export const sortingLink = {
     if (racers) link.racers = racers;
     return link;
   },
-  write: (link: Required<SortingLink>, speed: SpeedPreset) =>
+  write: (link, speed) =>
     toQuery({
-      size: String(link.size),
+      size: link.size?.toString(),
       input: link.inputOrder,
       mode: link.displayMode,
       ...speedParam(speed),
-      seed: link.seed.toString(36),
-      race: link.racers.join(","),
+      seed: link.seed?.toString(36),
+      race: link.racers?.join(","),
     }),
 };

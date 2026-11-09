@@ -1,3 +1,4 @@
+import type { LinkCodec } from "./link";
 import type { View } from "@/appStore";
 import type { Question } from "@/game";
 import type { Pace, SpeedPreset } from "@/utils/speed";
@@ -33,14 +34,14 @@ type Action<S> = (slice: S, ctx: SliceContext, ...args: never[]) => Patch<S>;
 export type ModuleSlice<
   S,
   Id extends string,
-  P,
+  P extends object,
   A extends Record<string, Action<S>>,
   B extends Record<string, Action<S>> = Record<never, never>,
 > = {
   /** Remembers that the module's tour was seen (in localStorage). */
   tourKey: string;
-  /** Reads the module's own params from a link's query; anything missing or malformed is left out. */
-  readLink: (params: URLSearchParams) => P;
+  /** Reads and writes the module's own params in a link (see ./link.ts). */
+  link: LinkCodec<P>;
   /** The slice a visit starts with, from the link (checked against the module's state, with defaults) and the screen. */
   hydrate: (link: Link<P, Id>, ctx: SliceContext) => S;
   /** The algorithm on stage (in backtracking, the problem). */
@@ -75,7 +76,7 @@ export type ModuleSlice<
     stepWeight: (slice: S, index: number) => number;
     /** Which target pace 1× is tuned to (see utils/speed). */
     pace: (view: View) => Pace;
-    /** The query string that reproduces the run, written by the module's codec (the reverse of `readLink`). */
+    /** The query string that reproduces the run, written with `link.write`. */
     search: (slice: S, ctx: SliceContext) => string;
     /** Guess mode: the questions for the run on stage, in frame order. Without it, the module has no guess mode. */
     game?: (slice: S) => Question[];
@@ -86,7 +87,7 @@ export type ModuleSlice<
 
 /** Declares a module's slice: `defineModule<State, AlgorithmId, LinkParams>()({ ... })`. */
 export const defineModule =
-  <S, Id extends string, P>() =>
+  <S, Id extends string, P extends object>() =>
   <A extends Record<string, Action<S>>, B extends Record<string, Action<S>> = Record<never, never>>(
     slice: ModuleSlice<S, Id, P, A, B>,
   ) =>

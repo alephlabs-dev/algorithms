@@ -1,6 +1,6 @@
 import { SORT_ALGORITHMS } from "./algorithms";
 import type { View } from "./appStore";
-import { isOneOf } from "./modules/link";
+import { isOneOf, type LinkCodec } from "./modules/link";
 import { slices, type ModuleId, type SliceLink } from "./modules/engine";
 import type { Link } from "./modules/slice";
 import { routeFromPath } from "./routes";
@@ -51,14 +51,14 @@ export const readLocation = (pathname: string, search: string): UrlLocation => {
   const algorithm = page?.page === "algorithm" ? page.algorithm : sorting ? legacy.algorithm : undefined;
   const view = page?.page === "race" ? "race" : page?.page === "algorithm" || !sorting ? "single" : legacy.view;
   const speed = readSpeed(params);
-  const readLink = slices[module].readLink as (params: URLSearchParams) => object;
+  const { read } = slices[module].link as LinkCodec<object>;
   return {
     isLanding: !page && legacy.algorithm === undefined && legacy.view === undefined,
     isModuleStart: page?.page === "start",
     module,
     ...(view && { view }),
     ...(speed && { speed }),
-    link: { ...(algorithm && { algorithm }), params: readLink(params) },
+    link: { ...(algorithm && { algorithm }), params: read(params) },
   };
 };
 

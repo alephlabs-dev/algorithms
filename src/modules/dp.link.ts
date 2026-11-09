@@ -1,11 +1,10 @@
 import { isWord } from "@/dp/presets";
-import type { SpeedPreset } from "@/utils/speed";
-import { speedParam, toQuery } from "./link";
+import { speedParam, toQuery, type LinkCodec } from "./link";
 
 /** A dynamic programming run as a link carries it: the two words, or the knapsack's items and capacity. */
 export type DpLink = { a?: string; b?: string; items?: string; capacity?: number };
 
-export const dpLink = {
+export const dpLink: LinkCodec<DpLink> = {
   read: (params: URLSearchParams): DpLink => {
     const link: DpLink = {};
     const a = params.get("a")?.normalize("NFC").toUpperCase();
@@ -18,7 +17,7 @@ export const dpLink = {
     if (Number.isInteger(capacity) && capacity >= 1 && capacity <= 12) link.capacity = capacity;
     return link;
   },
-  write: (link: DpLink, speed: SpeedPreset) =>
+  write: (link, speed) =>
     toQuery({
       ...(link.a && { a: link.a }),
       ...(link.b && { b: link.b }),

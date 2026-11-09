@@ -1,8 +1,7 @@
 import { gridSizes, type GridSize } from "@/pathfinding/grid";
 import { PATH_ALGORITHMS } from "@/pathfinding/searches";
 import type { PathAlgorithm } from "@/pathfinding/types";
-import type { SpeedPreset } from "@/utils/speed";
-import { isOneOf, isPacked, readRacers, speedParam, toQuery } from "./link";
+import { isOneOf, isPacked, readRacers, speedParam, toQuery, type LinkCodec } from "./link";
 
 /** A pathfinding grid as a link carries it. Cells are checked against the size when the slice hydrates. */
 export type PathfindingLink = {
@@ -15,7 +14,7 @@ export type PathfindingLink = {
   racers?: PathAlgorithm[];
 };
 
-export const pathfindingLink = {
+export const pathfindingLink: LinkCodec<PathfindingLink> = {
   read: (params: URLSearchParams): PathfindingLink => {
     const link: PathfindingLink = {};
     const gridSize = params.get("grid");
@@ -30,13 +29,13 @@ export const pathfindingLink = {
     if (racers) link.racers = racers;
     return link;
   },
-  write: (link: Required<PathfindingLink>, speed: SpeedPreset) =>
+  write: (link, speed) =>
     toQuery({
       grid: link.gridSize,
       cells: link.cells,
-      from: link.start.toString(36),
-      to: link.end.toString(36),
-      race: link.racers.join(","),
+      from: link.start?.toString(36),
+      to: link.end?.toString(36),
+      race: link.racers?.join(","),
       ...speedParam(speed),
     }),
 };

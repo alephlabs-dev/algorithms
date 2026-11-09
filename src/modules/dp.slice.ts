@@ -58,7 +58,7 @@ const STEP_WEIGHT: Record<DpEvent["type"], number> = {
 export const dpSlice = defineModule<DpState, DpAlgorithm, DpLink>()({
   tourKey: "tour-done-dp",
 
-  readLink: dpLink.read,
+  link: dpLink,
   hydrate: (link, ctx) => {
     // The race opens on its own example, big enough for plain recursion to show its repeats.
     const race = ctx.view === "race";

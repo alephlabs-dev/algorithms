@@ -48,7 +48,7 @@ const sudokuRunOf = (puzzle: SudokuPuzzle, order: FillOrder) => new SudokuRun(SU
 export const backtrackingSlice = defineModule<BacktrackingState, BacktrackingProblem, BacktrackingLink>()({
   tourKey: "tour-done-backtracking",
 
-  readLink: backtrackingLink.read,
+  link: backtrackingLink,
   hydrate: (link) => {
     const queensN = link.params.n ?? DEFAULT_QUEENS;
     const sudokuPuzzle = link.params.puzzle ?? "easy";

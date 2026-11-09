@@ -1,14 +1,13 @@
 import { SUDOKU_PUZZLES } from "@/backtracking/sudoku";
 import { MAX_QUEENS, MIN_QUEENS, type FillOrder, type SudokuPuzzle } from "@/backtracking/types";
-import type { SpeedPreset } from "@/utils/speed";
-import { isOneOf, speedParam, toQuery } from "./link";
+import { isOneOf, speedParam, toQuery, type LinkCodec } from "./link";
 
 /** A backtracking run as a link carries it: the board size (N-Queens) or the puzzle and fill order (Sudoku). */
 export type BacktrackingLink = { n?: number; puzzle?: SudokuPuzzle; order?: FillOrder };
 
 const PUZZLES = Object.keys(SUDOKU_PUZZLES) as SudokuPuzzle[];
 
-export const backtrackingLink = {
+export const backtrackingLink: LinkCodec<BacktrackingLink> = {
   read: (params: URLSearchParams): BacktrackingLink => {
     const link: BacktrackingLink = {};
     const n = Number(params.get("n"));
@@ -18,7 +17,7 @@ export const backtrackingLink = {
     if (params.get("order") === "mrv") link.order = "mrv";
     return link;
   },
-  write: (link: BacktrackingLink, speed: SpeedPreset) =>
+  write: (link, speed) =>
     toQuery({
       ...(link.n !== undefined && { n: String(link.n) }),
       ...(link.puzzle && { puzzle: link.puzzle }),

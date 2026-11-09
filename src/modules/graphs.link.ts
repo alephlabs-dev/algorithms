@@ -1,7 +1,6 @@
 import { graphPresets, graphSizes, type GraphPreset, type GraphSize } from "@/graphs/graph";
 import { GRAPH_ALGORITHMS, type GraphAlgorithm } from "@/graphs/types";
-import type { SpeedPreset } from "@/utils/speed";
-import { isOneOf, isPacked, readRacers, speedParam, toQuery } from "./link";
+import { isOneOf, isPacked, readRacers, speedParam, toQuery, type LinkCodec } from "./link";
 
 /** A graph as a link carries it: the graph itself, plus the size and kind "new layout" makes. */
 export type GraphsLink = {
@@ -13,7 +12,7 @@ export type GraphsLink = {
   racers?: GraphAlgorithm[];
 };
 
-export const graphsLink = {
+export const graphsLink: LinkCodec<GraphsLink> = {
   read: (params: URLSearchParams): GraphsLink => {
     const link: GraphsLink = {};
     const graph = params.get("graph");
@@ -26,12 +25,12 @@ export const graphsLink = {
     if (racers) link.racers = racers;
     return link;
   },
-  write: (link: Required<GraphsLink>, speed: SpeedPreset) =>
+  write: (link, speed) =>
     toQuery({
       graph: link.graph,
       nodes: link.size,
       layout: link.preset,
-      race: link.racers.join(","),
+      race: link.racers?.join(","),
       ...speedParam(speed),
     }),
 };

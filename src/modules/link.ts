@@ -1,7 +1,18 @@
 import { DEFAULT_PRESET, type SpeedPreset } from "@/utils/speed";
 import { MAX_RACERS, MIN_RACERS } from "./slice";
 
-/** Helpers every module's link codec shares (see ./<id>.link.ts). */
+/**
+ * A module's link codec (./<id>.link.ts), the one place its params are read and written.
+ * `read` takes the params from a query, leaving out anything missing or malformed;
+ * `write` puts the same params back (the speed is shared, so it's passed in). Both
+ * sides use the same type, so they can't drift apart.
+ */
+export type LinkCodec<P extends object> = {
+  read: (params: URLSearchParams) => P;
+  write: (link: P, speed: SpeedPreset) => string;
+};
+
+/* Helpers every codec shares. */
 
 export const isOneOf = <T extends string | number>(options: readonly T[], value: unknown): value is T =>
   options.includes(value as T);

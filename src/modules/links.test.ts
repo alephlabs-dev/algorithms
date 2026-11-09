@@ -8,6 +8,8 @@ import { describe, expect, it } from "vitest";
 import { createAppStore, type StoreState } from "@/appStore";
 import { searchFor } from "@/navigation";
 import { readLocation } from "@/urlState";
+import { moduleOf, modulePages, routeFromPath } from "@/routes";
+import { MODULES, type ModuleId } from "./engine";
 
 // A phone held upright: the size every captured link was made on.
 const open = (path: string, query = "") =>
@@ -16,17 +18,59 @@ const open = (path: string, query = "") =>
 /** Opens a link and writes the link back from the state it opened. */
 const reopened = (path: string, query: string) => searchFor(open(path, query));
 
-const roundTrips = (path: string, query: string) => expect(reopened(path, query)).toBe(query);
-
 /** The state a page opens on without a query, to compare fallbacks with. */
 const defaults = (path: string): StoreState => open(path);
 
-describe("sorting link", () => {
-  it("round-trips a full link", () => {
-    roundTrips("/sorting/heap-sort", "?size=20&input=reversed&mode=bars&speed=2x&seed=1lka0qk&race=shell%2Cquick%2Cheap");
-    roundTrips("/sorting/race", "?size=10&input=fewUnique&mode=bars&seed=35afkg&race=insertion%2Cmerge");
-  });
+/**
+ * Full links each module writes, as the app wrote them before #128: an algorithm page,
+ * and the race if the module has one. A module in the registry without them fails below.
+ */
+const ROUND_TRIPS: Partial<Record<ModuleId, [path: string, query: string][]>> = {
+  sorting: [
+    ["/sorting/heap-sort", "?size=20&input=reversed&mode=bars&speed=2x&seed=1lka0qk&race=shell%2Cquick%2Cheap"],
+    ["/sorting/race", "?size=10&input=fewUnique&mode=bars&seed=35afkg&race=insertion%2Cmerge"],
+  ],
+  pathfinding: [
+    ["/pathfinding/a-star", "?grid=small&cells=VVVVBAAUERUFREAVEVVERBQVEQUAQBVVUQAEFFFRRQBAVVUV&from=1v&to=23&race=bfs%2Castar%2Cgreedy&speed=2x"],
+    ["/pathfinding/race", "?grid=small&cells=VVVVBAAUERUFREAVEVVERBQVEQUAQBVVUQAEFFFRRQBAVVUV&from=1v&to=23&race=bfs%2Castar%2Cgreedy&speed=2x"],
+  ],
+  graphs: [
+    ["/graphs/depth-first-search", "?graph=AloGAABCW1G2gj67j9M66NMJAAIHBAIHBQMFBAMDAAEHAwIBAQMFAQIDAQUD&nodes=small&layout=random&race=dfs%2Ckruskal&speed=2x"],
+    ["/graphs/race", "?graph=AloGAABCW1G2gj67j9M66NMJAAIHBAIHBQMFBAMDAAEHAwIBAQMFAQIDAQUD&nodes=small&layout=random&race=dfs%2Ckruskal&speed=2x"],
+  ],
+  fourier: [
+    ["/fourier/epicycles", "?circles=25&shape=star&speed=2x"],
+    ["/fourier/square-wave", "?circles=10"],
+  ],
+  structures: [
+    ["/structures/avl-tree", "?ops=i50.i30.i20.i70.i80.i75.i40&values=large&order=ascending&speed=2x"],
+    ["/structures/race", "?ops=i50.i30.i20.i70.i80.i75.i40&values=small&order=example"],
+  ],
+  dp: [
+    ["/dynamic-programming/edit-distance", "?a=A%C3%91O&b=CA%C3%91%C3%93N&speed=2x"],
+    ["/dynamic-programming/knapsack", "?items=1x1.3x4.4x5.5x7&cap=7&speed=2x"],
+    ["/dynamic-programming/race", "?items=1x1.2x3.3x4&cap=5"],
+  ],
+  backtracking: [
+    ["/backtracking/n-queens", "?n=7&speed=2x"],
+    ["/backtracking/sudoku", "?puzzle=hard&order=mrv"],
+    // Row by row is the default and stays out of the link.
+    ["/backtracking/sudoku", "?puzzle=hard"],
+  ],
+};
 
+describe.each(MODULES)("%s link", (module) => {
+  it("round-trips a full link of every page kind it writes", () => {
+    const links = ROUND_TRIPS[module];
+    expect(links, `${module} needs round-trip links in ROUND_TRIPS`).toBeDefined();
+    const pages = new Set(links!.map(([path]) => routeFromPath(path)).map((route) => moduleOf(route!) === module && route!.page));
+    expect(pages.has("algorithm"), `${module} needs an algorithm page in ROUND_TRIPS`).toBe(true);
+    expect(pages.has("race"), `${module} needs its race page in ROUND_TRIPS`).toBe(modulePages[module].race);
+    for (const [path, query] of links!) expect(reopened(path, query), path + query).toBe(query);
+  });
+});
+
+describe("sorting link", () => {
   it("falls back to the defaults on values it doesn't have", () => {
     const s = open("/sorting/heap-sort", "?size=37&input=shuffled&mode=dots&speed=4&seed=-1&race=quick");
     const d = defaults("/sorting/heap-sort");
@@ -45,14 +89,6 @@ describe("sorting link", () => {
 });
 
 describe("pathfinding link", () => {
-  const grid =
-    "?grid=small&cells=VVVVBAAUERUFREAVEVVERBQVEQUAQBVVUQAEFFFRRQBAVVUV&from=1v&to=23&race=bfs%2Castar%2Cgreedy&speed=2x";
-
-  it("round-trips a full link", () => {
-    roundTrips("/pathfinding/a-star", grid);
-    roundTrips("/pathfinding/race", grid);
-  });
-
   it("falls back to the defaults on values it doesn't have", () => {
     const s = open("/pathfinding/a-star", "?grid=huge&cells=***&from=-1&to=zz&race=bfs");
     const d = defaults("/pathfinding/a-star");
@@ -70,14 +106,6 @@ describe("pathfinding link", () => {
 });
 
 describe("graphs link", () => {
-  const graph =
-    "?graph=AloGAABCW1G2gj67j9M66NMJAAIHBAIHBQMFBAMDAAEHAwIBAQMFAQIDAQUD&nodes=small&layout=random&race=dfs%2Ckruskal&speed=2x";
-
-  it("round-trips a full link", () => {
-    roundTrips("/graphs/depth-first-search", graph);
-    roundTrips("/graphs/race", graph);
-  });
-
   it("falls back to the defaults on values it doesn't have", () => {
     const s = open("/graphs/prim", "?graph=***&nodes=huge&layout=star&race=prim");
     const d = defaults("/graphs/prim");
@@ -95,11 +123,6 @@ describe("graphs link", () => {
 });
 
 describe("fourier link", () => {
-  it("round-trips a full link", () => {
-    roundTrips("/fourier/epicycles", "?circles=25&shape=star&speed=2x");
-    roundTrips("/fourier/square-wave", "?circles=10");
-  });
-
   it("falls back to the defaults on values it doesn't have", () => {
     const s = open("/fourier/epicycles", "?circles=999&shape=moon&path=***");
     const d = defaults("/fourier/epicycles");
@@ -108,11 +131,6 @@ describe("fourier link", () => {
 });
 
 describe("structures link", () => {
-  it("round-trips a full link", () => {
-    roundTrips("/structures/avl-tree", "?ops=i50.i30.i20.i70.i80.i75.i40&values=large&order=ascending&speed=2x");
-    roundTrips("/structures/race", "?ops=i50.i30.i20.i70.i80.i75.i40&values=small&order=example");
-  });
-
   it("falls back to the defaults on values it doesn't have", () => {
     const s = open("/structures/avl-tree", "?ops=x1&values=huge&order=shuffled");
     expect(s.structures).toMatchObject({ size: defaults("/structures/avl-tree").structures.size, preset: "example" });
@@ -120,12 +138,6 @@ describe("structures link", () => {
 });
 
 describe("dynamic programming link", () => {
-  it("round-trips a full link, with Ñ and accents", () => {
-    roundTrips("/dynamic-programming/edit-distance", "?a=A%C3%91O&b=CA%C3%91%C3%93N&speed=2x");
-    roundTrips("/dynamic-programming/knapsack", "?items=1x1.3x4.4x5.5x7&cap=7&speed=2x");
-    roundTrips("/dynamic-programming/race", "?items=1x1.2x3.3x4&cap=5");
-  });
-
   it("reads words in any case and falls back on words it can't use", () => {
     expect(open("/dynamic-programming/edit-distance", "?a=a%C3%B1o").dp.a).toBe("AÑO");
     const s = open("/dynamic-programming/knapsack", "?a=A1&items=***&cap=99");
@@ -135,13 +147,6 @@ describe("dynamic programming link", () => {
 });
 
 describe("backtracking link", () => {
-  it("round-trips a full link", () => {
-    roundTrips("/backtracking/n-queens", "?n=7&speed=2x");
-    roundTrips("/backtracking/sudoku", "?puzzle=hard&order=mrv");
-    // Row by row is the default and stays out of the link.
-    roundTrips("/backtracking/sudoku", "?puzzle=hard");
-  });
-
   it("falls back to the defaults on values it doesn't have", () => {
     const d = defaults("/backtracking/n-queens").backtracking;
     expect(open("/backtracking/n-queens", "?n=3").backtracking.queensN).toBe(d.queensN);

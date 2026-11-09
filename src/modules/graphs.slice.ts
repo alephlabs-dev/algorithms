@@ -62,7 +62,7 @@ const fresh = (s: GraphsState, ctx: SliceContext, preset: GraphPreset, requested
 export const graphsSlice = defineModule<GraphsState, GraphAlgorithm, GraphsLink>()({
   tourKey: "tour-done-graphs",
 
-  readLink: graphsLink.read,
+  link: graphsLink,
   hydrate: (link, ctx) => {
     const algorithm = link.algorithm ?? "bfs";
     const size = fitSize(link.params.size ?? "medium", ctx.view, ctx.isMobile);

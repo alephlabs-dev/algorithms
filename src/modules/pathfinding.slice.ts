@@ -130,7 +130,7 @@ const withPreset = (s: PathfindingState, ctx: SliceContext, gridPreset: Preset) 
 export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, PathfindingLink>()({
   tourKey: "tour-done-pathfinding",
 
-  readLink: pathfindingLink.read,
+  link: pathfindingLink,
   hydrate: (link, ctx) => {
     const algorithm = link.algorithm ?? "astar";
     const gridSize = fitGridSize(link.params.gridSize ?? (ctx.isMobile ? "small" : "medium"), ctx.view, ctx.isMobile);

@@ -36,7 +36,7 @@ const runOf = (s: Pick<FourierState, "algorithm" | "circles" | "shape" | "path">
 export const fourierSlice = defineModule<FourierState, FourierAlgorithm, FourierLink>()({
   tourKey: "tour-done-fourier",
 
-  readLink: fourierLink.read,
+  link: fourierLink,
   hydrate: (link) => {
     const algorithm = link.algorithm ?? "square";
     const settings = {
