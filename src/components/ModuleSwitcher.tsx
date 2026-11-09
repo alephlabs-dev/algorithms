@@ -1,3 +1,4 @@
+import { HOME } from "@/routes";
 import { ArrowLeftIcon, ChevronDownIcon } from "@radix-ui/react-icons";
 import * as Popover from "@radix-ui/react-popover";
 import { useState } from "react";
@@ -64,7 +65,7 @@ const ModuleList = ({ onPick }: { onPick: () => void }) => {
       <ListItem
         selected={false}
         onClick={() => {
-          navigate({ page: "home" });
+          navigate(HOME);
           onPick();
         }}
       >
@@ -87,7 +88,7 @@ export const ModuleMenu = ({ className }: { className?: string }) => {
         type="button"
         aria-label={text.allModules}
         title={text.allModules}
-        onClick={() => navigate({ page: "home" })}
+        onClick={() => navigate(HOME)}
         className={logoClass}
       >
         <AlephMark />

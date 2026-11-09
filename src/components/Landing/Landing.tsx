@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { modules } from "@/consts/modules";
 import { localized } from "@/i18n";
-import type { Route } from "@/routes";
+import { HOME, type Route } from "@/routes";
 import { cn } from "@/utils/cn";
 import { PageLink } from "../PageLink";
 import { HeroDemo } from "./HeroDemo";
@@ -94,7 +94,7 @@ export const Landing = ({ onNavigate, actions }: Props) => {
     <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-24 px-4 pb-16 text-foreground md:px-8 lg:gap-32">
       <header className="flex flex-wrap items-center justify-between gap-2 pt-5 sm:gap-4 md:pt-7">
         <PageLink
-          to={{ page: "home" }}
+          to={HOME}
           onNavigate={onNavigate}
           className="tap-target relative flex items-center gap-2 rounded-full text-base font-semibold sm:gap-2.5 sm:text-lg focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
         >

@@ -61,7 +61,7 @@ export type ModuleSlice<
   fit?: (slice: S, ctx: SliceContext) => Patch<S>;
   /** "New": another input of the same kind. */
   newInput: (slice: S, ctx: SliceContext) => Patch<S>;
-  /** What playback needs: how long a run is and how its steps are paced, and and the link it's on. */
+  /** What playback needs: how long a run is and how its steps are paced, and the query string of its link. */
   engine: {
     /** The last playback position: a frame index in single view, the race clock in race view. */
     lastIndex: (slice: S, view: View) => number;

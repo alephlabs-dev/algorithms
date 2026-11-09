@@ -53,7 +53,7 @@ _Avoid_: Explore, expand
 ### Backtracking
 
 **Problem**:
-A puzzle the backtracking module solves, such as N-Queens or Sudoku. In this module the learner picks a problem, not an algorithm, because the algorithm is always backtracking.
+A puzzle the backtracking module solves, such as N-Queens or Sudoku. In this module the learner picks a problem, not an algorithm, because the algorithm is always backtracking. Code shared by every module still calls it the module's algorithm (a page's `algorithm`, `AlgorithmOf<"backtracking">`).
 _Avoid_: Algorithm, puzzle type
 
 **Given**:

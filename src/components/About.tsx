@@ -17,7 +17,7 @@ import { algorithmGroups } from "@/consts/algorithmGroups";
 import { GRAPH_RACE_DESCRIPTION, PATH_RACE_DESCRIPTION, RACE_DESCRIPTION } from "@/consts/race";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { localized } from "@/i18n";
-import type { AlgorithmOf, ModuleId, RacingModule, Route } from "@/routes";
+import { HOME, type AlgorithmOf, type ModuleId, type RacingModule, type Route } from "@/routes";
 import type { Algorithm } from "@/types";
 import { PageLink } from "./PageLink";
 import { Disclosure } from "./ui/disclosure";
@@ -1172,7 +1172,7 @@ export const About = ({ route, onNavigate }: Props) => (
     <PageArticle route={route} onNavigate={onNavigate} />
     <footer className="border-t border-edge pt-6 text-sm text-foreground/60">
       <PageLink
-        to={{ page: "home" }}
+        to={HOME}
         onNavigate={onNavigate}
         className="tap-target relative underline decoration-line underline-offset-4 hover:text-foreground"
       >

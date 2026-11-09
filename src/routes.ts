@@ -113,6 +113,9 @@ export type AlgorithmOf<M extends ModuleId> = keyof (typeof modulePages)[M]["slu
 /** The modules with a race page. */
 export type RacingModule = { [M in ModuleId]: (typeof modulePages)[M]["race"] extends true ? M : never }[ModuleId];
 
+/** The kinds of page every module has (the race only in some). */
+export type ModulePage = "start" | "algorithm" | "race";
+
 /** A module's pages. */
 export type ModuleRoute<M extends ModuleId = ModuleId> = M extends ModuleId
   ?
@@ -127,7 +130,7 @@ export type Route = { page: "home" } | ModuleRoute;
 export const HOME: Route = { page: "home" };
 
 /** A module's page without checking its algorithm or race against the module; callers that build one generically use it. */
-export const moduleRoute = (module: ModuleId, page: "start" | "algorithm" | "race", algorithm?: string): ModuleRoute =>
+export const moduleRoute = (module: ModuleId, page: ModulePage, algorithm?: string): ModuleRoute =>
   (page === "algorithm" ? { module, page, algorithm } : { module, page }) as ModuleRoute;
 
 export const routePath = (route: Route): string => {
