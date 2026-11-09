@@ -8,6 +8,7 @@ import { gridSizeLabels, presetLabel } from "@/consts/pathLabels";
 import { PATH_RACE_DESCRIPTION } from "@/consts/race";
 import { pathPseudocode, type PathAlgorithm } from "@/pathfinding";
 import { localized } from "@/i18n";
+import { engines } from "@/modules/engine";
 import { selectPathFrame, useStore } from "@/store";
 import { narratePath } from "@/utils/narratePath";
 import { pathfindingTour } from "./tours";
@@ -20,6 +21,7 @@ const text = localized({
     newRun: "New layout",
     tagline: "Same grid, same clock",
     unit: { one: "cell", short: "cells" },
+    smallGrid: "Switch to the small grid",
   },
   es: {
     title: "Búsqueda de caminos",
@@ -27,6 +29,7 @@ const text = localized({
     newRun: "Nueva disposición",
     tagline: "Misma cuadrícula, mismo reloj",
     unit: { one: "celda", short: "celdas" },
+    smallGrid: "Cambiar a la cuadrícula pequeña",
   },
 });
 
@@ -48,6 +51,18 @@ export const pathfindingUI: ModuleUI = {
     return { main: size, detail: layout, label: text.grid(size, layout) };
   },
   newRunLabel: text.newRun,
+  // Cells too small for guess mode's letters: the small grid has the biggest.
+  gameFix: (s) =>
+    s.pathfinding.gridSize === "small" || !engines.pathfinding.gameUnavailable?.(s)
+      ? null
+      : {
+          label: text.smallGrid,
+          apply: () => {
+            const { actions, isGameOn, toggleGame } = useStore.getState();
+            actions.pathfinding.setGridSize("small");
+            if (!isGameOn) toggleGame();
+          },
+        },
 
   algorithms: [
     {

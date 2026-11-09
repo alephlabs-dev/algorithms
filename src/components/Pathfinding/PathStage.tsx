@@ -204,16 +204,18 @@ export const GridCanvas = ({
 };
 
 /**
- * Measures the stage and tells the store how big a cell is with guess mode's panel open,
- * so guess mode only plays where its letters fit. While the panel is closed it's worked
- * out as if open (the stage loses GAME_ROOM to it). While open, the panel can grow a little
- * past GAME_ROOM (feedback over a question): a couple of pixels of slack keep guess mode
+ * Measures the stage and tells the store how big a cell is with guess mode on, so guess
+ * mode only plays where its letters fit. Wider than a phone, guess mode's panel takes
+ * GAME_ROOM from the stage: while it's closed, the size is worked out as if open. Phones
+ * lose nothing (the question takes the dock's place). Either way the panel can grow a little
+ * past what it should take (a long question): a couple of pixels of slack keep guess mode
  * from switching itself off then, which would hide the panel and switch it back on.
  */
 const useReportCellSize = (ref: React.RefObject<HTMLDivElement | null>) => {
   const { width, height } = useElementSize(ref);
-  const { rows, cols, panelOpen, setCellSize } = useStore(
+  const { rows, cols, panelOpen, phone, setCellSize } = useStore(
     useShallow((s) => ({
+      phone: s.isMobile,
       rows: s.pathfinding.grid.rows,
       cols: s.pathfinding.grid.cols,
       panelOpen: s.isGameOn && s.view === "single" && engines.pathfinding.gameUnavailable?.(s) === null,
@@ -222,10 +224,12 @@ const useReportCellSize = (ref: React.RefObject<HTMLDivElement | null>) => {
   );
   useEffect(() => {
     if (width === 0 || height === 0) return;
-    const room = panelOpen ? height : height - GAME_ROOM;
+    const room = panelOpen || phone ? height : height - GAME_ROOM;
     const size = Math.floor(Math.min(width / cols, room / rows)) + (panelOpen ? 2 : 0);
-    if (size !== useStore.getState().pathfinding.cellSize) setCellSize(size);
-  }, [width, height, rows, cols, panelOpen, setCellSize]);
+    const pixelRatio = window.devicePixelRatio || 1;
+    const { cellSize, pixelRatio: known } = useStore.getState().pathfinding;
+    if (size !== cellSize || pixelRatio !== known) setCellSize(size, pixelRatio);
+  }, [width, height, rows, cols, panelOpen, phone, setCellSize]);
 };
 
 /**

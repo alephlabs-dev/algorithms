@@ -43,13 +43,16 @@ export type PathfindingState = {
    * null until the stage has been measured. Guess mode needs room for a letter in a cell.
    */
   cellSize: number | null;
+  /** The screen's device pixels per CSS pixel when the stage was measured: sharp screens read smaller letters. */
+  pixelRatio: number;
 };
 
 /**
- * Guess mode marks cells with letters, readable from this many pixels a cell (a bold 11px
- * letter on a badge). The buttons under the stage are the main way to answer; tapping a cell is a bonus.
+ * Guess mode marks cells with letters (bold, at least 11px, on a badge), readable from this
+ * many CSS pixels a cell: 14 on sharp screens (2× and up), 16 on others. The buttons under
+ * the stage are the main way to answer; tapping a cell is a bonus.
  */
-export const GUESS_MIN_CELL = 16;
+export const guessMinCell = (pixelRatio: number) => (pixelRatio >= 2 ? 14 : 16);
 
 const guessText = localized({
   en: {
@@ -64,7 +67,7 @@ const guessText = localized({
 
 /** Why guess mode can't play: its letters don't fit in cells this small. Null when they do, or before measuring. */
 const cellsTooSmall = (s: PathfindingState) => {
-  if (s.cellSize === null || s.cellSize >= GUESS_MIN_CELL) return null;
+  if (s.cellSize === null || s.cellSize >= guessMinCell(s.pixelRatio)) return null;
   return s.gridSize === gridSizes[0] ? guessText.screenTooSmall : guessText.pickSmaller;
 };
 
@@ -143,6 +146,7 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm>()(
       raceRuns: raceRunsFor(ctx.view, racers, grid),
       inputId: 0,
       cellSize: null,
+      pixelRatio: 1,
     };
   },
 
@@ -165,7 +169,10 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm>()(
   settings: {
     setBrush: (_s: PathfindingState, _: SliceContext, brush: Brush) => ({ brush }),
     /** The stage reports its cell size whenever it changes, so guess mode knows whether letters fit. */
-    setCellSize: (_s: PathfindingState, _: SliceContext, cellSize: number) => ({ cellSize }),
+    setCellSize: (_s: PathfindingState, _: SliceContext, cellSize: number, pixelRatio: number) => ({
+      cellSize,
+      pixelRatio,
+    }),
   },
 
   addRacer: (s, racer) => ({ racers: withRacer(ORDER, s.racers, racer) }),
