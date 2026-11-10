@@ -1,6 +1,6 @@
 import { itemName, type KnapsackWork } from "@/dp";
-import { css, inkOn, structurePalette } from "./structurePaint";
-import { mix, readColors, type RGB } from "./theme";
+import { structurePalette } from "./structurePaint";
+import { css, inkOn, mix, readColors, type RGB } from "./theme";
 
 export type DpWorkInput = { work: KnapsackWork; clock: number };
 

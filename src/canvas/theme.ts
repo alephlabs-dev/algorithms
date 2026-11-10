@@ -72,3 +72,15 @@ export const mix = (a: RGB, b: RGB, t: number): RGB => [
 /** The floor and walls of a grid, shared by pathfinding and mazes so a maze looks the same in both. */
 export const gridFloor = (colors: CanvasColors): RGB => mix(hexToRgb(colors.background), hexToRgb(colors.edge), 0.55);
 export const gridWall = (colors: CanvasColors): RGB => mix(hexToRgb(colors.background), hexToRgb(colors.bar), 0.55);
+
+/** An RGB as a CSS color; channels truncated. */
+export const css = (c: RGB, alpha = 1) => `rgb(${c[0] | 0} ${c[1] | 0} ${c[2] | 0} / ${alpha})`;
+
+/** A quick lightness, 0 for black to 1 for white (no gamma correction). */
+export const luminance = (c: RGB) => (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255;
+
+/** Text color that reads on `fill`: the ink or the background, whichever contrasts more. */
+export const inkOn = (fill: RGB, p: { ink: RGB; background: RGB }) =>
+  Math.abs(luminance(fill) - luminance(p.ink)) > Math.abs(luminance(fill) - luminance(p.background))
+    ? p.ink
+    : p.background;

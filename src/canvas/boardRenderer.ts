@@ -41,7 +41,7 @@ export type BoardInput = {
   box?: number;
 };
 
-// Rounds each channel (structurePaint's css truncates), so its colors can differ by 1: keep it separate.
+// Rounds each channel (theme.ts's css truncates), so its colors can differ by 1: keep it separate.
 const css = ([r, g, b]: RGB, alpha = 1) => `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${alpha})`;
 
 /**

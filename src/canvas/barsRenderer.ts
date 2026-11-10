@@ -62,7 +62,7 @@ const MIN_HOP_DURATION = 0.08; // below this, moves are too quick for an arc to 
 const LABEL_SIZES = [12, 10];
 const labelFont = (px: number) => `600 ${px}px "JetBrains Mono Variable", ui-monospace, monospace`;
 
-// Relative luminance (WCAG), 0 for black to 1 for white. Gamma-corrected, unlike structurePaint's
+// Relative luminance (WCAG), 0 for black to 1 for white. Gamma-corrected, unlike theme.ts's
 // luminance, and the label thresholds are tuned to it: keep it separate.
 const luminance = (rgb: RGB) => {
   const [r, g, b] = rgb.map((c) => {
