@@ -19,7 +19,13 @@ type MazeAlgorithmText = {
 
 type MazeAlgorithmDetails = MazeAlgorithmText & { named: string; timeComplexity: string };
 
-const timeComplexity: Record<MazeAlgorithm, string> = { dfs: "O(n)", prim: "O(n)", kruskal: "O(n α(n))" };
+// Wilson: the expected length of its walks on a grid, which is random.
+const timeComplexity: Record<MazeAlgorithm, string> = {
+  dfs: "O(n)",
+  prim: "O(n)",
+  kruskal: "O(n α(n))",
+  wilson: "O(n log n)",
+};
 
 const text = localized<Record<MazeAlgorithm, MazeAlgorithmText>>({
   en: {
@@ -55,6 +61,17 @@ const text = localized<Record<MazeAlgorithm, MazeAlgorithmText>>({
       structure: "Union-find (disjoint sets)",
       texture: "Many dead-end cells, no direction",
     },
+    wilson: {
+      title: "Wilson's Algorithm",
+      named: "Wilson's algorithm",
+      short: "Wilson",
+      shortDescription:
+        "Walks at random from a cell outside the maze until it reaches the maze, erasing every loop on the way, then carves the whole walk in. Slow at first, fast at the end; no bias.",
+      longDescription:
+        "Wilson's algorithm builds the maze out of loop-erased random walks. It puts one random cell in the maze. Then, from a random cell outside the maze, it walks at random, one neighbour at a time, until it steps into the maze. Whenever the walk steps onto a cell it has already passed, it has made a loop, and the loop is erased: the walk goes back to how it was when it first reached that cell. When the walk reaches the maze it has no loops, so all of it is carved in at once, a new branch joined through one wall. This repeats until every cell is in the maze. The first walk is slow, because it wanders looking for a maze of one cell; every walk after that has a bigger maze to find, so they get shorter and shorter. Unlike depth-first search and Prim, it has no bias: every perfect maze of the grid is equally likely, so its texture sits between theirs. The walks are random, so its time is too: on a grid they take O(n log n) steps on average for n cells, and the walk can hold O(n) cells.",
+      structure: "A random walk (loops erased)",
+      texture: "No bias: every perfect maze equally likely",
+    },
   },
   es: {
     dfs: {
@@ -89,6 +106,17 @@ const text = localized<Record<MazeAlgorithm, MazeAlgorithmText>>({
         "El algoritmo de Kruskal aleatorio es el algoritmo de Kruskal para el árbol generador mínimo con las paredes mezcladas en lugar de ordenadas por peso. Empieza con todas las celdas excavadas pero aisladas, cada una en su propia región. Luego recorre las paredes entre celdas en ese orden al azar. Si las dos celdas a los lados de una pared están en regiones distintas, excava la pared y las dos regiones se unen en una. Si ya están en la misma región, ya hay un camino entre ellas, así que excavar la pared cerraría un ciclo: la omite. Cuando todas las celdas están en una sola región, hay exactamente un camino entre dos celdas cualesquiera, así que el laberinto es perfecto, y se detiene sin probar las paredes que quedan, porque todas se omitirían. Como las paredes llegan en orden aleatorio, el laberinto crece en pequeños parches por toda la cuadrícula que se unen al encontrarse, sin inicio ni dirección, y deja muchas celdas sin salida. Excava n − 1 paredes para n celdas y prueba como mucho las cerca de 2n paredes que hay. Las regiones se guardan en una estructura union-find, que responde «¿misma región?» y une dos regiones en tiempo casi constante: O(n α(n)) en total, donde α crece tan despacio que no llega a 5 en ningún laberinto que entre en una pantalla. Las regiones ocupan O(n) de espacio.",
       structure: "Union-find (conjuntos disjuntos)",
       texture: "Muchas celdas sin salida, sin dirección",
+    },
+    wilson: {
+      title: "Algoritmo de Wilson",
+      named: "el algoritmo de Wilson",
+      short: "Wilson",
+      shortDescription:
+        "Camina al azar desde una celda fuera del laberinto hasta llegar a él, borrando cada ciclo en el camino, y entonces excava toda la caminata. Lento al principio, rápido al final; sin sesgo.",
+      longDescription:
+        "El algoritmo de Wilson arma el laberinto con caminatas aleatorias sin ciclos. Pone una celda al azar en el laberinto. Después, desde una celda al azar fuera del laberinto, camina al azar, de vecina en vecina, hasta pisar el laberinto. Cada vez que la caminata pisa una celda por la que ya pasó, forma un ciclo, y el ciclo se borra: la caminata vuelve a como estaba cuando llegó a esa celda por primera vez. Cuando la caminata llega al laberinto no tiene ciclos, así que se excava entera de una vez, una rama nueva unida por una sola pared. Esto se repite hasta que todas las celdas están en el laberinto. La primera caminata es lenta, porque deambula buscando un laberinto de una sola celda; cada caminata siguiente tiene un laberinto más grande que encontrar, así que son cada vez más cortas. A diferencia de la búsqueda en profundidad y de Prim, no tiene sesgo: todos los laberintos perfectos de la cuadrícula son igual de probables, así que su textura queda entre las de ellos. Las caminatas son al azar, y su tiempo también: en una cuadrícula dan O(n log n) pasos en promedio para n celdas, y la caminata puede llegar a guardar O(n) celdas.",
+      structure: "Una caminata al azar (sin ciclos)",
+      texture: "Sin sesgo: todo laberinto perfecto es igual de probable",
     },
   },
 });

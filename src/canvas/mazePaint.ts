@@ -9,6 +9,7 @@ import {
   REGION,
   SKIPPED,
   STACK,
+  WALK,
   WALL,
   type MazeFrame,
   type MazeRun,
@@ -35,15 +36,19 @@ export const mazePalette = (colors: CanvasColors): GridTone[] => {
   // A wall it leaves standing, in the color every module uses for "not allowed", crossed out
   // so it reads without color too.
   tones[SKIPPED] = { rgb: hexToRgb(colors.conflict), cross: true };
+  // Like DFS's stack: the path in progress, not in the maze yet.
+  tones[WALK] = { rgb: hexToRgb(colors.secondary) };
   return tones;
 };
 
-// A cell pops each time it moves along: onto the stack or the frontier, acted on, carved, marked a dead end.
+// A cell pops each time it moves along: onto the stack, the frontier or the walk, acted on, carved,
+// marked a dead end. So a walk joining the maze pops all at once.
 // Kruskal's regions and skipped wall pop as they light up, and again as they settle back.
 const RANK = {
   [WALL]: 0,
   [STACK]: 1,
   [FRONTIER]: 1,
+  [WALK]: 1,
   [ACTIVE]: 2,
   [REGION]: 2,
   [OTHER_REGION]: 2,

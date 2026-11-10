@@ -5,7 +5,7 @@
  * generator describes what it does one decision at a time, and a MazeRun records the steps.
  */
 
-export type MazeAlgorithm = "dfs" | "prim" | "kruskal";
+export type MazeAlgorithm = "dfs" | "prim" | "kruskal" | "wilson";
 
 /** The walled-in grid a maze is carved from. Odd rows and columns, so walls go all around. */
 export type MazeGrid = { rows: number; cols: number };
@@ -56,6 +56,33 @@ export type MazeStep = {
       wall: number;
       region: number[];
     }
+  | /** Wilson puts its first cell in the maze: carved, with nothing joined to it yet. */ {
+      type: "first";
+      cell: number;
+    }
+  | /** Wilson starts a random walk at `cell`, a cell outside the maze. */ { type: "walkStart"; cell: number }
+  | /**
+     * Wilson's walk steps from its end through `wall` to `cell`, a random neighbour: a cell
+     * not on the walk yet, one already on it (the walk crossed itself, a loop to erase next)
+     * or one in the maze (the walk joins it next).
+     */ {
+      type: "walk";
+      cell: number;
+      wall: number;
+      to: "new" | "loop" | "maze";
+    }
+  | /**
+     * Wilson erases the loop the walk just closed: `erased` are its cells and walls, walled in
+     * again. The walk goes on from `cell`, where it crossed itself.
+     */ {
+      type: "erase";
+      cell: number;
+      erased: number[];
+    }
+  | /** Wilson's walk reached the maze: `carved` are its cells and walls, carved in all at once. */ {
+      type: "carveWalk";
+      carved: number[];
+    }
   | /** The maze is done: every dead-end cell gets marked. */ { type: "done"; deadEnds: number[] }
 );
 
@@ -72,7 +99,8 @@ export const DEAD_END = 3;
 export const FRONTIER = 4;
 /**
  * The cell and wall the generator acts on this frame (Prim's pick and the wall it joins
- * through, the wall Kruskal carves), for one frame. Every generator uses it for its own move.
+ * through, the wall Kruskal carves, Wilson's walk step), for one frame. Every generator uses it
+ * for its own move.
  */
 export const ACTIVE = 5;
 /** Kruskal's wall under test lies between two regions: this is the one on its top or left side. */
@@ -81,6 +109,8 @@ export const REGION = 6;
 export const OTHER_REGION = 7;
 /** A wall Kruskal tested and left standing, for one frame: both its sides are in one region. */
 export const SKIPPED = 8;
+/** On Wilson's walk in progress: not in the maze until the walk reaches it. */
+export const WALK = 9;
 export type MazeCellState =
   | typeof WALL
   | typeof CARVED
@@ -90,10 +120,14 @@ export type MazeCellState =
   | typeof ACTIVE
   | typeof REGION
   | typeof OTHER_REGION
-  | typeof SKIPPED;
+  | typeof SKIPPED
+  | typeof WALK;
 
 export type MazeStats = {
-  /** Decisions taken so far: the start, then each carve and backtrack (DFS), pick (Prim) or wall tested (Kruskal). */
+  /**
+   * Decisions taken so far: the start, then each carve and backtrack (DFS), each pick (Prim),
+   * each wall tested (Kruskal), or each walk start, walk step, loop erased and walk carved in (Wilson).
+   */
   steps: number;
   /** Dead-end cells, counted once the maze is done; null before. */
   deadEnds: number | null;

@@ -9,8 +9,10 @@ import {
   REGION,
   SKIPPED,
   STACK,
+  WALK,
   WALL,
   type MazeAlgorithm,
+  type MazeCellState,
   type MazeFrame,
   type MazeGrid,
   type MazeStep,
@@ -23,10 +25,10 @@ type State = {
   steps: number;
   deadEnds: number | null;
   /**
-   * The cells this step's move shows (ACTIVE, Kruskal's regions), carved like the rest from the
-   * next step on.
+   * The cells this step's move shows (ACTIVE, Kruskal's regions), each with the state it settles
+   * into from the next step on.
    */
-  active: number[];
+  active: { cell: number; then: MazeCellState }[];
   /** The wall Kruskal skipped this step, a wall again from the next step on. */
   skipped: number | null;
 };
@@ -36,11 +38,20 @@ const CHECKPOINT_EVERY = 256;
 
 const clone = (s: State): State => ({ ...s, states: s.states.slice(), active: s.active.slice() });
 
+/** Shows `cell` as `state` for this step only, then as `then`. */
+const show = (s: State, cell: number, state: MazeCellState, then: MazeCellState) => {
+  s.states[cell] = state;
+  s.active.push({ cell, then });
+};
+
+/** Shows `cell` as this step's move, then as `then`. */
+const activate = (s: State, cell: number, then: MazeCellState) => show(s, cell, ACTIVE, then);
+
 const apply = (s: State, step: MazeStep) => {
   s.line = step.line;
   // Marking the dead ends is the wrap-up, not a decision.
   if (step.type !== "done") s.steps++;
-  for (const cell of s.active) s.states[cell] = CARVED;
+  for (const { cell, then } of s.active) s.states[cell] = then;
   s.active = [];
   if (s.skipped !== null) s.states[s.skipped] = WALL;
   s.skipped = null;
@@ -53,9 +64,8 @@ const apply = (s: State, step: MazeStep) => {
       s.current = step.cell;
       break;
     case "pick":
-      s.states[step.wall] = ACTIVE;
-      s.states[step.cell] = ACTIVE;
-      s.active = [step.wall, step.cell];
+      activate(s, step.wall, CARVED);
+      activate(s, step.cell, CARVED);
       for (const cell of step.frontier) s.states[cell] = FRONTIER;
       s.current = step.cell;
       break;
@@ -64,17 +74,35 @@ const apply = (s: State, step: MazeStep) => {
       break;
     case "join": {
       const [region, other] = step.regions;
-      for (const cell of region) s.states[cell] = REGION;
-      for (const cell of other) s.states[cell] = OTHER_REGION;
-      s.states[step.wall] = ACTIVE;
-      s.active = [...region, ...other, step.wall];
+      for (const cell of region) show(s, cell, REGION, CARVED);
+      for (const cell of other) show(s, cell, OTHER_REGION, CARVED);
+      activate(s, step.wall, CARVED);
       break;
     }
     case "skip":
-      for (const cell of step.region) s.states[cell] = REGION;
+      for (const cell of step.region) show(s, cell, REGION, CARVED);
       s.states[step.wall] = SKIPPED;
-      s.active = step.region.slice();
       s.skipped = step.wall;
+      break;
+    case "first":
+      s.states[step.cell] = CARVED;
+      s.current = step.cell;
+      break;
+    case "walkStart":
+      activate(s, step.cell, WALK);
+      s.current = step.cell;
+      break;
+    case "walk":
+      activate(s, step.wall, WALK);
+      activate(s, step.cell, step.to === "maze" ? CARVED : WALK);
+      s.current = step.cell;
+      break;
+    case "erase":
+      for (const cell of step.erased) s.states[cell] = WALL;
+      s.current = step.cell;
+      break;
+    case "carveWalk":
+      for (const cell of step.carved) s.states[cell] = CARVED;
       break;
     case "carve":
       s.states[step.wall] = STACK;
