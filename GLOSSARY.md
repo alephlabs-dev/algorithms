@@ -91,12 +91,20 @@ Knocking down the wall between two cells so a passage joins them.
 _Avoid_: Dig, open, remove wall
 
 **Dead-end cell**:
-A cell of a finished maze with only one way out. How many there are is the clearest sign of a maze's texture: depth-first search leaves few, Prim and Kruskal many.
+A cell of a finished maze with only one way out. How many there are is the clearest sign of a maze's texture: depth-first search leaves few; Prim, Kruskal and Wilson many.
 _Avoid_: Dead end (that is backtracking's term), cul-de-sac, leaf
 
 **Region**:
 In Kruskal, a set of cells already joined by passages. Every cell starts as a region of its own; carving a wall between two regions merges them, and a wall inside one region is skipped, since carving it would close a loop.
 _Avoid_: Group (that is graphs' Kruskal), set, component
+
+**Walk**:
+Wilson's path in progress: from a random cell outside the maze, one random neighbour at a time, until it reaches the maze and is carved in whole. In Spanish, "caminata".
+_Avoid_: Path (that is pathfinding's result), trail, random path
+
+**Loop erasure**:
+When the walk steps onto a cell it already passed, the loop it made is erased: the walk goes back to how it was when it first reached that cell. In Spanish, "borrar el ciclo".
+_Avoid_: Backtrack (that is DFS's move), cycle removal
 
 ### Fourier
 

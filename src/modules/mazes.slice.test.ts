@@ -1,7 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { createAppStore } from "@/appStore";
 import { routePath } from "@/routes";
-import { ACTIVE, CARVED, FRONTIER, MAZE_ALGORITHMS, OTHER_REGION, REGION, SKIPPED, WALL } from "@/mazes";
+import {
+  ACTIVE,
+  CARVED,
+  FRONTIER,
+  MAZE_ALGORITHMS,
+  OTHER_REGION,
+  REGION,
+  SKIPPED,
+  WALK,
+  WALL,
+  isMazeCell,
+  mazePseudocode,
+} from "@/mazes";
 import { linkFor, readLocation } from "@/urlState";
 import { routeIn } from "./engine";
 import { mazesSlice as slice, type MazesState } from "./mazes.slice";
@@ -63,8 +75,11 @@ describe("mazes slice", () => {
     for (const size of ["small", "medium", "large"] as const)
       for (const ctx of [single, phone])
         it(`${algorithm} carves a perfect maze on every ${size} grid (${ctx.isMobile ? "phone" : "wide"})`, () => {
-          for (const seed of SEEDS)
-            expectPerfect(at(`/mazes/${algorithm}`, `?size=${size}&seed=${seed.toString(36)}`, ctx));
+          for (const seed of SEEDS) {
+            const s = at(`/mazes/${algorithm}`, `?size=${size}&seed=${seed.toString(36)}`, ctx);
+            expect(s.algorithm).toBe(algorithm);
+            expectPerfect(s);
+          }
         });
 
   it("one decision per frame: start, each carve, each backtrack, then the dead ends (2n + 2 frames)", () => {
@@ -173,6 +188,63 @@ describe("mazes slice", () => {
     expect(prim.seed).toBe(dfs.seed);
     expect(prim.run.start).toBe(dfs.run.start);
     expect(prim.run.length).not.toBe(dfs.run.length);
+    const wilson = apply(dfs, slice.pick(dfs, single, "wilson"));
+    expect(wilson.run.start).toBe(dfs.run.start);
+  });
+
+  /** The cells a frame shows on Wilson's walk: walk-toned, or the walk's move this frame. */
+  const walkOf = (s: MazesState, i: number) => {
+    const { states } = s.run.frameAt(i);
+    // An ACTIVE cell is on the walk unless it's the maze cell the walk just reached.
+    const wasCarved = (cell: number) => s.run.frameAt(i - 1).states[cell] === CARVED;
+    return [...states.keys()].filter((c) => states[c] === WALK || (states[c] === ACTIVE && !wasCarved(c)));
+  };
+
+  it("Wilson: erasing a loop is its own frame, and takes the loop's cells off the walk", () => {
+    const eraseLine = mazePseudocode.wilson.findIndex((line) => line.includes("erase the loop"));
+    let erasures = 0;
+    for (const seed of SEEDS) {
+      const s = at("/mazes/wilson", `?size=medium&seed=${seed.toString(36)}`);
+      for (let i = 2; i < s.run.length; i++) {
+        if (s.run.frameAt(i).line !== eraseLine) continue;
+        erasures++;
+        const before = new Set(walkOf(s, i - 1));
+        const after = walkOf(s, i);
+        const gone = [...before].filter((c) => !after.includes(c));
+        expect(gone.length, `frame ${i} takes the loop off the walk`).toBeGreaterThan(0);
+        expect(gone.every((c) => s.run.frameAt(i).states[c] === WALL), `frame ${i} walls the loop in again`).toBe(true);
+        expect(after.every((c) => before.has(c)), `frame ${i} adds nothing to the walk`).toBe(true);
+        // What's left is still a walk: each of its walls lies between two of its cells.
+        const { cols } = s.run;
+        for (const wall of after.filter((c) => !isMazeCell(s.run, c))) {
+          const ends = Math.floor(wall / cols) % 2 === 0 ? [wall - cols, wall + cols] : [wall - 1, wall + 1];
+          expect(ends.every((c) => after.includes(c)), `frame ${i}: wall ${wall} joins two walk cells`).toBe(true);
+        }
+        expect(after.length, `frame ${i} keeps the walk up to where it crossed itself`).toBeGreaterThan(0);
+        // The walk goes on from the cell where it crossed itself, which stays on it.
+        expect(after).toContain(s.run.frameAt(i).current);
+        // The step before closed the loop: it stepped onto a cell already on the walk.
+        expect(before.has(s.run.frameAt(i - 1).current!)).toBe(true);
+      }
+    }
+    expect(erasures, "some seed erases a loop").toBeGreaterThan(0);
+  });
+
+  it("Wilson: a walk that reaches the maze is carved in all at once", () => {
+    const s = at("/mazes/wilson", "?size=medium&seed=k3");
+    let joins = 0;
+    for (let i = 2; i < s.run.length - 1; i++) {
+      const before = walkOf(s, i - 1);
+      const frame = s.run.frameAt(i);
+      if (!before.length || walkOf(s, i).length || before.some((c) => frame.states[c] !== CARVED)) continue;
+      joins++;
+      // In one frame: every cell and wall of the walk (the wall into the maze included), and the
+      // maze cell it reached, which the step before highlighted.
+      const carved = (f: typeof frame) => [...f.states].filter((state) => state === CARVED).length;
+      expect(carved(frame) - carved(s.run.frameAt(i - 1))).toBe(before.length + 1);
+    }
+    expect(joins).toBeGreaterThan(0);
+    expect([...lastFrame(s).states].some((state) => state === WALK || state === ACTIVE)).toBe(false);
   });
 
   for (const algorithm of MAZE_ALGORITHMS) {

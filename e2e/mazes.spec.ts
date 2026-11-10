@@ -125,6 +125,35 @@ test('mazes: switch to Kruskal, which stops as soon as every cell is joined', as
   expect(errors).toEqual([]);
 });
 
+test('mazes: switch to Wilson on the same seed and reopen its link', async ({ page, context }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.addInitScript(() => localStorage.setItem('tour-done-mazes', 'true'));
+  await gotoApp(page, '/mazes?size=small&seed=abc&speed=8x');
+
+  await pickAlgorithm(page, 'Wilson', "Wilson's Algorithm");
+  await expect(page).toHaveURL(/\/mazes\/wilson\?size=small&seed=abc/);
+  await expect(page.getByRole('heading', { level: 1, name: "Wilson's Algorithm" })).toBeAttached();
+  // Wilson's legend names the walk (phones hide the legend, but it's on the page).
+  await expect(page.locator('[data-tour="legend"]').first()).toContainText('Walk');
+
+  // The first cell, then a walk from outside the maze, one step per frame.
+  await page.getByRole('button', { name: 'Next step' }).click();
+  await expect(caption(page)).toContainText(/^Start at row \d+, column \d+: the first cell in the maze\./);
+  await page.getByRole('button', { name: 'Next step' }).click();
+  await expect(caption(page)).toContainText(/^Start a random walk at row \d+, column \d+, outside the maze\./);
+  await page.getByRole('button', { name: 'Next step' }).click();
+  await expect(caption(page)).toContainText(/^Walk (up|right|down|left) to row \d+, column \d+/);
+  await playToEnd(page, 'Play', /^Done: a perfect maze with \d+ dead-end cells?/);
+  const finished = await stats(page).textContent();
+
+  const reopened = await context.newPage();
+  await gotoApp(reopened, page.url());
+  await playToEnd(reopened, 'Play', /^Done:/);
+  await expect(stats(reopened)).toHaveText(finished!);
+  expect(errors).toEqual([]);
+});
+
 test('mazes in Spanish carve and explain each step in Spanish', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));

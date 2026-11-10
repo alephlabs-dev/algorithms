@@ -110,6 +110,7 @@ export const modulePages = {
       dfs: "dfs",
       prim: "prim",
       kruskal: "kruskal",
+      wilson: "wilson",
     } satisfies Record<MazeAlgorithm, string>,
     race: false,
   },

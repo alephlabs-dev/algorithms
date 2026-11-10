@@ -739,6 +739,14 @@ const mazeTones = localized<Record<MazeAlgorithm, (theme: Theme) => ReactNode>>(
         red, crossed-out wall is skipped: both its sides are in one region already, so carving it would close a loop.
       </>
     ),
+    wilson: (theme) => (
+      <>
+        <Swatch className="bg-secondary" />
+        {colorNames[theme].comparing} cells are the random walk, not in the maze until it gets there. The{" "}
+        <Swatch className="bg-outline" />
+        {activeColor[theme]} one is its last step.
+      </>
+    ),
   },
   es: {
     dfs: (theme) => (
@@ -762,6 +770,14 @@ const mazeTones = localized<Record<MazeAlgorithm, (theme: Theme) => ReactNode>>(
         {regionColors[theme].region} de un lado con la <Swatch className="bg-primary" />
         {regionColors[theme].other} del otro. Una pared <Swatch className="bg-conflict" cross />
         roja y tachada se omite: sus dos lados ya están en la misma región, así que excavarla cerraría un ciclo.
+      </>
+    ),
+    wilson: (theme) => (
+      <>
+        Las <Swatch className="bg-secondary" />
+        celdas {colorNames[theme].comparing} son la caminata al azar, que no está en el laberinto hasta llegar a él.
+        La <Swatch className="bg-outline" />
+        {activeColor[theme]} es su último paso.
       </>
     ),
   },
@@ -797,7 +813,8 @@ export const mazesTour = localized<TourStep[]>({
     {
       anchor: "picker",
       title: "The algorithm",
-      text: () => "Randomized depth-first search, Prim's or Kruskal's algorithm. More ways to carve a maze are on their way.",
+      text: () =>
+        "Randomized depth-first search, or Prim's, Kruskal's or Wilson's algorithm. More ways to carve a maze are on their way.",
     },
     {
       anchor: "legend",
@@ -862,7 +879,7 @@ export const mazesTour = localized<TourStep[]>({
       anchor: "picker",
       title: "El algoritmo",
       text: () =>
-        "La búsqueda en profundidad aleatoria o los algoritmos de Prim y Kruskal aleatorios. Pronto habrá más formas de excavar un laberinto.",
+        "La búsqueda en profundidad aleatoria, los algoritmos de Prim y Kruskal aleatorios o el de Wilson. Pronto habrá más formas de excavar un laberinto.",
     },
     {
       anchor: "legend",

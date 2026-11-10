@@ -24,7 +24,11 @@ const withRun = (s: MazesState, ctx: SliceContext, change: Partial<Pick<MazesSta
   return { ...change, run: runFor(s.algorithm, size, seed, ctx), inputId: s.inputId + 1 };
 };
 
-/** Backtracks retreat quickly, so the carving reads as the beat. Kruskal's skips stay a full beat, so they're noticed. */
+/**
+ * Backtracks retreat quickly, so the carving reads as the beat. Kruskal's skips stay a full beat,
+ * so they're noticed. Wilson's walk steps hurry, so its long first walk plays in full (never cut)
+ * while erasing a loop and carving the walk in read as the beat.
+ */
 const STEP_WEIGHT: Record<MazeStep["type"], number> = {
   start: 1,
   carve: 1,
@@ -33,6 +37,11 @@ const STEP_WEIGHT: Record<MazeStep["type"], number> = {
   regions: 1,
   join: 1,
   skip: 1,
+  first: 1,
+  walkStart: 1,
+  walk: 0.6,
+  erase: 1,
+  carveWalk: 1,
   done: 1,
 };
 

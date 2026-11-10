@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ACTIVE, CARVED, DEAD_END, FRONTIER, OTHER_REGION, REGION, SKIPPED, STACK, WALL } from "@/mazes";
+import { ACTIVE, CARVED, DEAD_END, FRONTIER, OTHER_REGION, REGION, SKIPPED, STACK, WALK, WALL } from "@/mazes";
 import { deltaE2000 } from "./colorDifference";
 import { mazePalette } from "./mazePaint";
 import { hexToRgb, variables, type CanvasColors } from "./theme";
@@ -32,7 +32,7 @@ describe("maze tones", () => {
       for (const [key, value] of Object.entries(colors)) expect(value, `--color-${key} read from index.css`).toMatch(/^#[0-9a-f]{6}$/i);
       const tones = mazePalette(colors);
       expect(tones[ACTIVE].rgb).not.toEqual(hexToRgb(colors.primary));
-      for (const other of [WALL, CARVED, STACK, DEAD_END, FRONTIER]) expect(tones[ACTIVE].rgb).not.toEqual(tones[other].rgb);
+      for (const other of [WALL, CARVED, STACK, DEAD_END, FRONTIER, WALK]) expect(tones[ACTIVE].rgb).not.toEqual(tones[other].rgb);
     });
 
   // Every tone a Kruskal frame can show at once: the grid, both regions, the carved wall and the skipped one.

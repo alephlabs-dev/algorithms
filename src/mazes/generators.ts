@@ -12,6 +12,9 @@ export const mazeNeighbors = ({ rows, cols }: MazeGrid, cell: number) => {
   return out;
 };
 
+/** Whether `cell` is a maze cell (odd row and column) rather than a wall between them or a corner. */
+export const isMazeCell = ({ cols }: MazeGrid, cell: number) => Math.floor(cell / cols) % 2 === 1 && (cell % cols) % 2 === 1;
+
 /** Every maze cell of the grid: the odd rows and columns. */
 export const mazeCells = ({ rows, cols }: MazeGrid) => {
   const cells: number[] = [];
@@ -180,16 +183,80 @@ const kruskal: MazeGenerator = function* (grid, _start, random) {
   yield { type: "done", deadEnds: deadEndsOf(grid, (w) => open.has(w)), line: 8 };
 };
 
-/** Every generator, in the order the UI shows them. */
-export const MAZE_ALGORITHMS: MazeAlgorithm[] = ["dfs", "prim", "kruskal"];
+export const wilsonPseudocode = [
+  "put a random start cell in the maze",
+  "while some cell isn't in the maze:",
+  "  walk = a random cell outside the maze",
+  "  while the walk's end isn't in the maze:",
+  "    step to a random neighbour",
+  "    if it's on the walk: erase the loop",
+  "  carve the whole walk into the maze",
+  "mark every dead-end cell",
+];
 
-export const mazeGenerators: Record<MazeAlgorithm, MazeGenerator> = { dfs, prim, kruskal };
+/**
+ * Wilson's algorithm: a loop-erased random walk from a random cell outside the maze until it
+ * reaches the maze, then the whole walk is carved in. Every perfect maze is equally likely.
+ * The first walks wander long, looking for a maze of one cell; later ones find it fast.
+ */
+/** A stretch of walk: each cell with the wall it was stepped into through (none for the walk's first). */
+type WalkStretch = { cell: number; wall: number | null }[];
+
+/** The grid cells a stretch of walk covers: its cells and the walls between them. */
+const cellsAndWalls = (stretch: WalkStretch) => stretch.flatMap((w) => (w.wall === null ? [w.cell] : [w.wall, w.cell]));
+
+const wilson: MazeGenerator = function* (grid, start, random) {
+  const inMaze = new Set([start]);
+  const open = new Set<number>();
+  const pick = <T>(options: T[]) => options[Math.floor(random() * options.length)];
+  yield { type: "first", cell: start, line: 0 };
+  for (;;) {
+    const outside = mazeCells(grid).filter((cell) => !inMaze.has(cell));
+    if (!outside.length) break;
+    const walk: WalkStretch = [{ cell: pick(outside), wall: null }];
+    /** Where each cell on the walk sits in it. */
+    const position = new Map([[walk[0].cell, 0]]);
+    yield { type: "walkStart", cell: walk[0].cell, line: 2 };
+    for (;;) {
+      const { cell, wall } = pick(mazeNeighbors(grid, walk[walk.length - 1].cell));
+      if (inMaze.has(cell)) {
+        yield { type: "walk", cell, wall, to: "maze", line: 4 };
+        const carved = [...cellsAndWalls(walk), wall];
+        for (const w of walk) inMaze.add(w.cell);
+        for (const w of carved) open.add(w);
+        yield { type: "carveWalk", carved, line: 6 };
+        break;
+      }
+      const crossed = position.get(cell);
+      if (crossed === undefined) {
+        position.set(cell, walk.length);
+        walk.push({ cell, wall });
+        yield { type: "walk", cell, wall, to: "new", line: 4 };
+        continue;
+      }
+      yield { type: "walk", cell, wall, to: "loop", line: 4 };
+      // The loop: every cell after the crossing, the walls into them, and the wall that closed it.
+      const loop = walk.splice(crossed + 1);
+      for (const w of loop) position.delete(w.cell);
+      // Stepping straight back closes the loop through the wall it came by: a Set lists it once.
+      const erased = new Set([...cellsAndWalls(loop), wall]);
+      yield { type: "erase", cell, erased: [...erased], line: 5 };
+    }
+  }
+  yield { type: "done", deadEnds: deadEndsOf(grid, (wall) => open.has(wall)), line: 7 };
+};
+
+/** Every generator, in the order the UI shows them. */
+export const MAZE_ALGORITHMS: MazeAlgorithm[] = ["dfs", "prim", "kruskal", "wilson"];
+
+export const mazeGenerators: Record<MazeAlgorithm, MazeGenerator> = { dfs, prim, kruskal, wilson };
 
 /** Whether the generator grows from the seed's start cell (Kruskal joins regions everywhere at once). */
-export const hasStartCell: Record<MazeAlgorithm, boolean> = { dfs: true, prim: true, kruskal: false };
+export const hasStartCell: Record<MazeAlgorithm, boolean> = { dfs: true, prim: true, kruskal: false, wilson: true };
 
 export const mazePseudocode: Record<MazeAlgorithm, string[]> = {
   dfs: dfsPseudocode,
   prim: primPseudocode,
   kruskal: kruskalPseudocode,
+  wilson: wilsonPseudocode,
 };

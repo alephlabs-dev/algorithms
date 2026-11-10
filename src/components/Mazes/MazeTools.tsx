@@ -24,6 +24,8 @@ const text = localized({
     otherRegion: "Other region",
     wallCarved: "Wall carved",
     wallSkipped: "Wall skipped",
+    walk: "Walk",
+    lastStep: "Last step",
     current: "Current",
     deadEnd: "Dead-end cell",
     steps: (n: number) => count(n, "step"),
@@ -42,6 +44,8 @@ const text = localized({
     otherRegion: "Otra región",
     wallCarved: "Pared excavada",
     wallSkipped: "Pared omitida",
+    walk: "Caminata",
+    lastStep: "Último paso",
     current: "Actual",
     deadEnd: "Sin salida",
     steps: (n) => count(n, "paso"),
@@ -89,6 +93,10 @@ const ownTones: Record<MazeAlgorithm, { className: string; label: string; cross?
     { className: "bg-primary", label: text.otherRegion },
     { className: "bg-outline", label: text.wallCarved },
     { className: "bg-conflict", label: text.wallSkipped, cross: true },
+  ],
+  wilson: [
+    { className: "bg-secondary", label: text.walk },
+    { className: "bg-outline", label: text.lastStep },
   ],
 };
 
