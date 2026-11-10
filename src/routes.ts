@@ -3,6 +3,7 @@ import type { DpAlgorithm } from "./dp/types";
 import type { FourierAlgorithm } from "./fourier/types";
 import type { StructureAlgorithm } from "./structures/types";
 import type { GraphAlgorithm } from "./graphs/types";
+import type { MazeAlgorithm } from "./mazes/types";
 import type { PathAlgorithm } from "./pathfinding/types";
 import type { Algorithm } from "./types";
 import { lang, LANG_PREFIX, stripLang, type Lang } from "./i18n";
@@ -11,7 +12,7 @@ import { lang, LANG_PREFIX, stripLang, type Lang } from "./i18n";
 export const SITE_URL = "https://algorithms-aleph.vercel.app";
 
 /** The modules the app has. */
-export type ModuleId = "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | "backtracking";
+export type ModuleId = "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | "backtracking" | "mazes";
 
 type Pages = {
   /** The start page's path; the module's other pages hang under it. */
@@ -101,6 +102,13 @@ export const modulePages = {
       queens: "n-queens",
       sudoku: "sudoku",
     } satisfies Record<BacktrackingProblem, string>,
+    race: false,
+  },
+  mazes: {
+    base: "/mazes",
+    slugs: {
+      dfs: "dfs",
+    } satisfies Record<MazeAlgorithm, string>,
     race: false,
   },
 } as const satisfies Record<ModuleId, Pages>;
@@ -196,6 +204,7 @@ export const TRANSLATED_MODULES: ReadonlySet<ModuleId> = new Set([
   "dp",
   "fourier",
   "backtracking",
+  "mazes",
 ]);
 
 /** Whether a page has a Spanish version worth indexing. The landing page does. */

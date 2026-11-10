@@ -31,8 +31,14 @@ fit (`fit`). See `docs/adr/0002-one-nested-slice-per-module.md`.
 4. **Search engines:** titles and descriptions in `src/seo/pages.ts`, articles in `src/components/About.tsx`.
 5. **Landing page:** give it a `route` and a `count` in `src/consts/modules.ts`, and a thumbnail in
    `src/components/Landing/Thumbnails.tsx`.
+   Also: its pace in `TARGET_SECONDS` (`src/utils/speed.ts`), its "About …" hints in `src/components/scroll-hint.ts`,
+   and, once its text is in Spanish, its id in `TRANSLATED_MODULES` (`src/routes.ts`). The typecheck flags most of these.
+6. **Shared tests:** a link per page kind in `links.test.ts` (`ROUND_TRIPS`) and `engine.test.ts` (`LINKS`), its
+   runs in `src/utils/stepSentences.ts`, and its pages and tour key in `e2e/settings-fit.spec.ts`,
+   `e2e/tap-targets.spec.ts` and `e2e/step-sentences-fit.spec.ts` (and `e2e/algorithm-picker.spec.ts` once it has
+   two algorithms or more).
 
-6. **Guess mode** (optional): give the slice's engine a `game` that lists the run's questions (see `src/game`).
+7. **Guess mode** (optional): give the slice's engine a `game` that lists the run's questions (see `src/game`).
    Each one names the frame it's asked before, so playback stops there; the stage can draw what the
    question needs (spots to tap, a cell marked "?") from `selectGameQuestion`.
 

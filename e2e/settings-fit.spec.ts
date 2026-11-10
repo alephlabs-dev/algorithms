@@ -28,13 +28,15 @@ const PAGES = [
   '/dynamic-programming/race',
   '/backtracking',
   '/backtracking/sudoku',
+  '/mazes',
   // Spanish runs longer.
   '/es/sorting/insertion-sort',
   '/es/pathfinding',
   '/es/fourier/epicycles',
+  '/es/mazes',
 ];
 
-const TOUR_KEYS = ['tour-done', ...['pathfinding', 'graphs', 'fourier', 'structures', 'dp', 'backtracking'].map((m) => `tour-done-${m}`)];
+const TOUR_KEYS = ['tour-done', ...['pathfinding', 'graphs', 'fourier', 'structures', 'dp', 'backtracking', 'mazes'].map((m) => `tour-done-${m}`)];
 
 for (const path of PAGES) {
   test(`settings fit without scrolling on ${path}`, async ({ page }, testInfo) => {

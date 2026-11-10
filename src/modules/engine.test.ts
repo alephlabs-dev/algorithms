@@ -8,7 +8,7 @@ import { makeGraph } from "@/graphs";
 import { decodeGraph, encodeGraph } from "@/graphs/graph";
 import { applyPreset, emptyGrid } from "@/pathfinding";
 import { encodeCells } from "@/pathfinding/grid";
-import { moduleOf, routeFromPath, routePath, type Route } from "@/routes";
+import { moduleOf, modulePages, routeFromPath, routePath, type Route } from "@/routes";
 import { encodeOperations } from "@/structures/link";
 import { readLocation } from "@/urlState";
 import { generateItems } from "@/utils/generateItems";
@@ -18,6 +18,7 @@ import { dpLink } from "./dp.link";
 import { engines, type ModuleId, type SliceStates } from "./engine";
 import { fourierLink } from "./fourier.link";
 import { graphsLink } from "./graphs.link";
+import { mazesLink } from "./mazes.link";
 import { pathfindingLink } from "./pathfinding.link";
 import { sortingLink } from "./sorting.link";
 import { structuresLink } from "./structures.link";
@@ -86,6 +87,11 @@ const LINKS: { [M in ModuleId]: { page: Route; search: string; carries: Partial<
     search: fourierLink.write({ circles: 25, shape: "custom", path: encodePath(drawing) }, SPEED),
     carries: { algorithm: "epicycles", circles: 25, shape: "custom", path: drawing },
   },
+  mazes: {
+    page: { module: "mazes", page: "algorithm", algorithm: "dfs" },
+    search: mazesLink.write({ size: "large", seed: 424242 }, SPEED),
+    carries: { algorithm: "dfs", size: "large", seed: 424242 },
+  },
 };
 
 /** The store opened on the module's link, then switched to `view` the way the app does. */
@@ -121,9 +127,8 @@ describe("module engines", () => {
           expect(routeFromPath(path)).toEqual(route);
           const location = readLocation(path, engines[module].search(state));
           expect(location.module).toBe(module);
-          // Fourier and backtracking have no race: their pages are single view whatever the store's view says.
-          const hasRace = module !== "fourier" && module !== "backtracking";
-          expect(location.view ?? "single").toBe(hasRace ? view : "single");
+          // Modules without a race page are single view whatever the store's view says.
+          expect(location.view ?? "single").toBe(modulePages[module].race ? view : "single");
           expect(location.speed).toBe(SPEED);
         }
       }
@@ -171,6 +176,8 @@ describe("module engines", () => {
       ["dp", within("dp", { b: "SATURDAY" })],
       ["dp", within("dp", { algorithm: "knapsack", capacity: 9 })],
       ["backtracking", within("backtracking", { queensN: 8 })],
+      ["mazes", within("mazes", { size: "small" })],
+      ["mazes", within("mazes", { seed: 7 })],
     ];
     for (const [module, change] of changes) {
       const state = stateFor(module, "single", false);

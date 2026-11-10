@@ -3,6 +3,7 @@ import { DpRun } from "@/dp";
 import { FourierRun } from "@/fourier";
 import { presetOperations, TreeRecorder } from "@/structures";
 import { graphTimelineFor, makeGraph } from "@/graphs";
+import { MazeRun, STACK, WALL as MAZE_WALL } from "@/mazes";
 import { applyPreset, emptyGrid, FRONTIER, ON_PATH, pathSearches, PathTimeline, VISITED, WALL } from "@/pathfinding";
 import { cn } from "@/utils/cn";
 import { seededRandom } from "@/utils/random";
@@ -340,3 +341,35 @@ export const QueensThumb = ({ className }: { className?: string }) => {
     </svg>
   );
 };
+
+// Randomized depth-first search partway through a maze: its stack still out, the rest carved.
+const MAZE_ROWS = 9;
+const MAZE_COLS = 21;
+const maze = (() => {
+  const run = new MazeRun("dfs", { rows: MAZE_ROWS, cols: MAZE_COLS }, 11);
+  return { run, frame: run.frameAt(Math.floor(run.length * 0.4)) };
+})();
+
+const mazeColor = (cell: number) => {
+  const state = maze.frame.states[cell];
+  if (cell === maze.run.start) return "var(--color-primary)";
+  if (state === MAZE_WALL) return mix("bar", 55);
+  if (state === STACK) return "var(--color-secondary)";
+  return mix("edge", 55);
+};
+
+export const MazeThumb = ({ className }: { className?: string }) => (
+  <div
+    aria-hidden
+    className={cn("grid gap-[2px]", className)}
+    style={{ gridTemplateColumns: `repeat(${MAZE_COLS}, minmax(0, 1fr))` }}
+  >
+    {Array.from({ length: MAZE_ROWS * MAZE_COLS }, (_, cell) => (
+      <span
+        key={cell}
+        className={cn("aspect-square rounded-[2px]", cell === maze.run.start && "rounded-full")}
+        style={{ background: mazeColor(cell) }}
+      />
+    ))}
+  </div>
+);

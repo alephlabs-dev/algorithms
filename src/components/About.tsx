@@ -8,6 +8,8 @@ import { DP_RACE_DESCRIPTION, STRUCTURE_RACE_DESCRIPTION } from "@/consts/race";
 import { structures } from "@/consts/structures";
 import { structurePseudocode, type StructureAlgorithm } from "@/structures";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
+import { mazeAlgorithms } from "@/consts/mazeAlgorithms";
+import { mazePseudocode, type MazeAlgorithm } from "@/mazes";
 import { queensPseudocode, sudokuPseudocode, type BacktrackingProblem } from "@/backtracking";
 import { fourierPseudocode, type FourierAlgorithm } from "@/fourier";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
@@ -373,6 +375,29 @@ const backtrackingText = localized({
     why: "¿Por qué deshacer elecciones?",
     whyText:
       "Probar todas las disposiciones completas de un problema no tiene esperanza: solo ocho reinas, una por fila, se pueden colocar de más de dieciséis millones de formas. El backtracking construye una disposición pieza a pieza y comprueba cada pieza en cuanto la coloca. Una pieza que rompe una regla se salta en el acto, así que nunca se mira ninguna disposición que hubiera empezado con ella. Cuando no cabe ninguna pieza, se quita la última y se prueba su siguiente opción. Así funcionan los programas que resuelven sudokus, llenan crucigramas, arman horarios o analizan código.",
+    facts: "En resumen",
+  },
+});
+
+const mazesText = localized({
+  en: {
+    moduleTitle: "Maze generation",
+    moduleIntro:
+      "A maze can be carved from a grid of walled-in cells by knocking down one wall at a time. Watch every decision, every backtrack and every dead end as a perfect maze takes shape.",
+    all: "Algorithms",
+    why: "What makes a maze perfect?",
+    whyText:
+      "A perfect maze has exactly one route between any two cells: no loops, and no part closed off from the rest. Think of each cell as a point and each knocked-down wall as a link between two points: a perfect maze is then a spanning tree of the grid, which joins n cells with exactly n − 1 links. Any way of building a random spanning tree carves a perfect maze, and that's why maze generators look so much like graph algorithms: a stack, a frontier, disjoint sets or a random walk. Each one leaves its own texture. Count the dead-end cells, the ones with only one way out, and you can tell them apart.",
+    facts: "In short",
+  },
+  es: {
+    moduleTitle: "Generación de laberintos",
+    moduleIntro:
+      "Un laberinto se puede excavar en una cuadrícula de celdas amuralladas derribando una pared a la vez. Mira cada decisión, cada retroceso y cada callejón sin salida mientras toma forma un laberinto perfecto.",
+    all: "Algoritmos",
+    why: "¿Qué hace perfecto a un laberinto?",
+    whyText:
+      "Un laberinto perfecto tiene un único camino entre dos celdas cualesquiera: sin ciclos y sin partes aisladas del resto. Si cada celda es un punto y cada pared derribada une dos puntos, un laberinto perfecto es un árbol generador de la cuadrícula, que une n celdas con exactamente n − 1 uniones. Cualquier forma de construir un árbol generador al azar excava un laberinto perfecto, y por eso los generadores de laberintos se parecen tanto a los algoritmos de grafos: una pila, una frontera, conjuntos disjuntos o un paseo aleatorio. Cada uno deja su propia textura. Cuenta las celdas sin salida, las que tienen una sola salida, y podrás distinguirlos.",
     facts: "En resumen",
   },
 });
@@ -1137,6 +1162,58 @@ const DpProblemArticle = ({ algorithm, onNavigate }: { algorithm: DpAlgorithm; o
   );
 };
 
+const mazeOrder = Object.keys(mazeAlgorithms) as MazeAlgorithm[];
+
+const MazesArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
+  <>
+    <header className="flex flex-col gap-3">
+      <h1 className="text-display font-semibold">{mazesText.moduleTitle}</h1>
+      <p className="text-lg text-foreground/80">{mazesText.moduleIntro}</p>
+    </header>
+    <Section title={mazesText.all}>
+      <ul className="tap-rows flex flex-col divide-y divide-edge">
+        {mazeOrder.map((algorithm) => (
+          <li key={algorithm} className="flex flex-col gap-1 py-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4">
+              <PageLink to={{ module: "mazes", page: "algorithm", algorithm }} onNavigate={onNavigate}>
+                {mazeAlgorithms[algorithm].title}
+              </PageLink>
+              <span className="font-mono text-xs text-foreground/60">{mazeAlgorithms[algorithm].texture}</span>
+            </div>
+            <p className="text-sm text-foreground/75">{mazeAlgorithms[algorithm].shortDescription}</p>
+          </li>
+        ))}
+      </ul>
+    </Section>
+    <Explanation title={mazesText.why}>
+      <p className="leading-relaxed text-foreground/80">{mazesText.whyText}</p>
+    </Explanation>
+  </>
+);
+
+const MazeArticle = ({ algorithm }: { algorithm: MazeAlgorithm }) => {
+  const { title, named, shortDescription, longDescription, structure, texture, timeComplexity } = mazeAlgorithms[algorithm];
+  return (
+    <>
+      <header className="flex flex-col gap-3">
+        <h1 className="text-display font-semibold">{title}</h1>
+        <p className="text-lg text-foreground/80">{shortDescription}</p>
+      </header>
+      <Explanation title={text.howItWorks(named)}>
+        <p className="leading-relaxed text-foreground/80">{longDescription}</p>
+      </Explanation>
+      <Explanation title={text.pseudocode}>
+        <pre className="overflow-x-auto rounded-2xl border border-edge bg-surface p-5 font-mono text-[13px] leading-6">
+          {mazePseudocode[algorithm].join("\n")}
+        </pre>
+      </Explanation>
+      <Section title={mazesText.facts}>
+        <p className="font-mono text-sm text-foreground/75">{[structure, texture, timeComplexity].join(" · ")}</p>
+      </Section>
+    </>
+  );
+};
+
 type Nav = Pick<Props, "onNavigate">;
 type Articles<M extends ModuleId> = {
   start: ComponentType<Nav>;
@@ -1152,6 +1229,7 @@ const articles: { [M in ModuleId]: Articles<M> } = {
   structures: { start: StructuresArticle, algorithm: StructureArticle, race: StructureRaceArticle },
   dp: { start: DpArticle, algorithm: DpProblemArticle, race: DpRaceArticle },
   backtracking: { start: BacktrackingArticle, algorithm: BacktrackingProblemArticle },
+  mazes: { start: MazesArticle, algorithm: MazeArticle },
 };
 
 /** The page's article; the landing page has none. */

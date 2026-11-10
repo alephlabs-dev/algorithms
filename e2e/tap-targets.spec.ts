@@ -16,6 +16,7 @@ const routes = [
   '/structures',
   '/dynamic-programming',
   '/backtracking',
+  '/mazes',
 ];
 const CONTROLS = [
   'button',
@@ -33,7 +34,7 @@ const CONTROLS = [
   '[role="option"]',
 ].join(',');
 
-const TOUR_KEYS = ['tour-done', 'tour-done-pathfinding', 'tour-done-graphs', 'tour-done-fourier', 'tour-done-structures', 'tour-done-dp', 'tour-done-backtracking'];
+const TOUR_KEYS = ['tour-done', 'tour-done-pathfinding', 'tour-done-graphs', 'tour-done-fourier', 'tour-done-structures', 'tour-done-dp', 'tour-done-backtracking', 'tour-done-mazes'];
 const TOUCH = ['iphone', 'ipad', 'ipad-landscape'];
 
 /** Every visible control on the page smaller than MIN × MIN, counting a ::before/::after that grows its hit area. */

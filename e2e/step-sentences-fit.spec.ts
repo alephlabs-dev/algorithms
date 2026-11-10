@@ -23,8 +23,9 @@ const PAGES: { module: string; url: string }[] = [
   { module: 'backtracking', url: '/backtracking/n-queens' },
   { module: 'backtracking', url: '/backtracking/sudoku' },
   { module: 'fourier', url: '/fourier' },
+  { module: 'mazes', url: '/mazes' },
 ];
-const TOUR_KEYS = ['tour-done', 'tour-done-pathfinding', 'tour-done-graphs', 'tour-done-fourier', 'tour-done-structures', 'tour-done-dp', 'tour-done-backtracking'];
+const TOUR_KEYS = ['tour-done', 'tour-done-pathfinding', 'tour-done-graphs', 'tour-done-fourier', 'tour-done-structures', 'tour-done-dp', 'tour-done-backtracking', 'tour-done-mazes'];
 // About 2 minutes across the four projects, enough to slow the rest of the suite into timeouts on a
 // laptop. CI always runs it (STEP_SENTENCES=1 in .github/workflows/ci.yml); locally: make e2e-sentences.
 test.skip(!process.env.STEP_SENTENCES, 'slow: set STEP_SENTENCES=1 (make e2e-sentences); CI always runs it');

@@ -6,6 +6,7 @@ import { backtrackingSlice } from "./backtracking.slice";
 import { dpSlice } from "./dp.slice";
 import { fourierSlice } from "./fourier.slice";
 import { graphsSlice } from "./graphs.slice";
+import { mazesSlice } from "./mazes.slice";
 import { pathfindingSlice } from "./pathfinding.slice";
 import type { BoundSlice, ModuleSlice, SliceContext } from "./slice";
 import { sortingSlice } from "./sorting.slice";
@@ -26,6 +27,7 @@ export const slices = {
   structures: structuresSlice,
   dp: dpSlice,
   backtracking: backtrackingSlice,
+  mazes: mazesSlice,
 } satisfies Record<ModuleId, unknown>;
 
 export const MODULES = Object.keys(slices) as ModuleId[];
