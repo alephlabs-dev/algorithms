@@ -24,3 +24,14 @@ e2e-quick: ## iPhone + desktop only; SPEC=<file> to run one spec. Run before fin
 
 e2e-sentences: ## every step sentence fits its caption at every size; slow, so make e2e skips it (CI runs it)
 	STEP_SENTENCES=1 pnpm exec playwright test e2e/step-sentences-fit.spec.ts
+
+# ---- README media ----
+.PHONY: readme-media
+READMEPORT ?= $(or $(PORT),4173)
+
+readme-media: ## records docs/readme/*.gif and the hero video from a production build; needs ffmpeg
+	pnpm build
+	pnpm exec vite preview --port $(READMEPORT) --strictPort > /dev/null & server=$$!; \
+	trap "kill $$server" EXIT; \
+	until curl -sf http://localhost:$(READMEPORT) > /dev/null; do sleep 0.5; done; \
+	PORT=$(READMEPORT) node scripts/readme-media.mjs
