@@ -1,21 +1,9 @@
 /* How mazes look on the shared grid renderer: a tone for each cell state. */
 
-import {
-  ACTIVE,
-  CARVED,
-  DEAD_END,
-  FRONTIER,
-  OTHER_REGION,
-  REGION,
-  SKIPPED,
-  STACK,
-  WALK,
-  WALL,
-  type MazeFrame,
-  type MazeRun,
-} from "@/mazes";
-import type { GridCells, GridTone } from "./gridRenderer";
-import { gridFloor, gridWall, hexToRgb, type CanvasColors } from "./theme";
+import type { MazeRun } from "./run";
+import { ACTIVE, CARVED, DEAD_END, FRONTIER, OTHER_REGION, REGION, SKIPPED, STACK, WALK, WALL, type MazeFrame } from "./types";
+import type { GridCells, GridTone } from "@/canvas/gridRenderer";
+import { gridFloor, gridWall, hexToRgb, type CanvasColors } from "@/canvas/theme";
 
 /** Mazes' tones in the current theme, indexed by cell state. */
 export const mazePalette = (colors: CanvasColors): GridTone[] => {

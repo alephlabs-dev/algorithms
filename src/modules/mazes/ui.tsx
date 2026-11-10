@@ -1,15 +1,16 @@
-import { MazeStage } from "@/components/Mazes/MazeStage";
-import { MazeFacts, MazeLegend, MazeStatsInline } from "@/components/Mazes/MazeTools";
-import { MazeRaceLanes } from "@/components/Race/MazeRaceLanes";
+import { MazeStage } from "./MazeStage";
+import { MazeFacts, MazeLegend, MazeStatsInline } from "./MazeTools";
+import { MazeRaceLanes } from "./MazeRaceLanes";
 import { MazeSettings } from "@/components/Settings/SettingsPanel";
-import { mazeAlgorithms, mazeSizeLabels } from "@/consts/mazeAlgorithms";
+import { mazeAlgorithms, mazeSizeLabels } from "./algorithms";
 import { MAZE_RACE_DESCRIPTION } from "@/consts/race";
 import { localized } from "@/i18n";
-import { MAZE_ALGORITHMS, mazePseudocode, type MazeAlgorithm } from "@/mazes";
+import { MAZE_ALGORITHMS, mazePseudocode } from "./generators";
+import type { MazeAlgorithm } from "./types";
 import { useStore } from "@/store";
-import { narrateMaze } from "@/utils/narrateMaze";
-import { mazesTour } from "./tours";
-import type { ModuleUI } from "./types";
+import { narrateMaze } from "./narrate";
+import { mazesTour } from "@/modules/tours";
+import type { ModuleUI } from "@/modules/types";
 
 const text = localized({
   en: {

@@ -2,7 +2,8 @@ import { backtrackingProblems } from "@/consts/backtracking";
 import { dpProblems } from "@/consts/dp";
 import { fourierSeries } from "@/consts/fourierSeries";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
-import { mazeAlgorithms } from "@/consts/mazeAlgorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Mazes hints move into its manifest.
+import { mazeAlgorithms } from "@/modules/mazes/algorithms";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { structures } from "@/consts/structures";

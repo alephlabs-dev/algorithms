@@ -4,7 +4,8 @@ import type { Route } from "@/routes";
 import { fourierSeries } from "./fourierSeries";
 import { structures } from "./structures";
 import { graphAlgorithms } from "./graphAlgorithms";
-import { MAZE_ALGORITHMS } from "@/mazes";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Mazes landing entry moves into its manifest.
+import { MAZE_ALGORITHMS } from "@/modules/mazes/generators";
 import { pathAlgorithms } from "./pathAlgorithms";
 import { sortingAlgorithms } from "./sortingAlgorithms";
 import { localized } from "@/i18n";

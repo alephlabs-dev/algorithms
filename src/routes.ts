@@ -3,7 +3,8 @@ import type { DpAlgorithm } from "./dp/types";
 import type { FourierAlgorithm } from "./fourier/types";
 import type { StructureAlgorithm } from "./structures/types";
 import type { GraphAlgorithm } from "./graphs/types";
-import type { MazeAlgorithm } from "./mazes/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Mazes pages move into its manifest.
+import type { MazeAlgorithm } from "./modules/mazes/types";
 import type { PathAlgorithm } from "./pathfinding/types";
 import type { Algorithm } from "./types";
 import { lang, LANG_PREFIX, stripLang, type Lang } from "./i18n";

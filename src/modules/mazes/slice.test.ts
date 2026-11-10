@@ -1,23 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createAppStore } from "@/appStore";
 import { routePath } from "@/routes";
-import {
-  ACTIVE,
-  CARVED,
-  FRONTIER,
-  MAZE_ALGORITHMS,
-  OTHER_REGION,
-  REGION,
-  SKIPPED,
-  WALK,
-  WALL,
-  isMazeCell,
-  mazePseudocode,
-} from "@/mazes";
+import { MAZE_ALGORITHMS, isMazeCell, mazePseudocode } from "./generators";
+import { ACTIVE, CARVED, FRONTIER, OTHER_REGION, REGION, SKIPPED, WALK, WALL } from "./types";
 import { linkFor, readLocation } from "@/urlState";
-import { routeIn } from "./engine";
-import { mazesSlice as slice, type MazesState } from "./mazes.slice";
-import { MAX_RACERS, type SliceContext } from "./slice";
+import { routeIn } from "@/modules/engine";
+import { mazesSlice as slice, type MazesState } from "./slice";
+import { MAX_RACERS, type SliceContext } from "@/modules/slice";
 
 const single: SliceContext = {
   view: "single",

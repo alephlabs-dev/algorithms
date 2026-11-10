@@ -1,14 +1,15 @@
 import { useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { GridRenderer } from "@/canvas/gridRenderer";
-import { mazeGridCells, mazePalette } from "@/canvas/mazePaint";
-import { mazeAlgorithms } from "@/consts/mazeAlgorithms";
+import { mazeGridCells, mazePalette } from "./paint";
+import { mazeAlgorithms } from "./algorithms";
 import { useElementSize } from "@/hooks/useElementSize";
 import { localized } from "@/i18n";
-import type { MazeFrame, MazeRun } from "@/mazes";
+import type { MazeRun } from "./run";
+import type { MazeFrame } from "./types";
 import { selectSpeed } from "@/modules/engine";
 import { useStore } from "@/store";
-import { describeMazeFrame } from "@/utils/narrateMaze";
+import { describeMazeFrame } from "./narrate";
 import { moveDuration } from "@/utils/speed";
 
 const text = localized({

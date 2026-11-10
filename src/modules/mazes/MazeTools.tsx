@@ -1,14 +1,15 @@
 import { useShallow } from "zustand/react/shallow";
-import { mazeAlgorithms, mazeSizeLabels } from "@/consts/mazeAlgorithms";
-import { hasStartCell, type MazeAlgorithm } from "@/mazes";
+import { mazeAlgorithms, mazeSizeLabels } from "./algorithms";
+import { hasStartCell } from "./generators";
+import type { MazeAlgorithm } from "./types";
 import { localized } from "@/i18n";
 import { gridSizes, raceMaxGridSize, type GridSize } from "@/utils/gridSize";
 import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";
-import { FactLine } from "../ui/fact-line";
-import { SegmentedControl } from "../ui/segmented";
-import { SwatchCross } from "../TourSwatch";
+import { FactLine } from "@/components/ui/fact-line";
+import { SegmentedControl } from "@/components/ui/segmented";
+import { SwatchCross } from "@/components/TourSwatch";
 
 const text = localized({
   en: {

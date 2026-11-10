@@ -1,4 +1,6 @@
 import { RuleTester } from "eslint";
+import path from "node:path";
+import tseslint from "typescript-eslint";
 import { afterAll, describe, it } from "vitest";
 import { house } from "./house.js";
 
@@ -28,5 +30,91 @@ tester.run("no-native-controls", house.rules["no-native-controls"], {
     { code: "<input type={kind} />", errors: native("input") },
     { code: "<select />", errors: native("select") },
     { code: "<textarea />", errors: native("textarea") },
+  ],
+});
+
+// Module boundaries (docs/adr/0003): the files are named from the repo root.
+const at = (file) => path.join(import.meta.dirname, "..", file);
+const boundaries = house.rules["module-boundaries"];
+const registries = [{ registries: { "src/modules/engine.ts": "slice", "src/modules/index.ts": "ui" } }];
+// TypeScript's parser, for `import type`.
+const moduleTester = new RuleTester({ languageOptions: { parser: tseslint.parser } });
+
+moduleTester.run("module-boundaries", boundaries, {
+  valid: [
+    // A module imports its own files, shared code and packages.
+    { code: "import { MazeRun } from './run';", filename: at("src/modules/mazes/slice.ts"), options: registries },
+    { code: "import { x } from '@/modules/mazes/run';", filename: at("src/modules/mazes/ui.tsx"), options: registries },
+    { code: "import { theme } from '@/canvas/theme';", filename: at("src/modules/mazes/paint.ts"), options: registries },
+    { code: "import { create } from 'zustand';", filename: at("src/modules/mazes/slice.ts"), options: registries },
+    // Each registry imports its piece of every module.
+    { code: "import { mazesSlice } from './mazes/slice';", filename: at("src/modules/engine.ts"), options: registries },
+    { code: "import { mazesUI } from '@/modules/mazes/ui';", filename: at("src/modules/index.ts"), options: registries },
+    // A manifest runs in Node: its own types, i18n and routes only.
+    { code: "import type { MazeAlgorithm } from './types';", filename: at("src/modules/mazes/manifest.ts"), options: registries },
+    { code: "import { localized } from '@/i18n';", filename: at("src/modules/mazes/manifest.ts"), options: registries },
+    { code: "import { localized } from '../../i18n.ts';", filename: at("src/modules/mazes/manifest.ts"), options: registries },
+    { code: "import type { Pages } from '../../routes';", filename: at("src/modules/mazes/manifest.ts"), options: registries },
+    // Shared files next to the module folders aren't modules.
+    { code: "import { defineModule } from './slice';", filename: at("src/modules/sorting.slice.ts"), options: registries },
+  ],
+  invalid: [
+    {
+      code: "import { x } from '@/modules/pathfinding/grid';",
+      filename: at("src/modules/mazes/slice.ts"),
+      options: registries,
+      errors: [{ messageId: "otherModule", data: { from: "mazes", to: "pathfinding" } }],
+    },
+    {
+      code: "import { x } from '../pathfinding/grid';",
+      filename: at("src/modules/mazes/slice.ts"),
+      options: registries,
+      errors: [{ messageId: "otherModule", data: { from: "mazes", to: "pathfinding" } }],
+    },
+    // Shared code reaches a module only through the registries.
+    {
+      code: "import { mazeAlgorithms } from '@/modules/mazes/algorithms';",
+      filename: at("src/components/About.tsx"),
+      options: registries,
+      errors: [{ messageId: "registry", data: { to: "mazes" } }],
+    },
+    {
+      code: "export { MazeRun } from '../src/modules/mazes/run';",
+      filename: at("e2e/mazes.spec.ts"),
+      options: registries,
+      errors: [{ messageId: "registry", data: { to: "mazes" } }],
+    },
+    {
+      code: "const ui = import('./modules/mazes/ui');",
+      filename: at("src/App.tsx"),
+      options: registries,
+      errors: [{ messageId: "registry", data: { to: "mazes" } }],
+    },
+    // A manifest imports nothing that may need a browser, React or the bundler.
+    ...[
+      "import { MAZE_ALGORITHMS } from './generators';",
+      "import { useStore } from '@/store';",
+      "import { mazesUI } from './ui';",
+      "import { useState } from 'react';",
+      "import type { PathAlgorithm } from '@/modules/pathfinding/types';",
+    ].map((code) => ({
+      code,
+      filename: at("src/modules/mazes/manifest.ts"),
+      options: registries,
+      errors: [{ messageId: "manifest" }],
+    })),
+    // A registry imports only its own piece, and the module's folder isn't an entry point.
+    {
+      code: "import { mazesUI } from './mazes/ui';",
+      filename: at("src/modules/engine.ts"),
+      options: registries,
+      errors: [{ messageId: "registry", data: { to: "mazes" } }],
+    },
+    {
+      code: "import { mazesSlice } from './mazes';",
+      filename: at("src/modules/engine.ts"),
+      options: registries,
+      errors: [{ messageId: "registry", data: { to: "mazes" } }],
+    },
   ],
 });

@@ -44,7 +44,20 @@ export default defineConfig([
       ],
     },
   },
+  // Module boundaries (docs/adr/0003): a module keeps to its folder in src/modules/<id>/, shared code
+  // (e2e included) reaches it only through the registries, and its manifest imports only Node-safe code.
+  {
+    files: ["**/*.{ts,tsx}"],
+    plugins: { house },
+    rules: {
+      "house/module-boundaries": [
+        "error",
+        { registries: { "src/modules/engine.ts": "slice", "src/modules/index.ts": "ui" } },
+      ],
+    },
+  },
   // A canvas paint module may not import another one: shared canvas helpers live in theme.ts (#157).
+  // Until #189 moves pathPaint and structurePaint into their modules, where module-boundaries covers them.
   {
     files: ["src/canvas/*Paint.ts"],
     rules: {

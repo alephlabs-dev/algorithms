@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
 import { localized } from "@/i18n";
-import { hasStartCell, type MazeAlgorithm } from "@/mazes";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes tour moves into its interface.
+import { hasStartCell } from "@/modules/mazes/generators";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes tour moves into its interface.
+import type { MazeAlgorithm } from "@/modules/mazes/types";
 import { MUD_COST } from "@/pathfinding";
 import { useStore, type Theme } from "@/store";
 import { Swatch } from "@/components/TourSwatch";

@@ -1,14 +1,14 @@
 /// <reference types="node" />
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ACTIVE, CARVED, DEAD_END, FRONTIER, OTHER_REGION, REGION, SKIPPED, STACK, WALK, WALL } from "@/mazes";
-import { deltaE2000 } from "./colorDifference";
-import { mazePalette } from "./mazePaint";
-import { pathPalette } from "./pathPaint";
-import { hexToRgb, variables, type CanvasColors } from "./theme";
+import { ACTIVE, CARVED, DEAD_END, FRONTIER, OTHER_REGION, REGION, SKIPPED, STACK, WALK, WALL } from "./types";
+import { deltaE2000 } from "@/canvas/colorDifference";
+import { mazePalette } from "./paint";
+import { pathPalette } from "@/canvas/pathPaint";
+import { hexToRgb, variables, type CanvasColors } from "@/canvas/theme";
 
 // The theme colors as src/index.css defines them now: dark in @theme, light overriding it.
-const css = readFileSync(new URL("../index.css", import.meta.url), "utf8");
+const css = readFileSync(new URL("../../index.css", import.meta.url), "utf8");
 const block = (selector: string) => {
   const open = css.indexOf(`${selector} {`);
   return css.slice(open, css.indexOf("\n}", open));

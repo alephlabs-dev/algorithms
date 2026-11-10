@@ -1,5 +1,9 @@
 // House rules from UX.md: only our own components, only theme colors.
 
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 // Native controls with no styling of our own. Every <input>, whatever its type: text fields are ui/TextField.
 const NATIVE_ELEMENTS = new Set(["input", "select", "option", "optgroup", "datalist", "textarea", "progress", "meter"]);
 
@@ -38,4 +42,75 @@ const noRawColors = {
   }),
 };
 
-export const house = { rules: { "no-native-controls": noNativeControls, "no-raw-colors": noRawColors } };
+// Module boundaries (docs/adr/0003): each module lives in src/modules/<id>/ and keeps to its folder.
+// Paths are compared from the repo root (this file's parent folder, whatever ESLint's cwd), with "@/" read as src/.
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const posix = (file) => file.split(path.sep).join("/");
+const withoutExtension = (file) => file.replace(/\.(tsx?|jsx?)$/, "");
+
+/** Where an import points, from the repo root and without its extension; null for a package. */
+const resolveImport = (source, filename, root) => {
+  if (source.startsWith("@/")) return withoutExtension(posix(path.join("src", source.slice(2))));
+  if (source.startsWith(".")) return withoutExtension(posix(path.relative(root, path.resolve(path.dirname(filename), source))));
+  return null;
+};
+
+/**
+ * The module a file belongs to and its path inside the module's folder ("index" for the folder
+ * itself), or null for shared code, such as the registries next to the folders.
+ */
+const moduleOf = (file, root) => {
+  const match = /^src\/modules\/([^/]+)(?:\/(.+))?$/.exec(file ?? "");
+  if (!match) return null;
+  if (match[2] !== undefined) return { id: match[1], file: withoutExtension(match[2]) };
+  const isFolder = fs.statSync(path.join(root, file), { throwIfNoEntry: false })?.isDirectory();
+  return isFolder ? { id: match[1], file: "index" } : null;
+};
+
+const moduleBoundaries = {
+  meta: {
+    type: "problem",
+    schema: [
+      {
+        type: "object",
+        properties: { registries: { type: "object", additionalProperties: { type: "string" } } },
+        additionalProperties: false,
+      },
+    ],
+    messages: {
+      manifest: "A manifest runs in Node (e2e, prerender): it may import only its own types.ts, src/i18n.ts and src/routes.ts (docs/adr/0003).",
+      registry:
+        "Shared code reaches module {{to}} only through the registries: its slice from src/modules/engine.ts, its interface from src/modules/index.ts (docs/adr/0003).",
+      otherModule: "Module {{from}} can't import from module {{to}}'s folder. Move what both need to shared code (docs/adr/0003).",
+    },
+  },
+  create: (context) => {
+    const root = ROOT;
+    const from = posix(path.relative(root, context.filename));
+    const importer = moduleOf(withoutExtension(from), root);
+    // The piece of every module this file registers ("slice", "ui"), if it's a registry.
+    const registers = context.options[0]?.registries?.[from];
+    const check = (node) => {
+      if (typeof node.source?.value !== "string") return;
+      const resolved = resolveImport(node.source.value, context.filename, root);
+      const target = moduleOf(resolved, root);
+      if (importer?.file === "manifest") {
+        const nodeSafe =
+          resolved === "src/i18n" || resolved === "src/routes" || (target?.id === importer.id && target.file === "types");
+        if (!nodeSafe) context.report({ node: node.source, messageId: "manifest" });
+        return;
+      }
+      if (!target) return;
+      if (!importer) {
+        if (target.file !== registers) context.report({ node: node.source, messageId: "registry", data: { to: target.id } });
+      } else if (importer.id !== target.id) {
+        context.report({ node: node.source, messageId: "otherModule", data: { from: importer.id, to: target.id } });
+      }
+    };
+    return { ImportDeclaration: check, ExportNamedDeclaration: check, ExportAllDeclaration: check, ImportExpression: check };
+  },
+};
+
+export const house = {
+  rules: { "no-native-controls": noNativeControls, "no-raw-colors": noRawColors, "module-boundaries": moduleBoundaries },
+};
