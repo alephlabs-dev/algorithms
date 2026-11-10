@@ -17,7 +17,7 @@ Hecho por [Aleph Labs](https://alephlabs.dev) · [Read in English](README.md)
 
 </div>
 
-<!-- HERO: reemplazar esta línea por la URL user-attachments del video (ver CONTRIBUTING.md, "README media"). -->
+https://github.com/user-attachments/assets/c06be482-4b34-4bad-bcaa-1cfe82b31e6a
 
 ## Módulos
 
