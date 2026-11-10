@@ -1,7 +1,8 @@
 import { useShallow } from "zustand/react/shallow";
 import { gridSizeLabels, presets } from "@/consts/pathLabels";
-import { gridSizes, MUD_COST, type GridSize } from "@/pathfinding";
-import { raceMaxGridSize, selectPathFrame, useStore, type Brush } from "@/store";
+import { MUD_COST } from "@/pathfinding";
+import { gridSizes, raceMaxGridSize, type GridSize } from "@/utils/gridSize";
+import { selectPathFrame, useStore, type Brush } from "@/store";
 import { cn } from "@/utils/cn";
 import { PresetButtons as LayoutButtons } from "../ui/preset-buttons";
 import { SegmentedControl } from "../ui/segmented";

@@ -1,8 +1,5 @@
 import { EMPTY, MUD, MUD_COST, WALL, type Grid, type Terrain } from "./types";
 
-// Grid sizes live in utils so mazes can use them without importing pathfinding.
-export * from "@/utils/gridSize";
-
 export const cellOf = (grid: Pick<Grid, "cols">, row: number, col: number) => row * grid.cols + col;
 export const rowOf = (grid: Pick<Grid, "cols">, cell: number) => Math.floor(cell / grid.cols);
 export const colOf = (grid: Pick<Grid, "cols">, cell: number) => cell % grid.cols;

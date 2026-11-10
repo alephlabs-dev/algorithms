@@ -7,7 +7,8 @@ import { DpRun, EXAMPLE_CAPACITY, EXAMPLE_ITEMS, KnapsackRun, MAX_CAPACITY, MAX_
 import { circleOptions, FOURIER_SHAPES, FourierRun } from '@/fourier';
 import { GRAPH_ALGORITHMS, graphPresets, graphSizes, graphTimelineFor, makeGraph } from '@/graphs';
 import { MAZE_ALGORITHMS, MazeRun } from '@/mazes';
-import { applyPreset, emptyGrid, gridDimensions, PATH_ALGORITHMS, pathSearches, PathTimeline, type GridSize, type Preset } from '@/pathfinding';
+import { applyPreset, emptyGrid, PATH_ALGORITHMS, pathSearches, PathTimeline, type Preset } from '@/pathfinding';
+import { gridDimensions, type GridSize } from '@/utils/gridSize';
 import { presetOperations, recordStructure, STRUCTURE_ALGORITHMS, type Operation, type StructurePreset, type StructureSize } from '@/structures';
 import type { InputOrder } from '@/types';
 import { generateItems } from '@/utils/generateItems';

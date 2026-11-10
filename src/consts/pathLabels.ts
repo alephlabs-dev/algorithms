@@ -1,5 +1,6 @@
 import { localized } from "@/i18n";
-import type { GridSize, Preset } from "@/pathfinding";
+import type { Preset } from "@/pathfinding";
+import type { GridSize } from "@/utils/gridSize";
 
 /** The ready-made grid layouts, in the order the buttons show them. */
 export const presets = localized<{ value: Preset; label: string; title: string }[]>({

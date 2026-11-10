@@ -4,18 +4,20 @@ import {
   decodeCells,
   emptyGrid,
   encodeCells,
-  fitGridSize,
-  gridDimensions,
-  gridSizes,
   PATH_ALGORITHMS,
   pathSearches,
   PathTimeline,
-  sizeForView,
   type Grid,
-  type GridSize,
   type PathAlgorithm,
   type Preset,
 } from "@/pathfinding";
+import {
+  fitGridSize,
+  gridDimensions,
+  gridSizes,
+  sizeForView,
+  type GridSize,
+} from "@/utils/gridSize";
 import { pathQuestions, questionsOf } from "@/game";
 import { localized } from "@/i18n";
 import { pathfindingLink, type PathfindingLink } from "./pathfinding.link";
