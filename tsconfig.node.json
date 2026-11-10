@@ -10,5 +10,7 @@
     "noEmit": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["vite.config.ts", "vite-plugin-prerender.ts", "playwright.config.ts", "e2e"]
+  // e2e imports the route registry (src/routes.ts), so it and the files it imports are checked here too.
+  "include": ["vite.config.ts", "vite-plugin-prerender.ts", "playwright.config.ts", "e2e", "src/routes.ts", "src/i18n.ts", "src/types.ts", "src/*/types.ts"],
+  "exclude": ["src/modules"]
 }
