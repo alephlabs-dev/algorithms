@@ -23,6 +23,21 @@ export const fitGridSize = (size: GridSize, view: "single" | "race", isMobile: b
   return view === "race" && gridSizes.indexOf(size) > gridSizes.indexOf(cap) ? cap : size;
 };
 
+/**
+ * The grid size a view shows, and the size to give back when the race ends (`beforeRace`).
+ * A race caps a big size and remembers it; single view gives the remembered size back.
+ */
+export const sizeForView = (
+  size: GridSize,
+  beforeRace: GridSize | null,
+  view: "single" | "race",
+  isMobile: boolean,
+): { size: GridSize; beforeRace: GridSize | null } => {
+  if (view === "single") return { size: beforeRace ?? size, beforeRace: null };
+  const fitted = fitGridSize(size, view, isMobile);
+  return { size: fitted, beforeRace: fitted === size ? beforeRace : size };
+};
+
 export const gridDimensions = (size: GridSize, isMobile: boolean) => {
   const [rows, cols] = dimensions[size][isMobile ? "phone" : "wide"];
   return { rows, cols };

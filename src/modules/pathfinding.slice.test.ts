@@ -81,4 +81,23 @@ describe("pathfinding in the store", () => {
     expect(selectRaceRuns(state)).toHaveLength(state.pathfinding.racers.length);
     expect(selectLastIndex(state)).toBeGreaterThan(0);
   });
+
+  it("leaving the race gives back the grid size from before it", () => {
+    const app = storeAt(href({ module: "pathfinding", page: "algorithm", algorithm: "astar" }));
+    app.getState().actions.pathfinding.setGridSize("large");
+    app.getState().setView("race");
+    expect(app.getState().pathfinding.gridSize).toBe("medium");
+    app.getState().setView("single");
+    expect(app.getState().pathfinding.gridSize).toBe("large");
+  });
+
+  it("a grid size picked during the race is the one kept after it", () => {
+    const app = storeAt(href({ module: "pathfinding", page: "algorithm", algorithm: "astar" }));
+    app.getState().actions.pathfinding.setGridSize("large");
+    app.getState().setView("race");
+    app.getState().actions.pathfinding.setGridSize("small");
+    app.getState().setView("single");
+    expect(app.getState().pathfinding.gridSize).toBe("small");
+  });
 });
+
