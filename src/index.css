@@ -60,6 +60,8 @@
   --color-bar: #d9dfdb;
   --color-muted: #8fa39a;
   --color-outline: #ffffff;
+  /* Canvas only: the ring on the grid cell being looked at. A mid grey, apart from every grid tone. */
+  --color-ring: #b2b7b4;
   /* Pathfinding: mud cells (cost more to cross). */
   --color-mud: #6e5a3b;
   /* Backtracking: a square a queen already attacks. */
@@ -89,6 +91,7 @@
   --color-bar: #2c4166;
   --color-muted: #5b6f8f;
   --color-outline: #13294b;
+  --color-ring: #4d5e78;
   --color-mud: #cdb88f;
   --color-conflict: #d42c2c;
   --color-scrim: rgb(0 0 0 / 0.36);

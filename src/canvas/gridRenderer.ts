@@ -242,11 +242,12 @@ export class GridRenderer {
       }
     }
 
-    // The cell being examined: an outline that follows the search.
+    // The cell being examined: a ring that follows the search, in its own color so it shows
+    // on every tone, the move on stage included.
     if (input.current != null) {
       const row = Math.floor(input.current / cols);
       const col = input.current % cols;
-      ctx.strokeStyle = colors.outline;
+      ctx.strokeStyle = colors.ring;
       ctx.lineWidth = Math.max(1.5, size * 0.08);
       ctx.beginPath();
       ctx.roundRect(left + col * size + gap / 2, top + row * size + gap / 2, size - gap, size - gap, radius);
