@@ -10,7 +10,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Decides whether a PR touches code. Pushes to main always run everything.
+  # The other jobs skip when code is "false"; GitHub counts a skipped required check as passed.
+  # If this job fails, code is empty and everything runs.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        if: github.event_name == 'pull_request'
+        with:
+          fetch-depth: 2 # the PR merge commit and its base parent
+      - id: filter
+        run: |
+          if [ "${{ github.event_name }}" != pull_request ]; then
+            echo code=true >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          code=false
+          while IFS= read -r f; do
+            case "$f" in
+              # Files nothing in the build or tests reads. Keep this list short and safe.
+              *.md|.claude/*|docs/*|LICENSE.txt|.github/workflows/claude.yml|.github/workflows/maintenance.yml) ;;
+              *) code=true; echo "code change: $f"; break ;;
+            esac
+          done < <(git diff --name-only HEAD^1 HEAD)
+          echo code=$code >> "$GITHUB_OUTPUT"
+
   check:
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -25,6 +55,8 @@ jobs:
 
   e2e-device:
     name: e2e (${{ matrix.project }})
+    needs: changes
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
@@ -53,8 +85,11 @@ jobs:
 
   # The ruleset on main requires a check named "e2e"; this job keeps that name for the matrix above.
   e2e:
-    needs: e2e-device
+    needs: [changes, e2e-device]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - run: test "${{ needs.e2e-device.result }}" = success
+      - run: |
+          result="${{ needs.e2e-device.result }}"
+          code="${{ needs.changes.outputs.code }}"
+          test "$result" = success || { test "$result" = skipped && test "$code" = false; }
