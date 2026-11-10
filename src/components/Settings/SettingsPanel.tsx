@@ -1,19 +1,29 @@
 import { BarChartIcon } from "@radix-ui/react-icons";
 import type { ReactNode } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { inputOrders } from "@/consts/inputOrders";
-import { sizesFor } from "@/consts/sizesMap";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Sorting settings move into its interface.
+import { inputOrders } from "@/modules/sorting/inputOrders";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Sorting settings move into its interface.
+import { sizesFor } from "@/modules/sorting/sizesMap";
 import { useStore } from "@/store";
-import type { DisplayMode, InputOrder } from "@/types";
-import { ItemsControls } from "../Dp/DpStage";
-import { DpStartPicker } from "../Dp/DpTools";
-import { BacktrackingPicker, FillOrderPicker } from "../Backtracking/BacktrackingTools";
-import { CirclesPicker, DrawingSelect } from "../Fourier/FourierTools";
-import { StructurePresetButtons, StructureSizePicker } from "../Structures/StructureTools";
-import { GraphPresetButtons, GraphSizePicker } from "../Graphs/GraphTools";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Sorting settings move into its interface.
+import type { DisplayMode, InputOrder } from "@/modules/sorting/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the DP settings move into its interface.
+import { ItemsControls } from "@/modules/dp/DpStage";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the DP settings move into its interface.
+import { DpStartPicker } from "@/modules/dp/DpTools";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Backtracking settings move into its interface.
+import { BacktrackingPicker, FillOrderPicker } from "@/modules/backtracking/BacktrackingTools";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Fourier settings move into its interface.
+import { CirclesPicker, DrawingSelect } from "@/modules/fourier/FourierTools";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Data structures settings move into its interface.
+import { StructurePresetButtons, StructureSizePicker } from "@/modules/structures/StructureTools";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Graphs settings move into its interface.
+import { GraphPresetButtons, GraphSizePicker } from "@/modules/graphs/GraphTools";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes settings move into its interface.
 import { MazeSizePicker } from "@/modules/mazes/MazeTools";
-import { BrushPicker, GridSizePicker, PresetButtons } from "../Pathfinding/PathTools";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Pathfinding settings move into its interface.
+import { BrushPicker, GridSizePicker, PresetButtons } from "@/modules/pathfinding/PathTools";
 import { NativeSelect } from "../ui/native-select";
 import { SegmentedControl } from "../ui/segmented";
 import { StepSlider } from "../ui/slider";

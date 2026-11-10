@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Sorting titles come from its manifest.
+import { sortingAlgorithms } from "@/modules/sorting/algorithms";
 import { createAppStore } from "@/appStore";
 import { routeFor } from "@/navigation";
 import { allRoutes, href } from "@/routes";

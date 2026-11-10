@@ -22,8 +22,7 @@ fit (`fit`). See `docs/adr/0002-one-nested-slice-per-module.md`.
 ## One folder per module
 
 Everything a module owns lives in `src/modules/<id>/` (`docs/adr/0003-one-folder-per-module-three-registries.md`).
-Mazes is the first one; the other modules still have `<id>.slice.ts`, `<id>.link.ts` and `<id>.tsx` here and
-their code in shared folders until they move (#189). A module's folder, as Mazes has it:
+Mazes was the first one (#186); the others followed it (#189). A module's folder, as Mazes has it:
 
 | File | What it holds |
 | --- | --- |
@@ -38,8 +37,12 @@ their code in shared folders until they move (#189). A module's folder, as Mazes
 | `paint.ts`, `paint.test.ts` | How it looks on a shared canvas renderer (`src/canvas/`) |
 | `MazeStage.tsx`, `MazeTools.tsx`, … | Its components |
 
-Shared helpers stay shared: canvas renderers and theme in `src/canvas/`, UI parts in `src/components/`, utilities
-in `src/utils/`. Module-specific e2e specs stay in `e2e/`.
+Other modules add what they need beside these: their own canvas renderer when no shared one fits
+(`barsRenderer.ts`, `treeRenderer.ts`, …), and their Guess-mode questions in `questions.ts` and `questions.test.ts`.
+
+Shared helpers stay shared: the grid renderer, the theme and the other canvas helpers in `src/canvas/`, UI parts in
+`src/components/`, Guess mode's question types and helpers in `src/game/`, utilities in `src/utils/`.
+Module-specific e2e specs stay in `e2e/`.
 
 Three rules, enforced by the lint (`house/module-boundaries` in `eslint/house.js`):
 
@@ -48,8 +51,7 @@ Three rules, enforced by the lint (`house/module-boundaries` in `eslint/house.js
 - Shared code (e2e included) reaches a module only through the registries: `engine.ts` imports its `slice`,
   `index.ts` its `ui`. Nothing else imports from a module folder.
 - `manifest.ts` runs in Node (e2e, prerender), so it imports only its own `types.ts`, `src/i18n.ts` and
-  `src/routes.ts`. `tsconfig.node.json` finds every module folder's `manifest.ts` and `types.ts` by glob (the
-  modules not in a folder yet still list their `types.ts` by hand, until #189).
+  `src/routes.ts`. `tsconfig.node.json` finds every module folder's `manifest.ts` and `types.ts` by glob.
 
 An import that breaks a rule and can't be fixed yet gets a per-line `eslint-disable-next-line` with a TODO naming
 the ticket that removes it. The rule itself is never turned off.
@@ -77,6 +79,6 @@ the ticket that removes it. The rule itself is never turned off.
    Each one names the frame it's asked before, so playback stops there; the stage can draw what the
    question needs (spots to tap, a cell marked "?") from `selectGameQuestion`.
 
-Each slice has its own test (`<id>.slice.test.ts`), run without a browser. `engine.test.ts` checks that every
+Each slice has its own test (`<id>/slice.test.ts`), run without a browser. `engine.test.ts` checks that every
 page an engine can be on belongs to it and survives its own URL, and `src/switching.test.ts` pins what switching
 algorithm, module or view looks like.

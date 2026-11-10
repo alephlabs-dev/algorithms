@@ -1,30 +1,58 @@
 import type { ComponentType, ReactNode } from "react";
-import { pseudocode } from "@/algorithms";
-import { dpProblems } from "@/consts/dp";
-import { dpPseudocode, type DpAlgorithm } from "@/dp";
-import { backtrackingProblems } from "@/consts/backtracking";
-import { fourierSeries } from "@/consts/fourierSeries";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Sorting articles move into its interface.
+import { pseudocode } from "@/modules/sorting/generators";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the DP articles move into its interface.
+import { dpProblems } from "@/modules/dp/algorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the DP articles move into its interface.
+import { dpPseudocode } from "@/modules/dp/pseudocode";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the DP articles move into its interface.
+import type { DpAlgorithm } from "@/modules/dp/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Backtracking articles move into its interface.
+import { backtrackingProblems } from "@/modules/backtracking/algorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Fourier articles move into its interface.
+import { fourierSeries } from "@/modules/fourier/algorithms";
 import { DP_RACE_DESCRIPTION, MAZE_RACE_DESCRIPTION, STRUCTURE_RACE_DESCRIPTION } from "@/consts/race";
-import { structures } from "@/consts/structures";
-import { structurePseudocode, type StructureAlgorithm } from "@/structures";
-import { graphAlgorithms } from "@/consts/graphAlgorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Data structures articles move into its interface.
+import { structures } from "@/modules/structures/algorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Data structures articles move into its interface.
+import { structurePseudocode } from "@/modules/structures/pseudocode";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Data structures articles move into its interface.
+import type { StructureAlgorithm } from "@/modules/structures/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Graphs articles move into its interface.
+import { graphAlgorithms } from "@/modules/graphs/algorithms";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes articles move into its interface.
 import { mazeAlgorithms } from "@/modules/mazes/algorithms";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes articles move into its interface.
 import { MAZE_ALGORITHMS, mazePseudocode } from "@/modules/mazes/generators";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes articles move into its interface.
 import type { MazeAlgorithm } from "@/modules/mazes/types";
-import { queensPseudocode, sudokuPseudocode, type BacktrackingProblem } from "@/backtracking";
-import { fourierPseudocode, type FourierAlgorithm } from "@/fourier";
-import { pathAlgorithms } from "@/consts/pathAlgorithms";
-import { graphPseudocode, type GraphAlgorithm } from "@/graphs";
-import { MUD_COST, pathPseudocode, type PathAlgorithm } from "@/pathfinding";
-import { algorithmGroups } from "@/consts/algorithmGroups";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Backtracking articles move into its interface.
+import { queensPseudocode, sudokuPseudocode } from "@/modules/backtracking/pseudocode";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Backtracking articles move into its interface.
+import type { BacktrackingProblem } from "@/modules/backtracking/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Fourier articles move into its interface.
+import { fourierPseudocode } from "@/modules/fourier/pseudocode";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Fourier articles move into its interface.
+import type { FourierAlgorithm } from "@/modules/fourier/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Pathfinding articles move into its interface.
+import { pathAlgorithms } from "@/modules/pathfinding/algorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Graphs articles move into its interface.
+import { graphPseudocode } from "@/modules/graphs/searches";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Graphs articles move into its interface.
+import type { GraphAlgorithm } from "@/modules/graphs/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Pathfinding articles move into its interface.
+import { MUD_COST, type PathAlgorithm } from "@/modules/pathfinding/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Pathfinding articles move into its interface.
+import { pathPseudocode } from "@/modules/pathfinding/searches";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Sorting articles move into its interface.
+import { algorithmGroups } from "@/modules/sorting/algorithmGroups";
 import { GRAPH_RACE_DESCRIPTION, PATH_RACE_DESCRIPTION, RACE_DESCRIPTION } from "@/consts/race";
-import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Sorting articles move into its interface.
+import { sortingAlgorithms } from "@/modules/sorting/algorithms";
 import { localized } from "@/i18n";
 import { HOME, type AlgorithmOf, type ModuleId, type RacingModule, type Route } from "@/routes";
-import type { Algorithm } from "@/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Sorting articles move into its interface.
+import type { Algorithm } from "@/modules/sorting/types";
 import { PageLink } from "./PageLink";
 import { Disclosure } from "./ui/disclosure";
 

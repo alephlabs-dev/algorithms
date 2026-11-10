@@ -84,3 +84,23 @@ export const inkOn = (fill: RGB, p: { ink: RGB; background: RGB }) =>
   Math.abs(luminance(fill) - luminance(p.ink)) > Math.abs(luminance(fill) - luminance(p.background))
     ? p.ink
     : p.background;
+
+/** The data structure renderers' colors; dynamic programming's tables use them too. */
+export const structurePalette = (colors: CanvasColors) => {
+  const background = hexToRgb(colors.background);
+  const muted = hexToRgb(colors.muted);
+  const secondary = hexToRgb(colors.secondary);
+  const isLight = luminance(background) > 0.5;
+  return {
+    background,
+    ink: hexToRgb(colors.foreground),
+    node: mix(background, hexToRgb(colors.edge), 0.9),
+    ring: mix(background, muted, 0.7),
+    edge: mix(background, muted, 0.55),
+    path: mix(background, secondary, isLight ? 0.3 : 0.42),
+    focus: secondary,
+    done: hexToRgb(colors.primary),
+    warn: hexToRgb(colors.tertiary),
+  };
+};
+export type StructurePalette = ReturnType<typeof structurePalette>;

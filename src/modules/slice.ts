@@ -5,7 +5,7 @@ import type { Pace, SpeedPreset } from "@/utils/speed";
 
 /**
  * A module's part of the link the app opened on: the algorithm its page names (none on
- * the start or race page), and the params its own codec read from the query (./<id>.link.ts).
+ * the start or race page), and the params its own codec read from the query (./<id>/link.ts).
  * A module that isn't open gets no algorithm and empty params.
  */
 export type Link<P = object, Id extends string = string> = { algorithm?: Id; params: P };

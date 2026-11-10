@@ -1,6 +1,9 @@
-import type { StepKind } from "@/algorithms";
-import type { GraphStep } from "@/graphs/types";
-import type { PathStepKind } from "@/pathfinding";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Sorting pace moves into its slice.
+import type { StepKind } from "@/modules/sorting/timeline";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Graphs pace moves into its slice.
+import type { GraphStep } from "@/modules/graphs/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Pathfinding pace moves into its slice.
+import type { PathStepKind } from "@/modules/pathfinding/timeline";
 
 // Internally speed is a position from 0 to 1 on an exponential scale: 1 step
 // per second at 0, ~8000 at 1. That range covers 10 items and 400 alike, even at

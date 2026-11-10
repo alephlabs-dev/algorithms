@@ -1,13 +1,21 @@
 import { describe, expect, it } from "vitest";
-import { backtrackingLink } from "./modules/backtracking.link";
-import { dpLink } from "./modules/dp.link";
-import { fourierLink } from "./modules/fourier.link";
-import { graphsLink } from "./modules/graphs.link";
-import { pathfindingLink } from "./modules/pathfinding.link";
-import { sortingLink } from "./modules/sorting.link";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { backtrackingLink } from "./modules/backtracking/link";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { dpLink } from "./modules/dp/link";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { fourierLink } from "./modules/fourier/link";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { graphsLink } from "./modules/graphs/link";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { pathfindingLink } from "./modules/pathfinding/link";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { sortingLink } from "./modules/sorting/link";
 import { routePath } from "./routes";
-import type { GraphAlgorithm } from "./graphs/types";
-import type { PathAlgorithm } from "./pathfinding/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import type { GraphAlgorithm } from "./modules/graphs/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import type { PathAlgorithm } from "./modules/pathfinding/types";
 import { readLocation } from "./urlState";
 
 describe("url state", () => {

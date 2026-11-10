@@ -1,12 +1,19 @@
-import { backtrackingProblems } from "@/consts/backtracking";
-import { dpProblems } from "@/consts/dp";
-import { fourierSeries } from "@/consts/fourierSeries";
-import { graphAlgorithms } from "@/consts/graphAlgorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Backtracking hints move into its manifest.
+import { backtrackingProblems } from "@/modules/backtracking/algorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the DP hints move into its manifest.
+import { dpProblems } from "@/modules/dp/algorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Fourier hints move into its manifest.
+import { fourierSeries } from "@/modules/fourier/algorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Graphs hints move into its manifest.
+import { graphAlgorithms } from "@/modules/graphs/algorithms";
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the Mazes hints move into its manifest.
 import { mazeAlgorithms } from "@/modules/mazes/algorithms";
-import { pathAlgorithms } from "@/consts/pathAlgorithms";
-import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
-import { structures } from "@/consts/structures";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Pathfinding hints move into its manifest.
+import { pathAlgorithms } from "@/modules/pathfinding/algorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Sorting hints move into its manifest.
+import { sortingAlgorithms } from "@/modules/sorting/algorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Data structures hints move into its manifest.
+import { structures } from "@/modules/structures/algorithms";
 import { localized } from "@/i18n";
 import type { AlgorithmOf, ModuleId, RacingModule, Route } from "@/routes";
 

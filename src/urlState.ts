@@ -1,10 +1,12 @@
-import { SORT_ALGORITHMS } from "./algorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): sorting's legacy links move with its pages into its manifest.
+import { SORT_ALGORITHMS } from "./modules/sorting/generators";
 import type { View } from "./appStore";
 import { isOneOf, type LinkCodec } from "./modules/link";
 import { slices, type ModuleId, type SliceLink } from "./modules/engine";
 import type { Link } from "./modules/slice";
 import { routeFromPath } from "./routes";
-import type { Algorithm } from "./types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): sorting's legacy links move with its pages into its manifest.
+import type { Algorithm } from "./modules/sorting/types";
 import { droppedPresets, speedPresets, type SpeedPreset } from "./utils/speed";
 
 /** Where the app opened: the page, the settings every module shares, and the open module's link. */

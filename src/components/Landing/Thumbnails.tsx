@@ -1,13 +1,29 @@
-import { QueensRun } from "@/backtracking";
-import { DpRun } from "@/dp";
-import { FourierRun } from "@/fourier";
-import { presetOperations, TreeRecorder } from "@/structures";
-import { graphTimelineFor, makeGraph } from "@/graphs";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Backtracking thumbnail moves into its interface.
+import { QueensRun } from "@/modules/backtracking/queens";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the DP thumbnail moves into its interface.
+import { DpRun } from "@/modules/dp/run";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Fourier thumbnail moves into its interface.
+import { FourierRun } from "@/modules/fourier/run";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Data structures thumbnail moves into its interface.
+import { presetOperations } from "@/modules/structures/presets";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Data structures thumbnail moves into its interface.
+import { TreeRecorder } from "@/modules/structures/tree";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Graphs thumbnail moves into its interface.
+import { graphTimelineFor } from "@/modules/graphs/run";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Graphs thumbnail moves into its interface.
+import { makeGraph } from "@/modules/graphs/graph";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes thumbnail moves into its interface.
 import { MazeRun } from "@/modules/mazes/run";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes thumbnail moves into its interface.
 import { STACK, WALL as MAZE_WALL } from "@/modules/mazes/types";
-import { applyPreset, emptyGrid, FRONTIER, ON_PATH, pathSearches, PathTimeline, VISITED, WALL } from "@/pathfinding";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Pathfinding thumbnail moves into its interface.
+import { applyPreset, emptyGrid } from "@/modules/pathfinding/grid";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Pathfinding thumbnail moves into its interface.
+import { FRONTIER, ON_PATH, VISITED, WALL } from "@/modules/pathfinding/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Pathfinding thumbnail moves into its interface.
+import { pathSearches } from "@/modules/pathfinding/searches";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Pathfinding thumbnail moves into its interface.
+import { PathTimeline } from "@/modules/pathfinding/timeline";
 import { cn } from "@/utils/cn";
 import { seededRandom } from "@/utils/random";
 

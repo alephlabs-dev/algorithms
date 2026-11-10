@@ -1,4 +1,3 @@
-import type { Timeline } from "@/algorithms/timeline";
 import { localized } from "@/i18n";
 import { seededRandom } from "@/utils/random";
 
@@ -23,7 +22,7 @@ export const choicesAround = (answer: number, near: number[], min = 0, max = Inf
  * would give it away. Shuffle them instead, seeded by the run's values and the frame,
  * so the same run always shows the same order.
  */
-export const shuffled = (options: number[], run: Timeline, at: number) => {
+export const shuffled = (options: number[], run: { values: readonly number[] }, at: number) => {
   let seed = at;
   for (const v of run.values) seed = Math.imul(seed ^ v, 0x9e3779b1) >>> 0;
   const random = seededRandom(seed);

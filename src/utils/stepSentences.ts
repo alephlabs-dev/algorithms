@@ -1,29 +1,71 @@
 // Every step sentence of representative runs of each module, in the language of this page load.
 // Not used by the app: e2e/step-sentences-fit.spec.ts loads it once per language and measures each
 // sentence in the real caption (#113). Builds each run the way src/store.ts does.
-import { pseudocode, SORT_ALGORITHMS, sortAlgorithms, Timeline } from '@/algorithms';
-import { QueensRun, MAX_QUEENS, MIN_QUEENS, SUDOKU_PUZZLES, SudokuRun, type FillOrder, type SudokuPuzzle } from '@/backtracking';
-import { DpRun, EXAMPLE_CAPACITY, EXAMPLE_ITEMS, KnapsackRun, MAX_CAPACITY, MAX_ITEMS, MAX_WORD, RACE_CAPACITY, RACE_ITEMS, randomItems, wordPairs } from '@/dp';
-import { circleOptions, FOURIER_SHAPES, FourierRun } from '@/fourier';
-import { GRAPH_ALGORITHMS, graphPresets, graphSizes, graphTimelineFor, makeGraph } from '@/graphs';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Sorting sentence runs move into its slice.
+import { pseudocode, SORT_ALGORITHMS, sortAlgorithms } from '@/modules/sorting/generators';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Sorting sentence runs move into its slice.
+import { Timeline } from '@/modules/sorting/timeline';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Backtracking sentence runs move into its slice.
+import { QueensRun } from '@/modules/backtracking/queens';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Backtracking sentence runs move into its slice.
+import { MAX_QUEENS, MIN_QUEENS, type FillOrder, type SudokuPuzzle } from '@/modules/backtracking/types';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Backtracking sentence runs move into its slice.
+import { SUDOKU_PUZZLES, SudokuRun } from '@/modules/backtracking/sudoku';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the DP sentence runs move into its slice.
+import { DpRun } from '@/modules/dp/run';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the DP sentence runs move into its slice.
+import { EXAMPLE_CAPACITY, EXAMPLE_ITEMS, RACE_CAPACITY, RACE_ITEMS, randomItems, wordPairs } from '@/modules/dp/presets';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the DP sentence runs move into its slice.
+import { KnapsackRun } from '@/modules/dp/knapsack';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the DP sentence runs move into its slice.
+import { MAX_CAPACITY, MAX_ITEMS, MAX_WORD } from '@/modules/dp/types';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Fourier sentence runs move into its slice.
+import { circleOptions, FourierRun } from '@/modules/fourier/run';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Fourier sentence runs move into its slice.
+import { FOURIER_SHAPES } from '@/modules/fourier/types';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Graphs sentence runs move into its slice.
+import { GRAPH_ALGORITHMS } from '@/modules/graphs/types';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Graphs sentence runs move into its slice.
+import { graphPresets, graphSizes, makeGraph } from '@/modules/graphs/graph';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Graphs sentence runs move into its slice.
+import { graphTimelineFor } from '@/modules/graphs/run';
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the Mazes sentence runs move into its slice.
 import { MAZE_ALGORITHMS } from '@/modules/mazes/generators';
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the Mazes sentence runs move into its slice.
 import { MazeRun } from '@/modules/mazes/run';
-import { applyPreset, emptyGrid, PATH_ALGORITHMS, pathSearches, PathTimeline, type Preset } from '@/pathfinding';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Pathfinding sentence runs move into its slice.
+import { applyPreset, emptyGrid, type Preset } from '@/modules/pathfinding/grid';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Pathfinding sentence runs move into its slice.
+import { PATH_ALGORITHMS, pathSearches } from '@/modules/pathfinding/searches';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Pathfinding sentence runs move into its slice.
+import { PathTimeline } from '@/modules/pathfinding/timeline';
 import { gridDimensions, type GridSize } from '@/utils/gridSize';
-import { presetOperations, recordStructure, STRUCTURE_ALGORITHMS, type Operation, type StructurePreset, type StructureSize } from '@/structures';
-import type { InputOrder } from '@/types';
-import { generateItems } from '@/utils/generateItems';
-import { narrate } from '@/utils/narrate';
-import { narrateBacktracking, narrateSudoku } from '@/utils/narrateBacktracking';
-import { narrateDp } from '@/utils/narrateDp';
-import { narrateFourier } from '@/utils/narrateFourier';
-import { narrateGraph } from '@/utils/narrateGraph';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Data structures sentence runs move into its slice.
+import { presetOperations, type StructurePreset, type StructureSize } from '@/modules/structures/presets';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Data structures sentence runs move into its slice.
+import { recordStructure } from '@/modules/structures/record';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Data structures sentence runs move into its slice.
+import { STRUCTURE_ALGORITHMS, type Operation } from '@/modules/structures/types';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Sorting sentence runs move into its slice.
+import type { InputOrder } from '@/modules/sorting/types';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Sorting sentence runs move into its slice.
+import { generateItems } from '@/modules/sorting/generateItems';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Sorting sentence runs move into its slice.
+import { narrate } from '@/modules/sorting/narrate';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Backtracking sentence runs move into its slice.
+import { narrateBacktracking, narrateSudoku } from '@/modules/backtracking/narrate';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the DP sentence runs move into its slice.
+import { narrateDp } from '@/modules/dp/narrate';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Fourier sentence runs move into its slice.
+import { narrateFourier } from '@/modules/fourier/narrate';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Graphs sentence runs move into its slice.
+import { narrateGraph } from '@/modules/graphs/narrate';
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the Mazes sentence runs move into its slice.
 import { narrateMaze } from '@/modules/mazes/narrate';
-import { narratePath } from '@/utils/narratePath';
-import { narrateTree } from '@/utils/narrateTree';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Pathfinding sentence runs move into its slice.
+import { narratePath } from '@/modules/pathfinding/narrate';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Data structures sentence runs move into its slice.
+import { narrateTree } from '@/modules/structures/narrate';
 import { seededRandom } from '@/utils/random';
 
 /** One sentence, and the first run that says it (to find it in the app). */

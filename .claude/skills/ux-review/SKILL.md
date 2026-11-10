@@ -16,10 +16,10 @@ Judge screens against `UX.md` the way a learner would see them. **Only report. D
   | Changed path | Routes |
   |---|---|
   | `src/components/Landing/**` | `/` |
-  | `src/components/AlgorithmVisualizer/**`, `src/algorithms/**`, `src/canvas/barsRenderer.ts` | `/sorting/insertion-sort`, `/sorting/race` |
-  | `src/components/<Module>/**`, `src/<module>/**`, the module's renderer in `src/canvas/` | that module's start page and one algorithm/problem page (slugs in `src/routes.ts`) |
+  | `src/modules/<module>/**` | that module's start page, one algorithm/problem page (slugs in `src/routes.ts`) and its race page if it has one (`/sorting/race`, …) |
+  | `src/canvas/**` (shared renderers and theme) | one page of each module that draws with the changed file |
   | `src/components/Race/**` | the race pages of the modules touched (`/sorting/race`, `/pathfinding/race`, …) |
-  | `src/game/**`, `src/components/Game.tsx` | one page per module with Guess mode, with Guess turned on |
+  | `src/game/**`, `src/components/Game.tsx`, a module's `questions.ts` | one page per module with Guess mode, with Guess turned on |
   | Shared UI: `src/App.tsx`, `src/components/ui/**`, `TopBar.tsx`, `MobileTopBar.tsx`, `Controls/**`, `Settings/**`, `Tour.tsx`, `src/index.css` | `/`, `/sorting/insertion-sort` and one other module page |
   | Copy or i18n (`src/i18n.ts`, `localized(...)` text) | the same routes under `/es` too |
 
