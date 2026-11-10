@@ -2,17 +2,17 @@ import type { Question } from "@/game";
 import { modulePages, moduleRoute, type ModuleId, type Route } from "@/routes";
 import type { StoreState, View } from "@/store";
 import { speedFor, type Pace } from "@/utils/speed";
-import { backtrackingSlice } from "./backtracking.slice";
-import { dpSlice } from "./dp.slice";
-import { fourierSlice } from "./fourier.slice";
-import { graphsSlice } from "./graphs.slice";
+import { backtrackingSlice } from "./backtracking/slice";
+import { dpSlice } from "./dp/slice";
+import { fourierSlice } from "./fourier/slice";
+import { graphsSlice } from "./graphs/slice";
 import { mazesSlice } from "./mazes/slice";
-import { pathfindingSlice } from "./pathfinding.slice";
+import { pathfindingSlice } from "./pathfinding/slice";
 import type { BoundSlice, ModuleSlice, SliceContext } from "./slice";
-import { sortingSlice } from "./sorting.slice";
-import { structuresSlice } from "./structures.slice";
+import { sortingSlice } from "./sorting/slice";
+import { structuresSlice } from "./structures/slice";
 
-/** The modules the app has (their pages are in @/routes). Each one declares its slice in ./<id>.slice.ts and its interface in ./<id>.tsx. */
+/** The modules the app has (their pages are in @/routes). Each one declares its slice in ./<id>/slice.ts and its interface in ./<id>/ui.tsx. */
 export type { ModuleId };
 
 /**

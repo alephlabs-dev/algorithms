@@ -1,12 +1,19 @@
-import { backtrackingProblems } from "@/consts/backtracking";
-import { dpProblems } from "@/consts/dp";
-import { fourierSeries } from "@/consts/fourierSeries";
-import { structures } from "@/consts/structures";
-import { graphAlgorithms } from "@/consts/graphAlgorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Backtracking titles and descriptions move into its manifest.
+import { backtrackingProblems } from "@/modules/backtracking/algorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the DP titles and descriptions move into its manifest.
+import { dpProblems } from "@/modules/dp/algorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Fourier titles and descriptions move into its manifest.
+import { fourierSeries } from "@/modules/fourier/algorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Data structures titles and descriptions move into its manifest.
+import { structures } from "@/modules/structures/algorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Graphs titles and descriptions move into its manifest.
+import { graphAlgorithms } from "@/modules/graphs/algorithms";
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the Mazes titles and descriptions move into its manifest.
 import { mazeAlgorithms } from "@/modules/mazes/algorithms";
-import { pathAlgorithms } from "@/consts/pathAlgorithms";
-import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Pathfinding titles and descriptions move into its manifest.
+import { pathAlgorithms } from "@/modules/pathfinding/algorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Sorting titles and descriptions move into its manifest.
+import { sortingAlgorithms } from "@/modules/sorting/algorithms";
 import { RACE_DESCRIPTION } from "@/consts/race";
 import { localized } from "@/i18n";
 import { HOME, href, SITE_URL, type AlgorithmOf, type ModuleId, type RacingModule, type Route } from "@/routes";

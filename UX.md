@@ -8,7 +8,7 @@ Each rule says what it means here and gives one example from a screen that alrea
 
 Each view exists for one thing. Everything else on it supports that thing and gives way to it.
 
-- **In this app:** a module page is for watching the run on the stage (`src/components/AlgorithmVisualizer/`, the module stages under `src/components/<Module>/`). Pickers, settings, pseudocode and the written explanation support it.
+- **In this app:** a module page is for watching the run on the stage (each module's stage in its folder, `src/modules/<module>/`). Pickers, settings, pseudocode and the written explanation support it.
 - **Example:** on a sorting algorithm page the bars fill the stage. The pseudocode (`NowCard` in `src/components/Pseudocode.tsx`) waits behind a tab of the side panel on wide screens (`SidePanel` in `src/components/Settings/ModuleSettings.tsx`), and the explanation lives below the fold in `src/components/About.tsx`.
 - **The stage stays put:** nothing above the stage changes height during playback, so the stage doesn't move while a run plays. The step sentence over it always takes two lines of room, one line or two, and never grows (`StepCaption` in `src/components/Pseudocode.tsx`; checked by `e2e/stage-stays-put.spec.ts`). On wider screens the legend sits beside it only while the sentence still gets at least the room it has on a 393px phone; otherwise the legend drops to its own line (`src/App.tsx`). So every step sentence fits in two lines at 393px, in every language, and then fits at every size: write a shorter one rather than let it be cut (checked at all four sizes by `e2e/step-sentences-fit.spec.ts`: in CI, or locally with `make e2e-sentences`).
 
@@ -45,7 +45,7 @@ At any moment it's obvious what to press next, and the steps come in an order th
 Every color comes from the theme. No hex, `rgb()`, `hsl()` or `oklch()` values in components, and no Tailwind default palette (`bg-black`, `text-red-500`, …).
 
 - **In this app:** the theme is the `--color-*` tokens in `src/index.css`, with a light-theme block under `:root[data-theme="light"]`, used as Tailwind classes (`bg-surface`, `text-foreground`, `border-edge`, …). Canvas renderers read the same tokens through `src/canvas/theme.ts` (`readColors`).
-- **Example:** the sorted-section highlight on the sorting stage is `--color-tertiary` (yellow in dark, blue in light), read by `src/canvas/barsRenderer.ts` through `readColors`, so it switches with the theme.
+- **Example:** the sorted-section highlight on the sorting stage is `--color-tertiary` (yellow in dark, blue in light), read by `src/modules/sorting/barsRenderer.ts` through `readColors`, so it switches with the theme.
 
 ## 7. Never controls with the browser's default look
 

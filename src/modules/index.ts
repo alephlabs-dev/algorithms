@@ -1,14 +1,14 @@
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "@/store";
 import type { ModuleId } from "./engine";
-import { backtrackingUI } from "./backtracking";
-import { dpUI } from "./dp";
-import { fourierUI } from "./fourier";
-import { structuresUI } from "./structures";
-import { graphsUI } from "./graphs";
+import { backtrackingUI } from "./backtracking/ui";
+import { dpUI } from "./dp/ui";
+import { fourierUI } from "./fourier/ui";
+import { structuresUI } from "./structures/ui";
+import { graphsUI } from "./graphs/ui";
 import { mazesUI } from "./mazes/ui";
-import { pathfindingUI } from "./pathfinding";
-import { sortingUI } from "./sorting";
+import { pathfindingUI } from "./pathfinding/ui";
+import { sortingUI } from "./sorting/ui";
 import type { ModuleUI } from "./types";
 
 /** Every module's interface. Adding a module: an engine in ./engine.ts and an entry here. */

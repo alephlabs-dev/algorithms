@@ -4,10 +4,12 @@ import { localized } from "@/i18n";
 import { hasStartCell } from "@/modules/mazes/generators";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes tour moves into its interface.
 import type { MazeAlgorithm } from "@/modules/mazes/types";
-import { MUD_COST } from "@/pathfinding";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Pathfinding tour moves into its interface.
+import { MUD_COST } from "@/modules/pathfinding/types";
 import { useStore, type Theme } from "@/store";
 import { Swatch } from "@/components/TourSwatch";
-import { sortGuessSizes } from "./sorting.slice";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Sorting tour moves into its interface.
+import { sortGuessSizes } from "./sorting/slice";
 import type { TourStep } from "./types";
 
 // The guided tour of each module: which control to light up, and what to say about it.

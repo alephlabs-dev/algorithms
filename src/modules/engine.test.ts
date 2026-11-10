@@ -1,28 +1,41 @@
 import { describe, expect, it } from "vitest";
-import { sortAlgorithms } from "@/algorithms";
-import { Timeline } from "@/algorithms/timeline";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { sortAlgorithms } from "@/modules/sorting/sorts";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { Timeline } from "@/modules/sorting/timeline";
 import { createAppStore, type StoreState, type View } from "@/appStore";
-import { encodeItems } from "@/dp/presets";
-import { encodePath, linkShape } from "@/fourier/shapes";
-import { makeGraph } from "@/graphs";
-import { decodeGraph, encodeGraph } from "@/graphs/graph";
-import { applyPreset, emptyGrid } from "@/pathfinding";
-import { encodeCells } from "@/pathfinding/grid";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { encodeItems } from "@/modules/dp/presets";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { encodePath, linkShape } from "@/modules/fourier/shapes";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { makeGraph, decodeGraph, encodeGraph } from "@/modules/graphs/graph";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { applyPreset, emptyGrid, encodeCells } from "@/modules/pathfinding/grid";
 import { moduleOf, modulePages, routeFromPath, routePath, type Route } from "@/routes";
-import { encodeOperations } from "@/structures/link";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { encodeOperations } from "@/modules/structures/operations";
 import { readLocation } from "@/urlState";
-import { generateItems } from "@/utils/generateItems";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { generateItems } from "@/modules/sorting/generateItems";
 import { seededRandom } from "@/utils/random";
-import { backtrackingLink } from "./backtracking.link";
-import { dpLink } from "./dp.link";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { backtrackingLink } from "./backtracking/link";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { dpLink } from "./dp/link";
 import { engines, type ModuleId, type SliceStates } from "./engine";
-import { fourierLink } from "./fourier.link";
-import { graphsLink } from "./graphs.link";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { fourierLink } from "./fourier/link";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { graphsLink } from "./graphs/link";
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
 import { mazesLink } from "./mazes/link";
-import { pathfindingLink } from "./pathfinding.link";
-import { sortingLink } from "./sorting.link";
-import { structuresLink } from "./structures.link";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { pathfindingLink } from "./pathfinding/link";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { sortingLink } from "./sorting/link";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { structuresLink } from "./structures/link";
 
 const SPEED = "2x";
 

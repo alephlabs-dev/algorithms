@@ -2,7 +2,7 @@ import { DEFAULT_PRESET, type SpeedPreset } from "@/utils/speed";
 import { MAX_RACERS, MIN_RACERS } from "./slice";
 
 /**
- * A module's link codec (./<id>.link.ts), the one place its params are read and written.
+ * A module's link codec (./<id>/link.ts), the one place its params are read and written.
  * `read` takes the params from a query, leaving out anything missing or malformed;
  * `write` puts the same params back (the speed is shared, so it's passed in). Both
  * sides use the same type, so they can't drift apart.

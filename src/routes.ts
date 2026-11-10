@@ -1,12 +1,19 @@
-import type { BacktrackingProblem } from "./backtracking/types";
-import type { DpAlgorithm } from "./dp/types";
-import type { FourierAlgorithm } from "./fourier/types";
-import type { StructureAlgorithm } from "./structures/types";
-import type { GraphAlgorithm } from "./graphs/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Backtracking pages move into its manifest.
+import type { BacktrackingProblem } from "./modules/backtracking/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the DP pages move into its manifest.
+import type { DpAlgorithm } from "./modules/dp/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Fourier pages move into its manifest.
+import type { FourierAlgorithm } from "./modules/fourier/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Data structures pages move into its manifest.
+import type { StructureAlgorithm } from "./modules/structures/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Graphs pages move into its manifest.
+import type { GraphAlgorithm } from "./modules/graphs/types";
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the Mazes pages move into its manifest.
 import type { MazeAlgorithm } from "./modules/mazes/types";
-import type { PathAlgorithm } from "./pathfinding/types";
-import type { Algorithm } from "./types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Pathfinding pages move into its manifest.
+import type { PathAlgorithm } from "./modules/pathfinding/types";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Sorting pages move into its manifest.
+import type { Algorithm } from "./modules/sorting/types";
 import { lang, LANG_PREFIX, stripLang, type Lang } from "./i18n";
 
 /** Where the site is published; canonical URLs, the sitemap and social cards use it. */
