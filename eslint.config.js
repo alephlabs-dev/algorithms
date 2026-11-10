@@ -56,6 +56,24 @@ export default defineConfig([
       ],
     },
   },
+  // A canvas paint module may not import another one: shared canvas helpers live in theme.ts (#157).
+  // Until #189 moves pathPaint and structurePaint into their modules, where module-boundaries covers them.
+  {
+    files: ["src/canvas/*Paint.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex: "(^\\./|^@/canvas/)[^/]*Paint$",
+              message: "A paint module can't import another paint module. Move the shared helper to src/canvas/theme.ts.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Our own components may wrap native controls.
   { files: ["src/components/ui/**"], rules: { "house/no-native-controls": "off" } },
   // The theme bridge: reads src/index.css's tokens for the canvas.
