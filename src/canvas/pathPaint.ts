@@ -2,9 +2,12 @@
 
 import { FRONTIER, MUD, ON_PATH, VISITED, WALL, type Grid, type PathFrame, type Terrain } from "@/pathfinding";
 import type { GridCells, GridTone } from "./gridRenderer";
+import { mix } from "./structurePaint";
 import { hexToRgb, type CanvasColors, type RGB } from "./theme";
 
-const mix = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+/** The floor and walls of a grid, shared with mazes so a maze looks the same in both modules. */
+export const gridFloor = (colors: CanvasColors): RGB => mix(hexToRgb(colors.background), hexToRgb(colors.edge), 0.55);
+export const gridWall = (colors: CanvasColors): RGB => mix(hexToRgb(colors.background), hexToRgb(colors.bar), 0.55);
 
 // Indexes into the palette below, in its order.
 const EMPTY_TONE = 0;
@@ -26,9 +29,9 @@ export const pathPalette = (colors: CanvasColors): GridTone[] => {
   // lighter on paper, where a strong color would flood the grid.
   const wash = isLight ? 0.24 : 0.38;
   return [
-    /* EMPTY_TONE */ { rgb: mix(background, hexToRgb(colors.edge), 0.55) },
+    /* EMPTY_TONE */ { rgb: gridFloor(colors) },
     // Walls are solid but quieter than the search colors, so the search stays the subject.
-    /* WALL_TONE */ { rgb: mix(background, hexToRgb(colors.bar), 0.55) },
+    /* WALL_TONE */ { rgb: gridWall(colors) },
     // Mud gets a few dots, so it reads without relying on color alone; the path covers them.
     /* MUD_TONE */ { rgb: mud, dots: true },
     /* FRONTIER_TONE */ { rgb: secondary },

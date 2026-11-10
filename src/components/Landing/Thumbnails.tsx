@@ -347,7 +347,11 @@ const MAZE_ROWS = 9;
 const MAZE_COLS = 21;
 const maze = (() => {
   const run = new MazeRun("dfs", { rows: MAZE_ROWS, cols: MAZE_COLS }, 11);
-  return { run, frame: run.frameAt(Math.floor(run.length * 0.4)) };
+  // DFS carves one cell per carve step, after the start: the first frame with half of them carved.
+  const half = Math.ceil((((MAZE_ROWS - 1) / 2) * ((MAZE_COLS - 1) / 2)) / 2);
+  let index = 0;
+  for (let carved = 0; carved < half; index++) if (run.stepAt(index + 1)?.type !== "backtrack") carved++;
+  return { run, frame: run.frameAt(index) };
 })();
 
 const mazeColor = (cell: number) => {

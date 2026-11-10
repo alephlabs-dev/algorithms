@@ -9,7 +9,7 @@ import { hasSettingsPanel, openSettings } from './settings';
 const caption = (page: Page) => page.locator('[data-tour="narration"]:visible');
 const stats = (page: Page) => page.locator('[data-tour="stats"]:visible');
 
-/** Plays the run to its last frame, where the dead ends are counted. */
+/** Plays the run to its last frame, where the dead-end cells are counted. */
 const playToEnd = async (page: Page, play: string, done: RegExp) => {
   await page.getByRole('button', { name: play, exact: true }).click();
   await expect(caption(page)).toContainText(done, { timeout: 20_000 });
@@ -27,7 +27,7 @@ test('mazes: carve a maze, resize it, draw a new one and reopen its link', async
   await expect(caption(page)).toContainText(/^Start at row \d+, column \d+/);
 
   await playToEnd(page, 'Play', /^Done: a perfect maze with \d+ dead-end cells?/);
-  await expect(stats(page)).toHaveText(/^\d+ steps · \d+ dead ends?$/);
+  await expect(stats(page)).toHaveText(/^\d+ steps · \d+ dead-end cells?$/);
 
   // The size is the only setting; the seed stays.
   await openSettings(page, testInfo);

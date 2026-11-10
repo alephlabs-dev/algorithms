@@ -10,8 +10,7 @@ const text = localized({
     ready: "Press play to carve a maze. Every cell starts walled in.",
     start: (at: string) => `Start at ${at}: carve it and push it on the stack.`,
     direction: { up: "up", right: "right", down: "down", left: "left" } as Record<Direction, string>,
-    carve: (direction: string, at: string, stack: number) =>
-      `Carve ${direction} into ${at} and push it. Stack: ${count(stack, "cell")}.`,
+    carve: (direction: string, at: string) => `Carve ${direction} into ${at} and push it on the stack.`,
     backtrack: (at: string) => `No uncarved neighbours: pop it, back to ${at}.`,
     empty: "No uncarved neighbours and the stack is empty: every cell is carved.",
     done: (deadEnds: number, steps: number) =>
@@ -24,7 +23,7 @@ const text = localized({
     ready: "Presiona play para excavar un laberinto. Todas las celdas empiezan amuralladas.",
     start: (at) => `Empieza en ${at}: excávala y ponla en la pila.`,
     direction: { up: "hacia arriba", right: "a la derecha", down: "hacia abajo", left: "a la izquierda" },
-    carve: (direction, at, stack) => `Excava ${direction} hasta ${at} y apílala. Pila: ${count(stack, "celda")}.`,
+    carve: (direction, at) => `Excava ${direction} hasta ${at} y ponla en la pila.`,
     backtrack: (at) => `Sin vecinas por excavar: desapílala y vuelve a ${at}.`,
     empty: "Sin vecinas por excavar y la pila vacía: todas las celdas están excavadas.",
     done: (deadEnds, steps) =>
@@ -34,9 +33,8 @@ const text = localized({
   },
 });
 
-/** Where a cell is, counting maze cells (not walls) from 1. */
-const at = (run: MazeRun, cell: number) =>
-  text.at((Math.floor(cell / run.cols) + 1) / 2, ((cell % run.cols) + 1) / 2);
+/** Where a cell is on the grid as drawn, walls included, counting from 1 (like pathfinding). */
+const at = (run: MazeRun, cell: number) => text.at(Math.floor(cell / run.cols) + 1, (cell % run.cols) + 1);
 
 /** Which way `cell` lies from the wall it was carved through. */
 const directionOf = (run: MazeRun, wall: number, cell: number): Direction =>
@@ -51,7 +49,7 @@ export const narrateMaze = (run: MazeRun, index: number): string => {
     case "start":
       return text.start(at(run, step.cell));
     case "carve":
-      return text.carve(text.direction[directionOf(run, step.wall, step.cell)], at(run, step.cell), frame.stack);
+      return text.carve(text.direction[directionOf(run, step.wall, step.cell)], at(run, step.cell));
     case "backtrack":
       return frame.current === null ? text.empty : text.backtrack(at(run, frame.current));
     case "done":

@@ -17,9 +17,9 @@ const text = localized({
     carved: "Carved",
     stack: "On the stack",
     current: "Current",
-    deadEnd: "Dead end",
+    deadEnd: "Dead-end cell",
     steps: (n: number) => count(n, "step"),
-    deadEnds: (n: number) => ` · ${count(n, "dead end")}`,
+    deadEnds: (n: number) => ` · ${count(n, "dead-end cell")}`,
   },
   es: {
     size: "Tamaño del laberinto",
@@ -64,14 +64,14 @@ export const MazeLegend = ({ className }: { className?: string }) => (
   >
     <Swatch className="bg-primary ring-2 ring-background" label={text.start} />
     <Swatch className="bg-bar/55" label={text.wall} />
-    <Swatch className="bg-edge" label={text.carved} />
+    <Swatch className="bg-edge ring-1 ring-foreground/40" label={text.carved} />
     <Swatch className="bg-secondary" label={text.stack} />
     <Swatch className="bg-secondary ring-2 ring-outline" label={text.current} />
     <Swatch className="bg-tertiary" label={text.deadEnd} />
   </ul>
 );
 
-/** Counters on one line, for the dock: steps, and once it's done, the dead ends. */
+/** Counters on one line, for the dock: steps, and once it's done, the dead-end cells. */
 export const MazeStatsInline = ({ className }: { className?: string }) => {
   const stats = useStore((s) => s.mazes.run.frameAt(s.frameIndex).stats);
   return (

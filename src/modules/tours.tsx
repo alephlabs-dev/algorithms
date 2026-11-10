@@ -690,7 +690,7 @@ export const backtrackingTour = localized<TourStep[]>({
   ],
 });
 
-// Dead ends are the tertiary color; mazes are the only tour that names it.
+// Dead-end cells are the tertiary color; mazes are the only tour that names it.
 const deadEndColor = localized<Record<Theme, string>>({
   en: { dark: "Yellow", light: "Blue" },
   es: { dark: "amarillas", light: "azules" },
@@ -722,7 +722,7 @@ export const mazesTour = localized<TourStep[]>({
           <Swatch className="bg-secondary" />
           {colorNames[theme].comparing} cells are on the stack: the way back it can still take. At the end,{" "}
           <Swatch className="bg-tertiary" />
-          {deadEndColor[theme].toLowerCase()} ones are dead ends.
+          {deadEndColor[theme].toLowerCase()} ones are dead-end cells.
         </>
       ),
     },
@@ -742,8 +742,8 @@ export const mazesTour = localized<TourStep[]>({
     },
     {
       anchor: "stats",
-      title: "Steps and dead ends",
-      text: () => "How many decisions it took, and once it's done, how many dead ends the maze has: its texture in a number.",
+      title: "Steps and dead-end cells",
+      text: () => "How many decisions it took, and once it's done, how many dead-end cells the maze has: its texture in a number.",
     },
     {
       anchor: "settings",
@@ -781,7 +781,7 @@ export const mazesTour = localized<TourStep[]>({
           Las <Swatch className="bg-secondary" />
           celdas {colorNames[theme].comparing} están en la pila: el camino de vuelta que aún puede tomar. Al final, las{" "}
           <Swatch className="bg-tertiary" />
-          {deadEndColor[theme]} son callejones sin salida.
+          {deadEndColor[theme]} son celdas sin salida.
         </>
       ),
     },
@@ -801,7 +801,7 @@ export const mazesTour = localized<TourStep[]>({
     },
     {
       anchor: "stats",
-      title: "Pasos y callejones",
+      title: "Pasos y celdas sin salida",
       text: () => "Cuántas decisiones tomó y, al terminar, cuántas celdas sin salida tiene el laberinto: su textura en un número.",
     },
     {

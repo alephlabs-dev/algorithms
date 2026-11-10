@@ -40,7 +40,7 @@ export const DEAD_END = 3;
 export type MazeCellState = typeof WALL | typeof CARVED | typeof STACK | typeof DEAD_END;
 
 export type MazeStats = {
-  /** Decisions taken so far. */
+  /** Decisions taken so far: the start, each carve, each backtrack. */
   steps: number;
   /** Dead-end cells, counted once the maze is done; null before. */
   deadEnds: number | null;
@@ -52,7 +52,5 @@ export type MazeFrame = {
   /** The cell the generator is at, if any. */
   current: number | null;
   line: number | null;
-  /** How many cells are on DFS's stack. */
-  stack: number;
   stats: MazeStats;
 };

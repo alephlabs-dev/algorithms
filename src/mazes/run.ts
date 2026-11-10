@@ -6,7 +6,6 @@ type State = {
   states: Uint8Array;
   current: number | null;
   line: number | null;
-  stack: number;
   steps: number;
   deadEnds: number | null;
 };
@@ -18,22 +17,20 @@ const clone = (s: State): State => ({ ...s, states: s.states.slice() });
 
 const apply = (s: State, step: MazeStep) => {
   s.line = step.line;
-  s.steps++;
+  // Marking the dead ends is the wrap-up, not a decision.
+  if (step.type !== "done") s.steps++;
   switch (step.type) {
     case "start":
       s.states[step.cell] = STACK;
       s.current = step.cell;
-      s.stack++;
       break;
     case "carve":
       s.states[step.wall] = STACK;
       s.states[step.cell] = STACK;
       s.current = step.cell;
-      s.stack++;
       break;
     case "backtrack":
       s.states[step.cell] = CARVED;
-      s.stack--;
       if (step.wall !== null) {
         s.states[step.wall] = CARVED;
         // Back where the passage came from.
@@ -75,7 +72,7 @@ export class MazeRun {
     this.cols = grid.cols;
     const random = seededRandom(seed);
     this.start = startOf(grid, random);
-    const initial: State = { states: new Uint8Array(grid.rows * grid.cols), current: null, line: null, stack: 0, steps: 0, deadEnds: null };
+    const initial: State = { states: new Uint8Array(grid.rows * grid.cols), current: null, line: null, steps: 0, deadEnds: null };
     const working = clone(initial);
     this.checkpoints.push(clone(initial));
     for (const step of mazeGenerators[algorithm](grid, this.start, random)) {
@@ -103,7 +100,6 @@ export class MazeRun {
       states: s.states.slice(),
       current: s.current,
       line: s.line,
-      stack: s.stack,
       stats: { steps: s.steps, deadEnds: s.deadEnds },
     };
     if (this.cache.size >= 8) this.cache.delete(this.cache.keys().next().value!);

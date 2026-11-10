@@ -68,6 +68,8 @@ describe("mazes slice", () => {
     const s = at("/mazes/dfs", "?size=small&seed=1");
     const cells = ((s.run.rows - 1) / 2) * ((s.run.cols - 1) / 2);
     expect(s.run.length).toBe(2 * cells + 2);
+    // Every cell carved once and popped once: 2n steps, as the about text says.
+    expect(lastFrame(s).stats.steps).toBe(2 * cells);
     expect(s.run.frameAt(0).states.every((state) => state === 0)).toBe(true);
   });
 

@@ -63,6 +63,7 @@ const dfs: MazeGenerator = function* (grid, start, random) {
   yield { type: "done", deadEnds: deadEndsOf(grid, (wall) => open.has(wall)), line: 8 };
 };
 
+/** Every generator, in the order the UI shows them. */
 export const MAZE_ALGORITHMS: MazeAlgorithm[] = ["dfs"];
 
 export const mazeGenerators: Record<MazeAlgorithm, MazeGenerator> = { dfs };

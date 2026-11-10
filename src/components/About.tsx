@@ -9,7 +9,7 @@ import { structures } from "@/consts/structures";
 import { structurePseudocode, type StructureAlgorithm } from "@/structures";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
 import { mazeAlgorithms } from "@/consts/mazeAlgorithms";
-import { mazePseudocode, type MazeAlgorithm } from "@/mazes";
+import { MAZE_ALGORITHMS, mazePseudocode, type MazeAlgorithm } from "@/mazes";
 import { queensPseudocode, sudokuPseudocode, type BacktrackingProblem } from "@/backtracking";
 import { fourierPseudocode, type FourierAlgorithm } from "@/fourier";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
@@ -383,7 +383,7 @@ const mazesText = localized({
   en: {
     moduleTitle: "Maze generation",
     moduleIntro:
-      "A maze can be carved from a grid of walled-in cells by knocking down one wall at a time. Watch every decision, every backtrack and every dead end as a perfect maze takes shape.",
+      "A maze can be carved from a grid of walled-in cells by knocking down one wall at a time. Watch every decision, every backtrack and every dead-end cell as a perfect maze takes shape.",
     all: "Algorithms",
     why: "What makes a maze perfect?",
     whyText:
@@ -393,7 +393,7 @@ const mazesText = localized({
   es: {
     moduleTitle: "Generación de laberintos",
     moduleIntro:
-      "Un laberinto se puede excavar en una cuadrícula de celdas amuralladas derribando una pared a la vez. Mira cada decisión, cada retroceso y cada callejón sin salida mientras toma forma un laberinto perfecto.",
+      "Un laberinto se puede excavar en una cuadrícula de celdas amuralladas derribando una pared a la vez. Mira cada decisión, cada retroceso y cada celda sin salida mientras toma forma un laberinto perfecto.",
     all: "Algoritmos",
     why: "¿Qué hace perfecto a un laberinto?",
     whyText:
@@ -1162,8 +1162,6 @@ const DpProblemArticle = ({ algorithm, onNavigate }: { algorithm: DpAlgorithm; o
   );
 };
 
-const mazeOrder = Object.keys(mazeAlgorithms) as MazeAlgorithm[];
-
 const MazesArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
   <>
     <header className="flex flex-col gap-3">
@@ -1172,7 +1170,7 @@ const MazesArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
     </header>
     <Section title={mazesText.all}>
       <ul className="tap-rows flex flex-col divide-y divide-edge">
-        {mazeOrder.map((algorithm) => (
+        {MAZE_ALGORITHMS.map((algorithm) => (
           <li key={algorithm} className="flex flex-col gap-1 py-4">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4">
               <PageLink to={{ module: "mazes", page: "algorithm", algorithm }} onNavigate={onNavigate}>
