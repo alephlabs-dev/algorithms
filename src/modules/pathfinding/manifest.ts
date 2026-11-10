@@ -8,40 +8,36 @@ const text = localized({
     title: "Pathfinding",
     summary: "Breadth-first, depth-first, Dijkstra, A* and greedy search, on a grid you draw.",
     count: (n: number) => `${n} searches`,
-    moduleTitle: "Pathfinding Visualizer: BFS, Dijkstra and A* Step by Step · Aleph Labs",
+    moduleTitle: "Pathfinding Visualizer: BFS, Dijkstra and A* Step by Step",
     moduleDescription:
       "Draw walls and mud on a grid, then watch BFS, DFS, Dijkstra, A* and Greedy Best-First Search find a path, step by step with the pseudocode.",
-    raceTitle: "Pathfinding Race: BFS vs Dijkstra vs A* Side by Side · Aleph Labs",
+    raceTitle: "Pathfinding Race: BFS vs Dijkstra vs A* Side by Side",
     raceDescription:
       "Race BFS, DFS, Dijkstra, A* and Greedy Best-First Search on the same grid. See which looks at the fewest cells, and which finds the cheapest path.",
     name: (title: string, short: string) => (title.includes(short) ? title : `${title} (${short})`),
-    algorithmTitle: (name: string) => `${name} Pathfinding Visualized · Aleph Labs`,
+    algorithmTitle: (name: string) => `${name} Pathfinding Visualized`,
     algorithmDescription: (title: string) =>
       `See how ${title} finds a path: draw walls and mud on a grid, then watch it search step by step with the pseudocode and every step explained.`,
     section: "Pathfinding",
     about: "About pathfinding algorithms",
-    howItWorks: (title: string) => `How ${title} works`,
-    race: "How the race works",
   },
   es: {
     title: "Búsqueda de caminos",
     summary: "Búsqueda en anchura, en profundidad, Dijkstra, A* y búsqueda voraz, en una cuadrícula que tú dibujas.",
     count: (n) => `${n} búsquedas`,
-    moduleTitle: "Visualizador de búsqueda de caminos: BFS, Dijkstra y A* paso a paso · Aleph Labs",
+    moduleTitle: "Visualizador de búsqueda de caminos: BFS, Dijkstra y A* paso a paso",
     moduleDescription:
       "Dibuja paredes y barro en una cuadrícula y mira cómo BFS, DFS, Dijkstra, A* y la búsqueda voraz encuentran un camino, paso a paso con el pseudocódigo.",
-    raceTitle: "Carrera de búsqueda de caminos: BFS, Dijkstra y A* lado a lado · Aleph Labs",
+    raceTitle: "Carrera de búsqueda de caminos: BFS, Dijkstra y A* lado a lado",
     raceDescription:
       "Haz competir a BFS, DFS, Dijkstra, A* y la búsqueda voraz en la misma cuadrícula. Mira cuál revisa menos celdas y cuál encuentra el camino más barato.",
     // Only acronyms people search for (BFS, DFS) go in brackets.
     name: (title, short) => (/^[A-Z]{2,4}$/.test(short) ? `${title} (${short})` : title),
-    algorithmTitle: (name) => `${name}: búsqueda de caminos visualizada · Aleph Labs`,
+    algorithmTitle: (name) => `${name}: búsqueda de caminos visualizada`,
     algorithmDescription: (title) =>
       `Mira cómo ${title} encuentra un camino: dibuja paredes y barro en una cuadrícula y sigue cada paso, con el pseudocódigo y su explicación.`,
     section: "Búsqueda de caminos",
     about: "Sobre los algoritmos de búsqueda de caminos",
-    howItWorks: (title) => `Cómo funciona ${title}`,
-    race: "Cómo funciona la carrera",
   },
 });
 
@@ -75,8 +71,7 @@ export const pathfindingManifest = {
   },
   hints: {
     start: text.about,
-    algorithm: (algorithm: PathAlgorithm) => text.howItWorks(pathAlgorithms[algorithm].named),
-    race: text.race,
+    works: (algorithm: PathAlgorithm) => pathAlgorithms[algorithm].named,
   },
   example: {
     algorithm: "dijkstra",

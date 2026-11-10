@@ -1,4 +1,4 @@
-import { MAZE_ALGORITHMS } from "./generators";
+import { MAZE_ALGORITHMS } from "./types";
 import type { MazeAlgorithm } from "./types";
 import { gridSizes, type GridSize } from "@/utils/gridSize";
 import { isOneOf, readRacers, speedParam, toQuery, type LinkCodec } from "@/modules/link";

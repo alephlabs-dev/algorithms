@@ -1,8 +1,8 @@
 // Step sentences of representative runs, for e2e/step-sentences-fit.spec.ts (see `sentences` in ../slice.ts).
 import { narrateTree } from "./narrate";
-import { presetOperations, type StructurePreset, type StructureSize } from "./presets";
+import { presetOperations } from "./presets";
 import { recordStructure } from "./record";
-import { STRUCTURE_ALGORITHMS, type Operation } from "./types";
+import { STRUCTURE_ALGORITHMS, type Operation, type StructurePreset, type StructureSize } from "./types";
 import type { StepSentence } from "@/modules/slice";
 import { seededRandom } from "@/utils/random";
 import { SEEDS } from "@/utils/sentenceRuns";

@@ -1,7 +1,8 @@
 // Every step sentence of representative runs of each module, in the language of this page load.
 // Not used by the app: e2e/step-sentences-fit.spec.ts loads it once per language and measures each
 // sentence in the real caption (#113). Each module's slice lists its runs (`sentences`).
-import { MODULES, slices } from "@/modules/engine";
+import { slices } from "@/modules/engine";
+import { MODULES } from "@/routes";
 import type { StepSentence } from "@/modules/slice";
 
 export type { StepSentence };

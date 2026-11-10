@@ -9,10 +9,10 @@ const text = localized({
     summary:
       "N queens on a chessboard and a Sudoku, filled one choice at a time: every conflict, every dead end and every choice taken back.",
     count: (n: number) => (n === 1 ? "1 problem" : `${n} problems`),
-    moduleTitle: "Backtracking Visualizer: N-Queens and Sudoku Step by Step · Aleph Labs",
+    moduleTitle: "Backtracking Visualizer: N-Queens and Sudoku Step by Step",
     moduleDescription:
       "Watch backtracking place N queens on a chessboard and fill in a Sudoku: every choice, every conflict, every dead end and every backtrack, step by step with the pseudocode.",
-    problemTitle: (title: string) => `${title} Backtracking, Visualized Step by Step · Aleph Labs`,
+    problemTitle: (title: string) => `${title} Backtracking, Visualized Step by Step`,
     section: "Backtracking",
     about: "About backtracking",
   },
@@ -21,10 +21,10 @@ const text = localized({
     summary:
       "N reinas en un tablero de ajedrez y un sudoku, elección por elección: cada conflicto, cada callejón sin salida y cada elección que se deshace.",
     count: (n) => (n === 1 ? "1 problema" : `${n} problemas`),
-    moduleTitle: "Visualizador de backtracking: N reinas y sudoku paso a paso · Aleph Labs",
+    moduleTitle: "Visualizador de backtracking: N reinas y sudoku paso a paso",
     moduleDescription:
       "Mira cómo el backtracking coloca N reinas en un tablero y llena un sudoku: cada elección, cada conflicto, cada callejón sin salida y cada vuelta atrás, paso a paso con el pseudocódigo.",
-    problemTitle: (title) => `${title} con backtracking, visualizado paso a paso · Aleph Labs`,
+    problemTitle: (title) => `${title} con backtracking, visualizado paso a paso`,
     section: "Backtracking",
     about: "Sobre el backtracking",
   },
@@ -52,7 +52,7 @@ export const backtrackingManifest = {
   },
   hints: {
     start: text.about,
-    algorithm: (algorithm: BacktrackingProblem) => backtrackingProblems[algorithm].howItWorks,
+    heading: (algorithm: BacktrackingProblem) => backtrackingProblems[algorithm].howItWorks,
   },
   example: { algorithm: "queens", search: "?n=5&puzzle=easy&speed=2x" },
 } as const satisfies ModuleManifest<BacktrackingProblem>;

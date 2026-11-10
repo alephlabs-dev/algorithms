@@ -12,11 +12,6 @@ import type { BoundSlice, ModuleSlice, SliceContext } from "./slice";
 import { sortingSlice } from "./sorting/slice";
 import { structuresSlice } from "./structures/slice";
 
-/**
- * The modules the app has, in order, from the manifest registry (./manifests.ts). Each one declares its
- * manifest in ./<id>/manifest.ts, its slice in ./<id>/slice.ts and its interface in ./<id>/ui.tsx.
- */
-export { MODULES, type ModuleId };
 
 /**
  * Every module's slice, by id: the one place a module is registered with the store.

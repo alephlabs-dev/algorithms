@@ -8,8 +8,7 @@ import { describe, expect, it } from "vitest";
 import { createAppStore, type StoreState } from "@/appStore";
 import { searchFor } from "@/navigation";
 import { readLocation } from "@/urlState";
-import { moduleOf, modulePages, routeFromPath } from "@/routes";
-import { MODULES, type ModuleId } from "./engine";
+import { MODULES, moduleOf, modulePages, routeFromPath, type ModuleId } from "@/routes";
 
 // A phone held upright: the size every captured link was made on.
 const open = (path: string, query = "") =>

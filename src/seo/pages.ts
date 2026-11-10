@@ -4,9 +4,12 @@ import { HOME, href, SITE_URL, type Meta, type Route } from "@/routes";
 
 export const SITE_NAME = "Aleph Labs Algorithms";
 
+/** Every page title ends with it; manifests and the pages here give only their own part. */
+const BRAND = "Aleph Labs";
+
 const homeText = localized({
   en: {
-    title: "Algorithm Visualizer: Sorting, Graphs, Data Structures, DP and More · Aleph Labs",
+    title: "Algorithm Visualizer: Sorting, Graphs, Data Structures, DP and More",
     description:
       "Watch sorts, A*, Dijkstra, AVL rotations, hash tables, Fourier circles and dynamic programming tables work step by step, with pseudocode and plain-language explanations.",
     appName: "Algorithm Visualizer",
@@ -14,7 +17,7 @@ const homeText = localized({
     race: "Race",
   },
   es: {
-    title: "Visualizador de algoritmos: ordenamiento, grafos, estructuras de datos, PD y más · Aleph Labs",
+    title: "Visualizador de algoritmos: ordenamiento, grafos, estructuras de datos, PD y más",
     description:
       "Mira paso a paso ordenamientos, A*, Dijkstra, rotaciones AVL, tablas hash, círculos de Fourier y tablas de programación dinámica, con pseudocódigo y explicaciones simples.",
     appName: "Visualizador de algoritmos",
@@ -50,13 +53,13 @@ export const pageMeta = (route: Route): PageMeta => {
   const path = href(route);
   const url = SITE_URL + (path === "/" ? "/" : path);
   const { title, description } = metaOf(route);
-  return { path, url, title, description };
+  return { path, url, title: `${title} · ${BRAND}`, description };
 };
 
 /** Structured data (JSON-LD) so search engines know what each page is. */
 export const structuredData = (route: Route): object[] => {
   const meta = pageMeta(route);
-  const publisher = { "@type": "Organization", name: "Aleph Labs" };
+  const publisher = { "@type": "Organization", name: BRAND };
   if (route.page === "home") {
     return [
       {

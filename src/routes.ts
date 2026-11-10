@@ -10,7 +10,7 @@ export type ModuleId = keyof typeof manifests;
 /** Every module, in the order the landing page, the menu and the sitemap list them: the manifests' order. */
 export const MODULES = Object.keys(manifests) as ModuleId[];
 
-/** A page's title and description, for search engines and social cards. */
+/** A page's title and description, for search engines and social cards. The title leaves out the site's name, which every page adds. */
 export type Meta = { title: string; description: string };
 
 type Pages<Id extends string> = {
@@ -55,16 +55,25 @@ export type ModuleManifest<Id extends string = string> = {
    */
   hints: {
     start: string;
-    algorithm: (algorithm: Id) => string;
+    /** The race page's, when it isn't "How the race works". */
     race?: string;
-  };
+  } & (
+    | {
+        /** What works on an algorithm page, as its hint names it: "Insertion Sort" in "How Insertion Sort works". */
+        works: (algorithm: Id) => string;
+      }
+    | {
+        /** The explanation's own title, for modules whose titles don't read "How … works" in every language. */
+        heading: (algorithm: Id) => string;
+      }
+  );
   /**
    * A link to one of its algorithm pages with settings that differ from the defaults, its query
    * as the module's link codec writes it at 2× speed. Shared tests open every module on it.
    */
   example: { algorithm: Id; search: string };
 } & (
-  | { pages: { race: true }; seo: { race: Meta }; hints: { race: string } }
+  | { pages: { race: true }; seo: { race: Meta } }
   | { pages: { race: false }; seo: { race?: never }; hints: { race?: never } }
 );
 

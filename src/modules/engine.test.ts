@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { moduleOf, modulePages, routeFromPath, routePath } from "@/routes";
+import { MODULES, moduleOf, modulePages, routeFromPath, routePath } from "@/routes";
 import { readLocation } from "@/urlState";
-import { engines, MODULES } from "./engine";
+import { engines } from "./engine";
 import { EXAMPLE_SPEED, stateFor } from "./testing";
 
 // Each module opens on its manifest's example link: a page with settings that differ from its defaults.

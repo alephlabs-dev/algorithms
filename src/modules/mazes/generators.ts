@@ -1,4 +1,4 @@
-import { MAZE_ALGORITHMS, type MazeAlgorithm, type MazeGenerator, type MazeGrid } from "./types";
+import { type MazeAlgorithm, type MazeGenerator, type MazeGrid } from "./types";
 
 /** Maze cells two steps away (up, right, down, left) inside the border, with the wall between. */
 export const mazeNeighbors = ({ rows, cols }: MazeGrid, cell: number) => {
@@ -245,8 +245,6 @@ const wilson: MazeGenerator = function* (grid, start, random) {
   }
   yield { type: "done", deadEnds: deadEndsOf(grid, (wall) => open.has(wall)), line: 7 };
 };
-
-export { MAZE_ALGORITHMS };
 
 export const mazeGenerators: Record<MazeAlgorithm, MazeGenerator> = { dfs, prim, kruskal, wilson };
 

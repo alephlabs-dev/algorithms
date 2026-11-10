@@ -1,6 +1,5 @@
 import { MAX_VALUE, MIN_VALUE, type Operation, type StructurePreset, type StructureSize } from "./types";
 
-export type { StructurePreset, StructureSize };
 export const structurePresets: StructurePreset[] = ["random", "ascending", "example"];
 
 export const structureSizes: StructureSize[] = ["small", "medium", "large"];

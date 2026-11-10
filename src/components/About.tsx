@@ -23,7 +23,9 @@ import { graphAlgorithms } from "@/modules/graphs/algorithms";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes articles move into its interface.
 import { mazeAlgorithms } from "@/modules/mazes/algorithms";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes articles move into its interface.
-import { MAZE_ALGORITHMS, mazePseudocode } from "@/modules/mazes/generators";
+import { mazePseudocode } from "@/modules/mazes/generators";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes articles move into its interface.
+import { MAZE_ALGORITHMS } from "@/modules/mazes/types";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes articles move into its interface.
 import type { MazeAlgorithm } from "@/modules/mazes/types";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Backtracking articles move into its interface.

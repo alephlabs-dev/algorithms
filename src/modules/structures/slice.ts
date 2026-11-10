@@ -1,7 +1,8 @@
 import { questionsOf } from "@/game";
 import { structureQuestions } from "./questions";
 import { decodeOperations, encodeOperations, MAX_OPERATIONS } from "./operations";
-import { presetOperations, type StructurePreset, type StructureSize } from "./presets";
+import { presetOperations } from "./presets";
+import type { StructurePreset, StructureSize } from "./types";
 import { recordStructure } from "./record";
 import { TreeRecorder } from "./tree";
 import type { HashEvent, Operation, StructureAlgorithm, StructureRun, TreeAlgorithm, TreeEvent } from "./types";

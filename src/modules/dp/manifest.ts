@@ -9,16 +9,16 @@ const text = localized({
     summary:
       "Edit distance, the longest common subsequence and the knapsack, one table cell at a time, and a race against plain recursion.",
     count: (n: number) => (n === 1 ? "1 problem" : `${n} problems`),
-    moduleTitle: "Dynamic Programming Visualizer: Edit Distance, LCS, Knapsack · Aleph Labs",
+    moduleTitle: "Dynamic Programming Visualizer: Edit Distance, LCS, Knapsack",
     moduleDescription:
       "Watch a dynamic programming table fill cell by cell, then walk back from the corner to the answer: the edits between two words, what they share, or what fits in a bag.",
-    raceTitle: "Recursion vs Memoization vs Table: Dynamic Programming Race · Aleph Labs",
+    raceTitle: "Recursion vs Memoization vs Table: Dynamic Programming Race",
     raceDescription:
       "One knapsack solved three ways side by side: plain recursion redoing the same subproblems, memoized recursion, and the bottom-up table. Count the work each does.",
-    problemTitle: (title: string) => `${title} Visualized: The Dynamic Programming Table · Aleph Labs`,
+    problemTitle: (title: string) => `${title} Visualized: The Dynamic Programming Table`,
     section: "Dynamic programming",
     about: "About dynamic programming",
-    howItWorks: (title: string) => `How ${title.toLowerCase()} works`,
+    problem: (named: string) => named.toLowerCase(),
     race: "What memoizing saves",
   },
   es: {
@@ -26,16 +26,16 @@ const text = localized({
     summary:
       "Distancia de edición, la subsecuencia común más larga y la mochila, celda por celda, y una carrera contra la recursión simple.",
     count: (n) => (n === 1 ? "1 problema" : `${n} problemas`),
-    moduleTitle: "Visualizador de programación dinámica: distancia de edición, LCS y mochila · Aleph Labs",
+    moduleTitle: "Visualizador de programación dinámica: distancia de edición, LCS y mochila",
     moduleDescription:
       "Mira cómo se llena una tabla de programación dinámica celda por celda y vuelve desde la esquina hasta la respuesta: las ediciones entre dos palabras, lo que comparten o lo que cabe en una mochila.",
-    raceTitle: "Recursión contra memoización contra tabla: carrera de programación dinámica · Aleph Labs",
+    raceTitle: "Recursión contra memoización contra tabla: carrera de programación dinámica",
     raceDescription:
       "Una mochila resuelta de tres formas lado a lado: la recursión simple que rehace los mismos subproblemas, la recursión con memoización y la tabla. Cuenta el trabajo de cada una.",
-    problemTitle: (title) => `${title}: la tabla de programación dinámica, paso a paso · Aleph Labs`,
+    problemTitle: (title) => `${title}: la tabla de programación dinámica, paso a paso`,
     section: "Programación dinámica",
     about: "Sobre la programación dinámica",
-    howItWorks: (named) => `Cómo funciona ${named}`,
+    problem: (named) => named,
     race: "Lo que ahorra memorizar",
   },
 });
@@ -64,7 +64,7 @@ export const dpManifest = {
   },
   hints: {
     start: text.about,
-    algorithm: (algorithm: DpAlgorithm) => text.howItWorks(dpProblems[algorithm].named),
+    works: (algorithm: DpAlgorithm) => text.problem(dpProblems[algorithm].named),
     race: text.race,
   },
   example: { algorithm: "lcs", search: "?a=KITTEN&b=SITTING&items=3x4.4x5&cap=7&speed=2x" },

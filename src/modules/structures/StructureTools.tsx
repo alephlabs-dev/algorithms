@@ -1,6 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
 import { structurePresetOptions, structures, structureSizeLabels } from "./algorithms";
-import type { StructureSize } from "./presets";
+import type { StructureSize } from "./types";
 import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";

@@ -1,9 +1,9 @@
 // For tests: the store opened on each module's example link (its manifest's `example`).
 import { expect } from "vitest";
 import { createAppStore, type StoreState, type View } from "@/appStore";
-import { moduleRoute, routePath } from "@/routes";
+import { moduleRoute, routePath, type ModuleId } from "@/routes";
 import { readLocation } from "@/urlState";
-import type { ModuleId, SliceStates } from "./engine";
+import type { SliceStates } from "./engine";
 import { manifests } from "./manifests";
 
 /** The speed every example link carries. */

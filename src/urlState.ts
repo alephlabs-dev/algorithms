@@ -1,8 +1,8 @@
 import type { View } from "./appStore";
 import { isOneOf, type LinkCodec } from "./modules/link";
-import { slices, type ModuleId, type SliceLink } from "./modules/engine";
+import { slices, type SliceLink } from "./modules/engine";
 import type { Link } from "./modules/slice";
-import { modulePages, routeFromPath, type AlgorithmOf } from "./routes";
+import { modulePages, routeFromPath, type AlgorithmOf, type ModuleId } from "./routes";
 import { droppedPresets, speedPresets, type SpeedPreset } from "./utils/speed";
 
 /** Where the app opened: the page, the settings every module shares, and the open module's link. */

@@ -1,5 +1,5 @@
 import type { View } from "@/appStore";
-import { MAZE_ALGORITHMS } from "./generators";
+import { MAZE_ALGORITHMS } from "./types";
 import { MazeRun } from "./run";
 import type { MazeAlgorithm, MazeStep } from "./types";
 import { fitGridSize, gridDimensions, sizeForView, type GridSize } from "@/utils/gridSize";

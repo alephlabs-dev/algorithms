@@ -1,6 +1,5 @@
 import type { Item, Method } from "./types";
 
-export type { Method };
 export const methods: Method[] = ["table", "memo", "recursion"];
 
 /** One subproblem solved (or looked up): K for the first `i` items and room `w`. */

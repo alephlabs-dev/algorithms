@@ -1,8 +1,6 @@
 import type { ComponentType, ReactNode } from "react";
 import type { StoreState, Theme } from "@/store";
-import type { ModuleId } from "./engine";
-
-export type { ModuleId };
+import type { ModuleId } from "@/routes";
 
 /** One algorithm in a module's pickers. */
 export type AlgorithmChoice = { id: string; title: string; short: string };

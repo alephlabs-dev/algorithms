@@ -8,27 +8,27 @@ const text = localized({
     title: "Fourier series",
     summary: "Square, sawtooth and triangle waves built from circles, and circles on circles that draw any shape.",
     count: (n: number) => `${n} series`,
-    moduleTitle: "Fourier Series Visualizer: Waves and Drawings from Circles · Aleph Labs",
+    moduleTitle: "Fourier Series Visualizer: Waves and Drawings from Circles",
     moduleDescription:
       "Build a square, sawtooth or triangle wave from turning circles, or watch circles on circles retrace constellations, drawings or your own. See the fit improve with every circle.",
-    epicyclesTitle: "Fourier Epicycles: Draw Any Shape with Circles · Aleph Labs",
-    seriesTitle: (title: string) => `${title} Fourier Series, Visualized with Circles · Aleph Labs`,
+    epicyclesTitle: "Fourier Epicycles: Draw Any Shape with Circles",
+    seriesTitle: (title: string) => `${title} Fourier Series, Visualized with Circles`,
     section: "Fourier series",
     about: "About Fourier series",
-    howItWorks: ({ title }: { title: string; named: string }) => `How the ${title} works`,
+    series: ({ title }: { title: string; named: string }) => `the ${title}`,
   },
   es: {
     title: "Series de Fourier",
     summary: "Ondas cuadradas, de sierra y triangulares hechas con círculos, y círculos sobre círculos que dibujan cualquier forma.",
     count: (n) => `${n} series`,
-    moduleTitle: "Visualizador de series de Fourier: ondas y dibujos hechos con círculos · Aleph Labs",
+    moduleTitle: "Visualizador de series de Fourier: ondas y dibujos hechos con círculos",
     moduleDescription:
       "Construye una onda cuadrada, de sierra o triangular con círculos que giran, o mira círculos sobre círculos volver a trazar constelaciones, dibujos o el tuyo. El ajuste mejora con cada círculo.",
-    epicyclesTitle: "Epiciclos de Fourier: dibuja cualquier forma con círculos · Aleph Labs",
-    seriesTitle: (title) => `${title}: serie de Fourier visualizada con círculos · Aleph Labs`,
+    epicyclesTitle: "Epiciclos de Fourier: dibuja cualquier forma con círculos",
+    seriesTitle: (title) => `${title}: serie de Fourier visualizada con círculos`,
     section: "Series de Fourier",
     about: "Sobre las series de Fourier",
-    howItWorks: ({ named }) => `${/^l(o|a)s /.test(named) ? "Cómo funcionan" : "Cómo funciona"} ${named}`,
+    series: ({ named }) => named,
   },
 });
 
@@ -60,7 +60,7 @@ export const fourierManifest = {
   },
   hints: {
     start: text.about,
-    algorithm: (algorithm: FourierAlgorithm) => text.howItWorks(fourierSeries[algorithm]),
+    works: (algorithm: FourierAlgorithm) => text.series(fourierSeries[algorithm]),
   },
   example: {
     algorithm: "epicycles",

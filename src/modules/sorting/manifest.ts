@@ -10,36 +10,32 @@ const text = localized({
     title: "Sorting",
     summary: "Selection, Insertion, Bubble, Cocktail, Shell, Quick, Merge, Heap and Radix Sort.",
     count: (n: number) => (n === 1 ? "1 algorithm" : `${n} algorithms`),
-    moduleTitle: "Sorting Algorithm Visualizer: 9 Algorithms Step by Step · Aleph Labs",
+    moduleTitle: "Sorting Algorithm Visualizer: 9 Algorithms Step by Step",
     moduleDescription:
       "Watch Bubble, Insertion, Quick, Merge, Heap, Radix Sort and more sort an array step by step, with the pseudocode lit up and every move explained.",
-    raceTitle: "Sorting Algorithm Race: Compare Algorithms Side by Side · Aleph Labs",
+    raceTitle: "Sorting Algorithm Race: Compare Algorithms Side by Side",
     raceDescription: (description: string) => `Race up to four sorting algorithms on the same array. ${description}`.slice(0, 160),
-    algorithmTitle: (title: string) => `${title} Visualized Step by Step · Aleph Labs`,
+    algorithmTitle: (title: string) => `${title} Visualized Step by Step`,
     algorithmDescription: (title: string, average: string) =>
       `See how ${title} works: watch it sort an array step by step, follow the pseudocode line by line and compare it with other algorithms. ${average} on average.`,
     section: "Sorting",
     about: "About sorting algorithms",
-    howItWorks: (title: string) => `How ${title} works`,
-    race: "How the race works",
   },
   es: {
     title: "Ordenamiento",
     summary: "Selection, Insertion, Bubble, Cocktail, Shell, Quick, Merge, Heap y Radix Sort.",
     count: (n) => (n === 1 ? "1 algoritmo" : `${n} algoritmos`),
-    moduleTitle: "Visualizador de algoritmos de ordenamiento: 9 algoritmos paso a paso · Aleph Labs",
+    moduleTitle: "Visualizador de algoritmos de ordenamiento: 9 algoritmos paso a paso",
     moduleDescription:
       "Mira cómo Bubble, Insertion, Quick, Merge, Heap, Radix Sort y más ordenan un arreglo paso a paso, con el pseudocódigo resaltado y cada movimiento explicado.",
-    raceTitle: "Carrera de algoritmos de ordenamiento: compáralos lado a lado · Aleph Labs",
+    raceTitle: "Carrera de algoritmos de ordenamiento: compáralos lado a lado",
     raceDescription: (description) =>
       `Haz competir hasta cuatro algoritmos de ordenamiento con el mismo arreglo. ${description}`.slice(0, 200),
-    algorithmTitle: (title) => `${title} paso a paso, visualizado · Aleph Labs`,
+    algorithmTitle: (title) => `${title} paso a paso, visualizado`,
     algorithmDescription: (title, average) =>
       `Mira cómo funciona ${title}: ordena un arreglo paso a paso, sigue el pseudocódigo línea por línea y compáralo con otros algoritmos. ${average} en promedio.`,
     section: "Ordenamiento",
     about: "Sobre los algoritmos de ordenamiento",
-    howItWorks: (title) => `Cómo funciona ${title}`,
-    race: "Cómo funciona la carrera",
   },
 });
 
@@ -77,8 +73,7 @@ export const sortingManifest = {
   },
   hints: {
     start: text.about,
-    algorithm: (algorithm: Algorithm) => text.howItWorks(sortingAlgorithms[algorithm].title),
-    race: text.race,
+    works: (algorithm: Algorithm) => sortingAlgorithms[algorithm].title,
   },
   example: { algorithm: "heap", search: "?size=40&input=reversed&mode=bars&speed=2x&seed=9ix&race=insertion%2Cquick%2Cmerge" },
 } as const satisfies ModuleManifest<Algorithm>;

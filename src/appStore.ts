@@ -3,13 +3,12 @@ import { FEEDBACK_MS, forgetAnswers, isAnswered, isCellQuestion, markAnswered, N
 import {
   contextFor,
   engines,
-  MODULES,
   slices,
-  type ModuleId,
   type SliceActions,
   type SliceAlgorithm,
   type SliceStates,
 } from "./modules/engine";
+import { MODULES, type ModuleId } from "./routes";
 import type { Link, Patch, SliceContext } from "./modules/slice";
 import { linkFor, type UrlLocation } from "./urlState";
 import { DEFAULT_PRESET, type SpeedPreset } from "./utils/speed";

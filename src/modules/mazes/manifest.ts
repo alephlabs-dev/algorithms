@@ -9,34 +9,30 @@ const text = localized({
     summary:
       "A perfect maze carved one decision at a time by randomized depth-first search: every carve, every backtrack and every dead-end cell.",
     count: (n: number) => (n === 1 ? "1 algorithm" : `${n} algorithms`),
-    moduleTitle: "Maze Generation Visualizer: a Maze Carved Step by Step · Aleph Labs",
+    moduleTitle: "Maze Generation Visualizer: a Maze Carved Step by Step",
     moduleDescription:
       "Watch depth-first search, Prim's, Kruskal's and Wilson's algorithms carve a perfect maze one decision at a time: every carve, backtrack, skipped wall, random walk and dead-end cell.",
-    algorithmTitle: (title: string) => `${title} Maze Generation, Visualized Step by Step · Aleph Labs`,
+    algorithmTitle: (title: string) => `${title} Maze Generation, Visualized Step by Step`,
     section: "Mazes",
-    raceTitle: "Maze Generators Side by Side: DFS vs Prim vs Kruskal vs Wilson · Aleph Labs",
+    raceTitle: "Maze Generators Side by Side: DFS vs Prim vs Kruskal vs Wilson",
     raceDescription:
       "Up to four maze generators carve the same seed side by side. Count the dead-end cells to see each maze's texture: long corridors or many short branches.",
     about: "About maze generation",
-    howItWorks: (title: string) => `How ${title} works`,
-    race: "How the race works",
   },
   es: {
     title: "Laberintos",
     summary:
       "Un laberinto perfecto excavado decisión por decisión con la búsqueda en profundidad aleatoria: cada pasillo, cada retroceso y cada celda sin salida.",
     count: (n) => (n === 1 ? "1 algoritmo" : `${n} algoritmos`),
-    moduleTitle: "Visualizador de generación de laberintos paso a paso · Aleph Labs",
+    moduleTitle: "Visualizador de generación de laberintos paso a paso",
     moduleDescription:
       "Mira cómo la búsqueda en profundidad y los algoritmos de Prim, Kruskal y Wilson excavan un laberinto perfecto paso a paso: cada pasillo, retroceso, pared omitida, caminata al azar y celda sin salida.",
-    algorithmTitle: (title) => `${title}: generación de laberintos paso a paso, visualizada · Aleph Labs`,
+    algorithmTitle: (title) => `${title}: generación de laberintos paso a paso, visualizada`,
     section: "Laberintos",
-    raceTitle: "Generadores de laberintos lado a lado: DFS, Prim, Kruskal y Wilson · Aleph Labs",
+    raceTitle: "Generadores de laberintos lado a lado: DFS, Prim, Kruskal y Wilson",
     raceDescription:
       "Hasta cuatro generadores excavan la misma semilla lado a lado. Cuenta las celdas sin salida para ver la textura: pasillos largos o muchas ramas cortas.",
     about: "Sobre la generación de laberintos",
-    howItWorks: (title) => `Cómo funciona ${title}`,
-    race: "Cómo funciona la carrera",
   },
 });
 
@@ -65,8 +61,7 @@ export const mazesManifest = {
   },
   hints: {
     start: text.about,
-    algorithm: (algorithm: MazeAlgorithm) => text.howItWorks(mazeAlgorithms[algorithm].named),
-    race: text.race,
+    works: (algorithm: MazeAlgorithm) => mazeAlgorithms[algorithm].named,
   },
   example: { algorithm: "dfs", search: "?size=large&seed=93ci&race=prim%2Cwilson&speed=2x" },
 } as const satisfies ModuleManifest<MazeAlgorithm>;
