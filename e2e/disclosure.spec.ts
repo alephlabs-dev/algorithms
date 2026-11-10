@@ -7,12 +7,17 @@ import { gotoApp } from './goto';
 
 const scrollY = (page: Page) => page.evaluate(() => window.scrollY);
 
+/** A disclosure under the stage (a `<details>`), found by its heading. */
 const disclosure = (page: Page, name: string) =>
-  page.locator('#about').getByRole('heading', { level: 2 }).getByRole('button', { name });
+  page.locator('#about details').filter({ has: page.getByRole('heading', { level: 2, name, exact: true }) });
 
-/** The panel a disclosure's button controls, found through `aria-controls`. */
-const panelOf = async (page: Page, button: Locator) =>
-  page.locator(`[id="${await button.getAttribute('aria-controls')}"]`);
+/** What you tap: the summary, which holds the heading. */
+const summaryOf = (details: Locator) => details.locator('summary');
+
+/** The panel the summary shows and hides. */
+const panelOf = (details: Locator) => details.locator(':scope > div');
+
+const expectOpen = (details: Locator, open: boolean) => expect(details).toHaveJSProperty('open', open);
 
 const press = (button: Locator, hasTouch: boolean) => (hasTouch ? button.tap() : button.click());
 
@@ -27,33 +32,33 @@ test('explanations start closed and open in place', async ({ page, hasTouch }) =
   await gotoApp(page, '/sorting/insertion-sort');
 
   const how = disclosure(page, 'How Insertion Sort works');
-  const howPanel = await panelOf(page, how);
-  await expect(how).toHaveAttribute('aria-expanded', 'false');
+  const howPanel = panelOf(how);
+  await expectOpen(how, false);
   await expect(howPanel).toBeHidden();
   // The summary isn't an explanation: it's always open.
   await expect(page.locator('#about').getByRole('table')).toBeVisible();
 
   await how.scrollIntoViewIfNeeded();
   const before = await scrollY(page);
-  await press(how, hasTouch);
-  await expect(how).toHaveAttribute('aria-expanded', 'true');
+  await press(summaryOf(how), hasTouch);
+  await expectOpen(how, true);
   await expect(howPanel).toBeVisible();
   expect(await scrollY(page), 'page scroll after opening').toBe(before);
 
   // Enter opens a second one, and the first stays open.
   const code = disclosure(page, 'Pseudocode');
-  const codePanel = await panelOf(page, code);
+  const codePanel = panelOf(code);
   await code.scrollIntoViewIfNeeded();
   const beforeEnter = await scrollY(page);
-  await code.focus();
+  await summaryOf(code).focus();
   await page.keyboard.press('Enter');
-  await expect(code).toHaveAttribute('aria-expanded', 'true');
+  await expectOpen(code, true);
   await expect(codePanel).toBeVisible();
   await expect(howPanel).toBeVisible();
   expect(await scrollY(page), 'page scroll after Enter').toBe(beforeEnter);
 
   await page.keyboard.press('Enter');
-  await expect(code).toHaveAttribute('aria-expanded', 'false');
+  await expectOpen(code, false);
   await expect(codePanel).toBeHidden();
   expect(await scrollY(page), 'page scroll after closing').toBe(beforeEnter);
 });
@@ -64,8 +69,8 @@ test('the scroll hint opens the explanation it names', async ({ page }) => {
   await page.getByRole('main').getByRole('button', { name: 'How Insertion Sort works' }).click();
 
   const how = disclosure(page, 'How Insertion Sort works');
-  await expect(how).toHaveAttribute('aria-expanded', 'true');
-  await expect(await panelOf(page, how)).toBeInViewport();
+  await expectOpen(how, true);
+  await expect(panelOf(how)).toBeInViewport();
 });
 
 for (const [path, name] of [
@@ -78,8 +83,8 @@ for (const [path, name] of [
     await page.getByRole('main').getByRole('button', { name, exact: true }).click();
 
     const how = disclosure(page, name);
-    await expect(how).toHaveAttribute('aria-expanded', 'true');
-    await expect(await panelOf(page, how)).toBeInViewport();
+    await expectOpen(how, true);
+    await expect(panelOf(how)).toBeInViewport();
   });
 }
 
@@ -89,7 +94,7 @@ test('the scroll hint on a module start page only scrolls', async ({ page }) => 
   await page.getByRole('main').getByRole('button', { name: 'Sobre el backtracking', exact: true }).click();
 
   const why = disclosure(page, '¿Por qué deshacer elecciones?');
-  await expect(why).toHaveAttribute('aria-expanded', 'false');
+  await expectOpen(why, false);
   await expect(page.locator('#about')).toBeInViewport();
 });
 
@@ -98,10 +103,10 @@ test('a new page starts with its explanations closed', async ({ page, hasTouch }
 
   const how = disclosure(page, 'How Insertion Sort works');
   await how.scrollIntoViewIfNeeded();
-  await press(how, hasTouch);
-  await expect(how).toHaveAttribute('aria-expanded', 'true');
+  await press(summaryOf(how), hasTouch);
+  await expectOpen(how, true);
 
   await page.locator('#about').getByRole('link', { name: 'Selection Sort' }).click();
   await expect(page).toHaveURL(/\/sorting\/selection-sort\b/);
-  await expect(disclosure(page, 'How Selection Sort works')).toHaveAttribute('aria-expanded', 'false');
+  await expectOpen(disclosure(page, 'How Selection Sort works'), false);
 });

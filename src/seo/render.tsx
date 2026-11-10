@@ -1,6 +1,5 @@
 import { renderToString } from "react-dom/server";
-import { About } from "@/components/About";
-import { Landing } from "@/components/Landing/Landing";
+import { Page } from "@/Page";
 import { allRoutes, href, isTranslated, pathIn, SITE_URL, type ModuleId, type Route } from "@/routes";
 import { renderHead } from "./head";
 
@@ -15,18 +14,14 @@ export { allRoutes, href };
 const ROOT = '<div id="root"></div>';
 
 /**
- * The page's HTML: its own head, plus its article inside #root. The empty
- * full-height block stands in for the visualizer until the app mounts and
- * replaces everything in #root with the same layout, so nothing jumps.
+ * The page's HTML: its own head, plus inside #root the same tree the app
+ * renders first (src/Page.tsx), so the app hydrates it in place (#140): a
+ * visualizer page has an empty stage with its article below it, and the
+ * landing page is all content.
  */
 export const renderPage = (template: string, route: Route): string => {
   if (!template.includes(ROOT)) throw new Error(`index.html is missing ${ROOT}`);
-  // The landing page is all content; other pages are a visualizer with their article below.
-  const body =
-    route.page === "home"
-      ? renderToString(<Landing />)
-      : `<div class="h-dvh"></div>${renderToString(<About route={route} />)}`;
-  return renderHead(template, route).replace(ROOT, `<div id="root">${body}</div>`);
+  return renderHead(template, route).replace(ROOT, `<div id="root">${renderToString(<Page route={route} />)}</div>`);
 };
 
 /** Modules whose start page ranks above the other module pages in the sitemap. */

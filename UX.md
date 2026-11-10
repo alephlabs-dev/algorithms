@@ -67,7 +67,7 @@ Never controls with the browser's default look. Every control lives in `src/comp
 ## 9. Collapsible sections
 
 - Only explanatory content (How X works, About), never controls. Closed on entry, no nesting, several can be open, opening one doesn't scroll the page.
-- Built with `ui/Disclosure`: a heading containing a button with `aria-expanded` and `aria-controls`.
+- Built with `ui/Disclosure`: a native `<details>` whose `<summary>` holds the heading, so the browser opens it and a tap works before the app's JavaScript has loaded (#140).
 
 ## 10. Choosing a control
 
