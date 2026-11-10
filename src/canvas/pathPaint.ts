@@ -2,12 +2,7 @@
 
 import { FRONTIER, MUD, ON_PATH, VISITED, WALL, type Grid, type PathFrame, type Terrain } from "@/pathfinding";
 import type { GridCells, GridTone } from "./gridRenderer";
-import { mix } from "./structurePaint";
-import { hexToRgb, type CanvasColors, type RGB } from "./theme";
-
-/** The floor and walls of a grid, shared with mazes so a maze looks the same in both modules. */
-export const gridFloor = (colors: CanvasColors): RGB => mix(hexToRgb(colors.background), hexToRgb(colors.edge), 0.55);
-export const gridWall = (colors: CanvasColors): RGB => mix(hexToRgb(colors.background), hexToRgb(colors.bar), 0.55);
+import { gridFloor, gridWall, hexToRgb, mix, type CanvasColors } from "./theme";
 
 // Indexes into the palette below, in its order.
 const EMPTY_TONE = 0;

@@ -1,6 +1,6 @@
 import type { HashFrame, Operation } from "@/structures";
-import { css, drawOpsQueue, inkOn, QUEUE_HEIGHT, structurePalette } from "./structurePaint";
-import { readColors, type RGB } from "./theme";
+import { drawOpsQueue, QUEUE_HEIGHT, structurePalette } from "./structurePaint";
+import { css, inkOn, readColors, type RGB } from "./theme";
 import { localized } from "@/i18n";
 
 const FULL = localized({

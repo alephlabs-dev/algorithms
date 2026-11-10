@@ -1,7 +1,7 @@
 import type { Slot } from "@/game";
 import type { NodeView, Operation, TreeFrame } from "@/structures";
-import { css, drawOpsQueue, drawWaiting, inkOn, luminance, QUEUE_HEIGHT, structurePalette } from "./structurePaint";
-import { readColors, type RGB } from "./theme";
+import { drawOpsQueue, drawWaiting, QUEUE_HEIGHT, structurePalette } from "./structurePaint";
+import { css, inkOn, luminance, readColors, type RGB } from "./theme";
 import { localized } from "@/i18n";
 
 const EMPTY = localized({

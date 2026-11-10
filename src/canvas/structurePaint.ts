@@ -1,5 +1,5 @@
 import type { Operation } from "@/structures";
-import { hexToRgb, type CanvasColors, type RGB } from "./theme";
+import { css, hexToRgb, luminance, mix, type CanvasColors } from "./theme";
 import { localized } from "@/i18n";
 
 const text = localized({
@@ -15,14 +15,6 @@ const text = localized({
 
 
 /* Colors and pieces shared by the data structure renderers. */
-
-export const mix = (a: RGB, b: RGB, t: number): RGB => [
-  a[0] + (b[0] - a[0]) * t,
-  a[1] + (b[1] - a[1]) * t,
-  a[2] + (b[2] - a[2]) * t,
-];
-export const css = (c: RGB, alpha = 1) => `rgb(${c[0] | 0} ${c[1] | 0} ${c[2] | 0} / ${alpha})`;
-export const luminance = (c: RGB) => (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255;
 
 export const structurePalette = (colors: CanvasColors) => {
   const background = hexToRgb(colors.background);
@@ -42,12 +34,6 @@ export const structurePalette = (colors: CanvasColors) => {
   };
 };
 export type StructurePalette = ReturnType<typeof structurePalette>;
-
-/** Text color that reads on `fill`: the ink or the background, whichever contrasts more. */
-export const inkOn = (fill: RGB, p: StructurePalette) =>
-  Math.abs(luminance(fill) - luminance(p.ink)) > Math.abs(luminance(fill) - luminance(p.background))
-    ? p.ink
-    : p.background;
 
 /** Room kept along the top for the operations queue. */
 export const QUEUE_HEIGHT = 52;

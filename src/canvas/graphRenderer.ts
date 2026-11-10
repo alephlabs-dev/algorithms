@@ -1,5 +1,5 @@
 import { DONE, EDGE_KEPT, EDGE_REJECTED, nodeName, PENDING, type Graph, type GraphFrame } from "@/graphs";
-import { hexToRgb, readColors, type CanvasColors, type RGB } from "./theme";
+import { hexToRgb, mix, readColors, type CanvasColors, type RGB } from "./theme";
 
 export type GraphRenderInput = {
   graph: Graph;
@@ -23,11 +23,6 @@ export type GraphRenderInput = {
 const POP_FROM = 0.7; // a node that changes state grows from this scale
 const MAX_STRETCH = 1.5; // how far a layout may stretch to fill a stage of another shape
 
-const mix = (a: RGB, b: RGB, t: number): RGB => [
-  a[0] + (b[0] - a[0]) * t,
-  a[1] + (b[1] - a[1]) * t,
-  a[2] + (b[2] - a[2]) * t,
-];
 const css = (c: RGB) => `rgb(${c[0] | 0} ${c[1] | 0} ${c[2] | 0})`;
 const luminance = (c: RGB) => (0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255;
 

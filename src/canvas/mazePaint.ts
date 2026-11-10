@@ -15,8 +15,7 @@ import {
   type MazeRun,
 } from "@/mazes";
 import type { GridCells, GridTone } from "./gridRenderer";
-import { gridFloor, gridWall } from "./pathPaint";
-import { hexToRgb, type CanvasColors } from "./theme";
+import { gridFloor, gridWall, hexToRgb, type CanvasColors } from "./theme";
 
 /** Mazes' tones in the current theme, indexed by cell state. */
 export const mazePalette = (colors: CanvasColors): GridTone[] => {

@@ -8,8 +8,8 @@ import {
   type DpRun,
   type TableRun,
 } from "@/dp";
-import { css, inkOn, mix, structurePalette } from "./structurePaint";
-import { readColors, type RGB } from "./theme";
+import { structurePalette } from "./structurePaint";
+import { css, inkOn, mix, readColors, type RGB } from "./theme";
 import { localized } from "@/i18n";
 
 const text = localized({

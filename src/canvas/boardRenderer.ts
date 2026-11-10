@@ -1,4 +1,4 @@
-import { hexToRgb, readColors, type CanvasColors, type RGB } from "./theme";
+import { hexToRgb, mix, readColors, type CanvasColors, type RGB } from "./theme";
 
 export type Square = { row: number; col: number };
 
@@ -41,7 +41,7 @@ export type BoardInput = {
   box?: number;
 };
 
-const mix = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+// Rounds each channel (theme.ts's css truncates), so its colors can differ by 1: keep it separate.
 const css = ([r, g, b]: RGB, alpha = 1) => `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${alpha})`;
 
 /**
