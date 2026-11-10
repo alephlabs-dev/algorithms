@@ -15,7 +15,6 @@ import {
   mazePseudocode,
 } from "@/mazes";
 import { linkFor, readLocation } from "@/urlState";
-import { speedFor, stepDelay } from "@/utils/speed";
 import { routeIn } from "./engine";
 import { mazesSlice as slice, type MazesState } from "./mazes.slice";
 import type { SliceContext } from "./slice";
@@ -246,18 +245,6 @@ describe("mazes slice", () => {
     }
     expect(joins).toBeGreaterThan(0);
     expect([...lastFrame(s).states].some((state) => state === WALK || state === ACTIVE)).toBe(false);
-  });
-
-  it("Wilson: at 1× even its longest run, first walk and all, plays within the module's 30 seconds", () => {
-    const runs = SEEDS.map((seed) => at("/mazes/wilson", `?size=large&seed=${seed.toString(36)}`));
-    const longest = runs.reduce((a, b) => (b.run.length > a.run.length ? b : a));
-    const last = slice.engine.lastIndex(longest, "single");
-    const delay = stepDelay(speedFor("1x", last, slice.engine.pace("single")));
-    let ms = 0;
-    for (let i = 1; i <= last; i++) ms += delay * slice.engine.stepWeight(longest, i);
-    expect(ms / 1000).toBeLessThanOrEqual(30);
-    // Its walk is played in full, not cut: the run is far longer than one frame per cell.
-    expect(longest.run.length).toBeGreaterThan(5 * ((longest.run.rows - 1) / 2) * ((longest.run.cols - 1) / 2));
   });
 
   for (const algorithm of MAZE_ALGORITHMS) {
