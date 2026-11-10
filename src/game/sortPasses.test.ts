@@ -4,7 +4,8 @@ import { Timeline } from "@/algorithms/timeline";
 import type { InputOrder } from "@/types";
 import { generateItems } from "@/utils/generateItems";
 import { seededRandom } from "@/utils/random";
-import { sortQuestions, type Question } from ".";
+import type { Question } from "@/game";
+import { sortQuestions } from "@/algorithms/questions";
 
 type PassAlgorithm = "selection" | "bubble" | "cocktail";
 

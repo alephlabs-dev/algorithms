@@ -4,7 +4,7 @@ import { Timeline } from "@/algorithms/timeline";
 import type { InputOrder } from "@/types";
 import { generateItems } from "@/utils/generateItems";
 import { seededRandom } from "@/utils/random";
-import { sortQuestions } from ".";
+import { sortQuestions } from "@/algorithms/questions";
 
 const run = (items: number[]) => new Timeline(sortAlgorithms.radix, items);
 

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { EMPTY, FRONTIER, MUD, ON_PATH, UNSEEN, VISITED, WALL, type Grid, type PathFrame } from "@/pathfinding";
+import { deltaE2000 } from "./colorDifference";
+import { cssColors } from "./cssColors";
 import { pathGridCells, pathPalette } from "./pathPaint";
-import type { CanvasColors } from "./theme";
+import { hexToRgb, type CanvasColors } from "./theme";
 
 // The theme colors in src/index.css when the renderer stopped knowing about pathfinding (#151).
 const dark: CanvasColors = {
@@ -121,4 +123,28 @@ describe("pathfinding on the shared grid renderer", () => {
     const cells = pathGridCells(grid, { ...frame, current: 3 });
     expect(cells).toMatchObject({ rows: 1, cols: 12, start: 0, end: 11, current: 3 });
   });
+});
+
+describe("pathfinding tones under the current-cell ring", () => {
+  // ΔE2000 of 12 or more reads as a different color at a glance, even in a small cell.
+  const APART = 12;
+
+  // The current-cell ring is two strokes, a dark one inside a light one. On every tone the ring can sit
+  // on, at least one of them must stand apart from it. Mazes checks its own tones the same way.
+  for (const [theme, colors] of Object.entries(cssColors))
+    it(`the current-cell ring has a stroke at least ΔE2000 ${APART} from every pathfinding tone (${theme})`, () => {
+      const inner = hexToRgb(colors.ringInner);
+      const outer = hexToRgb(colors.ringOuter);
+      expect(deltaE2000(inner, outer), "inner vs outer stroke").toBeGreaterThanOrEqual(APART);
+      const under = {
+        ...Object.fromEntries(pathPalette(colors).map((tone, i) => [`pathfinding tone ${i}`, tone.rgb])),
+        // Half the outer stroke sits on the gap between cells.
+        background: hexToRgb(colors.background),
+      };
+      const tooClose = Object.entries(under)
+        .map(([name, rgb]) => [name, Math.max(deltaE2000(inner, rgb), deltaE2000(outer, rgb))] as const)
+        .filter(([, d]) => d < APART)
+        .map(([name, d]) => `${name}: ΔE2000 ${d.toFixed(1)}`);
+      expect(tooClose).toEqual([]);
+    });
 });

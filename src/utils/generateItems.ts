@@ -1,6 +1,6 @@
+import type { Random } from "./random";
 import type { InputOrder } from "@/types";
 
-export type Random = () => number;
 
 export const MIN_ITEM = 5;
 export const MAX_ITEM = 50;

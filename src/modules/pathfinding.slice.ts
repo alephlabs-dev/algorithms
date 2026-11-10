@@ -18,7 +18,8 @@ import {
   sizeForView,
   type GridSize,
 } from "@/utils/gridSize";
-import { pathQuestions, questionsOf } from "@/game";
+import { questionsOf } from "@/game";
+import { pathQuestions } from "@/game/pathfinding";
 import { localized } from "@/i18n";
 import { pathfindingLink, type PathfindingLink } from "./pathfinding.link";
 import { newSeed, seededRandom } from "@/utils/random";

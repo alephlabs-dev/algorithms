@@ -1,7 +1,8 @@
 import type { View } from "@/appStore";
 import { SORT_ALGORITHMS, sortAlgorithms, Timeline } from "@/algorithms";
 import { sizes, sizesFor } from "@/consts/sizesMap";
-import { questionsOf, SORT_GUESS_MAX_SIZE, sortQuestions } from "@/game";
+import { questionsOf } from "@/game";
+import { sortQuestions } from "@/algorithms/questions";
 import { localized } from "@/i18n";
 import type { Algorithm, DisplayMode, InputOrder, Size } from "@/types";
 import { sortingLink, type SortingLink } from "./sorting.link";
@@ -58,6 +59,9 @@ const fresh = (s: SortingState, ctx: SliceContext, size: number, inputOrder = s.
     raceRuns: raceRunsFor(ctx.view, s.racers, items),
   };
 };
+
+/** Sorting plays guess mode with this many items at most. */
+export const SORT_GUESS_MAX_SIZE = 20;
 
 /**
  * The sizes Guess plays with in sorting, in words ("10 or 20"); the tour says them too.

@@ -17,7 +17,8 @@ import {
   type Item,
   type TableRun,
 } from "@/dp";
-import { dpQuestions, questionsOf } from "@/game";
+import { questionsOf } from "@/game";
+import { dpQuestions } from "@/dp/questions";
 import { dpLink, type DpLink } from "./dp.link";
 import { newSeed, seededRandom } from "@/utils/random";
 import { defineModule } from "./slice";

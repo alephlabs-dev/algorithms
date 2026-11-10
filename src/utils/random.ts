@@ -1,4 +1,5 @@
-import type { Random } from "./generateItems";
+/** A source of numbers in [0, 1), like Math.random. */
+export type Random = () => number;
 
 /** Small, fast seeded PRNG (mulberry32). Same seed, same sequence. */
 export const seededRandom = (seed: number): Random => {

@@ -1,5 +1,5 @@
 import type { Operation } from "@/structures";
-import { css, hexToRgb, luminance, mix, type CanvasColors } from "./theme";
+import { css, luminance, type StructurePalette } from "./theme";
 import { localized } from "@/i18n";
 
 const text = localized({
@@ -14,26 +14,6 @@ const text = localized({
 });
 
 
-/* Colors and pieces shared by the data structure renderers. */
-
-export const structurePalette = (colors: CanvasColors) => {
-  const background = hexToRgb(colors.background);
-  const muted = hexToRgb(colors.muted);
-  const secondary = hexToRgb(colors.secondary);
-  const isLight = luminance(background) > 0.5;
-  return {
-    background,
-    ink: hexToRgb(colors.foreground),
-    node: mix(background, hexToRgb(colors.edge), 0.9),
-    ring: mix(background, muted, 0.7),
-    edge: mix(background, muted, 0.55),
-    path: mix(background, secondary, isLight ? 0.3 : 0.42),
-    focus: secondary,
-    done: hexToRgb(colors.primary),
-    warn: hexToRgb(colors.tertiary),
-  };
-};
-export type StructurePalette = ReturnType<typeof structurePalette>;
 
 /** Room kept along the top for the operations queue. */
 export const QUEUE_HEIGHT = 52;

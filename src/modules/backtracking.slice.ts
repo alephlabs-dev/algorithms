@@ -11,7 +11,8 @@ import {
   type SudokuPuzzle,
 } from "@/backtracking";
 import type { BacktrackingEventType } from "@/backtracking/types";
-import { questionsOf, queensQuestions } from "@/game";
+import { questionsOf } from "@/game";
+import { queensQuestions } from "@/game/queens";
 import { localized } from "@/i18n";
 import { backtrackingLink, type BacktrackingLink } from "./backtracking.link";
 import { defineModule } from "./slice";

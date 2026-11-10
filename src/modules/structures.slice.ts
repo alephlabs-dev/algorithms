@@ -1,4 +1,5 @@
-import { questionsOf, structureQuestions } from "@/game";
+import { questionsOf } from "@/game";
+import { structureQuestions } from "@/structures/questions";
 import {
   decodeOperations,
   encodeOperations,
