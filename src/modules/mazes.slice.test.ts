@@ -16,8 +16,7 @@ const single: SliceContext = {
 };
 const phone: SliceContext = { ...single, isMobile: true, isPortrait: true };
 const apply = (s: MazesState, patch: Partial<MazesState> | null) => ({ ...s, ...patch });
-const at = (path: string, search = "", ctx = single) =>
-  slice.hydrate(linkFor(readLocation(path, search), "mazes"), ctx);
+const at = (path: string, search = "", ctx = single) => slice.hydrate(linkFor(readLocation(path, search), "mazes"), ctx);
 
 /** The last frame as a learner sees it: which grid cells are open (not wall). */
 const lastFrame = (s: MazesState) => s.run.frameAt(s.run.length - 1);
@@ -41,10 +40,7 @@ const expectPerfect = (s: MazesState) => {
       else if (r % 2 === 0 && c % 2 === 0) expect(isOpen(s, cell), `corner ${r},${c} is wall`).toBe(false);
       else if (isOpen(s, cell)) passages++;
     }
-  expect(
-    mazeCells.every((cell) => isOpen(s, cell)),
-    "every maze cell is carved",
-  ).toBe(true);
+  expect(mazeCells.every((cell) => isOpen(s, cell)), "every maze cell is carved").toBe(true);
   const reached = new Set([mazeCells[0]]);
   const queue = [mazeCells[0]];
   while (queue.length) {
@@ -56,10 +52,7 @@ const expectPerfect = (s: MazesState) => {
       }
     }
   }
-  expect(
-    mazeCells.every((cell) => reached.has(cell)),
-    "every cell is connected",
-  ).toBe(true);
+  expect(mazeCells.every((cell) => reached.has(cell)), "every cell is connected").toBe(true);
   expect(passages, "passages = cells − 1").toBe(mazeCells.length - 1);
 };
 
@@ -192,12 +185,7 @@ describe("mazes slice", () => {
 
 describe("mazes in the store", () => {
   it("new maze from the dock replaces the run and starts playback over", () => {
-    const app = createAppStore({
-      url: readLocation("/mazes/dfs", "?seed=5"),
-      isMobile: false,
-      isPortrait: false,
-      theme: "dark",
-    });
+    const app = createAppStore({ url: readLocation("/mazes/dfs", "?seed=5"), isMobile: false, isPortrait: false, theme: "dark" });
     app.getState().seek(10);
     const before = app.getState().mazes.seed;
     app.getState().createNewArray();

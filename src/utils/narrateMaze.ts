@@ -52,9 +52,7 @@ const at = (run: MazeRun, cell: number) => text.at(Math.floor(cell / run.cols) +
 const directionOf = (run: MazeRun, wall: number, cell: number): Direction =>
   cell === wall - run.cols ? "up" : cell === wall + 1 ? "right" : cell === wall + run.cols ? "down" : "left";
 
-/** Which side of `cell` the wall it was carved through is on. */
-const sideOf = (run: MazeRun, wall: number, cell: number): Direction =>
-  wall === cell - run.cols ? "up" : wall === cell + 1 ? "right" : wall === cell + run.cols ? "down" : "left";
+const OPPOSITE: Record<Direction, Direction> = { up: "down", right: "left", down: "up", left: "right" };
 
 /** One plain-language sentence for the decision that led to frame `index`. */
 export const narrateMaze = (run: MazeRun, index: number): string => {
@@ -68,7 +66,7 @@ export const narrateMaze = (run: MazeRun, index: number): string => {
         : text.start(at(run, step.cell));
     case "pick": {
       const where = at(run, step.cell);
-      const side = text.side[sideOf(run, step.wall, step.cell)];
+      const side = text.side[OPPOSITE[directionOf(run, step.wall, step.cell)]];
       return frame.states.includes(FRONTIER)
         ? text.pick(where, side, step.frontier.length)
         : text.lastPick(where, side);
