@@ -123,7 +123,7 @@ export class MazeRun {
     this.rows = grid.rows;
     this.cols = grid.cols;
     const random = seededRandom(seed);
-    // Drawn either way, so every generator reads the same random numbers after it.
+    // Kruskal never uses its start cell, but drawing it keeps the seed's other random choices aligned with the rest.
     const start = startOf(grid, random);
     this.start = hasStartCell[algorithm] ? start : null;
     const initial: State = {

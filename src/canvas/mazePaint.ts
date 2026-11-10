@@ -32,8 +32,9 @@ export const mazePalette = (colors: CanvasColors): GridTone[] => {
   // primary color is free for the second one.
   tones[REGION] = { rgb: hexToRgb(colors.secondary) };
   tones[OTHER_REGION] = { rgb: hexToRgb(colors.primary) };
-  // A wall it leaves standing, in the color every module uses for "not allowed".
-  tones[SKIPPED] = { rgb: hexToRgb(colors.conflict) };
+  // A wall it leaves standing, in the color every module uses for "not allowed", crossed out
+  // so it reads without color too.
+  tones[SKIPPED] = { rgb: hexToRgb(colors.conflict), cross: true };
   return tones;
 };
 

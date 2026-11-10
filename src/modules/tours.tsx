@@ -735,8 +735,8 @@ const mazeTones = localized<Record<MazeAlgorithm, (theme: Theme) => ReactNode>>(
         A <Swatch className="bg-outline" />
         {activeColor[theme]} wall is carved: it joins the <Swatch className="bg-secondary" />
         {regionColors[theme].region} region on one side to the <Swatch className="bg-primary" />
-        {regionColors[theme].other} one on the other. A <Swatch className="bg-conflict" />
-        red wall is skipped: both its sides are in one region already, so carving it would close a loop.
+        {regionColors[theme].other} one on the other. A <Swatch className="bg-conflict" cross />
+        red, crossed-out wall is skipped: both its sides are in one region already, so carving it would close a loop.
       </>
     ),
   },
@@ -760,8 +760,8 @@ const mazeTones = localized<Record<MazeAlgorithm, (theme: Theme) => ReactNode>>(
         Una pared <Swatch className="bg-outline" />
         {activeColor[theme]} se excava: une la región <Swatch className="bg-secondary" />
         {regionColors[theme].region} de un lado con la <Swatch className="bg-primary" />
-        {regionColors[theme].other} del otro. Una pared <Swatch className="bg-conflict" />
-        roja se omite: sus dos lados ya están en la misma región, así que excavarla cerraría un ciclo.
+        {regionColors[theme].other} del otro. Una pared <Swatch className="bg-conflict" cross />
+        roja y tachada se omite: sus dos lados ya están en la misma región, así que excavarla cerraría un ciclo.
       </>
     ),
   },

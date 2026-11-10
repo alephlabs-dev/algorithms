@@ -8,6 +8,7 @@ import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";
 import { FactLine } from "../ui/fact-line";
 import { SegmentedControl } from "../ui/segmented";
+import { SwatchCross } from "../TourSwatch";
 
 const text = localized({
   en: {
@@ -61,15 +62,20 @@ export const MazeSizePicker = () => {
   );
 };
 
-const Swatch = ({ className, label }: { className: string; label: string }) => (
+const Swatch = ({ className, label, cross }: { className: string; label: string; cross?: boolean }) => (
   <li className="flex items-center gap-2">
-    <span aria-hidden className={cn("h-2.5 w-2.5 shrink-0 rounded-full", className)} />
+    <span
+      aria-hidden
+      className={cn("shrink-0", cross ? "h-3 w-3 rounded-[3px]" : "h-2.5 w-2.5 rounded-full", className)}
+    >
+      {cross && <SwatchCross />}
+    </span>
     {label}
   </li>
 );
 
 /** The tones only one generator shows, between the shared ones (start, wall, carved) and the dead ends. */
-const ownTones: Record<MazeAlgorithm, { className: string; label: string }[]> = {
+const ownTones: Record<MazeAlgorithm, { className: string; label: string; cross?: boolean }[]> = {
   dfs: [
     { className: "bg-secondary", label: text.stack },
     { className: "bg-secondary ring-2 ring-outline", label: text.current },
@@ -82,7 +88,7 @@ const ownTones: Record<MazeAlgorithm, { className: string; label: string }[]> = 
     { className: "bg-secondary", label: text.region },
     { className: "bg-primary", label: text.otherRegion },
     { className: "bg-outline", label: text.wallCarved },
-    { className: "bg-conflict", label: text.wallSkipped },
+    { className: "bg-conflict", label: text.wallSkipped, cross: true },
   ],
 };
 

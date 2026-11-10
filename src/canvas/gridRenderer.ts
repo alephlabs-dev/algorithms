@@ -1,7 +1,10 @@
 import { readColors, type CanvasColors, type RGB } from "./theme";
 
-/** A color a cell can take. Dotted tones get a few dark dots, so they read without relying on color alone. */
-export type GridTone = { rgb: RGB; dots?: boolean };
+/**
+ * A color a cell can take. Dotted tones get a few dark dots and crossed ones an ×, so they
+ * read without relying on color alone.
+ */
+export type GridTone = { rgb: RGB; dots?: boolean; cross?: boolean };
 
 /** A module's tones in the current theme. Cells name a tone by its index. */
 export type GridPalette = (colors: CanvasColors) => GridTone[];
@@ -223,6 +226,19 @@ export class GridRenderer {
           ctx.arc(x + s * fx, y + s * fy, d, 0, Math.PI * 2);
           ctx.fill();
         }
+      }
+      if (this.tones[input.tones[cell]].cross && s >= 6) {
+        // In the stage's background color, as if cut out of the cell.
+        ctx.strokeStyle = colors.background;
+        ctx.lineWidth = Math.max(1.5, s * 0.12);
+        ctx.lineCap = "round";
+        const inset = s * 0.28;
+        ctx.beginPath();
+        ctx.moveTo(x + inset, y + inset);
+        ctx.lineTo(x + s - inset, y + s - inset);
+        ctx.moveTo(x + s - inset, y + inset);
+        ctx.lineTo(x + inset, y + s - inset);
+        ctx.stroke();
       }
     }
 
