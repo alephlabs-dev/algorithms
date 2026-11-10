@@ -110,9 +110,83 @@ const prim: MazeGenerator = function* (grid, start, random) {
   yield { type: "done", deadEnds: deadEndsOf(grid, (wall) => open.has(wall)), line: 7 };
 };
 
+export const kruskalPseudocode = [
+  "carve every cell, each its own region",
+  "shuffle the walls between cells",
+  "for each wall, in that order:",
+  "  a, b = the cells on its two sides",
+  "  if a and b are in different regions:",
+  "    carve the wall, merge the regions",
+  "    if every cell is joined: stop",
+  "  else: skip it (it would make a loop)",
+  "mark every dead-end cell",
+];
+
+/**
+ * Randomized Kruskal: every cell starts as its own region, and the walls between cells are
+ * tested in a random order. A wall between two regions is carved and they merge; a wall inside
+ * one region is skipped, since carving it would close a loop. It stops once every cell is joined.
+ * Regions are disjoint sets; each keeps its cells (passages included) so a frame can show them.
+ */
+const kruskal: MazeGenerator = function* (grid, _start, random) {
+  const cells = mazeCells(grid);
+  const parent = new Map(cells.map((c) => [c, c]));
+  const members = new Map(cells.map((c) => [c, [c]]));
+  const find = (cell: number): number => {
+    let root = cell;
+    while (parent.get(root) !== root) root = parent.get(root)!;
+    // Path compression: point every cell on the way straight at the root.
+    while (cell !== root) {
+      const next = parent.get(cell)!;
+      parent.set(cell, root);
+      cell = next;
+    }
+    return root;
+  };
+  yield { type: "regions", cells, line: 0 };
+
+  // The walls to the right of and below each cell are all the walls between two cells.
+  const walls = cells.flatMap((cell) =>
+    mazeNeighbors(grid, cell)
+      .filter((n) => n.cell > cell)
+      .map((n) => ({ wall: n.wall, a: cell, b: n.cell })),
+  );
+  for (let i = walls.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [walls[i], walls[j]] = [walls[j], walls[i]];
+  }
+
+  const open = new Set<number>();
+  let regions = cells.length;
+  for (const { wall, a, b } of walls) {
+    const ra = find(a);
+    const rb = find(b);
+    if (ra === rb) {
+      yield { type: "skip", wall, region: members.get(ra)!.slice(), line: 7 };
+      continue;
+    }
+    yield { type: "join", wall, regions: [members.get(ra)!.slice(), members.get(rb)!.slice()], line: 5 };
+    open.add(wall);
+    // The smaller region joins the larger, so the lists stay cheap to merge.
+    const [big, small] = members.get(ra)!.length >= members.get(rb)!.length ? [ra, rb] : [rb, ra];
+    parent.set(small, big);
+    members.get(big)!.push(...members.get(small)!, wall);
+    members.delete(small);
+    if (--regions === 1) break;
+  }
+  yield { type: "done", deadEnds: deadEndsOf(grid, (w) => open.has(w)), line: 8 };
+};
+
 /** Every generator, in the order the UI shows them. */
-export const MAZE_ALGORITHMS: MazeAlgorithm[] = ["dfs", "prim"];
+export const MAZE_ALGORITHMS: MazeAlgorithm[] = ["dfs", "prim", "kruskal"];
 
-export const mazeGenerators: Record<MazeAlgorithm, MazeGenerator> = { dfs, prim };
+export const mazeGenerators: Record<MazeAlgorithm, MazeGenerator> = { dfs, prim, kruskal };
 
-export const mazePseudocode: Record<MazeAlgorithm, string[]> = { dfs: dfsPseudocode, prim: primPseudocode };
+/** Whether the generator grows from the seed's start cell (Kruskal joins regions everywhere at once). */
+export const hasStartCell: Record<MazeAlgorithm, boolean> = { dfs: true, prim: true, kruskal: false };
+
+export const mazePseudocode: Record<MazeAlgorithm, string[]> = {
+  dfs: dfsPseudocode,
+  prim: primPseudocode,
+  kruskal: kruskalPseudocode,
+};

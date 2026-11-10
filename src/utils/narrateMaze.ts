@@ -19,6 +19,11 @@ const text = localized({
     pick: (at: string, side: string, added: number) =>
       `Pick ${at}, carve in from ${side}${added ? `; ${count(added, "new frontier cell")}` : ""}.`,
     lastPick: (at: string, side: string) => `Pick ${at}, carve in from ${side}. The frontier is empty.`,
+    regions: (n: number) => `Carve every cell, each its own region: ${count(n, "region")}.`,
+    join: (at: string, left: number) =>
+      `The wall at ${at} splits two regions: carve it and merge them; ${count(left, "region")} left.`,
+    lastJoin: (at: string) => `The wall at ${at} splits the last two regions: carve it. Every cell is joined.`,
+    skip: (at: string) => `The wall at ${at} is inside one region: skip it, it would make a loop.`,
     done: (deadEnds: number, steps: number) =>
       `Done: a perfect maze with ${count(deadEnds, "dead-end cell")}, in ${count(steps, "step")}.`,
     described: (steps: number, deadEnds: number | null) =>
@@ -38,6 +43,11 @@ const text = localized({
     pick: (at, side, added) =>
       `Elige ${at} y excava desde ${side}${added ? `; ${count(added, "celda nueva", "celdas nuevas")} en la frontera` : ""}.`,
     lastPick: (at, side) => `Elige ${at} y excava desde ${side}. La frontera queda vacía.`,
+    regions: (n) => `Excava todas las celdas, cada una es una región: ${count(n, "región", "regiones")}.`,
+    join: (at, left) =>
+      `La pared en ${at} separa dos regiones: excávala y únelas; ${left === 1 ? "queda" : "quedan"} ${count(left, "región", "regiones")}.`,
+    lastJoin: (at) => `La pared en ${at} separa las dos últimas regiones: excávala y todo queda unido.`,
+    skip: (at) => `La pared en ${at} está dentro de una región: omítela, cerraría un ciclo.`,
     done: (deadEnds, steps) =>
       `Listo: un laberinto perfecto con ${count(deadEnds, "celda sin salida", "celdas sin salida")}, en ${count(steps, "paso")}.`,
     described: (steps, deadEnds) =>
@@ -53,6 +63,17 @@ const directionOf = (run: MazeRun, wall: number, cell: number): Direction =>
   cell === wall - run.cols ? "up" : cell === wall + 1 ? "right" : cell === wall + run.cols ? "down" : "left";
 
 const OPPOSITE: Record<Direction, Direction> = { up: "down", right: "left", down: "up", left: "right" };
+
+/** Kruskal's regions after frame `index`: one per cell to begin with, one fewer per carved wall. */
+const regionsLeft = (run: MazeRun, index: number) => {
+  let regions = 0;
+  for (let i = 1; i <= index; i++) {
+    const step = run.stepAt(i);
+    if (step?.type === "regions") regions = step.cells.length;
+    else if (step?.type === "join") regions--;
+  }
+  return regions;
+};
 
 /** One plain-language sentence for the decision that led to frame `index`. */
 export const narrateMaze = (run: MazeRun, index: number): string => {
@@ -71,6 +92,14 @@ export const narrateMaze = (run: MazeRun, index: number): string => {
         ? text.pick(where, side, step.frontier.length)
         : text.lastPick(where, side);
     }
+    case "regions":
+      return text.regions(step.cells.length);
+    case "join": {
+      const left = regionsLeft(run, index);
+      return left === 1 ? text.lastJoin(at(run, step.wall)) : text.join(at(run, step.wall), left);
+    }
+    case "skip":
+      return text.skip(at(run, step.wall));
     case "carve":
       return text.carve(text.direction[directionOf(run, step.wall, step.cell)], at(run, step.cell));
     case "backtrack":

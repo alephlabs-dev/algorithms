@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ACTIVE, CARVED, DEAD_END, FRONTIER, STACK, WALL } from "@/mazes";
+import { ACTIVE, CARVED, DEAD_END, FRONTIER, OTHER_REGION, REGION, SKIPPED, STACK, WALL } from "@/mazes";
 import { mazePalette } from "./mazePaint";
 import { hexToRgb, variables, type CanvasColors } from "./theme";
 
@@ -32,5 +32,12 @@ describe("maze tones", () => {
       const tones = mazePalette(colors);
       expect(tones[ACTIVE].rgb).not.toEqual(hexToRgb(colors.primary));
       for (const other of [WALL, CARVED, STACK, DEAD_END, FRONTIER]) expect(tones[ACTIVE].rgb).not.toEqual(tones[other].rgb);
+    });
+
+  for (const [theme, colors] of Object.entries({ dark, light }))
+    it(`Kruskal's carved wall, skipped wall and two regions each have a tone of their own (${theme})`, () => {
+      const tones = mazePalette(colors);
+      const kruskal = [WALL, CARVED, ACTIVE, SKIPPED, REGION, OTHER_REGION].map((state) => tones[state].rgb.join());
+      expect(new Set(kruskal).size).toBe(kruskal.length);
     });
 });

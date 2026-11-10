@@ -92,6 +92,39 @@ test('mazes: switch to Prim on the same seed and reopen its link', async ({ page
   expect(errors).toEqual([]);
 });
 
+test('mazes: switch to Kruskal, which stops as soon as every cell is joined', async ({ page, context }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.addInitScript(() => localStorage.setItem('tour-done-mazes', 'true'));
+  await gotoApp(page, '/mazes/prim?size=small&seed=abc&speed=8x');
+
+  await pickAlgorithm(page, 'Kruskal', "Randomized Kruskal's Algorithm");
+  await expect(page).toHaveURL(/\/mazes\/kruskal\?size=small&seed=abc/);
+  await expect(page.getByRole('heading', { level: 1, name: "Randomized Kruskal's Algorithm" })).toBeAttached();
+  // Kruskal's legend tells a carved wall from a skipped one, and has no start cell.
+  const legend = page.locator('[data-tour="legend"]').first();
+  await expect(legend).toContainText('Wall carved');
+  await expect(legend).toContainText('Wall skipped');
+  await expect(legend).not.toContainText('Start');
+
+  // Every cell its own region, then one wall tested per frame.
+  await page.getByRole('button', { name: 'Next step' }).click();
+  await expect(caption(page)).toContainText(/^Carve every cell, each its own region: \d+ regions\./);
+  await page.getByRole('button', { name: 'Next step' }).click();
+  await expect(caption(page)).toContainText(/^The wall at row \d+, column \d+ (splits two regions|is inside one region)/);
+  await playToEnd(page, 'Play', /^Done: a perfect maze with \d+ dead-end cells?/);
+  const finished = await stats(page).textContent();
+  // The last wall it tests is the one that joins every cell.
+  await page.getByRole('button', { name: 'Previous step', exact: true }).click();
+  await expect(caption(page)).toContainText(/splits the last two regions: carve it\. Every cell is joined\./);
+
+  const reopened = await context.newPage();
+  await gotoApp(reopened, page.url());
+  await playToEnd(reopened, 'Play', /^Done:/);
+  await expect(stats(reopened)).toHaveText(finished!);
+  expect(errors).toEqual([]);
+});
+
 test('mazes in Spanish carve and explain each step in Spanish', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));

@@ -1,11 +1,15 @@
 import { seededRandom } from "@/utils/random";
-import { mazeCells, mazeGenerators } from "./generators";
+import { hasStartCell, mazeCells, mazeGenerators } from "./generators";
 import {
   CARVED,
   DEAD_END,
   FRONTIER,
   ACTIVE,
+  OTHER_REGION,
+  REGION,
+  SKIPPED,
   STACK,
+  WALL,
   type MazeAlgorithm,
   type MazeFrame,
   type MazeGrid,
@@ -18,8 +22,13 @@ type State = {
   line: number | null;
   steps: number;
   deadEnds: number | null;
-  /** The cells ACTIVE shows: this step's move, carved like the rest from the next step on. */
+  /**
+   * The cells this step's move shows (ACTIVE, Kruskal's regions), carved like the rest from the
+   * next step on.
+   */
   active: number[];
+  /** The wall Kruskal skipped this step, a wall again from the next step on. */
+  skipped: number | null;
 };
 
 // A full copy every few hundred steps keeps seeking instant, like pathfinding.
@@ -33,6 +42,8 @@ const apply = (s: State, step: MazeStep) => {
   if (step.type !== "done") s.steps++;
   for (const cell of s.active) s.states[cell] = CARVED;
   s.active = [];
+  if (s.skipped !== null) s.states[s.skipped] = WALL;
+  s.skipped = null;
   switch (step.type) {
     case "start":
       if (step.frontier) {
@@ -47,6 +58,23 @@ const apply = (s: State, step: MazeStep) => {
       s.active = [step.wall, step.cell];
       for (const cell of step.frontier) s.states[cell] = FRONTIER;
       s.current = step.cell;
+      break;
+    case "regions":
+      for (const cell of step.cells) s.states[cell] = CARVED;
+      break;
+    case "join": {
+      const [region, other] = step.regions;
+      for (const cell of region) s.states[cell] = REGION;
+      for (const cell of other) s.states[cell] = OTHER_REGION;
+      s.states[step.wall] = ACTIVE;
+      s.active = [...region, ...other, step.wall];
+      break;
+    }
+    case "skip":
+      for (const cell of step.region) s.states[cell] = REGION;
+      s.states[step.wall] = SKIPPED;
+      s.active = step.region.slice();
+      s.skipped = step.wall;
       break;
     case "carve":
       s.states[step.wall] = STACK;
@@ -80,8 +108,8 @@ export class MazeRun {
   readonly length: number;
   readonly rows: number;
   readonly cols: number;
-  /** Where carving starts, picked by the seed. */
-  readonly start: number;
+  /** Where carving starts, picked by the seed; null for a generator that has no start cell. */
+  readonly start: number | null;
   private readonly steps: MazeStep[] = [];
   private readonly checkpoints: State[] = [];
   private cursor: { index: number; state: State };
@@ -95,7 +123,9 @@ export class MazeRun {
     this.rows = grid.rows;
     this.cols = grid.cols;
     const random = seededRandom(seed);
-    this.start = startOf(grid, random);
+    // Drawn either way, so every generator reads the same random numbers after it.
+    const start = startOf(grid, random);
+    this.start = hasStartCell[algorithm] ? start : null;
     const initial: State = {
       states: new Uint8Array(grid.rows * grid.cols),
       current: null,
@@ -103,10 +133,11 @@ export class MazeRun {
       steps: 0,
       deadEnds: null,
       active: [],
+      skipped: null,
     };
     const working = clone(initial);
     this.checkpoints.push(clone(initial));
-    for (const step of mazeGenerators[algorithm](grid, this.start, random)) {
+    for (const step of mazeGenerators[algorithm](grid, start, random)) {
       this.steps.push(step);
       apply(working, step);
       if (this.steps.length % CHECKPOINT_EVERY === 0) this.checkpoints.push(clone(working));

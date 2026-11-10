@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createAppStore } from "@/appStore";
 import { routePath } from "@/routes";
-import { FRONTIER, ACTIVE } from "@/mazes";
+import { ACTIVE, CARVED, FRONTIER, OTHER_REGION, REGION, SKIPPED, WALL } from "@/mazes";
 import { linkFor, readLocation } from "@/urlState";
 import { routeIn } from "./engine";
 import { mazesSlice as slice, type MazesState } from "./mazes.slice";
@@ -59,7 +59,7 @@ const expectPerfect = (s: MazesState) => {
 const SEEDS = Array.from({ length: 20 }, (_, k) => (k * 2654435761 + 17) >>> 0);
 
 describe("mazes slice", () => {
-  for (const algorithm of ["dfs", "prim"] as const)
+  for (const algorithm of ["dfs", "prim", "kruskal"] as const)
     for (const size of ["small", "medium", "large"] as const)
       for (const ctx of [single, phone])
         it(`${algorithm} carves a perfect maze on every ${size} grid (${ctx.isMobile ? "phone" : "wide"})`, () => {
@@ -82,16 +82,17 @@ describe("mazes slice", () => {
     const cells = ((rows - 1) / 2) * ((cols - 1) / 2);
     expect(s.run.length).toBe(cells + 2);
     expect(lastFrame(s).stats.steps).toBe(cells);
+    const start = s.run.start!;
     const frontierOf = (i: number) =>
       [...s.run.frameAt(i).states.keys()].filter((c) => s.run.frameAt(i).states[c] === FRONTIER);
     // The first frame: the start cell carved, its neighbours on the frontier.
     const first = s.run.frameAt(1);
-    expect(first.states[s.run.start]).not.toBe(0);
+    expect(first.states[start]).not.toBe(0);
     expect(frontierOf(1).sort((a, b) => a - b)).toEqual(
-      [s.run.start - 2 * cols, s.run.start - 2, s.run.start + 2, s.run.start + 2 * cols].filter((c) => {
+      [start - 2 * cols, start - 2, start + 2, start + 2 * cols].filter((c) => {
         const r = Math.floor(c / cols);
         const col = c % cols;
-        return r > 0 && r < rows - 1 && col > 0 && col < cols - 1 && Math.abs(col - (s.run.start % cols)) <= 2;
+        return r > 0 && r < rows - 1 && col > 0 && col < cols - 1 && Math.abs(col - (start % cols)) <= 2;
       }),
     );
     for (let i = 2; i < s.run.length - 1; i++) {
@@ -109,6 +110,62 @@ describe("mazes slice", () => {
     expect([...lastFrame(s).states].includes(ACTIVE)).toBe(false);
   });
 
+  describe("Kruskal", () => {
+    const cellsOf = (s: MazesState, state: number, i: number) =>
+      [...s.run.frameAt(i).states.keys()].filter((c) => s.run.frameAt(i).states[c] === state);
+    /** The two maze cells a wall separates: above and below it, or left and right. */
+    const sides = (s: MazesState, wall: number) =>
+      Math.floor(wall / s.run.cols) % 2 === 0 ? [wall - s.run.cols, wall + s.run.cols] : [wall - 1, wall + 1];
+    const runs = SEEDS.map((seed) => at("/mazes/kruskal", `?size=small&seed=${seed.toString(36)}`));
+
+    it("starts with every cell carved, each its own region, and has no start cell", () => {
+      for (const s of runs) {
+        const cells = ((s.run.rows - 1) / 2) * ((s.run.cols - 1) / 2);
+        expect(cellsOf(s, CARVED, 1)).toHaveLength(cells);
+        expect(s.run.start).toBeNull();
+      }
+    });
+
+    it("each frame tests one wall: carved between two regions, or skipped inside one", () => {
+      for (const s of runs)
+        for (let i = 2; i < s.run.length - 1; i++) {
+          const carved = cellsOf(s, ACTIVE, i);
+          const skipped = cellsOf(s, SKIPPED, i);
+          expect(carved.length + skipped.length, `frame ${i} tests one wall`).toBe(1);
+          const [a, b] = sides(s, carved[0] ?? skipped[0]);
+          const region = cellsOf(s, REGION, i);
+          const other = cellsOf(s, OTHER_REGION, i);
+          if (carved.length) {
+            // Two regions, each in its own tone, one on each side of the wall.
+            expect(region, `frame ${i}`).toContain(a);
+            expect(other, `frame ${i}`).toContain(b);
+            expect(s.run.frameAt(i + 1).states[carved[0]], "a carved wall stays open").not.toBe(WALL);
+          } else {
+            // One region: both sides are in it already, so the wall would close a loop.
+            expect(region, `frame ${i}`).toEqual(expect.arrayContaining([a, b]));
+            expect(other, `frame ${i}`).toEqual([]);
+            expect(s.run.frameAt(i + 1).states[skipped[0]], "a skipped wall stays a wall").toBe(WALL);
+          }
+        }
+    });
+
+    it("some seeds skip walls, and none is skipped after the last carve", () => {
+      let skips = 0;
+      for (const s of runs) {
+        const cells = ((s.run.rows - 1) / 2) * ((s.run.cols - 1) / 2);
+        const carves = [];
+        for (let i = 2; i < s.run.length - 1; i++) {
+          if (cellsOf(s, SKIPPED, i).length) skips++;
+          else carves.push(i);
+        }
+        // n cells join through n - 1 walls; the run ends on the frame where the last one is carved.
+        expect(carves).toHaveLength(cells - 1);
+        expect(carves[carves.length - 1]).toBe(s.run.length - 2);
+      }
+      expect(skips).toBeGreaterThan(0);
+    });
+  });
+
   it("every algorithm on a seed starts from the same cell", () => {
     const dfs = at("/mazes/dfs", "?size=medium&seed=k3");
     const prim = apply(dfs, slice.pick(dfs, single, "prim"));
@@ -118,7 +175,7 @@ describe("mazes slice", () => {
     expect(prim.run.length).not.toBe(dfs.run.length);
   });
 
-  for (const algorithm of ["dfs", "prim"] as const) {
+  for (const algorithm of ["dfs", "prim", "kruskal"] as const) {
     it(`${algorithm}: the same link gives the same maze, frame for frame; another seed, another maze`, () => {
       const a = at(`/mazes/${algorithm}`, "?size=medium&seed=abc");
       const b = at(`/mazes/${algorithm}`, "?size=medium&seed=abc");
@@ -156,7 +213,7 @@ describe("mazes slice", () => {
   });
 
   it("the dead ends in the stats are the cells the last frame marks", () => {
-    for (const algorithm of ["dfs", "prim"])
+    for (const algorithm of ["dfs", "prim", "kruskal"])
       for (const seed of SEEDS) {
         const s = at(`/mazes/${algorithm}`, `?size=large&seed=${seed.toString(36)}`);
         const last = lastFrame(s);

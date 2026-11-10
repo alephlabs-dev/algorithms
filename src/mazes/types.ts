@@ -5,7 +5,7 @@
  * generator describes what it does one decision at a time, and a MazeRun records the steps.
  */
 
-export type MazeAlgorithm = "dfs" | "prim";
+export type MazeAlgorithm = "dfs" | "prim" | "kruskal";
 
 /** The walled-in grid a maze is carved from. Odd rows and columns, so walls go all around. */
 export type MazeGrid = { rows: number; cols: number };
@@ -37,6 +37,24 @@ export type MazeStep = {
       wall: number;
       frontier: number[];
     }
+  | /** Kruskal carves every cell, each its own region, before testing any wall. */ {
+      type: "regions";
+      cells: number[];
+    }
+  | /**
+     * Kruskal tests `wall`: the cells on its two sides are in different regions, so it carves
+     * the wall and the regions merge. `regions` are their cells (passages included) before
+     * merging, the one on the wall's top or left side first.
+     */ {
+      type: "join";
+      wall: number;
+      regions: [number[], number[]];
+    }
+  | /** Kruskal tests `wall`: both its sides are in `region` already, so carving it would close a loop. */ {
+      type: "skip";
+      wall: number;
+      region: number[];
+    }
   | /** The maze is done: every dead-end cell gets marked. */ { type: "done"; deadEnds: number[] }
 );
 
@@ -53,14 +71,28 @@ export const DEAD_END = 3;
 export const FRONTIER = 4;
 /**
  * The cell and wall the generator acts on this frame (Prim's pick and the wall it joins
- * through), for one frame. Every generator uses it for its own move.
+ * through, the wall Kruskal carves), for one frame. Every generator uses it for its own move.
  */
 export const ACTIVE = 5;
+/** Kruskal's wall under test lies between two regions: this is the one on its top or left side. */
+export const REGION = 6;
+/** The region on the other side of Kruskal's wall under test, in a tone of its own. */
+export const OTHER_REGION = 7;
+/** A wall Kruskal tested and left standing, for one frame: both its sides are in one region. */
+export const SKIPPED = 8;
 export type MazeCellState =
-  typeof WALL | typeof CARVED | typeof STACK | typeof DEAD_END | typeof FRONTIER | typeof ACTIVE;
+  | typeof WALL
+  | typeof CARVED
+  | typeof STACK
+  | typeof DEAD_END
+  | typeof FRONTIER
+  | typeof ACTIVE
+  | typeof REGION
+  | typeof OTHER_REGION
+  | typeof SKIPPED;
 
 export type MazeStats = {
-  /** Decisions taken so far: the start, then each carve and backtrack (DFS) or pick (Prim). */
+  /** Decisions taken so far: the start, then each carve and backtrack (DFS), pick (Prim) or wall tested (Kruskal). */
   steps: number;
   /** Dead-end cells, counted once the maze is done; null before. */
   deadEnds: number | null;

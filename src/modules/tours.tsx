@@ -707,6 +707,12 @@ const activeColor = localized<Record<Theme, string>>({
   es: { dark: "blanca", light: "azul marino" },
 });
 
+// Kruskal's two regions: the secondary and primary colors, named in the singular ("la región morada").
+const regionColors = localized<Record<Theme, { region: string; other: string }>>({
+  en: { dark: { region: "purple", other: "green" }, light: { region: "orange", other: "teal" } },
+  es: { dark: { region: "morada", other: "verde" }, light: { region: "naranja", other: "turquesa" } },
+});
+
 /** What the colors only one generator shows mean, before the dead ends every one of them marks. */
 const mazeTones = localized<Record<MazeAlgorithm, (theme: Theme) => ReactNode>>({
   en: {
@@ -724,6 +730,15 @@ const mazeTones = localized<Record<MazeAlgorithm, (theme: Theme) => ReactNode>>(
         {activeColor[theme]} cell was just picked, with the wall it joined through.
       </>
     ),
+    kruskal: (theme) => (
+      <>
+        A <Swatch className="bg-outline" />
+        {activeColor[theme]} wall is carved: it joins the <Swatch className="bg-secondary" />
+        {regionColors[theme].region} region on one side to the <Swatch className="bg-primary" />
+        {regionColors[theme].other} one on the other. A <Swatch className="bg-conflict" />
+        red wall is skipped: both its sides are in one region already, so carving it would close a loop.
+      </>
+    ),
   },
   es: {
     dfs: (theme) => (
@@ -738,6 +753,15 @@ const mazeTones = localized<Record<MazeAlgorithm, (theme: Theme) => ReactNode>>(
         celdas {colorNames[theme].comparing} son la frontera: por donde el laberinto puede crecer. La{" "}
         <Swatch className="bg-outline" />
         {activeColor[theme]} es la que acaba de elegir, con la pared por la que se unió.
+      </>
+    ),
+    kruskal: (theme) => (
+      <>
+        Una pared <Swatch className="bg-outline" />
+        {activeColor[theme]} se excava: une la región <Swatch className="bg-secondary" />
+        {regionColors[theme].region} de un lado con la <Swatch className="bg-primary" />
+        {regionColors[theme].other} del otro. Una pared <Swatch className="bg-conflict" />
+        roja se omite: sus dos lados ya están en la misma región, así que excavarla cerraría un ciclo.
       </>
     ),
   },
@@ -765,7 +789,7 @@ export const mazesTour = localized<TourStep[]>({
     {
       anchor: "picker",
       title: "The algorithm",
-      text: () => "Randomized depth-first search or Prim's algorithm. More ways to carve a maze are on their way.",
+      text: () => "Randomized depth-first search, Prim's or Kruskal's algorithm. More ways to carve a maze are on their way.",
     },
     {
       anchor: "legend",
@@ -824,7 +848,7 @@ export const mazesTour = localized<TourStep[]>({
       anchor: "picker",
       title: "El algoritmo",
       text: () =>
-        "La búsqueda en profundidad aleatoria o el algoritmo de Prim aleatorio. Pronto habrá más formas de excavar un laberinto.",
+        "La búsqueda en profundidad aleatoria o los algoritmos de Prim y Kruskal aleatorios. Pronto habrá más formas de excavar un laberinto.",
     },
     {
       anchor: "legend",
