@@ -154,7 +154,10 @@ export const FourierThumb = ({ className }: { className?: string }) => {
   const unit = (size - 16) / Math.max(box.w, box.h);
   const ox = (size - box.w * unit) / 2 - box.x * unit;
   const oy = (size - box.h * unit) / 2 - box.y * unit;
-  const px = (p: { x: number; y: number }) => [ox + p.x * unit, oy + p.y * unit];
+  // Rounded: the build (Node) and the browser disagree in the last digits of the
+  // trig behind these, and the landing page hydrates this exact markup (#140).
+  const round = (n: number) => Math.round(n * 100) / 100;
+  const px = (p: { x: number; y: number }) => [round(ox + p.x * unit), round(oy + p.y * unit)];
   const point = (p: { x: number; y: number }) => px(p).join(",");
   const tip = px(chain[chain.length - 1]);
   return (
@@ -174,7 +177,7 @@ export const FourierThumb = ({ className }: { className?: string }) => {
       {run.terms.slice(0, 8).map((term, k) => {
         const [cx, cy] = px(chain[k]);
         return (
-          <circle key={k} cx={cx} cy={cy} r={term.amp * unit} fill="none" stroke={mix("muted", 55)} strokeWidth={0.7} />
+          <circle key={k} cx={cx} cy={cy} r={round(term.amp * unit)} fill="none" stroke={mix("muted", 55)} strokeWidth={0.7} />
         );
       })}
       <polyline points={chain.map(point).join(" ")} fill="none" stroke={mix("foreground", 65)} strokeWidth={0.9} />

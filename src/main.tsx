@@ -1,8 +1,7 @@
-import { Analytics } from "@vercel/analytics/react";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App.tsx";
 import { lang } from "./i18n";
+import { Root } from "./Root";
 import { startUrlSync } from "./urlSync";
 import "./index.css";
 
@@ -10,10 +9,13 @@ import "./index.css";
 document.documentElement.lang = lang;
 startUrlSync();
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+const container = document.getElementById("root")!;
+const tree = (
   <React.StrictMode>
-    <App />
-    {/* Vercel Web Analytics: page views, no cookies. Inactive outside Vercel deployments. */}
-    <Analytics />
+    <Root />
   </React.StrictMode>
 );
+// Prerendered pages arrive with their HTML, which React takes over in place (#140).
+// The dev server sends an empty #root, so there it renders from scratch.
+if (container.hasChildNodes()) ReactDOM.hydrateRoot(container, tree);
+else ReactDOM.createRoot(container).render(tree);

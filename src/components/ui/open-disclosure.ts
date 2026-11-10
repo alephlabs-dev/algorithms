@@ -4,6 +4,6 @@
  * hint under the stage.
  */
 export const openFirstDisclosure = (root: ParentNode) => {
-  const trigger = root.querySelector<HTMLButtonElement>("button[data-disclosure]");
-  if (trigger?.getAttribute("aria-expanded") === "false") trigger.click();
+  const details = root.querySelector<HTMLDetailsElement>("details[data-disclosure]");
+  if (details && !details.open) details.open = true;
 };

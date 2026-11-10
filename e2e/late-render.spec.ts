@@ -1,10 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
 import { gotoApp } from './goto';
 
-// #116: pages arrive prerendered, and React replaces that HTML with its own
-// render a moment after load. A test that grabs an element in between holds a
-// node that is about to be thrown away. Here React's first render is held back
-// on purpose, so the gap is wide on every run.
+// #116, #140: pages arrive prerendered and React hydrates that HTML a moment
+// after load. A tap in between must not be lost. Here React's first render is
+// held back on purpose, so the gap is wide on every run.
 
 /** Holds back React's first scheduled render (React schedules work through MessageChannel). */
 const delayFirstRender = (page: Page) =>
@@ -23,10 +22,9 @@ test('an explanation opens even when the app renders late', async ({ page }) => 
   await delayFirstRender(page);
   await gotoApp(page, '/sorting/insertion-sort');
 
-  const how = page.locator('#about').getByRole('heading', { level: 2 }).getByRole('button', { name: 'How Insertion Sort works' });
-  const panel = page.locator(`[id="${await how.getAttribute('aria-controls')}"]`);
+  const how = page.locator('#about details').filter({ has: page.getByRole('heading', { level: 2, name: 'How Insertion Sort works' }) });
   await how.scrollIntoViewIfNeeded();
-  await how.click();
-  await expect(how).toHaveAttribute('aria-expanded', 'true');
-  await expect(panel).toBeVisible();
+  await how.locator('summary').click();
+  await expect(how).toHaveJSProperty('open', true);
+  await expect(how.locator(':scope > div')).toBeVisible();
 });

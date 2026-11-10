@@ -8,5 +8,7 @@ export const useMediaQuery = (query: string) =>
       list.addEventListener("change", onChange);
       return () => list.removeEventListener("change", onChange);
     },
-    () => window.matchMedia(query).matches
+    () => window.matchMedia(query).matches,
+    // No window on the server: hydration starts from "doesn't match", then React re-renders with the real value.
+    () => false
   );
