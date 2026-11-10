@@ -19,7 +19,8 @@ const sortingText = localized({
     moduleDescription:
       "Watch Bubble, Insertion, Quick, Merge, Heap, Radix Sort and more sort an array step by step, with the pseudocode lit up and every move explained.",
     raceTitle: "Sorting Algorithm Race: Compare Algorithms Side by Side · Aleph Labs",
-    raceDescription: (description: string) => `Race up to four sorting algorithms on the same array. ${description}`.slice(0, 160),
+    raceDescription: (description: string) =>
+      `Race up to four sorting algorithms on the same array. ${description}`.slice(0, 160),
     algorithmTitle: (title: string) => `${title} Visualized Step by Step · Aleph Labs`,
     algorithmDescription: (title: string, average: string) =>
       `See how ${title} works: watch it sort an array step by step, follow the pseudocode line by line and compare it with other algorithms. ${average} on average.`,
@@ -186,14 +187,14 @@ const mazesText = localized({
   en: {
     moduleTitle: "Maze Generation Visualizer: a Maze Carved Step by Step · Aleph Labs",
     moduleDescription:
-      "Watch randomized depth-first search carve a perfect maze one decision at a time: every carve, every backtrack and every dead-end cell, with the pseudocode lit up.",
+      "Watch randomized depth-first search and Prim's algorithm carve a perfect maze one decision at a time: every carve, every backtrack, every pick and every dead-end cell.",
     algorithmTitle: (title: string) => `${title} Maze Generation, Visualized Step by Step · Aleph Labs`,
     section: "Mazes",
   },
   es: {
     moduleTitle: "Visualizador de generación de laberintos paso a paso · Aleph Labs",
     moduleDescription:
-      "Mira cómo la búsqueda en profundidad aleatoria excava un laberinto perfecto decisión por decisión: cada pasillo, cada retroceso y cada celda sin salida, con el pseudocódigo resaltado.",
+      "Mira cómo la búsqueda en profundidad aleatoria y el algoritmo de Prim excavan un laberinto perfecto decisión por decisión: cada pasillo, cada retroceso, cada elección y cada celda sin salida.",
     algorithmTitle: (title) => `${title}: generación de laberintos paso a paso, visualizada · Aleph Labs`,
     section: "Laberintos",
   },
@@ -365,10 +366,17 @@ export const structuredData = (route: Route): object[] => {
       },
     ];
   }
-  const section = { name: seo[route.module].section, url: `${SITE_URL}${href({ module: route.module, page: "start" })}` };
+  const section = {
+    name: seo[route.module].section,
+    url: `${SITE_URL}${href({ module: route.module, page: "start" })}`,
+  };
   const name = metaOf(route).crumb;
   // Home › module › page; a module's own page stops at the module.
-  const trail = [{ name: ROOT_NAME, url: `${SITE_URL}${href(HOME)}` }, section, ...(name ? [{ name, url: meta.url }] : [])];
+  const trail = [
+    { name: ROOT_NAME, url: `${SITE_URL}${href(HOME)}` },
+    section,
+    ...(name ? [{ name, url: meta.url }] : []),
+  ];
   return [
     {
       "@context": "https://schema.org",
@@ -383,7 +391,12 @@ export const structuredData = (route: Route): object[] => {
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
-      itemListElement: trail.map((step, k) => ({ "@type": "ListItem", position: k + 1, name: step.name, item: step.url })),
+      itemListElement: trail.map((step, k) => ({
+        "@type": "ListItem",
+        position: k + 1,
+        name: step.name,
+        item: step.url,
+      })),
     },
   ];
 };

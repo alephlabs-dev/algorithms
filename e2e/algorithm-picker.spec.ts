@@ -15,6 +15,7 @@ const modules: { route: string; tourKey: string; picker: Picker; tour: string | 
   { route: '/fourier', tourKey: 'tour-done-fourier', picker: 'segments', tour: 'Pick a series' },
   { route: '/dynamic-programming', tourKey: 'tour-done-dp', picker: 'too long', tour: 'Pick a problem' },
   { route: '/backtracking', tourKey: 'tour-done-backtracking', picker: 'segments', tour: null },
+  { route: '/mazes', tourKey: 'tour-done-mazes', picker: 'segments', tour: null },
 ];
 const languages = [
   { prefix: '', name: 'Algorithm', lang: 'en' },

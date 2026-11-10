@@ -114,8 +114,7 @@ export const sortingTour = localized<TourStep[]>({
     {
       anchor: "settings",
       title: "Cambia el arreglo",
-      text: () =>
-        "Cuántos elementos, cómo empiezan (aleatorio, invertido, casi ordenado…), y barras o números.",
+      text: () => "Cuántos elementos, cómo empiezan (aleatorio, invertido, casi ordenado…), y barras o números.",
     },
     {
       anchor: "game",
@@ -126,8 +125,7 @@ export const sortingTour = localized<TourStep[]>({
     {
       anchor: "race",
       title: "Ponlos a competir",
-      text: () =>
-        "Ejecuta hasta cuatro algoritmos sobre el mismo arreglo, lado a lado, y mira cuál trabaja menos.",
+      text: () => "Ejecuta hasta cuatro algoritmos sobre el mismo arreglo, lado a lado, y mira cuál trabaja menos.",
     },
   ],
 });
@@ -192,7 +190,8 @@ export const pathfindingTour = localized<TourStep[]>({
     {
       anchor: "picker",
       title: "Elige una búsqueda",
-      text: () => "Cinco formas de ir del inicio al destino. Algunas encuentran el camino más corto; otras, solo alguno.",
+      text: () =>
+        "Cinco formas de ir del inicio al destino. Algunas encuentran el camino más corto; otras, solo alguno.",
     },
     {
       anchor: "bars",
@@ -234,7 +233,8 @@ export const pathfindingTour = localized<TourStep[]>({
     {
       anchor: "settings",
       title: "Cambia la cuadrícula",
-      text: () => "Una cuadrícula más pequeña para seguirla de cerca, o una más grande para ver cómo se expande cada búsqueda.",
+      text: () =>
+        "Una cuadrícula más pequeña para seguirla de cerca, o una más grande para ver cómo se expande cada búsqueda.",
     },
     {
       anchor: "game",
@@ -257,7 +257,8 @@ export const graphsTour = localized<TourStep[]>({
       title: "The graph",
       text: () => (
         <>
-          Circles are nodes, lines are edges; the one with the <Swatch className="ml-1 bg-background ring-2 ring-primary" />
+          Circles are nodes, lines are edges; the one with the{" "}
+          <Swatch className="ml-1 bg-background ring-2 ring-primary" />
           ring is the start. Drag a node to move it, tap two nodes to join or split them, double-tap one to start there.
         </>
       ),
@@ -304,15 +305,18 @@ export const graphsTour = localized<TourStep[]>({
     {
       anchor: "picker",
       title: "Elige un algoritmo",
-      text: () => "Seis algoritmos: recorrer un grafo, encontrar las rutas más baratas, construir su árbol más liviano u ordenarlo.",
+      text: () =>
+        "Seis algoritmos: recorrer un grafo, encontrar las rutas más baratas, construir su árbol más liviano u ordenarlo.",
     },
     {
       anchor: "bars",
       title: "El grafo",
       text: () => (
         <>
-          Los círculos son nodos y las líneas, aristas; el del <Swatch className="ml-1 bg-background ring-2 ring-primary" />
-          anillo es el inicio. Arrastra un nodo para moverlo, toca dos nodos para unirlos o separarlos y toca dos veces uno para empezar ahí.
+          Los círculos son nodos y las líneas, aristas; el del{" "}
+          <Swatch className="ml-1 bg-background ring-2 ring-primary" />
+          anillo es el inicio. Arrastra un nodo para moverlo, toca dos nodos para unirlos o separarlos y toca dos veces
+          uno para empezar ahí.
         </>
       ),
     },
@@ -449,12 +453,14 @@ export const structuresTour = localized<TourStep[]>({
     {
       anchor: "bars",
       title: "The structure",
-      text: () => "Press play to watch it built one insert at a time. The strip on top shows what's coming: guess where each value lands, then see.",
+      text: () =>
+        "Press play to watch it built one insert at a time. The strip on top shows what's coming: guess where each value lands, then see.",
     },
     {
       anchor: "structure",
       title: "Operate on it",
-      text: () => "Type a value, then insert, find or delete it. Each operation plays step by step: every comparison, rotation, swap or probe.",
+      text: () =>
+        "Type a value, then insert, find or delete it. Each operation plays step by step: every comparison, rotation, swap or probe.",
     },
     {
       anchor: "tools",
@@ -479,14 +485,17 @@ export const structuresTour = localized<TourStep[]>({
       anchor: "narration",
       title: "Follow each step",
       text: ({ wide }) =>
-        wide ? "The code it's running, and each step in plain words." : "Each step in plain words. Tap it to see the code.",
+        wide
+          ? "The code it's running, and each step in plain words."
+          : "Each step in plain words. Tap it to see the code.",
     },
   ],
   es: [
     {
       anchor: "picker",
       title: "Elige una estructura",
-      text: () => "Dos árboles de búsqueda (uno se rebalancea solo), un montículo mínimo y una tabla hash de dos formas.",
+      text: () =>
+        "Dos árboles de búsqueda (uno se rebalancea solo), un montículo mínimo y una tabla hash de dos formas.",
     },
     {
       anchor: "bars",
@@ -523,7 +532,9 @@ export const structuresTour = localized<TourStep[]>({
       anchor: "narration",
       title: "Sigue cada paso",
       text: ({ wide }) =>
-        wide ? "El código que ejecuta y cada paso en palabras simples." : "Cada paso en palabras simples. Tócalo para ver el código.",
+        wide
+          ? "El código que ejecuta y cada paso en palabras simples."
+          : "Cada paso en palabras simples. Tócalo para ver el código.",
     },
   ],
 });
@@ -546,13 +557,15 @@ export const dpTour = localized<TourStep[]>({
       anchor: "words",
       phoneAnchor: "settings",
       title: "Your input",
-      text: () => "Type any two words, up to 10 letters each. For the knapsack: the size of the bag, and how many items.",
+      text: () =>
+        "Type any two words, up to 10 letters each. For the knapsack: the size of the bag, and how many items.",
     },
     {
       anchor: "tools",
       phoneAnchor: "settings",
       title: "Examples",
-      text: ({ phone }) => `${phone ? "In settings: classic" : "Classic"} pairs to start from, like kitten and sitting.`,
+      text: ({ phone }) =>
+        `${phone ? "In settings: classic" : "Classic"} pairs to start from, like kitten and sitting.`,
     },
     {
       anchor: "play",
@@ -569,7 +582,9 @@ export const dpTour = localized<TourStep[]>({
       anchor: "narration",
       title: "Follow each step",
       text: ({ wide }) =>
-        wide ? "The code it's running, and each step in plain words." : "Each step in plain words. Tap it to see the code.",
+        wide
+          ? "The code it's running, and each step in plain words."
+          : "Each step in plain words. Tap it to see the code.",
     },
   ],
   es: [
@@ -596,13 +611,13 @@ export const dpTour = localized<TourStep[]>({
       anchor: "tools",
       phoneAnchor: "settings",
       title: "Ejemplos",
-      text: ({ phone }) =>
-        `${phone ? "En los ajustes: pares" : "Pares"} clásicos para empezar, como kitten y sitting.`,
+      text: ({ phone }) => `${phone ? "En los ajustes: pares" : "Pares"} clásicos para empezar, como kitten y sitting.`,
     },
     {
       anchor: "play",
       title: "Reprodúcelo",
-      text: () => "La tabla se llena celda por celda, y después el camino de vuelta desde la esquina muestra la respuesta debajo.",
+      text: () =>
+        "La tabla se llena celda por celda, y después el camino de vuelta desde la esquina muestra la respuesta debajo.",
     },
     {
       anchor: "game",
@@ -614,7 +629,9 @@ export const dpTour = localized<TourStep[]>({
       anchor: "narration",
       title: "Sigue cada paso",
       text: ({ wide }) =>
-        wide ? "El código que ejecuta y cada paso en palabras simples." : "Cada paso en palabras simples. Tócalo para ver el código.",
+        wide
+          ? "El código que ejecuta y cada paso en palabras simples."
+          : "Cada paso en palabras simples. Tócalo para ver el código.",
     },
   ],
 });
@@ -672,7 +689,9 @@ export const backtrackingTour = localized<TourStep[]>({
       anchor: "narration",
       title: "Síguelo",
       text: ({ wide }) =>
-        wide ? "El código que ejecuta y cada paso en palabras simples." : "Cada paso en palabras simples. Tócalo para ver el código.",
+        wide
+          ? "El código que ejecuta y cada paso en palabras simples."
+          : "Cada paso en palabras simples. Tócalo para ver el código.",
     },
     {
       anchor: "tools",
@@ -696,6 +715,12 @@ const carveAThird = () => {
   if (frameIndex === 0) seek(Math.floor(mazes.run.length / 3));
 };
 
+/** Prim's colors are the frontier and the pick; DFS's are the stack. */
+const isPrim = () => useStore.getState().mazes.algorithm === "prim";
+
+// Prim's picked cell, in the singular ("la verde").
+const pickedColorEs: Record<Theme, string> = { dark: "verde", light: "turquesa" };
+
 // Dead-end cells are the tertiary color; mazes are the only tour that names it.
 const deadEndColor = localized<Record<Theme, string>>({
   en: { dark: "Yellow", light: "Blue" },
@@ -717,21 +742,31 @@ export const mazesTour = localized<TourStep[]>({
     {
       anchor: "picker",
       title: "The algorithm",
-      text: () => "Randomized depth-first search for now. More ways to carve a maze are on their way.",
+      text: () => "Randomized depth-first search or Prim's algorithm. More ways to carve a maze are on their way.",
     },
     {
       anchor: "legend",
       phoneAnchor: "bars",
       prepare: carveAThird,
       title: "What the colors mean",
-      text: ({ theme }) => (
-        <>
-          <Swatch className="bg-secondary" />
-          {colorNames[theme].comparing} cells are on the stack: the way back it can still take. At the end,{" "}
-          <Swatch className="bg-tertiary" />
-          {deadEndColor[theme].toLowerCase()} ones are dead-end cells.
-        </>
-      ),
+      text: ({ theme }) =>
+        isPrim() ? (
+          <>
+            <Swatch className="bg-secondary" />
+            {colorNames[theme].comparing} cells are the frontier: where the maze can grow next. The{" "}
+            <Swatch className="bg-primary" />
+            {colorNames[theme].done} cell was just picked, with the wall it joined through. At the end,{" "}
+            <Swatch className="bg-tertiary" />
+            {deadEndColor[theme].toLowerCase()} ones are dead-end cells.
+          </>
+        ) : (
+          <>
+            <Swatch className="bg-secondary" />
+            {colorNames[theme].comparing} cells are on the stack: the way back it can still take. At the end,{" "}
+            <Swatch className="bg-tertiary" />
+            {deadEndColor[theme].toLowerCase()} ones are dead-end cells.
+          </>
+        ),
     },
     {
       anchor: "play",
@@ -750,7 +785,8 @@ export const mazesTour = localized<TourStep[]>({
     {
       anchor: "stats",
       title: "Steps and dead-end cells",
-      text: () => "How many decisions it took, and once it's done, how many dead-end cells the maze has: its texture in a number.",
+      text: () =>
+        "How many decisions it took, and once it's done, how many dead-end cells the maze has: its texture in a number.",
     },
     {
       anchor: "settings",
@@ -777,21 +813,32 @@ export const mazesTour = localized<TourStep[]>({
     {
       anchor: "picker",
       title: "El algoritmo",
-      text: () => "Por ahora, la búsqueda en profundidad aleatoria. Pronto habrá más formas de excavar un laberinto.",
+      text: () =>
+        "La búsqueda en profundidad aleatoria o el algoritmo de Prim aleatorio. Pronto habrá más formas de excavar un laberinto.",
     },
     {
       anchor: "legend",
       phoneAnchor: "bars",
       prepare: carveAThird,
       title: "Qué significa cada color",
-      text: ({ theme }) => (
-        <>
-          Las <Swatch className="bg-secondary" />
-          celdas {colorNames[theme].comparing} están en la pila: el camino de vuelta que aún puede tomar. Al final, las{" "}
-          <Swatch className="bg-tertiary" />
-          {deadEndColor[theme]} son celdas sin salida.
-        </>
-      ),
+      text: ({ theme }) =>
+        isPrim() ? (
+          <>
+            Las <Swatch className="bg-secondary" />
+            celdas {colorNames[theme].comparing} son la frontera: por donde el laberinto puede crecer. La{" "}
+            <Swatch className="bg-primary" />
+            {pickedColorEs[theme]} es la que acaba de elegir, con la pared por la que se unió. Al final, las{" "}
+            <Swatch className="bg-tertiary" />
+            {deadEndColor[theme]} son celdas sin salida.
+          </>
+        ) : (
+          <>
+            Las <Swatch className="bg-secondary" />
+            celdas {colorNames[theme].comparing} están en la pila: el camino de vuelta que aún puede tomar. Al final,
+            las <Swatch className="bg-tertiary" />
+            {deadEndColor[theme]} son celdas sin salida.
+          </>
+        ),
     },
     {
       anchor: "play",
@@ -810,7 +857,8 @@ export const mazesTour = localized<TourStep[]>({
     {
       anchor: "stats",
       title: "Pasos y celdas sin salida",
-      text: () => "Cuántas decisiones tomó y, al terminar, cuántas celdas sin salida tiene el laberinto: su textura en un número.",
+      text: () =>
+        "Cuántas decisiones tomó y, al terminar, cuántas celdas sin salida tiene el laberinto: su textura en un número.",
     },
     {
       anchor: "settings",

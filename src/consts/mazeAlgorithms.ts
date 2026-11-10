@@ -19,7 +19,7 @@ type MazeAlgorithmText = {
 
 type MazeAlgorithmDetails = MazeAlgorithmText & { named: string; timeComplexity: string };
 
-const timeComplexity: Record<MazeAlgorithm, string> = { dfs: "O(n)" };
+const timeComplexity: Record<MazeAlgorithm, string> = { dfs: "O(n)", prim: "O(n)" };
 
 const text = localized<Record<MazeAlgorithm, MazeAlgorithmText>>({
   en: {
@@ -33,6 +33,17 @@ const text = localized<Record<MazeAlgorithm, MazeAlgorithmText>>({
       structure: "Stack (last in, first out)",
       texture: "Long corridors, few dead-end cells",
     },
+    prim: {
+      title: "Randomized Prim's Algorithm",
+      named: "randomized Prim's algorithm",
+      short: "Prim",
+      shortDescription:
+        "Grows the maze from its frontier, the uncarved cells next to it: each step picks one at random and joins it through a wall. Short branches, many dead-end cells.",
+      longDescription:
+        "Randomized Prim's algorithm is Prim's minimum spanning tree algorithm with random choices in place of weights. It carves a random start cell and puts its neighbours on the frontier: the cells that aren't carved yet but touch the maze. Each step it picks a frontier cell at random, knocks down the wall between it and one of its carved neighbours (picked at random too if there are several), and adds that cell's uncarved neighbours to the frontier. When the frontier is empty, every cell has joined the maze through exactly one wall, so the maze is perfect. Because the pick can land anywhere along the edge of the maze, it grows outward from the start in every direction at once, like a stain, and leaves short branching passages with many dead-end cells. It takes one step per cell, n steps for n cells. Picking from the frontier by swapping with its last cell costs O(1), so it runs in O(n) time, and the frontier can hold O(n) cells.",
+      structure: "Frontier (a random pick)",
+      texture: "Short branches, many dead-end cells",
+    },
   },
   es: {
     dfs: {
@@ -45,6 +56,17 @@ const text = localized<Record<MazeAlgorithm, MazeAlgorithmText>>({
         "La búsqueda en profundidad aleatoria, también llamada backtracker recursivo, empieza en una celda al azar y guarda en una pila las celdas por las que va excavando. En cada paso mira la celda de arriba de la pila: si tiene vecinas sin excavar, elige una al azar, derriba la pared entre ellas y apila la nueva. Si no, desapila la celda y retrocede a la anterior. Cuando la pila queda vacía, cada celda se excavó una sola vez a través de una sola pared, así que el laberinto es perfecto: un único camino entre dos celdas cualesquiera. Como siempre sigue desde la celda más nueva, hace pasillos largos y sinuosos con pocas ramas y pocas celdas sin salida, la textura más fácil de reconocer. Tarda 2n pasos para n celdas (cada celda se excava una vez y se desapila una vez), o sea O(n), y su pila puede llegar a guardar todas las celdas, así que usa O(n) de memoria.",
       structure: "Pila (la última que entra, sale primero)",
       texture: "Pasillos largos, pocas celdas sin salida",
+    },
+    prim: {
+      title: "Algoritmo de Prim aleatorio",
+      named: "el algoritmo de Prim aleatorio",
+      short: "Prim",
+      shortDescription:
+        "Hace crecer el laberinto desde su frontera, las celdas sin excavar que lo tocan: en cada paso elige una al azar y la une por una pared. Ramas cortas, muchas celdas sin salida.",
+      longDescription:
+        "El algoritmo de Prim aleatorio es el algoritmo de Prim para el árbol generador mínimo con decisiones al azar en lugar de pesos. Excava una celda inicial al azar y pone sus vecinas en la frontera: las celdas que aún no están excavadas pero tocan el laberinto. En cada paso elige una celda de la frontera al azar, derriba la pared entre ella y una de sus vecinas excavadas (también al azar si hay varias) y agrega a la frontera las vecinas sin excavar de esa celda. Cuando la frontera queda vacía, cada celda se unió al laberinto por una sola pared, así que el laberinto es perfecto. Como la elección puede caer en cualquier punto del borde del laberinto, crece desde el inicio en todas direcciones a la vez, como una mancha, y deja pasillos cortos y ramificados con muchas celdas sin salida. Da un paso por celda, n pasos para n celdas. Sacar una celda de la frontera intercambiándola con la última cuesta O(1), así que tarda O(n), y la frontera puede llegar a guardar O(n) celdas.",
+      structure: "Frontera (una elección al azar)",
+      texture: "Ramas cortas, muchas celdas sin salida",
     },
   },
 });

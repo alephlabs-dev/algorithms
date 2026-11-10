@@ -55,6 +55,43 @@ test('mazes: carve a maze, resize it, draw a new one and reopen its link', async
   expect(errors).toEqual([]);
 });
 
+/** Picks an algorithm: a segment on phones and tablets, the pill's list on wide screens. */
+const pickAlgorithm = async (page: Page, short: string, title: string) => {
+  const segments = page.getByRole('radiogroup', { name: 'Algorithm', exact: true });
+  if (await segments.isVisible()) await segments.getByRole('radio', { name: short }).click();
+  else {
+    await page.getByRole('button', { name: /^Algorithm: / }).click();
+    await page.getByRole('button', { name: title }).click();
+  }
+};
+
+test('mazes: switch to Prim on the same seed and reopen its link', async ({ page, context }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.addInitScript(() => localStorage.setItem('tour-done-mazes', 'true'));
+  await gotoApp(page, '/mazes?size=small&seed=abc&speed=8x');
+
+  await pickAlgorithm(page, 'Prim', "Randomized Prim's Algorithm");
+  await expect(page).toHaveURL(/\/mazes\/prim\?size=small&seed=abc/);
+  await expect(page.getByRole('heading', { level: 1, name: "Randomized Prim's Algorithm" })).toBeAttached();
+  // Prim's legend names the frontier (phones hide the legend, but it's on the page).
+  await expect(page.locator('[data-tour="legend"]').first()).toContainText('Frontier');
+
+  // The start and its frontier, then one pick per frame.
+  await page.getByRole('button', { name: 'Next step' }).click();
+  await expect(caption(page)).toContainText(/^Start at row \d+, column \d+: carve it and put its \d+ neighbours on the frontier\./);
+  await page.getByRole('button', { name: 'Next step' }).click();
+  await expect(caption(page)).toContainText(/^Pick row \d+, column \d+, carve in from /);
+  await playToEnd(page, 'Play', /^Done: a perfect maze with \d+ dead-end cells?/);
+  const finished = await stats(page).textContent();
+
+  const reopened = await context.newPage();
+  await gotoApp(reopened, page.url());
+  await playToEnd(reopened, 'Play', /^Done:/);
+  await expect(stats(reopened)).toHaveText(finished!);
+  expect(errors).toEqual([]);
+});
+
 test('mazes in Spanish carve and explain each step in Spanish', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));

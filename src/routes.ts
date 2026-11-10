@@ -108,6 +108,7 @@ export const modulePages = {
     base: "/mazes",
     slugs: {
       dfs: "dfs",
+      prim: "prim",
     } satisfies Record<MazeAlgorithm, string>,
     race: false,
   },
