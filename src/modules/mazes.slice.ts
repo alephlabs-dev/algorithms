@@ -1,6 +1,6 @@
 import type { View } from "@/appStore";
 import { MAZE_ALGORITHMS, MazeRun, type MazeAlgorithm, type MazeStep } from "@/mazes";
-import { fitGridSize, gridDimensions, type GridSize } from "@/pathfinding/grid";
+import { fitGridSize, gridDimensions, sizeForView, type GridSize } from "@/utils/gridSize";
 import { newSeed } from "@/utils/random";
 import { mazesLink, type MazesLink } from "./mazes.link";
 import { defineModule, isNarrow, toggleRacer, withRacer, type SliceContext } from "./slice";
@@ -8,6 +8,8 @@ import { defineModule, isNarrow, toggleRacer, withRacer, type SliceContext } fro
 export type MazesState = {
   algorithm: MazeAlgorithm;
   size: GridSize;
+  /** The size the learner had before a race capped it, given back when the race ends; null otherwise. */
+  sizeBeforeRace: GridSize | null;
   /** The only randomness in a run: it picks the start cell and every random choice. */
   seed: number;
   /** The whole carve, precomputed. */
@@ -71,12 +73,14 @@ export const mazesSlice = defineModule<MazesState, MazeAlgorithm, MazesLink>()({
   // A broken or missing seed carves a fresh maze.
   hydrate: (link, ctx) => {
     const algorithm = link.algorithm ?? "dfs";
-    const size = fitGridSize(link.params.size ?? (ctx.isMobile ? "small" : "medium"), ctx.view, ctx.isMobile);
+    const requested = link.params.size ?? (ctx.isMobile ? "small" : "medium");
+    const { size, beforeRace } = sizeForView(requested, null, ctx.view, ctx.isMobile);
     const seed = link.params.seed ?? newSeed();
     const racers = link.params.racers ?? DEFAULT_RACERS;
     return {
       algorithm,
       size,
+      sizeBeforeRace: beforeRace,
       seed,
       run: runFor(algorithm, size, seed, ctx),
       racers,
@@ -91,7 +95,8 @@ export const mazesSlice = defineModule<MazesState, MazeAlgorithm, MazesLink>()({
   pick: (s, ctx, algorithm) => ({ algorithm, run: runFor(algorithm, s.size, s.seed, ctx) }),
 
   actions: {
-    setSize: (s, ctx, size: GridSize) => withRun(s, ctx, { size }),
+    // A size picked during a race is the learner's choice from then on.
+    setSize: (s, ctx, size: GridSize) => ({ ...withRun(s, ctx, { size }), sizeBeforeRace: null }),
     toggleRacer: (s, ctx, racer: MazeAlgorithm) => {
       const racers = toggleRacer(MAZE_ALGORITHMS, s.racers, racer);
       return racers && { racers, raceRuns: raceRunsFor(ctx.view, racers, s.size, s.seed, ctx) };
@@ -100,11 +105,14 @@ export const mazesSlice = defineModule<MazesState, MazeAlgorithm, MazesLink>()({
 
   addRacer: (s, racer) => ({ racers: withRacer(MAZE_ALGORITHMS, s.racers, racer) }),
 
-  // A large maze is carved again at the largest size a race shows well, from the same seed.
-  forView: (s, ctx) =>
-    fitGridSize(s.size, ctx.view, ctx.isMobile) === s.size
-      ? { raceRuns: raceRunsFor(ctx.view, s.racers, s.size, s.seed, ctx) }
-      : withRun(s, ctx, {}),
+  // A large maze is carved again at the largest size a race shows well, from the same seed;
+  // leaving the race carves it again at the size from before.
+  forView: (s, ctx) => {
+    const { size, beforeRace } = sizeForView(s.size, s.sizeBeforeRace, ctx.view, ctx.isMobile);
+    return size === s.size
+      ? { sizeBeforeRace: beforeRace, raceRuns: raceRunsFor(ctx.view, s.racers, s.size, s.seed, ctx) }
+      : { ...withRun(s, ctx, { size }), sizeBeforeRace: beforeRace };
+  },
 
   // Upright grids for narrow screens, wide ones otherwise; the same seed carves them.
   fit: (s, ctx) => {

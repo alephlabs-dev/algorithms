@@ -4,17 +4,20 @@ import {
   decodeCells,
   emptyGrid,
   encodeCells,
-  fitGridSize,
-  gridDimensions,
-  gridSizes,
   PATH_ALGORITHMS,
   pathSearches,
   PathTimeline,
   type Grid,
-  type GridSize,
   type PathAlgorithm,
   type Preset,
 } from "@/pathfinding";
+import {
+  fitGridSize,
+  gridDimensions,
+  gridSizes,
+  sizeForView,
+  type GridSize,
+} from "@/utils/gridSize";
 import { pathQuestions, questionsOf } from "@/game";
 import { localized } from "@/i18n";
 import { pathfindingLink, type PathfindingLink } from "./pathfinding.link";
@@ -28,6 +31,8 @@ export type Brush = "wall" | "mud";
 export type PathfindingState = {
   algorithm: PathAlgorithm;
   gridSize: GridSize;
+  /** The size the learner had before a race capped it, given back when the race ends; null otherwise. */
+  gridSizeBeforeRace: GridSize | null;
   grid: Grid;
   /** The last preset applied, so "new maze" (R) makes another of the same kind. */
   gridPreset: Preset;
@@ -126,12 +131,14 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
   link: pathfindingLink,
   hydrate: (link, ctx) => {
     const algorithm = link.algorithm ?? "astar";
-    const gridSize = fitGridSize(link.params.gridSize ?? (ctx.isMobile ? "small" : "medium"), ctx.view, ctx.isMobile);
+    const requested = link.params.gridSize ?? (ctx.isMobile ? "small" : "medium");
+    const { size: gridSize, beforeRace } = sizeForView(requested, null, ctx.view, ctx.isMobile);
     const grid = gridFromLink(link.params, gridSize, isNarrow(ctx));
     const racers = link.params.racers ?? DEFAULT_RACERS;
     return {
       algorithm,
       gridSize,
+      gridSizeBeforeRace: beforeRace,
       grid,
       gridPreset: "maze",
       brush: "wall",
@@ -150,7 +157,8 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
   pick: (s, _, algorithm) => ({ algorithm, run: runFor(algorithm, s.grid) }),
 
   actions: {
-    setGridSize: (s, ctx, size: GridSize) => resized(s, ctx, size),
+    // A size picked during a race is the learner's choice from then on.
+    setGridSize: (s, ctx, size: GridSize) => ({ ...resized(s, ctx, size), gridSizeBeforeRace: null }),
     /** Replaces the grid after an edit (painting, moving a marker); the search restarts. */
     editGrid: (s, ctx, grid: Grid) => runsFor(s, ctx, grid),
     applyGridPreset: (s, ctx, preset: Preset) => withPreset(s, ctx, preset),
@@ -171,11 +179,14 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
 
   addRacer: (s, racer) => ({ racers: withRacer(PATH_ALGORITHMS, s.racers, racer) }),
 
-  // A big grid gets a fresh layout at the largest size a race shows well.
-  forView: (s, ctx) =>
-    fitGridSize(s.gridSize, ctx.view, ctx.isMobile) === s.gridSize
-      ? { raceRuns: raceRunsFor(ctx.view, s.racers, s.grid) }
-      : resized(s, ctx, s.gridSize),
+  // A big grid gets a fresh layout at the largest size a race shows well; leaving the race
+  // lays one out again at the size from before.
+  forView: (s, ctx) => {
+    const { size, beforeRace } = sizeForView(s.gridSize, s.gridSizeBeforeRace, ctx.view, ctx.isMobile);
+    return size === s.gridSize
+      ? { gridSizeBeforeRace: beforeRace, raceRuns: raceRunsFor(ctx.view, s.racers, s.grid) }
+      : { ...resized(s, ctx, size), gridSizeBeforeRace: beforeRace };
+  },
 
   // Upright grids for narrow screens, wide ones otherwise.
   fit: (s, ctx) => {

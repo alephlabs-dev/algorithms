@@ -405,4 +405,35 @@ describe("mazes in the store", () => {
     expect(app.getState().mazes.seed).not.toBe(before);
     expect(app.getState().frameIndex).toBe(0);
   });
+
+  const storeAt = (search: string, isMobile = false) =>
+    createAppStore({ url: readLocation("/mazes/dfs", search), isMobile, isPortrait: isMobile, theme: "dark" });
+
+  it("leaving the race gives back the size from before it, the same maze from the same seed", () => {
+    for (const isMobile of [false, true]) {
+      const app = storeAt("?size=large&seed=abc", isMobile);
+      const before = app.getState().mazes;
+      app.getState().setView("race");
+      expect(app.getState().mazes.size).toBe(isMobile ? "small" : "medium");
+      app.getState().setView("single");
+      const after = app.getState().mazes;
+      expect([after.size, after.seed]).toEqual(["large", before.seed]);
+      expect([after.run.rows, after.run.cols]).toEqual([before.run.rows, before.run.cols]);
+    }
+  });
+
+  it("a race link asking for a large maze opens capped, and leaving the race gives large back", () => {
+    const app = createAppStore({ url: readLocation("/mazes/race", "?size=large&seed=abc"), isMobile: false, isPortrait: false, theme: "dark" });
+    expect(app.getState().mazes.size).toBe("medium");
+    app.getState().setView("single");
+    expect(app.getState().mazes.size).toBe("large");
+  });
+
+  it("a size picked during the race is the one kept after it", () => {
+    const app = storeAt("?size=large&seed=abc");
+    app.getState().setView("race");
+    app.getState().actions.mazes.setSize("small");
+    app.getState().setView("single");
+    expect(app.getState().mazes.size).toBe("small");
+  });
 });

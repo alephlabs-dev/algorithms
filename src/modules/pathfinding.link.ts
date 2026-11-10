@@ -1,4 +1,4 @@
-import { gridSizes, type GridSize } from "@/pathfinding/grid";
+import { gridSizes, type GridSize } from "@/utils/gridSize";
 import { PATH_ALGORITHMS } from "@/pathfinding/searches";
 import type { PathAlgorithm } from "@/pathfinding/types";
 import { isOneOf, isPacked, readRacers, speedParam, toQuery, type LinkCodec } from "./link";

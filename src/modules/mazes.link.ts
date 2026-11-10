@@ -1,6 +1,6 @@
 import { MAZE_ALGORITHMS } from "@/mazes/generators";
 import type { MazeAlgorithm } from "@/mazes/types";
-import { gridSizes, type GridSize } from "@/pathfinding/grid";
+import { gridSizes, type GridSize } from "@/utils/gridSize";
 import { isOneOf, readRacers, speedParam, toQuery, type LinkCodec } from "./link";
 
 /** A maze as a link carries it: the size and the seed, not the cells (like sorting's array). */

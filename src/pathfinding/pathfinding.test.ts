@@ -5,12 +5,11 @@ import {
   decodeCells,
   emptyGrid,
   encodeCells,
-  gridDimensions,
-  gridSizes,
   neighbors,
   stepCost,
   withTerrain,
 } from "./grid";
+import { gridDimensions, gridSizes } from "@/utils/gridSize";
 import { pathSearches } from "./searches";
 import { PathTimeline } from "./timeline";
 import { EMPTY, MUD, ON_PATH, VISITED, WALL, type Grid, type PathAlgorithm } from "./types";
