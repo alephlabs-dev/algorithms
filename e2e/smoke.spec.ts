@@ -1,10 +1,16 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { gotoApp } from './goto';
 import AxeBuilder from '@axe-core/playwright';
+import { allRoutes, routePath } from '../src/routes';
+
+// The landing page, every module's start page, and every race page, from the
+// route registry: a new module or race page gets its smoke test for free.
+// Algorithm pages share their start page's layout, so they're left out.
+const routes = allRoutes.filter((route) => route.page !== 'algorithm');
 
 // Runs on every device project (iPhone, iPad portrait/landscape, desktop).
-// Checks: no JS errors, no horizontal scroll, no serious accessibility violations.
-test('home loads cleanly', async ({ page }) => {
+// Checks: no JS errors, no horizontal scroll, zoom allowed, no serious accessibility violations.
+const expectLoadsCleanly = async (page: Page, url: string) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => {
@@ -16,7 +22,7 @@ test('home loads cleanly', async ({ page }) => {
     route.fulfill({ status: 200, contentType: 'text/javascript', body: '' }),
   );
 
-  await gotoApp(page, '/');
+  await gotoApp(page, url);
   await page.waitForLoadState('networkidle');
 
   expect(errors, 'console / page errors').toEqual([]);
@@ -33,4 +39,11 @@ test('home loads cleanly', async ({ page }) => {
   const a11y = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   const serious = a11y.violations.filter((v) => v.impact === 'serious' || v.impact === 'critical');
   expect(serious.map((v) => `${v.id}: ${v.nodes.length} node(s)`)).toEqual([]);
-});
+};
+
+for (const route of routes) {
+  const path = routePath(route);
+  test(`smoke ${path}`, async ({ page }) => {
+    await expectLoadsCleanly(page, path);
+  });
+}
