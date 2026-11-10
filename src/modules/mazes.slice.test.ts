@@ -11,6 +11,7 @@ import {
   SKIPPED,
   WALK,
   WALL,
+  isMazeCell,
   mazePseudocode,
 } from "@/mazes";
 import { linkFor, readLocation } from "@/urlState";
@@ -195,10 +196,10 @@ describe("mazes slice", () => {
   /** The cells a frame shows on Wilson's walk: walk-toned, or the walk's move this frame. */
   const walkOf = (s: MazesState, i: number) => {
     const { states } = s.run.frameAt(i);
-    return [...states.keys()].filter((c) => states[c] === WALK || (states[c] === ACTIVE && !isCarvedAfter(s, i, c)));
+    // An ACTIVE cell is on the walk unless it's the maze cell the walk just reached.
+    const wasCarved = (cell: number) => s.run.frameAt(i - 1).states[cell] === CARVED;
+    return [...states.keys()].filter((c) => states[c] === WALK || (states[c] === ACTIVE && !wasCarved(c)));
   };
-  /** An ACTIVE cell is on the walk unless it's the maze cell the walk just reached. */
-  const isCarvedAfter = (s: MazesState, i: number, cell: number) => s.run.frameAt(i - 1).states[cell] === CARVED;
 
   it("Wilson: erasing a loop is its own frame, and takes the loop's cells off the walk", () => {
     const eraseLine = mazePseudocode.wilson.findIndex((line) => line.includes("erase the loop"));
@@ -212,12 +213,11 @@ describe("mazes slice", () => {
         const after = walkOf(s, i);
         const gone = [...before].filter((c) => !after.includes(c));
         expect(gone.length, `frame ${i} takes the loop off the walk`).toBeGreaterThan(0);
-        expect(gone.every((c) => s.run.frameAt(i).states[c] === 0), `frame ${i} walls the loop in again`).toBe(true);
+        expect(gone.every((c) => s.run.frameAt(i).states[c] === WALL), `frame ${i} walls the loop in again`).toBe(true);
         expect(after.every((c) => before.has(c)), `frame ${i} adds nothing to the walk`).toBe(true);
         // What's left is still a walk: each of its walls lies between two of its cells.
         const { cols } = s.run;
-        const walls = after.filter((c) => Math.floor(c / cols) % 2 === 0 || (c % cols) % 2 === 0);
-        for (const wall of walls) {
+        for (const wall of after.filter((c) => !isMazeCell(s.run, c))) {
           const ends = Math.floor(wall / cols) % 2 === 0 ? [wall - cols, wall + cols] : [wall - 1, wall + 1];
           expect(ends.every((c) => after.includes(c)), `frame ${i}: wall ${wall} joins two walk cells`).toBe(true);
         }

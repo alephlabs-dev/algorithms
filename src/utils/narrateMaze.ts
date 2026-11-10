@@ -1,5 +1,5 @@
 import { localized } from "@/i18n";
-import { FRONTIER, WALL, type MazeFrame, type MazeRun } from "@/mazes";
+import { FRONTIER, isMazeCell, WALL, type MazeFrame, type MazeRun } from "@/mazes";
 import { count } from "./count";
 
 type Direction = "up" | "right" | "down" | "left";
@@ -82,10 +82,6 @@ const directionOf = (run: MazeRun, wall: number, cell: number): Direction =>
   cell === wall - run.cols ? "up" : cell === wall + 1 ? "right" : cell === wall + run.cols ? "down" : "left";
 
 const OPPOSITE: Record<Direction, Direction> = { up: "down", right: "left", down: "up", left: "right" };
-
-/** Maze cells sit on odd rows and columns; the rest are walls between them. */
-const isMazeCell = (run: MazeRun, cell: number) => Math.floor(cell / run.cols) % 2 === 1 && (cell % run.cols) % 2 === 1;
-
 /** One plain-language sentence for the decision that led to frame `index`. */
 export const narrateMaze = (run: MazeRun, index: number): string => {
   const step = run.stepAt(index);
