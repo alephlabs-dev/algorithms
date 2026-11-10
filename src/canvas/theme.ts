@@ -9,6 +9,8 @@ export type CanvasColors = {
   bar: string;
   muted: string;
   outline: string;
+  ringInner: string;
+  ringOuter: string;
   primary: string;
   secondary: string;
   tertiary: string;
@@ -25,6 +27,8 @@ export const variables: Record<keyof CanvasColors, string> = {
   bar: "--color-bar",
   muted: "--color-muted",
   outline: "--color-outline",
+  ringInner: "--color-ring-inner",
+  ringOuter: "--color-ring-outer",
   primary: "--color-primary",
   secondary: "--color-secondary",
   tertiary: "--color-tertiary",

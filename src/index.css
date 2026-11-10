@@ -60,6 +60,10 @@
   --color-bar: #d9dfdb;
   --color-muted: #8fa39a;
   --color-outline: #ffffff;
+  /* Canvas only: the ring on the grid cell being looked at, a dark stroke inside a light one,
+     so one of them stands out on any cell. */
+  --color-ring-inner: #0b0f0d;
+  --color-ring-outer: #ffffff;
   /* Pathfinding: mud cells (cost more to cross). */
   --color-mud: #6e5a3b;
   /* Backtracking: a square a queen already attacks. */
@@ -89,6 +93,8 @@
   --color-bar: #2c4166;
   --color-muted: #5b6f8f;
   --color-outline: #13294b;
+  --color-ring-inner: #0a1830;
+  --color-ring-outer: #ffffff;
   --color-mud: #cdb88f;
   --color-conflict: #d42c2c;
   --color-scrim: rgb(0 0 0 / 0.36);

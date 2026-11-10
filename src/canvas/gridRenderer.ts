@@ -242,14 +242,23 @@ export class GridRenderer {
       }
     }
 
-    // The cell being examined: an outline that follows the search.
+    // The cell being examined: a ring that follows the search. A light stroke on the cell's edge
+    // and a dark one just inside it, so one of them stands out on any cell, light or dark.
     if (input.current != null) {
       const row = Math.floor(input.current / cols);
       const col = input.current % cols;
-      ctx.strokeStyle = colors.outline;
-      ctx.lineWidth = Math.max(1.5, size * 0.08);
+      const x = left + col * size + gap / 2;
+      const y = top + row * size + gap / 2;
+      const s = size - gap;
+      const w = Math.max(1.5, size * 0.08);
+      ctx.lineWidth = w;
+      ctx.strokeStyle = colors.ringOuter;
       ctx.beginPath();
-      ctx.roundRect(left + col * size + gap / 2, top + row * size + gap / 2, size - gap, size - gap, radius);
+      ctx.roundRect(x, y, s, s, radius);
+      ctx.stroke();
+      ctx.strokeStyle = colors.ringInner;
+      ctx.beginPath();
+      ctx.roundRect(x + w, y + w, s - 2 * w, s - 2 * w, Math.max(0, radius - w));
       ctx.stroke();
     }
 
