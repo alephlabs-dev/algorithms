@@ -1,9 +1,8 @@
-import { MAX_VALUE, MIN_VALUE, type Operation } from "./types";
+import { MAX_VALUE, MIN_VALUE, type Operation, type StructurePreset, type StructureSize } from "./types";
 
-export type StructurePreset = "random" | "ascending" | "example";
+export type { StructurePreset, StructureSize };
 export const structurePresets: StructurePreset[] = ["random", "ascending", "example"];
 
-export type StructureSize = "small" | "medium" | "large";
 export const structureSizes: StructureSize[] = ["small", "medium", "large"];
 const COUNT: Record<StructureSize, number> = { small: 7, medium: 12, large: 20 };
 

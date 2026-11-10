@@ -67,6 +67,11 @@ const moduleOf = (file, root) => {
   return isFolder ? { id: match[1], file: "index" } : null;
 };
 
+/** An import that brings in types only (`import type`, or every name marked `type`), erased at runtime. */
+const onlyTypes = (node) =>
+  node.type === "ImportDeclaration" &&
+  (node.importKind === "type" || (node.specifiers.length > 0 && node.specifiers.every((s) => s.importKind === "type")));
+
 const moduleBoundaries = {
   meta: {
     type: "problem",
@@ -78,7 +83,10 @@ const moduleBoundaries = {
       },
     ],
     messages: {
-      manifest: "A manifest runs in Node (e2e, prerender): it may import only its own types.ts, src/i18n.ts and src/routes.ts (docs/adr/0003).",
+      manifest:
+        "A manifest runs in Node (e2e, prerender): it may import only its own types.ts and algorithms.ts, src/i18n.ts and src/routes.ts (docs/adr/0003).",
+      algorithms:
+        "A module's algorithms.ts runs in Node through its manifest: it may import only its own types.ts, src/i18n.ts and src/routes.ts, plus types from its own folder or shared code (docs/adr/0003).",
       registry:
         "Shared code reaches module {{to}} only through the registries: its slice from src/modules/engine.ts, its interface from src/modules/index.ts (docs/adr/0003).",
       otherModule: "Module {{from}} can't import from module {{to}}'s folder. Move what both need to shared code (docs/adr/0003).",
@@ -94,10 +102,15 @@ const moduleBoundaries = {
       if (typeof node.source?.value !== "string") return;
       const resolved = resolveImport(node.source.value, context.filename, root);
       const target = moduleOf(resolved, root);
-      if (importer?.file === "manifest") {
-        const nodeSafe =
-          resolved === "src/i18n" || resolved === "src/routes" || (target?.id === importer.id && target.file === "types");
-        if (!nodeSafe) context.report({ node: node.source, messageId: "manifest" });
+      // The manifest and the algorithms.ts it reads run in Node: no browser, React or bundler.
+      if (importer?.file === "manifest" || importer?.file === "algorithms") {
+        const own = (file) => target?.id === importer.id && target.file === file;
+        const nodeSafe = resolved === "src/i18n" || resolved === "src/routes" || own("types");
+        if (importer.file === "manifest") {
+          if (!nodeSafe && !own("algorithms")) context.report({ node: node.source, messageId: "manifest" });
+        } else if (!nodeSafe && !(onlyTypes(node) && resolved !== null && (!target || target.id === importer.id))) {
+          context.report({ node: node.source, messageId: "algorithms" });
+        }
         return;
       }
       if (!target) return;

@@ -9,6 +9,7 @@ import { dpQuestions } from "./questions";
 import { dpLink, type DpLink } from "./link";
 import { newSeed, seededRandom } from "@/utils/random";
 import { defineModule } from "@/modules/slice";
+import { sentences } from "./sentences";
 
 export type DpState = {
   algorithm: DpAlgorithm;
@@ -44,6 +45,7 @@ const STEP_WEIGHT: Record<DpEvent["type"], number> = {
 };
 
 export const dpSlice = defineModule<DpState, DpAlgorithm, DpLink>()({
+  sentences,
   tourKey: "tour-done-dp",
 
   link: dpLink,
@@ -110,7 +112,7 @@ export const dpSlice = defineModule<DpState, DpAlgorithm, DpLink>()({
     // The race clock counts subproblems: it runs until the slowest method is done.
     lastIndex: (s, view) => (view === "race" ? Math.max(0, ...s.raceRuns.map((r) => r.length - 1)) : s.run.length - 1),
     stepWeight: (s, index) => STEP_WEIGHT[s.run.frames[index]?.event.type ?? "done"],
-    pace: (view) => (view === "race" ? "dpRace" : "dp"),
+    pace: (view) => (view === "race" ? 20 : 30),
     // A knapsack (or its race) links its items; the word problems their words.
     search: (s, ctx) =>
       s.algorithm === "knapsack" || ctx.view === "race"

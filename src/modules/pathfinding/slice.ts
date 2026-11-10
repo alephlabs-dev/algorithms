@@ -1,7 +1,7 @@
 import type { View } from "@/appStore";
 import { applyPreset, decodeCells, emptyGrid, encodeCells, type Preset } from "./grid";
 import { PATH_ALGORITHMS, pathSearches } from "./searches";
-import { PathTimeline } from "./timeline";
+import { PathTimeline, type PathStepKind } from "./timeline";
 import type { Grid, PathAlgorithm } from "./types";
 import {
   fitGridSize,
@@ -15,8 +15,8 @@ import { pathQuestions } from "./questions";
 import { localized } from "@/i18n";
 import { pathfindingLink, type PathfindingLink } from "./link";
 import { newSeed, seededRandom } from "@/utils/random";
-import { PATH_STEP_WEIGHT } from "@/utils/speed";
 import { defineModule, isNarrow, toggleRacer, withRacer, type SliceContext } from "@/modules/slice";
+import { sentences } from "./sentences";
 
 /** What dragging on the grid paints. */
 export type Brush = "wall" | "mud";
@@ -72,6 +72,17 @@ const cellsTooSmall = (s: PathfindingState) => {
 };
 
 // Two that guarantee a shortest path, one that aims for the target, one that doesn't: the classic comparison.
+/**
+ * Share of a beat each kind of step takes: each visit gets a beat, frontier updates
+ * follow quickly, and the final path traces fast so it reads as one stroke.
+ */
+const STEP_WEIGHT: Record<PathStepKind, number> = {
+  visit: 1,
+  frontier: 0.4,
+  path: 0.3,
+  done: 1,
+};
+
 const DEFAULT_RACERS: PathAlgorithm[] = ["bfs", "dijkstra", "astar", "greedy"];
 
 const runFor = (algorithm: PathAlgorithm, grid: Grid) => new PathTimeline(pathSearches[algorithm], grid);
@@ -119,6 +130,7 @@ const withPreset = (s: PathfindingState, ctx: SliceContext, gridPreset: Preset) 
 });
 
 export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, PathfindingLink>()({
+  sentences,
   tourKey: "tour-done-pathfinding",
 
   link: pathfindingLink,
@@ -194,8 +206,8 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
     // Races run on cells examined, so every lane gets the same clock.
     lastIndex: (s, view) =>
       view === "race" ? Math.max(0, ...s.raceRuns.map((t) => t.totalVisits)) : s.run.length - 1,
-    stepWeight: (s, index) => PATH_STEP_WEIGHT[s.run.stepAt(index)?.type ?? "done"],
-    pace: (view) => (view === "race" ? "pathRace" : "pathfinding"),
+    stepWeight: (s, index) => STEP_WEIGHT[s.run.stepAt(index)?.type ?? "done"],
+    pace: () => 20,
     game: (s) => questionsOf(s.run, (run) => pathQuestions(run, s.algorithm)),
     // Enabled by how big cells are on screen, not by grid size: a big grid on a big screen still has room.
     gameUnavailable: cellsTooSmall,

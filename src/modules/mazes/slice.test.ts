@@ -381,7 +381,7 @@ describe("mazes race", () => {
     const s = racing("?size=small&seed=abc");
     const longest = Math.max(...s.raceRuns.map((r) => r.length - 1));
     expect(slice.engine.lastIndex(s, "race")).toBe(longest);
-    expect(slice.engine.pace("race")).toBe("mazeRace");
+    expect(slice.engine.pace("race")).toBe(30);
   });
 });
 

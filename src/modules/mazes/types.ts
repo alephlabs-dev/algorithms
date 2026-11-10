@@ -7,6 +7,9 @@
 
 export type MazeAlgorithm = "dfs" | "prim" | "kruskal" | "wilson";
 
+/** Every generator, in the order the UI shows them. */
+export const MAZE_ALGORITHMS: MazeAlgorithm[] = ["dfs", "prim", "kruskal", "wilson"];
+
 /** The walled-in grid a maze is carved from. Odd rows and columns, so walls go all around. */
 export type MazeGrid = { rows: number; cols: number };
 

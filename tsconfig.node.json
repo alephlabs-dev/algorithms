@@ -8,11 +8,14 @@
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "noEmit": true,
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "paths": { "@/*": ["./src/*"] }
   },
   // e2e and the prerender plugin import the route registry (src/routes.ts), so it and every file it imports must be
-  // included (a composite project only checks included files). Each module's manifest, and the types.ts it may
-  // import, are found by glob (docs/adr/0003).
+  // included (a composite project only checks included files). Each module's manifest, and the types.ts and
+  // algorithms.ts it may import, are found by glob (docs/adr/0003). The shared files they read are listed:
+  // src/consts/race.ts (sorting's race text, until #190 moves it) and src/utils/gridSize.ts (a type).
   "include": ["vite.config.ts", "vite-plugin-prerender.ts", "playwright.config.ts", "e2e", "src/routes.ts", "src/i18n.ts",
-    "src/modules/*/manifest.ts", "src/modules/*/types.ts"]
+    "src/modules/manifests.ts", "src/modules/*/manifest.ts", "src/modules/*/types.ts", "src/modules/*/algorithms.ts",
+    "src/consts/race.ts", "src/utils/gridSize.ts"]
 }

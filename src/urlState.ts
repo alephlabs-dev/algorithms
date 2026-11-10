@@ -1,12 +1,8 @@
-// eslint-disable-next-line house/module-boundaries -- TODO(#187): sorting's legacy links move with its pages into its manifest.
-import { SORT_ALGORITHMS } from "./modules/sorting/generators";
 import type { View } from "./appStore";
 import { isOneOf, type LinkCodec } from "./modules/link";
 import { slices, type ModuleId, type SliceLink } from "./modules/engine";
 import type { Link } from "./modules/slice";
-import { routeFromPath } from "./routes";
-// eslint-disable-next-line house/module-boundaries -- TODO(#187): sorting's legacy links move with its pages into its manifest.
-import type { Algorithm } from "./modules/sorting/types";
+import { modulePages, routeFromPath, type AlgorithmOf } from "./routes";
 import { droppedPresets, speedPresets, type SpeedPreset } from "./utils/speed";
 
 /** Where the app opened: the page, the settings every module shares, and the open module's link. */
@@ -28,15 +24,18 @@ const readSpeed = (params: URLSearchParams): SpeedPreset | undefined => {
   return droppedPresets.get(speed ?? "");
 };
 
+/** Sorting's algorithms: the ones it has pages for, in its manifest. */
+const SORTING_ALGORITHMS = Object.keys(modulePages.sorting.slugs) as AlgorithmOf<"sorting">[];
+
 /**
  * Before modules had pages, every link was sorting's home page with the algorithm
  * and view in the query (/?algo=quick&view=race). Those links still open them.
  */
-const readLegacy = (params: URLSearchParams): { algorithm?: Algorithm; view?: View } => {
+const readLegacy = (params: URLSearchParams): { algorithm?: AlgorithmOf<"sorting">; view?: View } => {
   const algorithm = params.get("algo");
   const view = params.get("view");
   return {
-    ...(isOneOf(SORT_ALGORITHMS, algorithm) && { algorithm }),
+    ...(isOneOf(SORTING_ALGORITHMS, algorithm) && { algorithm }),
     ...((view === "single" || view === "race") && { view }),
   };
 };

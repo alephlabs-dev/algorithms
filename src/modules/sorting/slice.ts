@@ -1,6 +1,6 @@
 import type { View } from "@/appStore";
 import { SORT_ALGORITHMS, sortAlgorithms } from "./generators";
-import { Timeline } from "./timeline";
+import { Timeline, type StepKind } from "./timeline";
 import { sizes, sizesFor } from "./sizesMap";
 import { questionsOf } from "@/game";
 import { sortQuestions } from "./questions";
@@ -9,8 +9,8 @@ import type { Algorithm, DisplayMode, InputOrder, Size } from "./types";
 import { sortingLink, type SortingLink } from "./link";
 import { generateItems } from "./generateItems";
 import { newSeed, seededRandom } from "@/utils/random";
-import { STEP_WEIGHT } from "@/utils/speed";
 import { defineModule, toggleRacer, withRacer, type SliceContext } from "@/modules/slice";
+import { sentences } from "./sentences";
 
 export type SortingState = {
   algorithm: Algorithm;
@@ -32,6 +32,22 @@ export type SortingState = {
 };
 
 // In sidebar order, like any selection the user makes.
+/**
+ * Share of a full step each kind of step takes during playback. Moves get the
+ * full beat, comparisons a shorter one, and steps that only move the
+ * pseudocode line pass instantly, so the rhythm reads "look, move" instead of
+ * an even tick with pauses where nothing happens.
+ */
+const STEP_WEIGHT: Record<StepKind, number> = {
+  swap: 1,
+  move: 1,
+  finish: 1,
+  compare: 0.6,
+  highlight: 0.5,
+  done: 0.4,
+  line: 0,
+};
+
 const DEFAULT_RACERS: Algorithm[] = ["insertion", "bubble", "quick", "merge"];
 
 const runFor = (algorithm: Algorithm, items: readonly number[]) => new Timeline(sortAlgorithms[algorithm], items);
@@ -78,6 +94,7 @@ const guessUnavailable = (s: SortingState) =>
 
 export const sortingSlice = defineModule<SortingState, Algorithm, SortingLink>()({
   // The first module's key, from before every module had a tour.
+  sentences,
   tourKey: "tour-done",
 
   link: sortingLink,
@@ -135,7 +152,7 @@ export const sortingSlice = defineModule<SortingState, Algorithm, SortingLink>()
   engine: {
     lastIndex: (s, view) => (view === "race" ? Math.max(0, ...s.raceRuns.map((t) => t.totalOps)) : s.run.length - 1),
     stepWeight: (s, index) => STEP_WEIGHT[s.run.kindAt(index) ?? "finish"],
-    pace: (view) => view,
+    pace: (view) => (view === "race" ? 30 : 240),
     search: (s, ctx) =>
       sortingLink.write(
         // The slice only ever holds sizes from the sizes list.

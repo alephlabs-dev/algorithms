@@ -1,12 +1,12 @@
 import type { View } from "@/appStore";
 import { decodeGraph, encodeGraph, graphAspect, makeGraph, type GraphPreset, type GraphSize } from "./graph";
-import { GRAPH_ALGORITHMS, type Graph, type GraphAlgorithm } from "./types";
+import { GRAPH_ALGORITHMS, type Graph, type GraphAlgorithm, type GraphStep } from "./types";
 import { graphTimelineFor } from "./run";
 import type { GraphTimeline } from "./timeline";
 import { graphsLink, type GraphsLink } from "./link";
 import { newSeed, seededRandom } from "@/utils/random";
-import { GRAPH_STEP_WEIGHT } from "@/utils/speed";
 import { defineModule, isNarrow, toggleRacer, type SliceContext } from "@/modules/slice";
+import { sentences } from "./sentences";
 
 export type GraphsState = {
   algorithm: GraphAlgorithm;
@@ -22,6 +22,24 @@ export type GraphsState = {
   raceRuns: GraphTimeline[];
   /** Bumped when the graph is replaced wholesale, so nodes don't glide between layouts. */
   inputId: number;
+};
+
+/**
+ * Visiting a node gets the full beat, looking along an edge and
+ * adding a node to the queue a shorter one.
+ */
+const STEP_WEIGHT: Record<GraphStep["type"], number> = {
+  pop: 1,
+  edge: 0.6,
+  push: 0.6,
+  back: 0.6,
+  // Kruskal: looking at the next edge, then keeping or skipping it.
+  sort: 1,
+  consider: 0.6,
+  join: 1,
+  reject: 1,
+  lower: 0.4,
+  done: 1,
 };
 
 const DEFAULT_RACERS: GraphAlgorithm[] = ["bfs", "dfs", "prim", "kruskal"];
@@ -51,6 +69,7 @@ const fresh = (s: GraphsState, ctx: SliceContext, preset: GraphPreset, requested
 };
 
 export const graphsSlice = defineModule<GraphsState, GraphAlgorithm, GraphsLink>()({
+  sentences,
   tourKey: "tour-done-graphs",
 
   link: graphsLink,
@@ -105,8 +124,8 @@ export const graphsSlice = defineModule<GraphsState, GraphAlgorithm, GraphsLink>
   engine: {
     // Races tick one step per lane, so the clock runs until the longest run is over.
     lastIndex: (s, view) => (view === "race" ? Math.max(0, ...s.raceRuns.map((t) => t.length - 1)) : s.run.length - 1),
-    stepWeight: (s, index) => GRAPH_STEP_WEIGHT[s.run.stepAt(index)?.type ?? "done"],
-    pace: (view) => (view === "race" ? "graphRace" : "graphs"),
+    stepWeight: (s, index) => STEP_WEIGHT[s.run.stepAt(index)?.type ?? "done"],
+    pace: () => 25,
     search: (s, ctx) =>
       graphsLink.write(
         {

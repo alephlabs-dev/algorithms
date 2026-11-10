@@ -6,6 +6,7 @@ import { fitGridSize, gridDimensions, sizeForView, type GridSize } from "@/utils
 import { newSeed } from "@/utils/random";
 import { mazesLink, type MazesLink } from "./link";
 import { defineModule, isNarrow, toggleRacer, withRacer, type SliceContext } from "@/modules/slice";
+import { sentences } from "./sentences";
 
 export type MazesState = {
   algorithm: MazeAlgorithm;
@@ -69,6 +70,7 @@ const STEP_WEIGHT: Record<MazeStep["type"], number> = {
 };
 
 export const mazesSlice = defineModule<MazesState, MazeAlgorithm, MazesLink>()({
+  sentences,
   tourKey: "tour-done-mazes",
 
   link: mazesLink,
@@ -130,7 +132,7 @@ export const mazesSlice = defineModule<MazesState, MazeAlgorithm, MazesLink>()({
     lastIndex: (s, view) =>
       view === "race" ? Math.max(0, ...s.raceRuns.map((r) => r.length - 1)) : s.run.length - 1,
     stepWeight: (s, index) => STEP_WEIGHT[s.run.stepAt(index)?.type ?? "done"],
-    pace: (view) => (view === "race" ? "mazeRace" : "mazes"),
+    pace: () => 30,
     search: (s, ctx) =>
       mazesLink.write(
         {
