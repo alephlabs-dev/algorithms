@@ -181,3 +181,50 @@ test('the mazes tour carves a third of the maze before it explains the colors', 
   // Stack cells on the grid, so the step has something to point at.
   await expect(stats(page)).not.toHaveText(/^0 steps$/);
 });
+
+/** The race lanes, by the generator each one carves. */
+const lanes = (page: Page) => page.getByRole('main').locator('section > header').getByRole('heading', { level: 3 });
+
+test('mazes race from a link: a large maze races at the capped size, with no winner', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.addInitScript(() => localStorage.setItem('tour-done-mazes', 'true'));
+  await gotoApp(page, '/mazes/race?size=large&seed=abc&race=wilson,dfs&speed=8x');
+
+  // Four mazes at once read only up to medium (small on phones); the seed and racers stay.
+  await expect(page).toHaveURL(/\/mazes\/race\?size=(small|medium)&seed=abc&race=dfs%2Cwilson/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Maze generators side by side' })).toBeAttached();
+  await expect(lanes(page)).toHaveCount(2);
+  await expect(page.getByRole('region', { name: 'Randomized Depth-First Search' })).toContainText(/0 steps/);
+
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
+  const results = page.getByRole('status', { name: 'Race results' });
+  await expect(results).toBeVisible({ timeout: 30_000 });
+  await expect(results.getByRole('row')).toHaveCount(3);
+  await expect(results).toContainText('No maze here is better than another.');
+  // A comparison of textures, not a podium: no places anywhere on the race.
+  await expect(page.getByRole('main')).not.toContainText(/\b(1st|2nd|winner|won|finished first|place)\b/i);
+  for (const name of ['Randomized Depth-First Search', "Wilson's Algorithm"])
+    await expect(page.getByRole('region', { name })).toContainText(/\d+ dead ends?/);
+  expect(errors).toEqual([]);
+});
+
+test('mazes race from the view switch: all four carve the same seed', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('tour-done-mazes', 'true'));
+  await gotoApp(page, '/mazes/prim?size=small&seed=abc&speed=8x');
+  await page.locator('[data-tour="race"]:visible').getByRole('radio', { name: 'Race' }).click();
+  await expect(page).toHaveURL(/\/mazes\/race\?size=small&seed=abc&speed=8x$/);
+  await expect(lanes(page)).toHaveCount(4);
+  // Back to one maze: the algorithm it was on.
+  await page.locator('[data-tour="race"]:visible').getByRole('radio', { name: 'Visualize' }).click();
+  await expect(page).toHaveURL(/\/mazes\/prim\?size=small&seed=abc/);
+});
+
+test('the mazes tour ends on the race', async ({ page }) => {
+  await gotoApp(page, '/mazes?size=small&seed=abc');
+  await expect(page.getByRole('dialog', { name: 'The grid' })).toBeVisible();
+  const race = page.getByRole('dialog', { name: 'Side by side' });
+  for (let k = 0; k < 12 && !(await race.isVisible()); k++)
+    await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(race).toContainText("There's no winner");
+});

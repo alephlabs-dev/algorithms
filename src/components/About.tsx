@@ -4,7 +4,7 @@ import { dpProblems } from "@/consts/dp";
 import { dpPseudocode, type DpAlgorithm } from "@/dp";
 import { backtrackingProblems } from "@/consts/backtracking";
 import { fourierSeries } from "@/consts/fourierSeries";
-import { DP_RACE_DESCRIPTION, STRUCTURE_RACE_DESCRIPTION } from "@/consts/race";
+import { DP_RACE_DESCRIPTION, MAZE_RACE_DESCRIPTION, STRUCTURE_RACE_DESCRIPTION } from "@/consts/race";
 import { structures } from "@/consts/structures";
 import { structurePseudocode, type StructureAlgorithm } from "@/structures";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
@@ -389,6 +389,13 @@ const mazesText = localized({
     whyText:
       "A perfect maze has exactly one route between any two cells: no loops, and no part closed off from the rest. Think of each cell as a point and each knocked-down wall as a link between two points: a perfect maze is then a spanning tree of the grid, which joins n cells with exactly n − 1 links. Any way of building a random spanning tree carves a perfect maze, and that's why maze generators look so much like graph algorithms: a stack, a frontier, disjoint sets or a random walk. Each one leaves its own texture. Count the dead-end cells, the ones with only one way out, and you can tell them apart.",
     facts: "In short",
+    sideBySide: "Side by side",
+    startRace: "Carve them side by side",
+    raceTitle: "Maze generators side by side",
+    raceIntro: "Two to four maze generators carve the same seed, from the same start cell, at the same pace.",
+    raceTip:
+      "Depth-first search runs down long corridors before it backtracks, so its maze has few dead-end cells. Prim grows outward from everywhere on its frontier at once, which leaves many short branches. Kruskal and Wilson land in between. Wilson gives every possible maze the same chance, so its texture is the typical one.",
+    learnEach: "Learn each generator",
   },
   es: {
     moduleTitle: "Generación de laberintos",
@@ -399,6 +406,13 @@ const mazesText = localized({
     whyText:
       "Un laberinto perfecto tiene un único camino entre dos celdas cualesquiera: sin ciclos y sin partes aisladas del resto. Si cada celda es un punto y cada pared derribada une dos puntos, un laberinto perfecto es un árbol generador de la cuadrícula, que une n celdas con exactamente n − 1 uniones. Cualquier forma de construir un árbol generador al azar excava un laberinto perfecto, y por eso los generadores de laberintos se parecen tanto a los algoritmos de grafos: una pila, una frontera, conjuntos disjuntos o un paseo aleatorio. Cada uno deja su propia textura. Cuenta las celdas sin salida, las que tienen una sola salida, y podrás distinguirlos.",
     facts: "En resumen",
+    sideBySide: "Lado a lado",
+    startRace: "Excávalos lado a lado",
+    raceTitle: "Generadores de laberintos lado a lado",
+    raceIntro: "De dos a cuatro generadores de laberintos excavan la misma semilla, desde la misma celda de inicio, al mismo ritmo.",
+    raceTip:
+      "La búsqueda en profundidad recorre pasillos largos antes de retroceder, así que su laberinto tiene pocas celdas sin salida. Prim crece hacia afuera desde toda su frontera a la vez, lo que deja muchas ramas cortas. Kruskal y Wilson quedan en el medio. Wilson le da a cada laberinto posible la misma probabilidad, así que su textura es la típica.",
+    learnEach: "Aprende cada generador",
   },
 });
 
@@ -1186,6 +1200,44 @@ const MazesArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
     <Explanation title={mazesText.why}>
       <p className="leading-relaxed text-foreground/80">{mazesText.whyText}</p>
     </Explanation>
+    <Section title={mazesText.sideBySide}>
+      <p className="leading-relaxed text-foreground/80">
+        {MAZE_RACE_DESCRIPTION}{" "}
+        <PageLink to={{ module: "mazes", page: "race" }} onNavigate={onNavigate}>
+          {mazesText.startRace}
+        </PageLink>
+        .
+      </p>
+    </Section>
+  </>
+);
+
+/** The maze generators, linking to their pages. */
+const MazeIndex = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
+  <ul className="tap-rows flex flex-wrap gap-x-6 gap-y-2">
+    {MAZE_ALGORITHMS.map((algorithm) => (
+      <li key={algorithm}>
+        <PageLink to={{ module: "mazes", page: "algorithm", algorithm }} onNavigate={onNavigate}>
+          {mazeAlgorithms[algorithm].title}
+        </PageLink>
+      </li>
+    ))}
+  </ul>
+);
+
+const MazesRaceArticle = ({ onNavigate }: { onNavigate?: Props["onNavigate"] }) => (
+  <>
+    <header className="flex flex-col gap-3">
+      <h1 className="text-display font-semibold">{mazesText.raceTitle}</h1>
+      <p className="text-lg text-foreground/80">{mazesText.raceIntro}</p>
+    </header>
+    <Explanation title={text.howRaceWorks}>
+      <p className="leading-relaxed text-foreground/80">{MAZE_RACE_DESCRIPTION}</p>
+      <p className="leading-relaxed text-foreground/80">{mazesText.raceTip}</p>
+    </Explanation>
+    <Section title={mazesText.learnEach}>
+      <MazeIndex onNavigate={onNavigate} />
+    </Section>
   </>
 );
 
@@ -1227,7 +1279,7 @@ const articles: { [M in ModuleId]: Articles<M> } = {
   structures: { start: StructuresArticle, algorithm: StructureArticle, race: StructureRaceArticle },
   dp: { start: DpArticle, algorithm: DpProblemArticle, race: DpRaceArticle },
   backtracking: { start: BacktrackingArticle, algorithm: BacktrackingProblemArticle },
-  mazes: { start: MazesArticle, algorithm: MazeArticle },
+  mazes: { start: MazesArticle, algorithm: MazeArticle, race: MazesRaceArticle },
 };
 
 /** The page's article; the landing page has none. */

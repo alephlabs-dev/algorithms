@@ -4,6 +4,7 @@ import {
   decodeCells,
   emptyGrid,
   encodeCells,
+  fitGridSize,
   gridDimensions,
   gridSizes,
   PATH_ALGORITHMS,
@@ -80,14 +81,7 @@ const runFor = (algorithm: PathAlgorithm, grid: Grid) => new PathTimeline(pathSe
 const raceRunsFor = (view: View, racers: PathAlgorithm[], grid: Grid) =>
   view === "race" ? racers.map((a) => runFor(a, grid)) : [];
 
-/** Race lanes are a quarter of the stage, so bigger grids get too small to follow. */
-export const raceMaxGridSize = (isMobile: boolean): GridSize => (isMobile ? "small" : "medium");
-
-/** The grid size to use: the one asked for, capped in a race. */
-const fitGridSize = (size: GridSize, view: View, isMobile: boolean) => {
-  const cap = raceMaxGridSize(isMobile);
-  return view === "race" && gridSizes.indexOf(size) > gridSizes.indexOf(cap) ? cap : size;
-};
+export { raceMaxGridSize } from "@/pathfinding";
 
 /** A fresh grid of the given size with a preset applied. */
 const gridFor = (size: GridSize, narrow: boolean, preset: Preset) => {

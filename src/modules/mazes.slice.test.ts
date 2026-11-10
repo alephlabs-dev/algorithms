@@ -17,7 +17,7 @@ import {
 import { linkFor, readLocation } from "@/urlState";
 import { routeIn } from "./engine";
 import { mazesSlice as slice, type MazesState } from "./mazes.slice";
-import type { SliceContext } from "./slice";
+import { MAX_RACERS, type SliceContext } from "./slice";
 
 const single: SliceContext = {
   view: "single",
@@ -309,6 +309,90 @@ describe("mazes slice", () => {
     expect(upright.run.rows).toBeGreaterThan(upright.run.cols);
     expect(upright.seed).toBe(wide.seed);
     expect(slice.fit!(upright, phone)).toBeNull();
+  });
+});
+
+describe("mazes race", () => {
+  const race: SliceContext = { ...single, view: "race" };
+  const racing = (search: string, ctx = race) => {
+    const s = at("/mazes/race", search, ctx);
+    return apply(s, slice.forView!(s, ctx));
+  };
+
+  it("every racer carves the same seed, size and start cell", () => {
+    const s = racing("?size=small&seed=abc");
+    expect(s.raceRuns.map((r) => r.algorithm)).toEqual(s.racers);
+    expect(s.racers).toEqual([...MAZE_ALGORITHMS]);
+    for (const run of s.raceRuns) {
+      expect(run.seed).toBe(s.seed);
+      expect([run.rows, run.cols]).toEqual([s.run.rows, s.run.cols]);
+    }
+    // Kruskal has no start cell; every other racer starts where the single run does.
+    const starts = s.raceRuns.map((r) => r.start).filter((start) => start !== null);
+    expect(starts).toHaveLength(3);
+    expect(new Set(starts)).toEqual(new Set([s.run.start]));
+  });
+
+  it("entering the race carves a large maze again at the capped size, from the same seed", () => {
+    for (const [ctx, cap] of [
+      [race, "medium"],
+      [{ ...phone, view: "race" } as SliceContext, "small"],
+    ] as const) {
+      const big = at("/mazes/wilson", "?size=large&seed=abc", ctx.isMobile ? phone : single);
+      const s = apply(big, slice.forView!(big, ctx));
+      expect(s.size).toBe(cap);
+      expect(s.seed).toBe(big.seed);
+      expect(s.inputId).toBe(big.inputId + 1);
+      expect(s.raceRuns.every((r) => r.rows === s.run.rows && r.cols === s.run.cols)).toBe(true);
+    }
+    // A medium maze already fits, so the same maze races.
+    const medium = at("/mazes/dfs", "?size=medium&seed=abc");
+    const kept = apply(medium, slice.forView!(medium, race));
+    expect([kept.size, kept.inputId, kept.run]).toEqual([medium.size, medium.inputId, medium.run]);
+    // Back in single view, the race runs go.
+    expect(slice.forView!(kept, single).raceRuns).toEqual([]);
+  });
+
+  it("a race link opens capped, and the size picker stays capped in the race", () => {
+    expect(racing("?size=large&seed=abc").size).toBe("medium");
+    const s = racing("?size=small&seed=abc");
+    expect(apply(s, slice.actions.setSize(s, race, "large")).size).toBe("medium");
+  });
+
+  it("race= round-trips through the link, and all four stay out of it", () => {
+    const s = racing("?size=small&seed=abc&race=wilson,dfs");
+    expect(s.racers).toEqual(["dfs", "wilson"]);
+    const search = slice.engine.search(s, race);
+    expect(search).toBe("?size=small&seed=abc&race=dfs%2Cwilson");
+    expect(at("/mazes/race", search, race).racers).toEqual(["dfs", "wilson"]);
+    expect(slice.engine.search(racing("?size=small&seed=abc"), race)).toBe("?size=small&seed=abc");
+    // Too few, or a racer from another module: the default four.
+    expect(racing("?race=dfs").racers).toEqual([...MAZE_ALGORITHMS]);
+    expect(racing("?race=bfs,astar").racers).toEqual([...MAZE_ALGORITHMS]);
+  });
+
+  it("racers can be taken out down to two and added back up to four", () => {
+    let s = racing("?size=small&seed=abc");
+    expect(slice.actions.toggleRacer(s, race, "dfs")?.racers).toEqual(["prim", "kruskal", "wilson"]);
+    s = apply(s, slice.actions.toggleRacer(s, race, "dfs"));
+    s = apply(s, slice.actions.toggleRacer(s, race, "prim"));
+    expect(s.racers).toEqual(["kruskal", "wilson"]);
+    expect(s.raceRuns.map((r) => r.algorithm)).toEqual(["kruskal", "wilson"]);
+    expect(slice.actions.toggleRacer(s, race, "wilson")).toBeNull();
+    s = apply(s, slice.actions.toggleRacer(s, race, "dfs"));
+    s = apply(s, slice.actions.toggleRacer(s, race, "prim"));
+    expect(s.racers).toEqual([...MAZE_ALGORITHMS]);
+    expect(s.raceRuns).toHaveLength(MAX_RACERS);
+    // "Race it" from single view puts the generator back in the race, in the picker's order.
+    s = apply(s, slice.actions.toggleRacer(s, race, "kruskal"));
+    expect(slice.addRacer!(s, "kruskal").racers).toEqual(["dfs", "prim", "kruskal", "wilson"]);
+  });
+
+  it("the race clock runs until the longest carve is done, at one decision per tick for everyone", () => {
+    const s = racing("?size=small&seed=abc");
+    const longest = Math.max(...s.raceRuns.map((r) => r.length - 1));
+    expect(slice.engine.lastIndex(s, "race")).toBe(longest);
+    expect(slice.engine.pace("race")).toBe("mazeRace");
   });
 });
 

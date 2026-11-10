@@ -189,6 +189,9 @@ const mazesText = localized({
       "Watch depth-first search, Prim's, Kruskal's and Wilson's algorithms carve a perfect maze one decision at a time: every carve, backtrack, skipped wall, random walk and dead-end cell.",
     algorithmTitle: (title: string) => `${title} Maze Generation, Visualized Step by Step · Aleph Labs`,
     section: "Mazes",
+    raceTitle: "Maze Generators Side by Side: DFS vs Prim vs Kruskal vs Wilson · Aleph Labs",
+    raceDescription:
+      "Up to four maze generators carve the same seed side by side. Count the dead-end cells to see each maze's texture: long corridors or many short branches.",
   },
   es: {
     moduleTitle: "Visualizador de generación de laberintos paso a paso · Aleph Labs",
@@ -196,6 +199,9 @@ const mazesText = localized({
       "Mira cómo la búsqueda en profundidad y los algoritmos de Prim, Kruskal y Wilson excavan un laberinto perfecto paso a paso: cada pasillo, retroceso, pared omitida, caminata al azar y celda sin salida.",
     algorithmTitle: (title) => `${title}: generación de laberintos paso a paso, visualizada · Aleph Labs`,
     section: "Laberintos",
+    raceTitle: "Generadores de laberintos lado a lado: DFS, Prim, Kruskal y Wilson · Aleph Labs",
+    raceDescription:
+      "Hasta cuatro generadores excavan la misma semilla lado a lado. Cuenta las celdas sin salida para ver la textura: pasillos largos o muchas ramas cortas.",
   },
 });
 
@@ -319,6 +325,7 @@ const seo: { [M in ModuleId]: ModuleSeo<M> } = {
   mazes: {
     section: mazesText.section,
     start: { title: mazesText.moduleTitle, description: mazesText.moduleDescription },
+    race: { title: mazesText.raceTitle, description: mazesText.raceDescription },
     algorithm: (algorithm) => {
       const { title, shortDescription } = mazeAlgorithms[algorithm];
       return { title: mazesText.algorithmTitle(title), description: shortDescription.slice(0, 200), crumb: title };

@@ -112,7 +112,7 @@ export const modulePages = {
       kruskal: "kruskal",
       wilson: "wilson",
     } satisfies Record<MazeAlgorithm, string>,
-    race: false,
+    race: true,
   },
 } as const satisfies Record<ModuleId, Pages>;
 

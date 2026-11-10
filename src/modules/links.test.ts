@@ -60,6 +60,9 @@ const ROUND_TRIPS: Partial<Record<ModuleId, [path: string, query: string][]>> = 
   mazes: [
     ["/mazes/dfs", "?size=large&seed=1lka0qk&speed=2x"],
     ["/mazes/dfs", "?size=small&seed=0"],
+    ["/mazes/wilson", "?size=large&seed=1lka0qk&race=prim%2Cwilson&speed=2x"],
+    // Phones race small mazes.
+    ["/mazes/race", "?size=small&seed=35afkg&race=dfs%2Ckruskal%2Cwilson"],
   ],
 };
 

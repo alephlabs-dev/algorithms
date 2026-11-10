@@ -2,7 +2,7 @@ import { useShallow } from "zustand/react/shallow";
 import { mazeAlgorithms, mazeSizeLabels } from "@/consts/mazeAlgorithms";
 import { hasStartCell, type MazeAlgorithm } from "@/mazes";
 import { localized } from "@/i18n";
-import { gridSizes, type GridSize } from "@/pathfinding";
+import { gridSizes, raceMaxGridSize, type GridSize } from "@/pathfinding";
 import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";
@@ -13,6 +13,7 @@ import { SwatchCross } from "../TourSwatch";
 const text = localized({
   en: {
     size: "Maze size",
+    tooBig: (size: string) => `${size}: too small to follow in a race`,
     legend: "Legend",
     start: "Start",
     wall: "Wall",
@@ -26,6 +27,8 @@ const text = localized({
     wallSkipped: "Wall skipped",
     walk: "Walk",
     lastStep: "Last step",
+    inProgress: "Stack, frontier, region or walk",
+    thisStep: "This step",
     current: "Current",
     deadEnd: "Dead-end cell",
     steps: (n: number) => count(n, "step"),
@@ -33,6 +36,7 @@ const text = localized({
   },
   es: {
     size: "Tamaño del laberinto",
+    tooBig: (size) => `${size}: demasiado pequeño para seguirlo en una carrera`,
     legend: "Leyenda",
     start: "Inicio",
     wall: "Pared",
@@ -46,6 +50,8 @@ const text = localized({
     wallSkipped: "Pared omitida",
     walk: "Caminata",
     lastStep: "Último paso",
+    inProgress: "Pila, frontera, región o caminata",
+    thisStep: "Este paso",
     current: "Actual",
     deadEnd: "Sin salida",
     steps: (n) => count(n, "paso"),
@@ -55,11 +61,23 @@ const text = localized({
 
 /** Small, medium or large: the maze's only setting. */
 export const MazeSizePicker = () => {
-  const { size, setSize } = useStore(useShallow((s) => ({ size: s.mazes.size, setSize: s.actions.mazes.setSize })));
+  const { size, setSize, cap } = useStore(
+    useShallow((s) => ({
+      size: s.mazes.size,
+      setSize: s.actions.mazes.setSize,
+      // Races show four mazes at once, so the biggest sizes are off there.
+      cap: s.view === "race" ? gridSizes.indexOf(raceMaxGridSize(s.isMobile)) : Infinity,
+    })),
+  );
   return (
     <SegmentedControl<GridSize>
       label={text.size}
-      options={gridSizes.map((value) => ({ value, label: mazeSizeLabels[value] }))}
+      options={gridSizes.map((value) => ({
+        value,
+        label: mazeSizeLabels[value],
+        disabled: gridSizes.indexOf(value) > cap,
+        title: gridSizes.indexOf(value) > cap ? text.tooBig(mazeSizeLabels[value]) : undefined,
+      }))}
       value={size}
       onChange={(value) => value !== size && setSize(value)}
     />
@@ -100,19 +118,38 @@ const ownTones: Record<MazeAlgorithm, { className: string; label: string; cross?
   ],
 };
 
-/** What each tone on the grid means, for the generator on stage. */
+/**
+ * In a race, every racer's tones at once. Each generator uses the secondary tone for what it's
+ * working on and the outline for its move, so those read as one entry each.
+ */
+const raceTones = (racers: MazeAlgorithm[]) => [
+  { className: "bg-secondary", label: text.inProgress },
+  { className: "bg-outline", label: text.thisStep },
+  ...(racers.includes("kruskal")
+    ? [
+        { className: "bg-primary", label: text.otherRegion },
+        { className: "bg-conflict", label: text.wallSkipped, cross: true },
+      ]
+    : []),
+];
+
+/** What each tone on the grid means: for the generator on stage, or for every racer. */
 export const MazeLegend = ({ className }: { className?: string }) => {
-  const algorithm = useStore((s) => s.mazes.algorithm);
+  const { algorithm, racers } = useStore(
+    useShallow((s) => ({ algorithm: s.mazes.algorithm, racers: s.view === "race" ? s.mazes.racers : null })),
+  );
+  const tones = racers ? raceTones(racers) : ownTones[algorithm];
+  const starts = racers ? racers.some((a) => hasStartCell[a]) : hasStartCell[algorithm];
   return (
     <ul
       data-tour="legend"
       aria-label={text.legend}
       className={cn("flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-foreground md:text-sm", className)}
     >
-      {hasStartCell[algorithm] && <Swatch className="bg-primary ring-2 ring-background" label={text.start} />}
+      {starts && <Swatch className="bg-primary ring-2 ring-background" label={text.start} />}
       <Swatch className="bg-bar/55" label={text.wall} />
       <Swatch className="bg-edge ring-1 ring-foreground/40" label={text.carved} />
-      {ownTones[algorithm].map((tone) => (
+      {tones.map((tone) => (
         <Swatch key={tone.label} {...tone} />
       ))}
       <Swatch className="bg-tertiary" label={text.deadEnd} />
