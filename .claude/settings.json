@@ -6,7 +6,11 @@
       "Bash(git push origin main*)",
       "Bash(git commit --no-verify*)",
       "Read(./.env)",
-      "Read(./.env.*)"
+      "Read(./.env.*)",
+      "Bash(git checkout -- .*)",
+      "Bash(git restore .*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean -f*)"
     ]
   },
   "hooks": {
