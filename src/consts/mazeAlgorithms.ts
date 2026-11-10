@@ -19,7 +19,7 @@ type MazeAlgorithmText = {
 
 type MazeAlgorithmDetails = MazeAlgorithmText & { named: string; timeComplexity: string };
 
-const timeComplexity: Record<MazeAlgorithm, string> = { dfs: "O(n)", prim: "O(n)" };
+const timeComplexity: Record<MazeAlgorithm, string> = { dfs: "O(n)", prim: "O(n)", kruskal: "O(n α(n))" };
 
 const text = localized<Record<MazeAlgorithm, MazeAlgorithmText>>({
   en: {
@@ -44,6 +44,17 @@ const text = localized<Record<MazeAlgorithm, MazeAlgorithmText>>({
       structure: "Frontier (a random pick)",
       texture: "Short branches, many dead-end cells",
     },
+    kruskal: {
+      title: "Randomized Kruskal's Algorithm",
+      named: "randomized Kruskal's algorithm",
+      short: "Kruskal",
+      shortDescription:
+        "Starts with every cell as its own region and tests the walls in a random order: a wall between two regions is carved and they merge, a wall inside one is skipped. Many dead-end cells, all over at once.",
+      longDescription:
+        "Randomized Kruskal's algorithm is Kruskal's minimum spanning tree algorithm with the walls shuffled in place of sorting them by weight. It starts with every cell carved but walled off, each one a region of its own, and goes through the walls between cells in that random order. If the two cells on either side of a wall are in different regions, it carves the wall and the two regions merge into one. If they're already in the same region, there's a route between them, so carving the wall would close a loop: it skips the wall. Once every cell is in one region, there's exactly one route between any two cells, so the maze is perfect, and it stops without testing the walls left over, since every one of them would be skipped. Because the walls come in random order, the maze grows in little patches all over the grid that link up as they meet, with no start and no direction, and leaves many dead-end cells. It carves n − 1 walls for n cells, and tests up to the roughly 2n walls there are. The regions are kept in a union-find structure, which answers “same region?” and merges two regions in nearly constant time: O(n α(n)) in all, where α grows so slowly it stays under 5 for any maze that fits on a screen. The regions need O(n) space.",
+      structure: "Union-find (disjoint sets)",
+      texture: "Many dead-end cells, no direction",
+    },
   },
   es: {
     dfs: {
@@ -67,6 +78,17 @@ const text = localized<Record<MazeAlgorithm, MazeAlgorithmText>>({
         "El algoritmo de Prim aleatorio es el algoritmo de Prim para el árbol generador mínimo con decisiones al azar en lugar de pesos. Excava una celda inicial al azar y pone sus vecinas en la frontera: las celdas que aún no están excavadas pero tocan el laberinto. En cada paso elige una celda de la frontera al azar, derriba la pared entre ella y una de sus vecinas excavadas (también al azar si hay varias) y agrega a la frontera las vecinas sin excavar de esa celda. Cuando la frontera queda vacía, cada celda se unió al laberinto por una sola pared, así que el laberinto es perfecto. Como la elección puede caer en cualquier punto del borde del laberinto, crece desde el inicio en todas direcciones a la vez, como una mancha, y deja pasillos cortos y ramificados con muchas celdas sin salida. Da un paso por celda, n pasos para n celdas. Sacar una celda de la frontera intercambiándola con la última cuesta O(1), así que tarda O(n), y la frontera puede llegar a guardar O(n) celdas.",
       structure: "Frontera (una elección al azar)",
       texture: "Ramas cortas, muchas celdas sin salida",
+    },
+    kruskal: {
+      title: "Algoritmo de Kruskal aleatorio",
+      named: "el algoritmo de Kruskal aleatorio",
+      short: "Kruskal",
+      shortDescription:
+        "Empieza con cada celda como una región propia y prueba las paredes en orden aleatorio: una pared entre dos regiones se excava y las une, una pared dentro de una se omite. Muchas celdas sin salida, por todas partes a la vez.",
+      longDescription:
+        "El algoritmo de Kruskal aleatorio es el algoritmo de Kruskal para el árbol generador mínimo con las paredes mezcladas en lugar de ordenadas por peso. Empieza con todas las celdas excavadas pero aisladas, cada una en su propia región. Luego recorre las paredes entre celdas en ese orden al azar. Si las dos celdas a los lados de una pared están en regiones distintas, excava la pared y las dos regiones se unen en una. Si ya están en la misma región, ya hay un camino entre ellas, así que excavar la pared cerraría un ciclo: la omite. Cuando todas las celdas están en una sola región, hay exactamente un camino entre dos celdas cualesquiera, así que el laberinto es perfecto, y se detiene sin probar las paredes que quedan, porque todas se omitirían. Como las paredes llegan en orden aleatorio, el laberinto crece en pequeños parches por toda la cuadrícula que se unen al encontrarse, sin inicio ni dirección, y deja muchas celdas sin salida. Excava n − 1 paredes para n celdas y prueba como mucho las cerca de 2n paredes que hay. Las regiones se guardan en una estructura union-find, que responde «¿misma región?» y une dos regiones en tiempo casi constante: O(n α(n)) en total, donde α crece tan despacio que no llega a 5 en ningún laberinto que entre en una pantalla. Las regiones ocupan O(n) de espacio.",
+      structure: "Union-find (conjuntos disjuntos)",
+      texture: "Muchas celdas sin salida, sin dirección",
     },
   },
 });

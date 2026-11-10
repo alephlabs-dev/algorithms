@@ -24,8 +24,17 @@ const withRun = (s: MazesState, ctx: SliceContext, change: Partial<Pick<MazesSta
   return { ...change, run: runFor(s.algorithm, size, seed, ctx), inputId: s.inputId + 1 };
 };
 
-/** Backtracks retreat quickly, so the carving reads as the beat. */
-const STEP_WEIGHT: Record<MazeStep["type"], number> = { start: 1, carve: 1, backtrack: 0.5, pick: 1, done: 1 };
+/** Backtracks retreat quickly, so the carving reads as the beat. Kruskal's skips stay a full beat, so they're noticed. */
+const STEP_WEIGHT: Record<MazeStep["type"], number> = {
+  start: 1,
+  carve: 1,
+  backtrack: 0.5,
+  pick: 1,
+  regions: 1,
+  join: 1,
+  skip: 1,
+  done: 1,
+};
 
 export const mazesSlice = defineModule<MazesState, MazeAlgorithm, MazesLink>()({
   tourKey: "tour-done-mazes",

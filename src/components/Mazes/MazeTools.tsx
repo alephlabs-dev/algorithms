@@ -1,6 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
 import { mazeAlgorithms, mazeSizeLabels } from "@/consts/mazeAlgorithms";
-import type { MazeAlgorithm } from "@/mazes";
+import { hasStartCell, type MazeAlgorithm } from "@/mazes";
 import { localized } from "@/i18n";
 import { gridSizes, type GridSize } from "@/pathfinding";
 import { useStore } from "@/store";
@@ -8,6 +8,7 @@ import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";
 import { FactLine } from "../ui/fact-line";
 import { SegmentedControl } from "../ui/segmented";
+import { SwatchCross } from "../TourSwatch";
 
 const text = localized({
   en: {
@@ -19,6 +20,10 @@ const text = localized({
     stack: "On the stack",
     frontier: "Frontier",
     picked: "Picked",
+    region: "Region",
+    otherRegion: "Other region",
+    wallCarved: "Wall carved",
+    wallSkipped: "Wall skipped",
     current: "Current",
     deadEnd: "Dead-end cell",
     steps: (n: number) => count(n, "step"),
@@ -33,6 +38,10 @@ const text = localized({
     stack: "En la pila",
     frontier: "Frontera",
     picked: "Elegida",
+    region: "Región",
+    otherRegion: "Otra región",
+    wallCarved: "Pared excavada",
+    wallSkipped: "Pared omitida",
     current: "Actual",
     deadEnd: "Sin salida",
     steps: (n) => count(n, "paso"),
@@ -53,15 +62,20 @@ export const MazeSizePicker = () => {
   );
 };
 
-const Swatch = ({ className, label }: { className: string; label: string }) => (
+const Swatch = ({ className, label, cross }: { className: string; label: string; cross?: boolean }) => (
   <li className="flex items-center gap-2">
-    <span aria-hidden className={cn("h-2.5 w-2.5 shrink-0 rounded-full", className)} />
+    <span
+      aria-hidden
+      className={cn("shrink-0", cross ? "h-3 w-3 rounded-[3px]" : "h-2.5 w-2.5 rounded-full", className)}
+    >
+      {cross && <SwatchCross />}
+    </span>
     {label}
   </li>
 );
 
 /** The tones only one generator shows, between the shared ones (start, wall, carved) and the dead ends. */
-const ownTones: Record<MazeAlgorithm, { className: string; label: string }[]> = {
+const ownTones: Record<MazeAlgorithm, { className: string; label: string; cross?: boolean }[]> = {
   dfs: [
     { className: "bg-secondary", label: text.stack },
     { className: "bg-secondary ring-2 ring-outline", label: text.current },
@@ -69,6 +83,12 @@ const ownTones: Record<MazeAlgorithm, { className: string; label: string }[]> = 
   prim: [
     { className: "bg-secondary", label: text.frontier },
     { className: "bg-outline", label: text.picked },
+  ],
+  kruskal: [
+    { className: "bg-secondary", label: text.region },
+    { className: "bg-primary", label: text.otherRegion },
+    { className: "bg-outline", label: text.wallCarved },
+    { className: "bg-conflict", label: text.wallSkipped, cross: true },
   ],
 };
 
@@ -81,7 +101,7 @@ export const MazeLegend = ({ className }: { className?: string }) => {
       aria-label={text.legend}
       className={cn("flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-foreground md:text-sm", className)}
     >
-      <Swatch className="bg-primary ring-2 ring-background" label={text.start} />
+      {hasStartCell[algorithm] && <Swatch className="bg-primary ring-2 ring-background" label={text.start} />}
       <Swatch className="bg-bar/55" label={text.wall} />
       <Swatch className="bg-edge ring-1 ring-foreground/40" label={text.carved} />
       {ownTones[algorithm].map((tone) => (
