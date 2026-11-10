@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pseudocode, sortAlgorithms } from "./sorts";
+import { pseudocode, sortAlgorithms } from "./generators";
 import { Timeline } from "./timeline";
 import { narrate } from "./narrate";
 

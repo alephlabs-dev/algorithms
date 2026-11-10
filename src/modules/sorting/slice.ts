@@ -1,5 +1,5 @@
 import type { View } from "@/appStore";
-import { SORT_ALGORITHMS, sortAlgorithms } from "./sorts";
+import { SORT_ALGORITHMS, sortAlgorithms } from "./generators";
 import { Timeline } from "./timeline";
 import { sizes, sizesFor } from "./sizesMap";
 import { questionsOf } from "@/game";

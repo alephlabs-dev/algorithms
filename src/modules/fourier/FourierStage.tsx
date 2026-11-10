@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { FourierRenderer } from "./fourierRenderer";
+import { FourierRenderer } from "./renderer";
 import { fourierSeries } from "./algorithms";
 import type { Point } from "./types";
 import { useElementSize } from "@/hooks/useElementSize";

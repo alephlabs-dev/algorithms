@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { generateUniqueRandomItems } from "./generateItems";
 import { Timeline, range } from "./timeline";
-import { pseudocode, sortAlgorithms } from "./sorts";
+import { pseudocode, sortAlgorithms } from "./generators";
 import type { Algorithm, Frame } from "./types";
 
 const ascending = (arr: readonly number[]) => [...arr].sort((a, b) => a - b);

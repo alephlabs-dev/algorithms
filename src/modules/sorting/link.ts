@@ -1,4 +1,4 @@
-import { SORT_ALGORITHMS } from "./sorts";
+import { SORT_ALGORITHMS } from "./generators";
 import { displayModes } from "./displayModes";
 import { inputOrders } from "./inputOrders";
 import { sizes } from "./sizesMap";

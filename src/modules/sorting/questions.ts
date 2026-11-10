@@ -1,9 +1,9 @@
 import type { Question } from "@/game";
 import { choicesAround, verdict } from "@/game/choices";
-import { heapQuestions, mergeQuestions } from "./sortMergeHeap";
-import { quickQuestions, shellQuestions } from "./sortPartitions";
-import { bubbleQuestions, cocktailQuestions, selectionQuestions } from "./sortPasses";
-import { radixQuestions } from "./sortRadix";
+import { heapQuestions, mergeQuestions } from "./mergeHeapQuestions";
+import { quickQuestions, shellQuestions } from "./partitionQuestions";
+import { bubbleQuestions, cocktailQuestions, selectionQuestions } from "./passQuestions";
+import { radixQuestions } from "./radixQuestions";
 import { localized } from "@/i18n";
 import type { Algorithm } from "./types";
 import type { Timeline } from "./timeline";

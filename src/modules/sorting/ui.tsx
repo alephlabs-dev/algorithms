@@ -1,4 +1,4 @@
-import { pseudocode } from "./sorts";
+import { pseudocode } from "./generators";
 import { AlgorithmVisualizer } from "./AlgorithmVisualizer";
 import { Complexity } from "./Complexity";
 import { RaceLanes } from "./RaceLanes";

@@ -2,7 +2,7 @@
 // Not used by the app: e2e/step-sentences-fit.spec.ts loads it once per language and measures each
 // sentence in the real caption (#113). Builds each run the way src/store.ts does.
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the Sorting sentence runs move into its slice.
-import { pseudocode, SORT_ALGORITHMS, sortAlgorithms } from '@/modules/sorting/sorts';
+import { pseudocode, SORT_ALGORITHMS, sortAlgorithms } from '@/modules/sorting/generators';
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the Sorting sentence runs move into its slice.
 import { Timeline } from '@/modules/sorting/timeline';
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the Backtracking sentence runs move into its slice.

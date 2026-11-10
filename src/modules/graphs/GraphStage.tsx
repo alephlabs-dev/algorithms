@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { GraphRenderer } from "./graphRenderer";
+import { GraphRenderer } from "./renderer";
 import { graphAlgorithms } from "./algorithms";
 import { useElementSize } from "@/hooks/useElementSize";
 import { edgeName, nodeName, withEdgeToggled, withNodeAt, withStart } from "./graph";

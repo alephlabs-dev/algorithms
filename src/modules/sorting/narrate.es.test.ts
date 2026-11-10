@@ -3,14 +3,14 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 // The language is fixed when the modules load, so load them again as a Spanish page would.
 describe("narrate in Spanish", () => {
   let narrate: typeof import("./narrate").narrate;
-  let algorithms: typeof import("./sorts");
+  let algorithms: typeof import("./generators");
   let Timeline: typeof import("./timeline").Timeline;
 
   beforeAll(async () => {
     vi.stubGlobal("__LANG__", "es");
     vi.resetModules();
     ({ narrate } = await import("./narrate"));
-    algorithms = await import("./sorts");
+    algorithms = await import("./generators");
     ({ Timeline } = await import("./timeline"));
   });
 

@@ -5,7 +5,7 @@ import type { PathTimeline } from "./timeline";
 import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";
-import { describeFrame } from "./describePathFrame";
+import { describeFrame } from "./describeFrame";
 import { ordinal } from "@/utils/ordinal";
 import { GridCanvas } from "./PathStage";
 import { PlaceBadge, ResultsOverlay } from "@/components/Race/RaceParts";

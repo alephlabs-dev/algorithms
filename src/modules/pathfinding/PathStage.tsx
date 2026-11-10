@@ -10,7 +10,7 @@ import { FEEDBACK_MS, isCellQuestion, type CellQuestion } from "@/game";
 import { selectGameQuestion, selectLastIndex, selectPathFrame, useStore } from "@/store";
 import { engines, selectSpeed } from "@/modules/engine";
 import { count } from "@/utils/count";
-import { describeFrame } from "./describePathFrame";
+import { describeFrame } from "./describeFrame";
 import { moveDuration } from "@/utils/speed";
 import { cn } from "@/utils/cn";
 import { localized } from "@/i18n";

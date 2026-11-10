@@ -1,5 +1,5 @@
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): sorting's legacy links move with its pages into its manifest.
-import { SORT_ALGORITHMS } from "./modules/sorting/sorts";
+import { SORT_ALGORITHMS } from "./modules/sorting/generators";
 import type { View } from "./appStore";
 import { isOneOf, type LinkCodec } from "./modules/link";
 import { slices, type ModuleId, type SliceLink } from "./modules/engine";

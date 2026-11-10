@@ -38,7 +38,7 @@ Mazes was the first one (#186); the others followed it (#189). A module's folder
 | `MazeStage.tsx`, `MazeTools.tsx`, … | Its components |
 
 Other modules add what they need beside these: their own canvas renderer when no shared one fits
-(`barsRenderer.ts`, `dpRenderer.ts`, …), and their Guess-mode questions in `questions.ts` and `questions.test.ts`.
+(`barsRenderer.ts`, `treeRenderer.ts`, …), and their Guess-mode questions in `questions.ts` and `questions.test.ts`.
 
 Shared helpers stay shared: the grid renderer, the theme and the other canvas helpers in `src/canvas/`, UI parts in
 `src/components/`, Guess mode's question types and helpers in `src/game/`, utilities in `src/utils/`.

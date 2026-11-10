@@ -1,6 +1,6 @@
 import type { ComponentType, ReactNode } from "react";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Sorting articles move into its interface.
-import { pseudocode } from "@/modules/sorting/sorts";
+import { pseudocode } from "@/modules/sorting/generators";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the DP articles move into its interface.
 import { dpProblems } from "@/modules/dp/algorithms";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the DP articles move into its interface.

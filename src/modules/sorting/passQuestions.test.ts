@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sortAlgorithms } from "./sorts";
+import { sortAlgorithms } from "./generators";
 import { Timeline } from "./timeline";
 import type { InputOrder } from "./types";
 import { generateItems } from "./generateItems";

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
-import { sortAlgorithms } from "@/modules/sorting/sorts";
+import { sortAlgorithms } from "@/modules/sorting/generators";
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
 import { Timeline } from "@/modules/sorting/timeline";
 import { createAppStore, type StoreState, type View } from "@/appStore";

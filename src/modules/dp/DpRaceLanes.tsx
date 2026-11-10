@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { DpWorkRenderer } from "./dpWorkRenderer";
+import { DpWorkRenderer } from "./workRenderer";
 import { dpMethods } from "./algorithms";
 import type { KnapsackWork } from "./work";
 import { useElementSize } from "@/hooks/useElementSize";

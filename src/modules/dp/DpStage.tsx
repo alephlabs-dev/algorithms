@@ -1,7 +1,7 @@
 import { MinusIcon, PlusIcon, ShuffleIcon, WidthIcon } from "@radix-ui/react-icons";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { DpRenderer } from "./dpRenderer";
+import { DpRenderer } from "./renderer";
 import { dpProblems } from "./algorithms";
 import { cleanWord, randomItems } from "./presets";
 import { MAX_CAPACITY, MAX_ITEMS, MAX_WORD } from "./types";
