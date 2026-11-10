@@ -10,8 +10,11 @@
       "Bash(git checkout -- .*)",
       "Bash(git restore .*)",
       "Bash(git reset --hard*)",
-      "Bash(git clean -f*)"
-    ]
+      "Bash(git clean -f*)",
+      "Bash(git push origin main:*)",
+      "Bash(git push --force:*)"
+    ],
+    "allow": ["Bash(git push -u origin:*)", "Bash(gh pr create:*)", "Bash(gh issue comment:*)"]
   },
   "hooks": {
     "PostToolUse": [
