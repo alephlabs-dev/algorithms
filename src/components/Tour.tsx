@@ -101,6 +101,10 @@ const TourDialog = ({ steps }: { steps: TourStep[] }) => {
   const next = () => (isLast ? closeTour() : setIndex(index + 1));
   const back = () => setIndex(Math.max(0, index - 1));
 
+  useEffect(() => {
+    step.prepare?.();
+  }, [step]);
+
   // Keep keyboard focus in the bubble, on the main action.
   useEffect(() => {
     nextRef.current?.focus({ preventScroll: true });

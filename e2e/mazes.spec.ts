@@ -71,3 +71,14 @@ test('mazes in Spanish carve and explain each step in Spanish', async ({ page })
   await expect(page).toHaveURL(/\/es\/mazes\?size=small&seed=[0-9a-z]+/);
   expect(errors).toEqual([]);
 });
+
+test('the mazes tour carves a third of the maze before it explains the colors', async ({ page }) => {
+  await gotoApp(page, '/mazes?size=small&seed=abc');
+  await expect(page.getByRole('dialog', { name: 'The grid' })).toBeVisible();
+  await expect(stats(page)).toHaveText(/^0 steps$/);
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await page.getByRole('button', { name: 'Next', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'What the colors mean' })).toBeVisible();
+  // Stack cells on the grid, so the step has something to point at.
+  await expect(stats(page)).not.toHaveText(/^0 steps$/);
+});

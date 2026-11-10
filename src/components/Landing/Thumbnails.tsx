@@ -343,8 +343,9 @@ export const QueensThumb = ({ className }: { className?: string }) => {
 };
 
 // Randomized depth-first search partway through a maze: its stack still out, the rest carved.
-const MAZE_ROWS = 9;
-const MAZE_COLS = 21;
+// Square, like the other thumbnails beside it.
+const MAZE_ROWS = 13;
+const MAZE_COLS = 13;
 const maze = (() => {
   const run = new MazeRun("dfs", { rows: MAZE_ROWS, cols: MAZE_COLS }, 11);
   // DFS carves one cell per carve step, after the start: the first frame with half of them carved.
@@ -365,7 +366,7 @@ const mazeColor = (cell: number) => {
 export const MazeThumb = ({ className }: { className?: string }) => (
   <div
     aria-hidden
-    className={cn("grid gap-[2px]", className)}
+    className={cn("mx-auto grid aspect-square gap-px", className)}
     style={{ gridTemplateColumns: `repeat(${MAZE_COLS}, minmax(0, 1fr))` }}
   >
     {Array.from({ length: MAZE_ROWS * MAZE_COLS }, (_, cell) => (

@@ -1,6 +1,6 @@
 import { localized } from "@/i18n";
 import { MUD_COST } from "@/pathfinding";
-import type { Theme } from "@/store";
+import { useStore, type Theme } from "@/store";
 import { Swatch } from "@/components/TourSwatch";
 import { sortGuessSizes } from "./sorting.slice";
 import type { TourStep } from "./types";
@@ -690,6 +690,12 @@ export const backtrackingTour = localized<TourStep[]>({
   ],
 });
 
+/** The colors only show once carving is under way: a run still at its first frame moves a third in. */
+const carveAThird = () => {
+  const { frameIndex, mazes, seek } = useStore.getState();
+  if (frameIndex === 0) seek(Math.floor(mazes.run.length / 3));
+};
+
 // Dead-end cells are the tertiary color; mazes are the only tour that names it.
 const deadEndColor = localized<Record<Theme, string>>({
   en: { dark: "Yellow", light: "Blue" },
@@ -716,6 +722,7 @@ export const mazesTour = localized<TourStep[]>({
     {
       anchor: "legend",
       phoneAnchor: "bars",
+      prepare: carveAThird,
       title: "What the colors mean",
       text: ({ theme }) => (
         <>
@@ -775,6 +782,7 @@ export const mazesTour = localized<TourStep[]>({
     {
       anchor: "legend",
       phoneAnchor: "bars",
+      prepare: carveAThird,
       title: "Qué significa cada color",
       text: ({ theme }) => (
         <>

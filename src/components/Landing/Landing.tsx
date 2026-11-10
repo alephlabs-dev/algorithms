@@ -82,7 +82,7 @@ const thumbs: Record<string, ReactNode> = {
   structures: <StructureThumb className="h-20 w-full" />,
   dp: <DpThumb className="h-24 w-full" />,
   backtracking: <QueensThumb className="h-24 w-full" />,
-  mazes: <MazeThumb className="w-full" />,
+  mazes: <MazeThumb className="h-24" />,
 };
 
 /**

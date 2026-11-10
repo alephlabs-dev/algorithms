@@ -18,6 +18,8 @@ export type TourStep = {
   phoneAnchor?: string;
   title: string;
   text: (context: { theme: Theme; wide: boolean; phone: boolean }) => ReactNode;
+  /** Brings the stage to a state the step can point at (a run partway through), when it shows. */
+  prepare?: () => void;
 };
 
 type WithClass = { className?: string };
