@@ -6,6 +6,7 @@ import { QueensRun, MAX_QUEENS, MIN_QUEENS, SUDOKU_PUZZLES, SudokuRun, type Fill
 import { DpRun, EXAMPLE_CAPACITY, EXAMPLE_ITEMS, KnapsackRun, MAX_CAPACITY, MAX_ITEMS, MAX_WORD, RACE_CAPACITY, RACE_ITEMS, randomItems, wordPairs } from '@/dp';
 import { circleOptions, FOURIER_SHAPES, FourierRun } from '@/fourier';
 import { GRAPH_ALGORITHMS, graphPresets, graphSizes, graphTimelineFor, makeGraph } from '@/graphs';
+import { MAZE_ALGORITHMS, MazeRun } from '@/mazes';
 import { applyPreset, emptyGrid, gridDimensions, PATH_ALGORITHMS, pathSearches, PathTimeline, type GridSize, type Preset } from '@/pathfinding';
 import { presetOperations, recordStructure, STRUCTURE_ALGORITHMS, type Operation, type StructurePreset, type StructureSize } from '@/structures';
 import type { InputOrder } from '@/types';
@@ -15,6 +16,7 @@ import { narrateBacktracking, narrateSudoku } from '@/utils/narrateBacktracking'
 import { narrateDp } from '@/utils/narrateDp';
 import { narrateFourier } from '@/utils/narrateFourier';
 import { narrateGraph } from '@/utils/narrateGraph';
+import { narrateMaze } from '@/utils/narrateMaze';
 import { narratePath } from '@/utils/narratePath';
 import { narrateTree } from '@/utils/narrateTree';
 import { seededRandom } from '@/utils/random';
@@ -161,10 +163,22 @@ const fourierRuns = function* () {
     for (let i = 0; i < fourier.length; i++) yield { run, sentence: narrateFourier(fourier, i) };
 };
 
+const mazeRuns = function* () {
+  const sizes: GridSize[] = ['small', 'medium', 'large'];
+  for (const algorithm of MAZE_ALGORITHMS)
+    for (const size of sizes)
+      for (const seed of SEEDS)
+        for (const layout of LAYOUTS) {
+          const maze = new MazeRun(algorithm, gridDimensions(size, layout.narrow), seed);
+          const run = `mazes ${algorithm} ${size} ${layout.name} seed ${seed}`;
+          for (let i = 0; i < maze.length; i++) yield { run, sentence: narrateMaze(maze, i) };
+        }
+};
+
 /** Each distinct sentence once, with the first run that says it. */
 export const stepSentences = (): StepSentence[] => {
   const seen = new Map<string, string>();
-  const all = [sortingRuns, pathfindingRuns, graphRuns, dpRuns, structureRuns, backtrackingRuns, fourierRuns];
+  const all = [sortingRuns, pathfindingRuns, graphRuns, dpRuns, structureRuns, backtrackingRuns, fourierRuns, mazeRuns];
   for (const runs of all)
     for (const { run, sentence } of runs()) if (!seen.has(sentence)) seen.set(sentence, run);
   return [...seen].map(([sentence, run]) => ({ sentence, run }));

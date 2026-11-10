@@ -6,6 +6,7 @@ import { dpUI } from "./dp";
 import { fourierUI } from "./fourier";
 import { structuresUI } from "./structures";
 import { graphsUI } from "./graphs";
+import { mazesUI } from "./mazes";
 import { pathfindingUI } from "./pathfinding";
 import { sortingUI } from "./sorting";
 import type { ModuleUI } from "./types";
@@ -19,6 +20,7 @@ export const moduleUIs: Record<ModuleId, ModuleUI> = {
   structures: structuresUI,
   dp: dpUI,
   backtracking: backtrackingUI,
+  mazes: mazesUI,
 };
 
 /** The interface of the module on stage. */

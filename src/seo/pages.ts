@@ -3,6 +3,7 @@ import { dpProblems } from "@/consts/dp";
 import { fourierSeries } from "@/consts/fourierSeries";
 import { structures } from "@/consts/structures";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
+import { mazeAlgorithms } from "@/consts/mazeAlgorithms";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { RACE_DESCRIPTION } from "@/consts/race";
@@ -181,6 +182,23 @@ const backtrackingText = localized({
   },
 });
 
+const mazesText = localized({
+  en: {
+    moduleTitle: "Maze Generation Visualizer: a Maze Carved Step by Step · Aleph Labs",
+    moduleDescription:
+      "Watch randomized depth-first search carve a perfect maze one decision at a time: every carve, every backtrack and every dead-end cell, with the pseudocode lit up.",
+    algorithmTitle: (title: string) => `${title} Maze Generation, Visualized Step by Step · Aleph Labs`,
+    section: "Mazes",
+  },
+  es: {
+    moduleTitle: "Visualizador de generación de laberintos paso a paso · Aleph Labs",
+    moduleDescription:
+      "Mira cómo la búsqueda en profundidad aleatoria excava un laberinto perfecto decisión por decisión: cada pasillo, cada retroceso y cada celda sin salida, con el pseudocódigo resaltado.",
+    algorithmTitle: (title) => `${title}: generación de laberintos paso a paso, visualizada · Aleph Labs`,
+    section: "Laberintos",
+  },
+});
+
 const homeText = localized({
   en: {
     title: "Algorithm Visualizer: Sorting, Graphs, Data Structures, DP and More · Aleph Labs",
@@ -296,6 +314,14 @@ const seo: { [M in ModuleId]: ModuleSeo<M> } = {
     algorithm: (algorithm) => {
       const { title, shortDescription } = backtrackingProblems[algorithm];
       return { title: backtrackingText.problemTitle(title), description: shortDescription.slice(0, 200), crumb: title };
+    },
+  },
+  mazes: {
+    section: mazesText.section,
+    start: { title: mazesText.moduleTitle, description: mazesText.moduleDescription },
+    algorithm: (algorithm) => {
+      const { title, shortDescription } = mazeAlgorithms[algorithm];
+      return { title: mazesText.algorithmTitle(title), description: shortDescription.slice(0, 200), crumb: title };
     },
   },
 };

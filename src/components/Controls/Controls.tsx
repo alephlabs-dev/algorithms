@@ -98,6 +98,7 @@ export const Controls = ({ className }: { className?: string }) => {
   const newArray = (
     <Button
       size="icon"
+      data-tour="new"
       className="shrink-0"
       onClick={createNewArray}
       aria-label={newRunLabel}

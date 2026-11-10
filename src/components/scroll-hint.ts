@@ -2,6 +2,7 @@ import { backtrackingProblems } from "@/consts/backtracking";
 import { dpProblems } from "@/consts/dp";
 import { fourierSeries } from "@/consts/fourierSeries";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
+import { mazeAlgorithms } from "@/consts/mazeAlgorithms";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";
 import { sortingAlgorithms } from "@/consts/sortingAlgorithms";
 import { structures } from "@/consts/structures";
@@ -17,6 +18,7 @@ const text = localized({
     structures: "About these data structures",
     dp: "About dynamic programming",
     backtracking: "About backtracking",
+    mazes: "About maze generation",
     dpRace: "What memoizing saves",
     dpHowItWorks: (title: string) => `How ${title.toLowerCase()} works`,
     structure: (title: string) => `How the ${title} works`,
@@ -33,6 +35,7 @@ const text = localized({
     structures: "Sobre estas estructuras de datos",
     dp: "Sobre la programación dinámica",
     backtracking: "Sobre el backtracking",
+    mazes: "Sobre la generación de laberintos",
     dpRace: "Lo que ahorra memorizar",
     dpHowItWorks: (named) => `Cómo funciona ${named}`,
     structure: (named) => `Cómo funciona ${named}`,
@@ -75,6 +78,7 @@ const HINTS: { [M in ModuleId]: Hints<M> } = {
   },
   dp: { start: text.dp, algorithm: (algorithm) => text.dpHowItWorks(dpProblems[algorithm].named), race: text.dpRace },
   backtracking: { start: text.backtracking, algorithm: (algorithm) => backtrackingProblems[algorithm].howItWorks },
+  mazes: { start: text.mazes, algorithm: (algorithm) => text.algorithm(mazeAlgorithms[algorithm].named) },
 };
 
 /** The modules with hints, from the table. */

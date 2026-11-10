@@ -57,6 +57,10 @@ const ROUND_TRIPS: Partial<Record<ModuleId, [path: string, query: string][]>> = 
     // Row by row is the default and stays out of the link.
     ["/backtracking/sudoku", "?puzzle=hard"],
   ],
+  mazes: [
+    ["/mazes/dfs", "?size=large&seed=1lka0qk&speed=2x"],
+    ["/mazes/dfs", "?size=small&seed=0"],
+  ],
 };
 
 describe.each(MODULES)("%s link", (module) => {
@@ -155,5 +159,13 @@ describe("backtracking link", () => {
       sudokuPuzzle: d.sudokuPuzzle,
       sudokuOrder: "rows",
     });
+  });
+});
+
+describe("mazes link", () => {
+  it("falls back to the defaults on values it doesn't have, with a fresh seed", () => {
+    const s = open("/mazes/dfs", "?size=huge&seed=***");
+    expect(s.mazes.size).toBe(defaults("/mazes/dfs").mazes.size);
+    expect(searchFor(s)).toMatch(/^\?size=small&seed=[0-9a-z]+$/);
   });
 });

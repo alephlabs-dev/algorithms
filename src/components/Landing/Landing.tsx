@@ -6,7 +6,7 @@ import { HOME, type Route } from "@/routes";
 import { cn } from "@/utils/cn";
 import { PageLink } from "../PageLink";
 import { HeroDemo } from "./HeroDemo";
-import { DpThumb, FourierThumb, GraphThumb, PathThumb, QueensThumb, SortingThumb, StructureThumb } from "./Thumbnails";
+import { DpThumb, FourierThumb, GraphThumb, MazeThumb, PathThumb, QueensThumb, SortingThumb, StructureThumb } from "./Thumbnails";
 import { AlephMark } from "../ui/aleph-mark";
 
 type Props = {
@@ -82,6 +82,7 @@ const thumbs: Record<string, ReactNode> = {
   structures: <StructureThumb className="h-20 w-full" />,
   dp: <DpThumb className="h-24 w-full" />,
   backtracking: <QueensThumb className="h-24 w-full" />,
+  mazes: <MazeThumb className="h-24" />,
 };
 
 /**

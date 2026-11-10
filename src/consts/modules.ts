@@ -4,6 +4,7 @@ import type { Route } from "@/routes";
 import { fourierSeries } from "./fourierSeries";
 import { structures } from "./structures";
 import { graphAlgorithms } from "./graphAlgorithms";
+import { MAZE_ALGORITHMS } from "@/mazes";
 import { pathAlgorithms } from "./pathAlgorithms";
 import { sortingAlgorithms } from "./sortingAlgorithms";
 import { localized } from "@/i18n";
@@ -17,7 +18,8 @@ const text = localized({
     structures: "Data structures",
     dp: "Dynamic programming",
     backtracking: "Backtracking",
-    algorithms: (n: number) => `${n} algorithms`,
+    mazes: "Mazes",
+    algorithms: (n: number) => (n === 1 ? "1 algorithm" : `${n} algorithms`),
     searches: (n: number) => `${n} searches`,
     series: (n: number) => `${n} series`,
     structureCount: (n: number) => `${n} structures`,
@@ -30,6 +32,7 @@ const text = localized({
       structures: "Search trees, AVL rotations, a min-heap and hash tables you insert into, search and delete from.",
       dp: "Edit distance, the longest common subsequence and the knapsack, one table cell at a time, and a race against plain recursion.",
       backtracking: "N queens on a chessboard and a Sudoku, filled one choice at a time: every conflict, every dead end and every choice taken back.",
+      mazes: "A perfect maze carved one decision at a time by randomized depth-first search: every carve, every backtrack and every dead-end cell.",
     },
   },
   es: {
@@ -40,7 +43,8 @@ const text = localized({
     structures: "Estructuras de datos",
     dp: "Programación dinámica",
     backtracking: "Backtracking",
-    algorithms: (n) => `${n} algoritmos`,
+    mazes: "Laberintos",
+    algorithms: (n) => (n === 1 ? "1 algoritmo" : `${n} algoritmos`),
     searches: (n) => `${n} búsquedas`,
     series: (n) => `${n} series`,
     structureCount: (n) => `${n} estructuras`,
@@ -53,6 +57,7 @@ const text = localized({
       structures: "Árboles de búsqueda, rotaciones AVL, un montículo mínimo y tablas hash donde insertas, buscas y borras.",
       dp: "Distancia de edición, la subsecuencia común más larga y la mochila, celda por celda, y una carrera contra la recursión simple.",
       backtracking: "N reinas en un tablero de ajedrez y un sudoku, elección por elección: cada conflicto, cada callejón sin salida y cada elección que se deshace.",
+      mazes: "Un laberinto perfecto excavado decisión por decisión con la búsqueda en profundidad aleatoria: cada pasillo, cada retroceso y cada celda sin salida.",
     },
   },
 });
@@ -117,5 +122,12 @@ export const modules: ModuleInfo[] = [
     summary: text.summaries.backtracking,
     count: text.problems(Object.keys(backtrackingProblems).length),
     route: { module: "backtracking", page: "start" },
+  },
+  {
+    id: "mazes",
+    title: text.mazes,
+    summary: text.summaries.mazes,
+    count: text.algorithms(MAZE_ALGORITHMS.length),
+    route: { module: "mazes", page: "start" },
   },
 ];

@@ -11,6 +11,7 @@ import { BacktrackingPicker, FillOrderPicker } from "../Backtracking/Backtrackin
 import { CirclesPicker, DrawingSelect } from "../Fourier/FourierTools";
 import { StructurePresetButtons, StructureSizePicker } from "../Structures/StructureTools";
 import { GraphPresetButtons, GraphSizePicker } from "../Graphs/GraphTools";
+import { MazeSizePicker } from "../Mazes/MazeTools";
 import { BrushPicker, GridSizePicker, PresetButtons } from "../Pathfinding/PathTools";
 import { NativeSelect } from "../ui/native-select";
 import { SegmentedControl } from "../ui/segmented";
@@ -54,6 +55,8 @@ const text = localized({
     gridSize: "Grid size",
     brush: "Brush",
     brushHelp: "Drag on the grid to paint; start on a painted cell to erase. Drag the start or target to move them.",
+    mazeSize: "Maze size",
+    mazeSizeHelp: "Bigger mazes take longer to carve and show their texture better. New maze keeps the size.",
   },
   es: {
     sizeHelp: (limit) =>
@@ -91,6 +94,8 @@ const text = localized({
     gridSize: "Tamaño de la cuadrícula",
     brush: "Pincel",
     brushHelp: "Arrastra sobre la cuadrícula para pintar; empieza en una celda pintada para borrar. Arrastra el inicio o el destino para moverlos.",
+    mazeSize: "Tamaño del laberinto",
+    mazeSizeHelp: "Los laberintos grandes tardan más en excavarse y muestran mejor su textura. Laberinto nuevo mantiene el tamaño.",
   },
 });
 
@@ -278,6 +283,13 @@ export const PathSettings = () => (
       </Field>
     </div>
   </div>
+);
+
+/** Mazes' settings: the size is the only one. */
+export const MazeSettings = () => (
+  <Field label={text.mazeSize} help={text.mazeSizeHelp} tour="tools">
+    <MazeSizePicker />
+  </Field>
 );
 
 /** Sorting's settings: array size, how it starts out and how it's drawn. */

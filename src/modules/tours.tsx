@@ -1,6 +1,6 @@
 import { localized } from "@/i18n";
 import { MUD_COST } from "@/pathfinding";
-import type { Theme } from "@/store";
+import { useStore, type Theme } from "@/store";
 import { Swatch } from "@/components/TourSwatch";
 import { sortGuessSizes } from "./sorting.slice";
 import type { TourStep } from "./types";
@@ -686,6 +686,141 @@ export const backtrackingTour = localized<TourStep[]>({
       title: "Un juego de adivinar",
       text: () =>
         "Con N reinas, activa Adivina y la reproducción se detiene antes de que caiga una reina para preguntarte en qué columna cae, o si la fila es un callejón sin salida. Lleva el puntaje.",
+    },
+  ],
+});
+
+/** The colors only show once carving is under way: a run still at its first frame moves a third in. */
+const carveAThird = () => {
+  const { frameIndex, mazes, seek } = useStore.getState();
+  if (frameIndex === 0) seek(Math.floor(mazes.run.length / 3));
+};
+
+// Dead-end cells are the tertiary color; mazes are the only tour that names it.
+const deadEndColor = localized<Record<Theme, string>>({
+  en: { dark: "Yellow", light: "Blue" },
+  es: { dark: "amarillas", light: "azules" },
+});
+
+export const mazesTour = localized<TourStep[]>({
+  en: [
+    {
+      anchor: "bars",
+      title: "The grid",
+      text: () => (
+        <>
+          Every cell starts walled in. The algorithm carves passages from the <Swatch className="bg-primary" />
+          start until every cell is joined, with exactly one route between any two.
+        </>
+      ),
+    },
+    {
+      anchor: "picker",
+      title: "The algorithm",
+      text: () => "Randomized depth-first search for now. More ways to carve a maze are on their way.",
+    },
+    {
+      anchor: "legend",
+      phoneAnchor: "bars",
+      prepare: carveAThird,
+      title: "What the colors mean",
+      text: ({ theme }) => (
+        <>
+          <Swatch className="bg-secondary" />
+          {colorNames[theme].comparing} cells are on the stack: the way back it can still take. At the end,{" "}
+          <Swatch className="bg-tertiary" />
+          {deadEndColor[theme].toLowerCase()} ones are dead-end cells.
+        </>
+      ),
+    },
+    {
+      anchor: "play",
+      title: "Play it",
+      text: ({ wide }) =>
+        `Watch it carve one decision at a time, or step with the buttons on either side.${wide ? " On a keyboard: Space, ← and →." : ""}`,
+    },
+    {
+      anchor: "narration",
+      title: "Follow each step",
+      text: ({ wide }) =>
+        wide
+          ? "The code it's running, with the current line lit up, and what just happened in plain words."
+          : "What just happened, in plain words. Tap it to see the code.",
+    },
+    {
+      anchor: "stats",
+      title: "Steps and dead-end cells",
+      text: () => "How many decisions it took, and once it's done, how many dead-end cells the maze has: its texture in a number.",
+    },
+    {
+      anchor: "settings",
+      title: "Pick a size",
+      text: () => "A small maze to read along, or a large one to see its texture.",
+    },
+    {
+      anchor: "new",
+      title: "A new maze",
+      text: () => "Another random maze of the same size. Share the link to show someone this exact one.",
+    },
+  ],
+  es: [
+    {
+      anchor: "bars",
+      title: "La cuadrícula",
+      text: () => (
+        <>
+          Todas las celdas empiezan amuralladas. El algoritmo excava pasillos desde el <Swatch className="bg-primary" />
+          inicio hasta unir todas las celdas, con un único camino entre dos cualesquiera.
+        </>
+      ),
+    },
+    {
+      anchor: "picker",
+      title: "El algoritmo",
+      text: () => "Por ahora, la búsqueda en profundidad aleatoria. Pronto habrá más formas de excavar un laberinto.",
+    },
+    {
+      anchor: "legend",
+      phoneAnchor: "bars",
+      prepare: carveAThird,
+      title: "Qué significa cada color",
+      text: ({ theme }) => (
+        <>
+          Las <Swatch className="bg-secondary" />
+          celdas {colorNames[theme].comparing} están en la pila: el camino de vuelta que aún puede tomar. Al final, las{" "}
+          <Swatch className="bg-tertiary" />
+          {deadEndColor[theme]} son celdas sin salida.
+        </>
+      ),
+    },
+    {
+      anchor: "play",
+      title: "Reprodúcelo",
+      text: ({ wide }) =>
+        `Mira cómo excava decisión por decisión, o avanza paso a paso con los botones de los costados.${wide ? " Con teclado: Espacio, ← y →." : ""}`,
+    },
+    {
+      anchor: "narration",
+      title: "Sigue cada paso",
+      text: ({ wide }) =>
+        wide
+          ? "El código que ejecuta, con la línea actual resaltada, y lo que acaba de pasar en palabras simples."
+          : "Lo que acaba de pasar, en palabras simples. Tócalo para ver el código.",
+    },
+    {
+      anchor: "stats",
+      title: "Pasos y celdas sin salida",
+      text: () => "Cuántas decisiones tomó y, al terminar, cuántas celdas sin salida tiene el laberinto: su textura en un número.",
+    },
+    {
+      anchor: "settings",
+      title: "Elige un tamaño",
+      text: () => "Un laberinto pequeño para seguirlo de cerca, o uno grande para ver su textura.",
+    },
+    {
+      anchor: "new",
+      title: "Un laberinto nuevo",
+      text: () => "Otro laberinto al azar del mismo tamaño. Comparte el enlace para mostrarle a alguien este mismo.",
     },
   ],
 });
