@@ -25,6 +25,7 @@ Hooks and CI only call these Makefile targets. When the stack changes, change th
 
 ## Rules
 
+- No formatter is configured. Never run prettier (or any formatter) and never reformat code you didn't change.
 - One branch per issue: `<issue-number>-<short-slug>`. Never commit or push to `main`; changes reach `main` through a PR.
 - Found a bug or idea outside the current task: search open issues first (`gh issue list --search "<keywords>"`). If it's new, file it with `gh issue create --label needs-triage --label bug` (or `enhancement`) and a 3-line body (what, where, how to reproduce). Mention the number in your final report and keep going. Don't fix it now.
 - Never skip, weaken or delete a test to make it pass. If a test looks wrong, stop and ask.

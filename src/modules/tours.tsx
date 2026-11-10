@@ -1,4 +1,6 @@
+import type { ReactNode } from "react";
 import { localized } from "@/i18n";
+import type { MazeAlgorithm } from "@/mazes";
 import { MUD_COST } from "@/pathfinding";
 import { useStore, type Theme } from "@/store";
 import { Swatch } from "@/components/TourSwatch";
@@ -699,14 +701,48 @@ const carveAThird = () => {
   if (frameIndex === 0) seek(Math.floor(mazes.run.length / 3));
 };
 
-/** Prim's colors are the frontier and the pick; DFS's are the stack. */
-const isPrim = () => useStore.getState().mazes.algorithm === "prim";
-
-// Prim's picked cell is the primary color, named in the singular ("la verde").
-const pickedColor = localized<Record<Theme, string>>({
-  en: { dark: "green", light: "teal" },
-  es: { dark: "verde", light: "turquesa" },
+// The move each frame is the outline color, named in the singular ("la blanca").
+const activeColor = localized<Record<Theme, string>>({
+  en: { dark: "white", light: "navy" },
+  es: { dark: "blanca", light: "azul marino" },
 });
+
+/** What the colors only one generator shows mean, before the dead ends every one of them marks. */
+const mazeTones = localized<Record<MazeAlgorithm, (theme: Theme) => ReactNode>>({
+  en: {
+    dfs: (theme) => (
+      <>
+        <Swatch className="bg-secondary" />
+        {colorNames[theme].comparing} cells are on the stack: the way back it can still take.
+      </>
+    ),
+    prim: (theme) => (
+      <>
+        <Swatch className="bg-secondary" />
+        {colorNames[theme].comparing} cells are the frontier: where the maze can grow next. The{" "}
+        <Swatch className="bg-outline" />
+        {activeColor[theme]} cell was just picked, with the wall it joined through.
+      </>
+    ),
+  },
+  es: {
+    dfs: (theme) => (
+      <>
+        Las <Swatch className="bg-secondary" />
+        celdas {colorNames[theme].comparing} están en la pila: el camino de vuelta que aún puede tomar.
+      </>
+    ),
+    prim: (theme) => (
+      <>
+        Las <Swatch className="bg-secondary" />
+        celdas {colorNames[theme].comparing} son la frontera: por donde el laberinto puede crecer. La{" "}
+        <Swatch className="bg-outline" />
+        {activeColor[theme]} es la que acaba de elegir, con la pared por la que se unió.
+      </>
+    ),
+  },
+});
+const mazeTonesNow = (theme: Theme) => mazeTones[useStore.getState().mazes.algorithm](theme);
 
 // Dead-end cells are the tertiary color; mazes are the only tour that names it.
 const deadEndColor = localized<Record<Theme, string>>({
@@ -736,24 +772,12 @@ export const mazesTour = localized<TourStep[]>({
       phoneAnchor: "bars",
       prepare: carveAThird,
       title: "What the colors mean",
-      text: ({ theme }) =>
-        isPrim() ? (
-          <>
-            <Swatch className="bg-secondary" />
-            {colorNames[theme].comparing} cells are the frontier: where the maze can grow next. The{" "}
-            <Swatch className="bg-primary" />
-            {pickedColor[theme]} cell was just picked, with the wall it joined through. At the end,{" "}
-            <Swatch className="bg-tertiary" />
-            {deadEndColor[theme].toLowerCase()} ones are dead-end cells.
-          </>
-        ) : (
-          <>
-            <Swatch className="bg-secondary" />
-            {colorNames[theme].comparing} cells are on the stack: the way back it can still take. At the end,{" "}
-            <Swatch className="bg-tertiary" />
-            {deadEndColor[theme].toLowerCase()} ones are dead-end cells.
-          </>
-        ),
+      text: ({ theme }) => (
+        <>
+          {mazeTonesNow(theme)} At the end, <Swatch className="bg-tertiary" />
+          {deadEndColor[theme].toLowerCase()} ones are dead-end cells.
+        </>
+      ),
     },
     {
       anchor: "play",
@@ -807,24 +831,12 @@ export const mazesTour = localized<TourStep[]>({
       phoneAnchor: "bars",
       prepare: carveAThird,
       title: "Qué significa cada color",
-      text: ({ theme }) =>
-        isPrim() ? (
-          <>
-            Las <Swatch className="bg-secondary" />
-            celdas {colorNames[theme].comparing} son la frontera: por donde el laberinto puede crecer. La{" "}
-            <Swatch className="bg-primary" />
-            {pickedColor[theme]} es la que acaba de elegir, con la pared por la que se unió. Al final, las{" "}
-            <Swatch className="bg-tertiary" />
-            {deadEndColor[theme]} son celdas sin salida.
-          </>
-        ) : (
-          <>
-            Las <Swatch className="bg-secondary" />
-            celdas {colorNames[theme].comparing} están en la pila: el camino de vuelta que aún puede tomar. Al final,
-            las <Swatch className="bg-tertiary" />
-            {deadEndColor[theme]} son celdas sin salida.
-          </>
-        ),
+      text: ({ theme }) => (
+        <>
+          {mazeTonesNow(theme)} Al final, las <Swatch className="bg-tertiary" />
+          {deadEndColor[theme]} son celdas sin salida.
+        </>
+      ),
     },
     {
       anchor: "play",

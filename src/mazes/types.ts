@@ -51,10 +51,13 @@ export const STACK = 2;
 export const DEAD_END = 3;
 /** On Prim's frontier: not carved yet, but next to the maze, so it can be picked. */
 export const FRONTIER = 4;
-/** The cell Prim just picked and the wall it joined through, for one frame. */
-export const PICKED = 5;
+/**
+ * The cell and wall the generator acts on this frame (Prim's pick and the wall it joins
+ * through), for one frame. Every generator uses it for its own move.
+ */
+export const ACTIVE = 5;
 export type MazeCellState =
-  typeof WALL | typeof CARVED | typeof STACK | typeof DEAD_END | typeof FRONTIER | typeof PICKED;
+  typeof WALL | typeof CARVED | typeof STACK | typeof DEAD_END | typeof FRONTIER | typeof ACTIVE;
 
 export type MazeStats = {
   /** Decisions taken so far: the start, then each carve and backtrack (DFS) or pick (Prim). */

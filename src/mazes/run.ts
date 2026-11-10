@@ -4,7 +4,7 @@ import {
   CARVED,
   DEAD_END,
   FRONTIER,
-  PICKED,
+  ACTIVE,
   STACK,
   type MazeAlgorithm,
   type MazeFrame,
@@ -18,21 +18,21 @@ type State = {
   line: number | null;
   steps: number;
   deadEnds: number | null;
-  /** The cells PICKED shows: the last pick and its wall, carved like the rest from the next step on. */
-  picked: number[];
+  /** The cells ACTIVE shows: this step's move, carved like the rest from the next step on. */
+  active: number[];
 };
 
 // A full copy every few hundred steps keeps seeking instant, like pathfinding.
 const CHECKPOINT_EVERY = 256;
 
-const clone = (s: State): State => ({ ...s, states: s.states.slice(), picked: s.picked.slice() });
+const clone = (s: State): State => ({ ...s, states: s.states.slice(), active: s.active.slice() });
 
 const apply = (s: State, step: MazeStep) => {
   s.line = step.line;
   // Marking the dead ends is the wrap-up, not a decision.
   if (step.type !== "done") s.steps++;
-  for (const cell of s.picked) s.states[cell] = CARVED;
-  s.picked = [];
+  for (const cell of s.active) s.states[cell] = CARVED;
+  s.active = [];
   switch (step.type) {
     case "start":
       if (step.frontier) {
@@ -42,9 +42,9 @@ const apply = (s: State, step: MazeStep) => {
       s.current = step.cell;
       break;
     case "pick":
-      s.states[step.wall] = PICKED;
-      s.states[step.cell] = PICKED;
-      s.picked = [step.wall, step.cell];
+      s.states[step.wall] = ACTIVE;
+      s.states[step.cell] = ACTIVE;
+      s.active = [step.wall, step.cell];
       for (const cell of step.frontier) s.states[cell] = FRONTIER;
       s.current = step.cell;
       break;
@@ -102,7 +102,7 @@ export class MazeRun {
       line: null,
       steps: 0,
       deadEnds: null,
-      picked: [],
+      active: [],
     };
     const working = clone(initial);
     this.checkpoints.push(clone(initial));

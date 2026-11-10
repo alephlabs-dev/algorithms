@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createAppStore } from "@/appStore";
 import { routePath } from "@/routes";
-import { FRONTIER, PICKED } from "@/mazes";
+import { FRONTIER, ACTIVE } from "@/mazes";
 import { linkFor, readLocation } from "@/urlState";
 import { routeIn } from "./engine";
 import { mazesSlice as slice, type MazesState } from "./mazes.slice";
@@ -98,7 +98,7 @@ describe("mazes slice", () => {
       const before = s.run.frameAt(i - 1);
       const frame = s.run.frameAt(i);
       // Each pick takes a frontier cell, highlights it and the wall it joins through, and carves both in.
-      const picked = [...frame.states.keys()].filter((c) => frame.states[c] === PICKED);
+      const picked = [...frame.states.keys()].filter((c) => frame.states[c] === ACTIVE);
       expect(picked, `frame ${i} highlights a cell and its wall`).toHaveLength(2);
       expect(picked).toContain(frame.current);
       expect(before.states[frame.current!], `frame ${i} picks from the frontier`).toBe(FRONTIER);
@@ -106,7 +106,7 @@ describe("mazes slice", () => {
       expect(opened(frame) - opened(before)).toBe(2);
     }
     expect(frontierOf(s.run.length - 1)).toEqual([]);
-    expect([...lastFrame(s).states].includes(PICKED)).toBe(false);
+    expect([...lastFrame(s).states].includes(ACTIVE)).toBe(false);
   });
 
   it("every algorithm on a seed starts from the same cell", () => {

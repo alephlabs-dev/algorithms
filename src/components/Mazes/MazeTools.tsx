@@ -1,5 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
 import { mazeAlgorithms, mazeSizeLabels } from "@/consts/mazeAlgorithms";
+import type { MazeAlgorithm } from "@/mazes";
 import { localized } from "@/i18n";
 import { gridSizes, type GridSize } from "@/pathfinding";
 import { useStore } from "@/store";
@@ -59,6 +60,18 @@ const Swatch = ({ className, label }: { className: string; label: string }) => (
   </li>
 );
 
+/** The tones only one generator shows, between the shared ones (start, wall, carved) and the dead ends. */
+const ownTones: Record<MazeAlgorithm, { className: string; label: string }[]> = {
+  dfs: [
+    { className: "bg-secondary", label: text.stack },
+    { className: "bg-secondary ring-2 ring-outline", label: text.current },
+  ],
+  prim: [
+    { className: "bg-secondary", label: text.frontier },
+    { className: "bg-outline", label: text.picked },
+  ],
+};
+
 /** What each tone on the grid means, for the generator on stage. */
 export const MazeLegend = ({ className }: { className?: string }) => {
   const algorithm = useStore((s) => s.mazes.algorithm);
@@ -71,17 +84,9 @@ export const MazeLegend = ({ className }: { className?: string }) => {
       <Swatch className="bg-primary ring-2 ring-background" label={text.start} />
       <Swatch className="bg-bar/55" label={text.wall} />
       <Swatch className="bg-edge ring-1 ring-foreground/40" label={text.carved} />
-      {algorithm === "prim" ? (
-        <>
-          <Swatch className="bg-secondary" label={text.frontier} />
-          <Swatch className="bg-primary ring-2 ring-outline" label={text.picked} />
-        </>
-      ) : (
-        <>
-          <Swatch className="bg-secondary" label={text.stack} />
-          <Swatch className="bg-secondary ring-2 ring-outline" label={text.current} />
-        </>
-      )}
+      {ownTones[algorithm].map((tone) => (
+        <Swatch key={tone.label} {...tone} />
+      ))}
       <Swatch className="bg-tertiary" label={text.deadEnd} />
     </ul>
   );
