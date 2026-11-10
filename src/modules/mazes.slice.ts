@@ -25,7 +25,7 @@ const withRun = (s: MazesState, ctx: SliceContext, change: Partial<Pick<MazesSta
 };
 
 /** Backtracks retreat quickly, so the carving reads as the beat. */
-const STEP_WEIGHT: Record<MazeStep["type"], number> = { start: 1, carve: 1, backtrack: 0.5, done: 1 };
+const STEP_WEIGHT: Record<MazeStep["type"], number> = { start: 1, carve: 1, backtrack: 0.5, pick: 1, done: 1 };
 
 export const mazesSlice = defineModule<MazesState, MazeAlgorithm, MazesLink>()({
   tourKey: "tour-done-mazes",

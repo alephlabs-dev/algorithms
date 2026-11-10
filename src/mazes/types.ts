@@ -5,7 +5,7 @@
  * generator describes what it does one decision at a time, and a MazeRun records the steps.
  */
 
-export type MazeAlgorithm = "dfs";
+export type MazeAlgorithm = "dfs" | "prim";
 
 /** The walled-in grid a maze is carved from. Odd rows and columns, so walls go all around. */
 export type MazeGrid = { rows: number; cols: number };
@@ -14,7 +14,10 @@ export type MazeStep = {
   /** Pseudocode line (0-based) this step belongs to. */
   line: number;
 } & (
-  | /** Carves the start cell, the first one in the maze. DFS pushes it on its stack. */ { type: "start"; cell: number }
+  | /**
+     * Carves the start cell, the first one in the maze. DFS pushes it on its stack; Prim
+     * puts its neighbours on the frontier, given as `frontier`.
+     */ { type: "start"; cell: number; frontier?: number[] }
   | /** Opens `wall` between the current cell and `cell`, and carves `cell`. DFS pushes it. */ {
       type: "carve";
       wall: number;
@@ -24,6 +27,15 @@ export type MazeStep = {
       type: "backtrack";
       cell: number;
       wall: number | null;
+    }
+  | /**
+     * Prim takes `cell` off the frontier and carves it in through `wall`, which joins it to the
+     * maze; `frontier` are the neighbours it adds to the frontier.
+     */ {
+      type: "pick";
+      cell: number;
+      wall: number;
+      frontier: number[];
     }
   | /** The maze is done: every dead-end cell gets marked. */ { type: "done"; deadEnds: number[] }
 );
@@ -37,10 +49,18 @@ export const CARVED = 1;
 /** On DFS's stack: the way it can still go back along. */
 export const STACK = 2;
 export const DEAD_END = 3;
-export type MazeCellState = typeof WALL | typeof CARVED | typeof STACK | typeof DEAD_END;
+/** On Prim's frontier: not carved yet, but next to the maze, so it can be picked. */
+export const FRONTIER = 4;
+/**
+ * The cell and wall the generator acts on this frame (Prim's pick and the wall it joins
+ * through), for one frame. Every generator uses it for its own move.
+ */
+export const ACTIVE = 5;
+export type MazeCellState =
+  typeof WALL | typeof CARVED | typeof STACK | typeof DEAD_END | typeof FRONTIER | typeof ACTIVE;
 
 export type MazeStats = {
-  /** Decisions taken so far: the start, each carve, each backtrack. */
+  /** Decisions taken so far: the start, then each carve and backtrack (DFS) or pick (Prim). */
   steps: number;
   /** Dead-end cells, counted once the maze is done; null before. */
   deadEnds: number | null;

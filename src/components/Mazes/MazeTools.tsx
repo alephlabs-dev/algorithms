@@ -1,5 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
 import { mazeAlgorithms, mazeSizeLabels } from "@/consts/mazeAlgorithms";
+import type { MazeAlgorithm } from "@/mazes";
 import { localized } from "@/i18n";
 import { gridSizes, type GridSize } from "@/pathfinding";
 import { useStore } from "@/store";
@@ -16,6 +17,8 @@ const text = localized({
     wall: "Wall",
     carved: "Carved",
     stack: "On the stack",
+    frontier: "Frontier",
+    picked: "Picked",
     current: "Current",
     deadEnd: "Dead-end cell",
     steps: (n: number) => count(n, "step"),
@@ -28,6 +31,8 @@ const text = localized({
     wall: "Pared",
     carved: "Excavada",
     stack: "En la pila",
+    frontier: "Frontera",
+    picked: "Elegida",
     current: "Actual",
     deadEnd: "Sin salida",
     steps: (n) => count(n, "paso"),
@@ -55,21 +60,37 @@ const Swatch = ({ className, label }: { className: string; label: string }) => (
   </li>
 );
 
-/** What each tone on the grid means. */
-export const MazeLegend = ({ className }: { className?: string }) => (
-  <ul
-    data-tour="legend"
-    aria-label={text.legend}
-    className={cn("flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-foreground md:text-sm", className)}
-  >
-    <Swatch className="bg-primary ring-2 ring-background" label={text.start} />
-    <Swatch className="bg-bar/55" label={text.wall} />
-    <Swatch className="bg-edge ring-1 ring-foreground/40" label={text.carved} />
-    <Swatch className="bg-secondary" label={text.stack} />
-    <Swatch className="bg-secondary ring-2 ring-outline" label={text.current} />
-    <Swatch className="bg-tertiary" label={text.deadEnd} />
-  </ul>
-);
+/** The tones only one generator shows, between the shared ones (start, wall, carved) and the dead ends. */
+const ownTones: Record<MazeAlgorithm, { className: string; label: string }[]> = {
+  dfs: [
+    { className: "bg-secondary", label: text.stack },
+    { className: "bg-secondary ring-2 ring-outline", label: text.current },
+  ],
+  prim: [
+    { className: "bg-secondary", label: text.frontier },
+    { className: "bg-outline", label: text.picked },
+  ],
+};
+
+/** What each tone on the grid means, for the generator on stage. */
+export const MazeLegend = ({ className }: { className?: string }) => {
+  const algorithm = useStore((s) => s.mazes.algorithm);
+  return (
+    <ul
+      data-tour="legend"
+      aria-label={text.legend}
+      className={cn("flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-foreground md:text-sm", className)}
+    >
+      <Swatch className="bg-primary ring-2 ring-background" label={text.start} />
+      <Swatch className="bg-bar/55" label={text.wall} />
+      <Swatch className="bg-edge ring-1 ring-foreground/40" label={text.carved} />
+      {ownTones[algorithm].map((tone) => (
+        <Swatch key={tone.label} {...tone} />
+      ))}
+      <Swatch className="bg-tertiary" label={text.deadEnd} />
+    </ul>
+  );
+};
 
 /** Counters on one line, for the dock: steps, and once it's done, the dead-end cells. */
 export const MazeStatsInline = ({ className }: { className?: string }) => {

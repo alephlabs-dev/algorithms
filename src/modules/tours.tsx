@@ -1,4 +1,6 @@
+import type { ReactNode } from "react";
 import { localized } from "@/i18n";
+import type { MazeAlgorithm } from "@/mazes";
 import { MUD_COST } from "@/pathfinding";
 import { useStore, type Theme } from "@/store";
 import { Swatch } from "@/components/TourSwatch";
@@ -257,7 +259,8 @@ export const graphsTour = localized<TourStep[]>({
       title: "The graph",
       text: () => (
         <>
-          Circles are nodes, lines are edges; the one with the <Swatch className="ml-1 bg-background ring-2 ring-primary" />
+          Circles are nodes, lines are edges; the one with the{" "}
+          <Swatch className="ml-1 bg-background ring-2 ring-primary" />
           ring is the start. Drag a node to move it, tap two nodes to join or split them, double-tap one to start there.
         </>
       ),
@@ -311,8 +314,10 @@ export const graphsTour = localized<TourStep[]>({
       title: "El grafo",
       text: () => (
         <>
-          Los círculos son nodos y las líneas, aristas; el del <Swatch className="ml-1 bg-background ring-2 ring-primary" />
-          anillo es el inicio. Arrastra un nodo para moverlo, toca dos nodos para unirlos o separarlos y toca dos veces uno para empezar ahí.
+          Los círculos son nodos y las líneas, aristas; el del{" "}
+          <Swatch className="ml-1 bg-background ring-2 ring-primary" />
+          anillo es el inicio. Arrastra un nodo para moverlo, toca dos nodos para unirlos o separarlos y toca dos veces
+          uno para empezar ahí.
         </>
       ),
     },
@@ -696,6 +701,49 @@ const carveAThird = () => {
   if (frameIndex === 0) seek(Math.floor(mazes.run.length / 3));
 };
 
+// The move each frame is the outline color, named in the singular ("la blanca").
+const activeColor = localized<Record<Theme, string>>({
+  en: { dark: "white", light: "navy" },
+  es: { dark: "blanca", light: "azul marino" },
+});
+
+/** What the colors only one generator shows mean, before the dead ends every one of them marks. */
+const mazeTones = localized<Record<MazeAlgorithm, (theme: Theme) => ReactNode>>({
+  en: {
+    dfs: (theme) => (
+      <>
+        <Swatch className="bg-secondary" />
+        {colorNames[theme].comparing} cells are on the stack: the way back it can still take.
+      </>
+    ),
+    prim: (theme) => (
+      <>
+        <Swatch className="bg-secondary" />
+        {colorNames[theme].comparing} cells are the frontier: where the maze can grow next. The{" "}
+        <Swatch className="bg-outline" />
+        {activeColor[theme]} cell was just picked, with the wall it joined through.
+      </>
+    ),
+  },
+  es: {
+    dfs: (theme) => (
+      <>
+        Las <Swatch className="bg-secondary" />
+        celdas {colorNames[theme].comparing} están en la pila: el camino de vuelta que aún puede tomar.
+      </>
+    ),
+    prim: (theme) => (
+      <>
+        Las <Swatch className="bg-secondary" />
+        celdas {colorNames[theme].comparing} son la frontera: por donde el laberinto puede crecer. La{" "}
+        <Swatch className="bg-outline" />
+        {activeColor[theme]} es la que acaba de elegir, con la pared por la que se unió.
+      </>
+    ),
+  },
+});
+const mazeTonesNow = (theme: Theme) => mazeTones[useStore.getState().mazes.algorithm](theme);
+
 // Dead-end cells are the tertiary color; mazes are the only tour that names it.
 const deadEndColor = localized<Record<Theme, string>>({
   en: { dark: "Yellow", light: "Blue" },
@@ -717,7 +765,7 @@ export const mazesTour = localized<TourStep[]>({
     {
       anchor: "picker",
       title: "The algorithm",
-      text: () => "Randomized depth-first search for now. More ways to carve a maze are on their way.",
+      text: () => "Randomized depth-first search or Prim's algorithm. More ways to carve a maze are on their way.",
     },
     {
       anchor: "legend",
@@ -726,9 +774,7 @@ export const mazesTour = localized<TourStep[]>({
       title: "What the colors mean",
       text: ({ theme }) => (
         <>
-          <Swatch className="bg-secondary" />
-          {colorNames[theme].comparing} cells are on the stack: the way back it can still take. At the end,{" "}
-          <Swatch className="bg-tertiary" />
+          {mazeTonesNow(theme)} At the end, <Swatch className="bg-tertiary" />
           {deadEndColor[theme].toLowerCase()} ones are dead-end cells.
         </>
       ),
@@ -777,7 +823,8 @@ export const mazesTour = localized<TourStep[]>({
     {
       anchor: "picker",
       title: "El algoritmo",
-      text: () => "Por ahora, la búsqueda en profundidad aleatoria. Pronto habrá más formas de excavar un laberinto.",
+      text: () =>
+        "La búsqueda en profundidad aleatoria o el algoritmo de Prim aleatorio. Pronto habrá más formas de excavar un laberinto.",
     },
     {
       anchor: "legend",
@@ -786,9 +833,7 @@ export const mazesTour = localized<TourStep[]>({
       title: "Qué significa cada color",
       text: ({ theme }) => (
         <>
-          Las <Swatch className="bg-secondary" />
-          celdas {colorNames[theme].comparing} están en la pila: el camino de vuelta que aún puede tomar. Al final, las{" "}
-          <Swatch className="bg-tertiary" />
+          {mazeTonesNow(theme)} Al final, las <Swatch className="bg-tertiary" />
           {deadEndColor[theme]} son celdas sin salida.
         </>
       ),

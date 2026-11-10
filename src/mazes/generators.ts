@@ -63,9 +63,56 @@ const dfs: MazeGenerator = function* (grid, start, random) {
   yield { type: "done", deadEnds: deadEndsOf(grid, (wall) => open.has(wall)), line: 8 };
 };
 
+export const primPseudocode = [
+  "carve a random start cell",
+  "add its neighbours to the frontier",
+  "while the frontier isn't empty:",
+  "  cell = a frontier cell, at random",
+  "  m = one of its carved neighbours, at random",
+  "  carve the wall between, carve cell",
+  "  add its uncarved neighbours to the frontier",
+  "mark every dead-end cell",
+];
+
+/**
+ * Randomized Prim: grows the maze from its frontier, the uncarved cells next to it. Each step
+ * picks a frontier cell at random, anywhere along the edge of the maze, and joins it through
+ * a random wall. Short branching passages and many dead ends.
+ */
+const prim: MazeGenerator = function* (grid, start, random) {
+  const carved = new Set([start]);
+  const open = new Set<number>();
+  const frontier: number[] = [];
+  const onFrontier = new Set<number>();
+  /** Adds the cell's neighbours that aren't carved or on the frontier yet; returns them. */
+  const grow = (cell: number) => {
+    const added = mazeNeighbors(grid, cell)
+      .map((n) => n.cell)
+      .filter((n) => !carved.has(n) && !onFrontier.has(n));
+    for (const n of added) onFrontier.add(n);
+    frontier.push(...added);
+    return added;
+  };
+  yield { type: "start", cell: start, frontier: grow(start), line: 0 };
+  while (frontier.length) {
+    // Swap-remove, so a pick costs O(1) and the order stays seeded.
+    const k = Math.floor(random() * frontier.length);
+    const cell = frontier[k];
+    frontier[k] = frontier[frontier.length - 1];
+    frontier.pop();
+    onFrontier.delete(cell);
+    const joins = mazeNeighbors(grid, cell).filter((n) => carved.has(n.cell));
+    const { wall } = joins[Math.floor(random() * joins.length)];
+    carved.add(cell);
+    open.add(wall);
+    yield { type: "pick", cell, wall, frontier: grow(cell), line: 5 };
+  }
+  yield { type: "done", deadEnds: deadEndsOf(grid, (wall) => open.has(wall)), line: 7 };
+};
+
 /** Every generator, in the order the UI shows them. */
-export const MAZE_ALGORITHMS: MazeAlgorithm[] = ["dfs"];
+export const MAZE_ALGORITHMS: MazeAlgorithm[] = ["dfs", "prim"];
 
-export const mazeGenerators: Record<MazeAlgorithm, MazeGenerator> = { dfs };
+export const mazeGenerators: Record<MazeAlgorithm, MazeGenerator> = { dfs, prim };
 
-export const mazePseudocode: Record<MazeAlgorithm, string[]> = { dfs: dfsPseudocode };
+export const mazePseudocode: Record<MazeAlgorithm, string[]> = { dfs: dfsPseudocode, prim: primPseudocode };

@@ -1,5 +1,5 @@
 import { localized } from "@/i18n";
-import type { MazeFrame, MazeRun } from "@/mazes";
+import { FRONTIER, type MazeFrame, type MazeRun } from "@/mazes";
 import { count } from "./count";
 
 type Direction = "up" | "right" | "down" | "left";
@@ -13,6 +13,12 @@ const text = localized({
     carve: (direction: string, at: string) => `Carve ${direction} into ${at} and push it on the stack.`,
     backtrack: (at: string) => `No uncarved neighbours: pop it, back to ${at}.`,
     empty: "No uncarved neighbours and the stack is empty: every cell is carved.",
+    side: { up: "above", right: "the right", down: "below", left: "the left" } as Record<Direction, string>,
+    frontierStart: (at: string, frontier: number) =>
+      `Start at ${at}: carve it and put its ${count(frontier, "neighbour")} on the frontier.`,
+    pick: (at: string, side: string, added: number) =>
+      `Pick ${at}, carve in from ${side}${added ? `; ${count(added, "new frontier cell")}` : ""}.`,
+    lastPick: (at: string, side: string) => `Pick ${at}, carve in from ${side}. The frontier is empty.`,
     done: (deadEnds: number, steps: number) =>
       `Done: a perfect maze with ${count(deadEnds, "dead-end cell")}, in ${count(steps, "step")}.`,
     described: (steps: number, deadEnds: number | null) =>
@@ -26,6 +32,12 @@ const text = localized({
     carve: (direction, at) => `Excava ${direction} hasta ${at} y ponla en la pila.`,
     backtrack: (at) => `Sin vecinas por excavar: desapílala y vuelve a ${at}.`,
     empty: "Sin vecinas por excavar y la pila vacía: todas las celdas están excavadas.",
+    side: { up: "arriba", right: "la derecha", down: "abajo", left: "la izquierda" },
+    frontierStart: (at, frontier) =>
+      `Empieza en ${at}: excávala y pon sus ${count(frontier, "vecina")} en la frontera.`,
+    pick: (at, side, added) =>
+      `Elige ${at} y excava desde ${side}${added ? `; ${count(added, "celda nueva", "celdas nuevas")} en la frontera` : ""}.`,
+    lastPick: (at, side) => `Elige ${at} y excava desde ${side}. La frontera queda vacía.`,
     done: (deadEnds, steps) =>
       `Listo: un laberinto perfecto con ${count(deadEnds, "celda sin salida", "celdas sin salida")}, en ${count(steps, "paso")}.`,
     described: (steps, deadEnds) =>
@@ -40,6 +52,8 @@ const at = (run: MazeRun, cell: number) => text.at(Math.floor(cell / run.cols) +
 const directionOf = (run: MazeRun, wall: number, cell: number): Direction =>
   cell === wall - run.cols ? "up" : cell === wall + 1 ? "right" : cell === wall + run.cols ? "down" : "left";
 
+const OPPOSITE: Record<Direction, Direction> = { up: "down", right: "left", down: "up", left: "right" };
+
 /** One plain-language sentence for the decision that led to frame `index`. */
 export const narrateMaze = (run: MazeRun, index: number): string => {
   const step = run.stepAt(index);
@@ -47,7 +61,16 @@ export const narrateMaze = (run: MazeRun, index: number): string => {
   const frame = run.frameAt(index);
   switch (step.type) {
     case "start":
-      return text.start(at(run, step.cell));
+      return step.frontier
+        ? text.frontierStart(at(run, step.cell), step.frontier.length)
+        : text.start(at(run, step.cell));
+    case "pick": {
+      const where = at(run, step.cell);
+      const side = text.side[OPPOSITE[directionOf(run, step.wall, step.cell)]];
+      return frame.states.includes(FRONTIER)
+        ? text.pick(where, side, step.frontier.length)
+        : text.lastPick(where, side);
+    }
     case "carve":
       return text.carve(text.direction[directionOf(run, step.wall, step.cell)], at(run, step.cell));
     case "backtrack":

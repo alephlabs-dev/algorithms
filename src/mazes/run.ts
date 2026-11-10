@@ -1,6 +1,16 @@
 import { seededRandom } from "@/utils/random";
 import { mazeCells, mazeGenerators } from "./generators";
-import { CARVED, DEAD_END, STACK, type MazeAlgorithm, type MazeFrame, type MazeGrid, type MazeStep } from "./types";
+import {
+  CARVED,
+  DEAD_END,
+  FRONTIER,
+  ACTIVE,
+  STACK,
+  type MazeAlgorithm,
+  type MazeFrame,
+  type MazeGrid,
+  type MazeStep,
+} from "./types";
 
 type State = {
   states: Uint8Array;
@@ -8,20 +18,34 @@ type State = {
   line: number | null;
   steps: number;
   deadEnds: number | null;
+  /** The cells ACTIVE shows: this step's move, carved like the rest from the next step on. */
+  active: number[];
 };
 
 // A full copy every few hundred steps keeps seeking instant, like pathfinding.
 const CHECKPOINT_EVERY = 256;
 
-const clone = (s: State): State => ({ ...s, states: s.states.slice() });
+const clone = (s: State): State => ({ ...s, states: s.states.slice(), active: s.active.slice() });
 
 const apply = (s: State, step: MazeStep) => {
   s.line = step.line;
   // Marking the dead ends is the wrap-up, not a decision.
   if (step.type !== "done") s.steps++;
+  for (const cell of s.active) s.states[cell] = CARVED;
+  s.active = [];
   switch (step.type) {
     case "start":
-      s.states[step.cell] = STACK;
+      if (step.frontier) {
+        s.states[step.cell] = CARVED;
+        for (const cell of step.frontier) s.states[cell] = FRONTIER;
+      } else s.states[step.cell] = STACK;
+      s.current = step.cell;
+      break;
+    case "pick":
+      s.states[step.wall] = ACTIVE;
+      s.states[step.cell] = ACTIVE;
+      s.active = [step.wall, step.cell];
+      for (const cell of step.frontier) s.states[cell] = FRONTIER;
       s.current = step.cell;
       break;
     case "carve":
@@ -72,7 +96,14 @@ export class MazeRun {
     this.cols = grid.cols;
     const random = seededRandom(seed);
     this.start = startOf(grid, random);
-    const initial: State = { states: new Uint8Array(grid.rows * grid.cols), current: null, line: null, steps: 0, deadEnds: null };
+    const initial: State = {
+      states: new Uint8Array(grid.rows * grid.cols),
+      current: null,
+      line: null,
+      steps: 0,
+      deadEnds: null,
+      active: [],
+    };
     const working = clone(initial);
     this.checkpoints.push(clone(initial));
     for (const step of mazeGenerators[algorithm](grid, this.start, random)) {

@@ -186,14 +186,14 @@ const mazesText = localized({
   en: {
     moduleTitle: "Maze Generation Visualizer: a Maze Carved Step by Step · Aleph Labs",
     moduleDescription:
-      "Watch randomized depth-first search carve a perfect maze one decision at a time: every carve, every backtrack and every dead-end cell, with the pseudocode lit up.",
+      "Watch randomized depth-first search and Prim's algorithm carve a perfect maze one decision at a time: every carve, every backtrack, every pick and every dead-end cell.",
     algorithmTitle: (title: string) => `${title} Maze Generation, Visualized Step by Step · Aleph Labs`,
     section: "Mazes",
   },
   es: {
     moduleTitle: "Visualizador de generación de laberintos paso a paso · Aleph Labs",
     moduleDescription:
-      "Mira cómo la búsqueda en profundidad aleatoria excava un laberinto perfecto decisión por decisión: cada pasillo, cada retroceso y cada celda sin salida, con el pseudocódigo resaltado.",
+      "Mira cómo la búsqueda en profundidad aleatoria y el algoritmo de Prim excavan un laberinto perfecto decisión por decisión: cada pasillo, cada retroceso, cada elección y cada celda sin salida.",
     algorithmTitle: (title) => `${title}: generación de laberintos paso a paso, visualizada · Aleph Labs`,
     section: "Laberintos",
   },
