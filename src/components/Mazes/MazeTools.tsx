@@ -2,7 +2,7 @@ import { useShallow } from "zustand/react/shallow";
 import { mazeAlgorithms, mazeSizeLabels } from "@/consts/mazeAlgorithms";
 import { hasStartCell, type MazeAlgorithm } from "@/mazes";
 import { localized } from "@/i18n";
-import { gridSizes, raceMaxGridSize, type GridSize } from "@/pathfinding";
+import { gridSizes, raceMaxGridSize, type GridSize } from "@/utils/gridSize";
 import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";

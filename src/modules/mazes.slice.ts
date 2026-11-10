@@ -1,6 +1,6 @@
 import type { View } from "@/appStore";
 import { MAZE_ALGORITHMS, MazeRun, type MazeAlgorithm, type MazeStep } from "@/mazes";
-import { fitGridSize, gridDimensions, sizeForView, type GridSize } from "@/pathfinding/grid";
+import { fitGridSize, gridDimensions, sizeForView, type GridSize } from "@/utils/gridSize";
 import { newSeed } from "@/utils/random";
 import { mazesLink, type MazesLink } from "./mazes.link";
 import { defineModule, isNarrow, toggleRacer, withRacer, type SliceContext } from "./slice";

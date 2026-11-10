@@ -1,6 +1,6 @@
 import { localized } from "@/i18n";
 import { MAZE_ALGORITHMS, type MazeAlgorithm } from "@/mazes";
-import type { GridSize } from "@/pathfinding";
+import type { GridSize } from "@/utils/gridSize";
 
 type MazeAlgorithmText = {
   /** The full name, for the about text and the page title. */
