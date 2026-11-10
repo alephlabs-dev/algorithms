@@ -13,7 +13,7 @@ import { SwatchCross } from "../TourSwatch";
 const text = localized({
   en: {
     size: "Maze size",
-    tooBig: (size: string) => `${size}: too small to follow in a race`,
+    cellsTooSmall: (size: string) => `${size}: too small to follow in a race`,
     legend: "Legend",
     start: "Start",
     wall: "Wall",
@@ -36,7 +36,7 @@ const text = localized({
   },
   es: {
     size: "Tamaño del laberinto",
-    tooBig: (size) => `${size}: demasiado pequeño para seguirlo en una carrera`,
+    cellsTooSmall: (size) => `${size}: demasiado pequeño para seguirlo en una carrera`,
     legend: "Leyenda",
     start: "Inicio",
     wall: "Pared",
@@ -76,7 +76,7 @@ export const MazeSizePicker = () => {
         value,
         label: mazeSizeLabels[value],
         disabled: gridSizes.indexOf(value) > cap,
-        title: gridSizes.indexOf(value) > cap ? text.tooBig(mazeSizeLabels[value]) : undefined,
+        title: gridSizes.indexOf(value) > cap ? text.cellsTooSmall(mazeSizeLabels[value]) : undefined,
       }))}
       value={size}
       onChange={(value) => value !== size && setSize(value)}

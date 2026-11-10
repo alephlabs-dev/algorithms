@@ -1,6 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
 import { mazeAlgorithms } from "@/consts/mazeAlgorithms";
-import { localized } from "@/i18n";
+import { lang, localized } from "@/i18n";
 import type { MazeRun } from "@/mazes";
 import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
@@ -13,6 +13,7 @@ const text = localized({
   en: {
     steps: (n: number) => count(n, "step"),
     deadEnds: (n: number) => count(n, "dead end"),
+    stepsSoFar: (n: number) => `${count(n, "step")} · `,
     generator: "Generator",
     stepsHeader: "Steps",
     deadEndsHeader: "Dead-end cells",
@@ -22,6 +23,7 @@ const text = localized({
   es: {
     steps: (n) => count(n, "paso"),
     deadEnds: (n) => `${n.toLocaleString("es")} sin salida`,
+    stepsSoFar: (n) => `${count(n, "paso")} · `,
     generator: "Generador",
     stepsHeader: "Pasos",
     deadEndsHeader: "Celdas sin salida",
@@ -30,7 +32,7 @@ const text = localized({
   },
 });
 
-const format = (n: number) => n.toLocaleString("en-US");
+const format = (n: number) => n.toLocaleString(lang === "es" ? "es" : "en-US");
 const lastFrame = (run: MazeRun) => run.frameAt(run.length - 1);
 
 type LaneProps = { run: MazeRun; clock: number; gridId: number; className?: string };
@@ -52,9 +54,19 @@ const MazeRaceLane = ({ run, clock, gridId, className }: LaneProps) => {
           <span className="md:hidden">{short}</span>
           <span className="hidden md:inline">{title}</span>
         </h3>
-        {/* While carving, the steps; once done, the dead ends: the number that tells the textures apart. */}
+        {/*
+          While carving, the steps; once done, the dead ends too, the number that tells the textures apart.
+          Phone lanes only have room for one, so there the dead ends replace the steps.
+        */}
         <span className="ml-auto whitespace-nowrap font-mono text-foreground/70">
-          {deadEnds === null ? text.steps(steps) : text.deadEnds(deadEnds)}
+          {deadEnds === null ? (
+            text.steps(steps)
+          ) : (
+            <>
+              <span className="hidden md:inline">{text.stepsSoFar(steps)}</span>
+              {text.deadEnds(deadEnds)}
+            </>
+          )}
         </span>
       </header>
       <MazeCanvas run={run} frame={frame} gridId={gridId} label={`${title}: ${describeMazeFrame(frame)}`} />

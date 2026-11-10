@@ -81,7 +81,6 @@ const runFor = (algorithm: PathAlgorithm, grid: Grid) => new PathTimeline(pathSe
 const raceRunsFor = (view: View, racers: PathAlgorithm[], grid: Grid) =>
   view === "race" ? racers.map((a) => runFor(a, grid)) : [];
 
-export { raceMaxGridSize } from "@/pathfinding";
 
 /** A fresh grid of the given size with a preset applied. */
 const gridFor = (size: GridSize, narrow: boolean, preset: Preset) => {
