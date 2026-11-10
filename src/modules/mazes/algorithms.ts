@@ -1,5 +1,6 @@
 import { localized } from "@/i18n";
-import { MAZE_ALGORITHMS, type MazeAlgorithm } from "@/mazes";
+import { MAZE_ALGORITHMS } from "./generators";
+import type { MazeAlgorithm } from "./types";
 import type { GridSize } from "@/utils/gridSize";
 
 type MazeAlgorithmText = {

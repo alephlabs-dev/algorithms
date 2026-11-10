@@ -6,7 +6,10 @@ import { QueensRun, MAX_QUEENS, MIN_QUEENS, SUDOKU_PUZZLES, SudokuRun, type Fill
 import { DpRun, EXAMPLE_CAPACITY, EXAMPLE_ITEMS, KnapsackRun, MAX_CAPACITY, MAX_ITEMS, MAX_WORD, RACE_CAPACITY, RACE_ITEMS, randomItems, wordPairs } from '@/dp';
 import { circleOptions, FOURIER_SHAPES, FourierRun } from '@/fourier';
 import { GRAPH_ALGORITHMS, graphPresets, graphSizes, graphTimelineFor, makeGraph } from '@/graphs';
-import { MAZE_ALGORITHMS, MazeRun } from '@/mazes';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Mazes sentence runs move into its slice.
+import { MAZE_ALGORITHMS } from '@/modules/mazes/generators';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Mazes sentence runs move into its slice.
+import { MazeRun } from '@/modules/mazes/run';
 import { applyPreset, emptyGrid, PATH_ALGORITHMS, pathSearches, PathTimeline, type Preset } from '@/pathfinding';
 import { gridDimensions, type GridSize } from '@/utils/gridSize';
 import { presetOperations, recordStructure, STRUCTURE_ALGORITHMS, type Operation, type StructurePreset, type StructureSize } from '@/structures';
@@ -17,7 +20,8 @@ import { narrateBacktracking, narrateSudoku } from '@/utils/narrateBacktracking'
 import { narrateDp } from '@/utils/narrateDp';
 import { narrateFourier } from '@/utils/narrateFourier';
 import { narrateGraph } from '@/utils/narrateGraph';
-import { narrateMaze } from '@/utils/narrateMaze';
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Mazes sentence runs move into its slice.
+import { narrateMaze } from '@/modules/mazes/narrate';
 import { narratePath } from '@/utils/narratePath';
 import { narrateTree } from '@/utils/narrateTree';
 import { seededRandom } from '@/utils/random';

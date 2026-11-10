@@ -1,9 +1,11 @@
 import type { View } from "@/appStore";
-import { MAZE_ALGORITHMS, MazeRun, type MazeAlgorithm, type MazeStep } from "@/mazes";
+import { MAZE_ALGORITHMS } from "./generators";
+import { MazeRun } from "./run";
+import type { MazeAlgorithm, MazeStep } from "./types";
 import { fitGridSize, gridDimensions, sizeForView, type GridSize } from "@/utils/gridSize";
 import { newSeed } from "@/utils/random";
-import { mazesLink, type MazesLink } from "./mazes.link";
-import { defineModule, isNarrow, toggleRacer, withRacer, type SliceContext } from "./slice";
+import { mazesLink, type MazesLink } from "./link";
+import { defineModule, isNarrow, toggleRacer, withRacer, type SliceContext } from "@/modules/slice";
 
 export type MazesState = {
   algorithm: MazeAlgorithm;

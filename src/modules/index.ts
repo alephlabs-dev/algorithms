@@ -6,7 +6,7 @@ import { dpUI } from "./dp";
 import { fourierUI } from "./fourier";
 import { structuresUI } from "./structures";
 import { graphsUI } from "./graphs";
-import { mazesUI } from "./mazes";
+import { mazesUI } from "./mazes/ui";
 import { pathfindingUI } from "./pathfinding";
 import { sortingUI } from "./sorting";
 import type { ModuleUI } from "./types";

@@ -1,6 +1,8 @@
 import { localized } from "@/i18n";
-import { FRONTIER, isMazeCell, WALL, type MazeFrame, type MazeRun } from "@/mazes";
-import { count } from "./count";
+import { isMazeCell } from "./generators";
+import type { MazeRun } from "./run";
+import { FRONTIER, WALL, type MazeFrame } from "./types";
+import { count } from "@/utils/count";
 
 type Direction = "up" | "right" | "down" | "left";
 

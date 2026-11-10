@@ -8,8 +8,12 @@ import { DP_RACE_DESCRIPTION, MAZE_RACE_DESCRIPTION, STRUCTURE_RACE_DESCRIPTION 
 import { structures } from "@/consts/structures";
 import { structurePseudocode, type StructureAlgorithm } from "@/structures";
 import { graphAlgorithms } from "@/consts/graphAlgorithms";
-import { mazeAlgorithms } from "@/consts/mazeAlgorithms";
-import { MAZE_ALGORITHMS, mazePseudocode, type MazeAlgorithm } from "@/mazes";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes articles move into its interface.
+import { mazeAlgorithms } from "@/modules/mazes/algorithms";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes articles move into its interface.
+import { MAZE_ALGORITHMS, mazePseudocode } from "@/modules/mazes/generators";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes articles move into its interface.
+import type { MazeAlgorithm } from "@/modules/mazes/types";
 import { queensPseudocode, sudokuPseudocode, type BacktrackingProblem } from "@/backtracking";
 import { fourierPseudocode, type FourierAlgorithm } from "@/fourier";
 import { pathAlgorithms } from "@/consts/pathAlgorithms";

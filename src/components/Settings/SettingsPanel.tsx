@@ -11,7 +11,8 @@ import { BacktrackingPicker, FillOrderPicker } from "../Backtracking/Backtrackin
 import { CirclesPicker, DrawingSelect } from "../Fourier/FourierTools";
 import { StructurePresetButtons, StructureSizePicker } from "../Structures/StructureTools";
 import { GraphPresetButtons, GraphSizePicker } from "../Graphs/GraphTools";
-import { MazeSizePicker } from "../Mazes/MazeTools";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes settings move into its interface.
+import { MazeSizePicker } from "@/modules/mazes/MazeTools";
 import { BrushPicker, GridSizePicker, PresetButtons } from "../Pathfinding/PathTools";
 import { NativeSelect } from "../ui/native-select";
 import { SegmentedControl } from "../ui/segmented";

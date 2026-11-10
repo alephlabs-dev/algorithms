@@ -1,13 +1,13 @@
 import { useShallow } from "zustand/react/shallow";
-import { mazeAlgorithms } from "@/consts/mazeAlgorithms";
+import { mazeAlgorithms } from "./algorithms";
 import { lang, localized } from "@/i18n";
-import type { MazeRun } from "@/mazes";
+import type { MazeRun } from "./run";
 import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";
-import { describeMazeFrame } from "@/utils/narrateMaze";
-import { MazeCanvas } from "../Mazes/MazeStage";
-import { ResultsOverlay } from "./RaceParts";
+import { describeMazeFrame } from "./narrate";
+import { MazeCanvas } from "./MazeStage";
+import { ResultsOverlay } from "@/components/Race/RaceParts";
 
 const text = localized({
   en: {

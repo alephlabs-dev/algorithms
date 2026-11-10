@@ -3,7 +3,10 @@ import { DpRun } from "@/dp";
 import { FourierRun } from "@/fourier";
 import { presetOperations, TreeRecorder } from "@/structures";
 import { graphTimelineFor, makeGraph } from "@/graphs";
-import { MazeRun, STACK, WALL as MAZE_WALL } from "@/mazes";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes thumbnail moves into its interface.
+import { MazeRun } from "@/modules/mazes/run";
+// eslint-disable-next-line house/module-boundaries -- TODO(#190): the Mazes thumbnail moves into its interface.
+import { STACK, WALL as MAZE_WALL } from "@/modules/mazes/types";
 import { applyPreset, emptyGrid, FRONTIER, ON_PATH, pathSearches, PathTimeline, VISITED, WALL } from "@/pathfinding";
 import { cn } from "@/utils/cn";
 import { seededRandom } from "@/utils/random";

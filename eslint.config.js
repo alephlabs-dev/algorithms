@@ -44,20 +44,15 @@ export default defineConfig([
       ],
     },
   },
-  // A canvas paint module may not import another one: shared canvas helpers live in theme.ts (#157).
+  // Module boundaries (docs/adr/0003): a module keeps to its folder in src/modules/<id>/, shared code
+  // (e2e included) reaches it only through the registries, and its manifest imports only Node-safe code.
   {
-    files: ["src/canvas/*Paint.ts"],
+    files: ["**/*.{ts,tsx}"],
+    plugins: { house },
     rules: {
-      "no-restricted-imports": [
+      "house/module-boundaries": [
         "error",
-        {
-          patterns: [
-            {
-              regex: "(^\\./|^@/canvas/)[^/]*Paint$",
-              message: "A paint module can't import another paint module. Move the shared helper to src/canvas/theme.ts.",
-            },
-          ],
-        },
+        { registries: { "src/modules/engine.ts": "slice", "src/modules/index.ts": "ui" } },
       ],
     },
   },

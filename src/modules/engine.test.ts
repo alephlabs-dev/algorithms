@@ -18,7 +18,8 @@ import { dpLink } from "./dp.link";
 import { engines, type ModuleId, type SliceStates } from "./engine";
 import { fourierLink } from "./fourier.link";
 import { graphsLink } from "./graphs.link";
-import { mazesLink } from "./mazes.link";
+// eslint-disable-next-line house/module-boundaries -- TODO(#187): the example links come from the manifests.
+import { mazesLink } from "./mazes/link";
 import { pathfindingLink } from "./pathfinding.link";
 import { sortingLink } from "./sorting.link";
 import { structuresLink } from "./structures.link";

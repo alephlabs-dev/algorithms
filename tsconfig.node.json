@@ -10,8 +10,12 @@
     "noEmit": true,
     "allowImportingTsExtensions": true
   },
-  // e2e imports the route registry (src/routes.ts), so it and each file it imports must be listed here (composite projects only check listed files).
+  // e2e and the prerender plugin import the route registry (src/routes.ts), so it and every file it imports must be
+  // included (a composite project only checks included files). Each module's manifest, and the types.ts it may
+  // import, are found by glob (docs/adr/0003). The other module types below go once their modules move to
+  // folders (#189).
   "include": ["vite.config.ts", "vite-plugin-prerender.ts", "playwright.config.ts", "e2e", "src/routes.ts", "src/i18n.ts", "src/types.ts",
+    "src/modules/*/manifest.ts", "src/modules/*/types.ts",
     "src/backtracking/types.ts", "src/dp/types.ts", "src/fourier/types.ts", "src/structures/types.ts",
-    "src/graphs/types.ts", "src/mazes/types.ts", "src/pathfinding/types.ts"]
+    "src/graphs/types.ts", "src/pathfinding/types.ts"]
 }
