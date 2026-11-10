@@ -18,7 +18,8 @@ export type CanvasColors = {
   conflict: string;
 };
 
-const variables: Record<keyof CanvasColors, string> = {
+/** The CSS variable each canvas color comes from. */
+export const variables: Record<keyof CanvasColors, string> = {
   background: "--color-background",
   foreground: "--color-foreground",
   bar: "--color-bar",

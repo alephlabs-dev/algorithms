@@ -1,41 +1,34 @@
+/// <reference types="node" />
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { ACTIVE, CARVED, DEAD_END, FRONTIER, STACK, WALL } from "@/mazes";
 import { mazePalette } from "./mazePaint";
-import { hexToRgb, type CanvasColors } from "./theme";
+import { hexToRgb, variables, type CanvasColors } from "./theme";
 
-// The theme colors in src/index.css.
-const dark: CanvasColors = {
-  background: "#0b0f0d",
-  foreground: "#e9eeeb",
-  bar: "#d9dfdb",
-  muted: "#8fa39a",
-  outline: "#ffffff",
-  primary: "#3ecf8e",
-  secondary: "#b07cff",
-  tertiary: "#ffd700",
-  dim: "#6c7d75",
-  edge: "#2c3a33",
-  mud: "#6e5a3b",
-  conflict: "#ff6b6b",
+// The theme colors as src/index.css defines them now: dark in @theme, light overriding it.
+const css = readFileSync(new URL("../index.css", import.meta.url), "utf8");
+const block = (selector: string) => {
+  const open = css.indexOf(`${selector} {`);
+  return css.slice(open, css.indexOf("\n}", open));
 };
-const light: CanvasColors = {
-  background: "#f2f5f9",
-  foreground: "#13294b",
-  bar: "#2c4166",
-  muted: "#5b6f8f",
-  outline: "#13294b",
-  primary: "#128a78",
-  secondary: "#e8590c",
-  tertiary: "#5b6cff",
-  dim: "#b9c4d4",
-  edge: "#cfd8e5",
-  mud: "#cdb88f",
-  conflict: "#d42c2c",
-};
+const colorsIn = (...blocks: string[]) =>
+  Object.fromEntries(
+    Object.entries(variables).map(([key, name]) => {
+      // A later block overrides an earlier one, like the cascade.
+      const value = blocks.reduce<string | undefined>(
+        (found, b) => b.match(new RegExp(`${name}:\\s*(#[0-9a-f]{6})\\s*;`, "i"))?.[1] ?? found,
+        undefined,
+      );
+      return [key, value];
+    }),
+  ) as CanvasColors;
+const dark = colorsIn(block("@theme"));
+const light = colorsIn(block("@theme"), block(':root[data-theme="light"]'));
 
 describe("maze tones", () => {
   for (const [theme, colors] of Object.entries({ dark, light }))
     it(`the move on stage stands apart from the start dot and every other tone (${theme})`, () => {
+      for (const [key, value] of Object.entries(colors)) expect(value, `--color-${key} read from index.css`).toMatch(/^#[0-9a-f]{6}$/i);
       const tones = mazePalette(colors);
       expect(tones[ACTIVE].rgb).not.toEqual(hexToRgb(colors.primary));
       for (const other of [WALL, CARVED, STACK, DEAD_END, FRONTIER]) expect(tones[ACTIVE].rgb).not.toEqual(tones[other].rgb);
