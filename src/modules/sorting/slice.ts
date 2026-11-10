@@ -31,7 +31,6 @@ export type SortingState = {
   inputId: number;
 };
 
-// In sidebar order, like any selection the user makes.
 /**
  * Share of a full step each kind of step takes during playback. Moves get the
  * full beat, comparisons a shorter one, and steps that only move the
@@ -48,6 +47,7 @@ const STEP_WEIGHT: Record<StepKind, number> = {
   line: 0,
 };
 
+// In sidebar order, like any selection the user makes.
 const DEFAULT_RACERS: Algorithm[] = ["insertion", "bubble", "quick", "merge"];
 
 const runFor = (algorithm: Algorithm, items: readonly number[]) => new Timeline(sortAlgorithms[algorithm], items);
@@ -93,8 +93,8 @@ const guessUnavailable = (s: SortingState) =>
   s.size <= SORT_GUESS_MAX_SIZE ? null : guessText.unavailable(sortGuessSizes);
 
 export const sortingSlice = defineModule<SortingState, Algorithm, SortingLink>()({
-  // The first module's key, from before every module had a tour.
   sentences,
+  // The first module's key, from before every module had a tour.
   tourKey: "tour-done",
 
   link: sortingLink,

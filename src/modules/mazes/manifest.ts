@@ -8,7 +8,7 @@ const text = localized({
     title: "Mazes",
     summary:
       "A perfect maze carved one decision at a time by randomized depth-first search: every carve, every backtrack and every dead-end cell.",
-    count: (n: number) => `${n} algorithms`,
+    count: (n: number) => (n === 1 ? "1 algorithm" : `${n} algorithms`),
     moduleTitle: "Maze Generation Visualizer: a Maze Carved Step by Step · Aleph Labs",
     moduleDescription:
       "Watch depth-first search, Prim's, Kruskal's and Wilson's algorithms carve a perfect maze one decision at a time: every carve, backtrack, skipped wall, random walk and dead-end cell.",
@@ -25,7 +25,7 @@ const text = localized({
     title: "Laberintos",
     summary:
       "Un laberinto perfecto excavado decisión por decisión con la búsqueda en profundidad aleatoria: cada pasillo, cada retroceso y cada celda sin salida.",
-    count: (n) => `${n} algoritmos`,
+    count: (n) => (n === 1 ? "1 algoritmo" : `${n} algoritmos`),
     moduleTitle: "Visualizador de generación de laberintos paso a paso · Aleph Labs",
     moduleDescription:
       "Mira cómo la búsqueda en profundidad y los algoritmos de Prim, Kruskal y Wilson excavan un laberinto perfecto paso a paso: cada pasillo, retroceso, pared omitida, caminata al azar y celda sin salida.",

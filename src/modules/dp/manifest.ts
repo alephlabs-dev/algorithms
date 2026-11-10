@@ -8,7 +8,7 @@ const text = localized({
     title: "Dynamic programming",
     summary:
       "Edit distance, the longest common subsequence and the knapsack, one table cell at a time, and a race against plain recursion.",
-    count: (n: number) => `${n} problems`,
+    count: (n: number) => (n === 1 ? "1 problem" : `${n} problems`),
     moduleTitle: "Dynamic Programming Visualizer: Edit Distance, LCS, Knapsack · Aleph Labs",
     moduleDescription:
       "Watch a dynamic programming table fill cell by cell, then walk back from the corner to the answer: the edits between two words, what they share, or what fits in a bag.",
@@ -25,7 +25,7 @@ const text = localized({
     title: "Programación dinámica",
     summary:
       "Distancia de edición, la subsecuencia común más larga y la mochila, celda por celda, y una carrera contra la recursión simple.",
-    count: (n) => `${n} problemas`,
+    count: (n) => (n === 1 ? "1 problema" : `${n} problemas`),
     moduleTitle: "Visualizador de programación dinámica: distancia de edición, LCS y mochila · Aleph Labs",
     moduleDescription:
       "Mira cómo se llena una tabla de programación dinámica celda por celda y vuelve desde la esquina hasta la respuesta: las ediciones entre dos palabras, lo que comparten o lo que cabe en una mochila.",

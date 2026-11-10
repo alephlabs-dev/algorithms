@@ -88,7 +88,7 @@ const moduleBoundaries = {
       algorithms:
         "A module's algorithms.ts runs in Node through its manifest: it may import only its own types.ts, src/i18n.ts and src/routes.ts, plus types from its own folder or shared code (docs/adr/0003).",
       registry:
-        "Shared code reaches module {{to}} only through the registries: its slice from src/modules/engine.ts, its interface from src/modules/index.ts (docs/adr/0003).",
+        "Shared code reaches module {{to}} only through the registries: its manifest from src/modules/manifests.ts, its slice from src/modules/engine.ts, its interface from src/modules/index.ts (docs/adr/0003).",
       otherModule: "Module {{from}} can't import from module {{to}}'s folder. Move what both need to shared code (docs/adr/0003).",
     },
   },

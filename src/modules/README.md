@@ -60,7 +60,8 @@ Three rules, enforced by the lint (`house/module-boundaries` in `eslint/house.js
 - `manifest.ts` runs in Node (e2e, prerender), so it imports only its own `types.ts` and `algorithms.ts`,
   `src/i18n.ts` and `src/routes.ts`. Its `algorithms.ts` runs there too: the same imports, plus types from its own
   folder or shared code. `tsconfig.node.json` finds every module folder's `manifest.ts`, `types.ts` and
-  `algorithms.ts` by glob.
+  `algorithms.ts` by glob, and lists the shared files they reach (`src/utils/gridSize.ts` for a type, and
+  `src/consts/race.ts` until #190).
 
 An import that breaks a rule and can't be fixed yet gets a per-line `eslint-disable-next-line` with a TODO naming
 the ticket that removes it. The rule itself is never turned off.

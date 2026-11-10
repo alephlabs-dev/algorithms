@@ -7,7 +7,7 @@ const text = localized({
   en: {
     title: "Graphs",
     summary: "BFS, DFS, Dijkstra, Prim, Kruskal and topological sort on a graph you can reshape.",
-    count: (n: number) => `${n} algorithms`,
+    count: (n: number) => (n === 1 ? "1 algorithm" : `${n} algorithms`),
     moduleTitle: "Graph Algorithm Visualizer: BFS, Dijkstra, Prim, Kruskal Step by Step · Aleph Labs",
     moduleDescription:
       "Watch BFS, DFS, Dijkstra, Prim, Kruskal and topological sort on a graph you can reshape, with the queue, the stack and every distance shown as they change.",
@@ -26,7 +26,7 @@ const text = localized({
   es: {
     title: "Grafos",
     summary: "BFS, DFS, Dijkstra, Prim, Kruskal y orden topológico en un grafo que puedes modificar.",
-    count: (n) => `${n} algoritmos`,
+    count: (n) => (n === 1 ? "1 algoritmo" : `${n} algoritmos`),
     moduleTitle: "Visualizador de algoritmos de grafos: BFS, Dijkstra, Prim y Kruskal paso a paso · Aleph Labs",
     moduleDescription:
       "Mira BFS, DFS, Dijkstra, Prim, Kruskal y el orden topológico sobre un grafo que puedes modificar, con la cola, la pila y cada distancia a la vista mientras cambian.",

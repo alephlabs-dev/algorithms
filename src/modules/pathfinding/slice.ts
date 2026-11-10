@@ -71,7 +71,6 @@ const cellsTooSmall = (s: PathfindingState) => {
   return s.gridSize === gridSizes[0] ? guessText.screenTooSmall : guessText.pickSmaller;
 };
 
-// Two that guarantee a shortest path, one that aims for the target, one that doesn't: the classic comparison.
 /**
  * Share of a beat each kind of step takes: each visit gets a beat, frontier updates
  * follow quickly, and the final path traces fast so it reads as one stroke.
@@ -83,6 +82,7 @@ const STEP_WEIGHT: Record<PathStepKind, number> = {
   done: 1,
 };
 
+// Two that guarantee a shortest path, one that aims for the target, one that doesn't: the classic comparison.
 const DEFAULT_RACERS: PathAlgorithm[] = ["bfs", "dijkstra", "astar", "greedy"];
 
 const runFor = (algorithm: PathAlgorithm, grid: Grid) => new PathTimeline(pathSearches[algorithm], grid);

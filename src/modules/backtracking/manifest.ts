@@ -8,7 +8,7 @@ const text = localized({
     title: "Backtracking",
     summary:
       "N queens on a chessboard and a Sudoku, filled one choice at a time: every conflict, every dead end and every choice taken back.",
-    count: (n: number) => `${n} problems`,
+    count: (n: number) => (n === 1 ? "1 problem" : `${n} problems`),
     moduleTitle: "Backtracking Visualizer: N-Queens and Sudoku Step by Step · Aleph Labs",
     moduleDescription:
       "Watch backtracking place N queens on a chessboard and fill in a Sudoku: every choice, every conflict, every dead end and every backtrack, step by step with the pseudocode.",
@@ -20,7 +20,7 @@ const text = localized({
     title: "Backtracking",
     summary:
       "N reinas en un tablero de ajedrez y un sudoku, elección por elección: cada conflicto, cada callejón sin salida y cada elección que se deshace.",
-    count: (n) => `${n} problemas`,
+    count: (n) => (n === 1 ? "1 problema" : `${n} problemas`),
     moduleTitle: "Visualizador de backtracking: N reinas y sudoku paso a paso · Aleph Labs",
     moduleDescription:
       "Mira cómo el backtracking coloca N reinas en un tablero y llena un sudoku: cada elección, cada conflicto, cada callejón sin salida y cada vuelta atrás, paso a paso con el pseudocódigo.",

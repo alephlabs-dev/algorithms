@@ -9,7 +9,7 @@ const text = localized({
   en: {
     title: "Sorting",
     summary: "Selection, Insertion, Bubble, Cocktail, Shell, Quick, Merge, Heap and Radix Sort.",
-    count: (n: number) => `${n} algorithms`,
+    count: (n: number) => (n === 1 ? "1 algorithm" : `${n} algorithms`),
     moduleTitle: "Sorting Algorithm Visualizer: 9 Algorithms Step by Step · Aleph Labs",
     moduleDescription:
       "Watch Bubble, Insertion, Quick, Merge, Heap, Radix Sort and more sort an array step by step, with the pseudocode lit up and every move explained.",
@@ -26,7 +26,7 @@ const text = localized({
   es: {
     title: "Ordenamiento",
     summary: "Selection, Insertion, Bubble, Cocktail, Shell, Quick, Merge, Heap y Radix Sort.",
-    count: (n) => `${n} algoritmos`,
+    count: (n) => (n === 1 ? "1 algoritmo" : `${n} algoritmos`),
     moduleTitle: "Visualizador de algoritmos de ordenamiento: 9 algoritmos paso a paso · Aleph Labs",
     moduleDescription:
       "Mira cómo Bubble, Insertion, Quick, Merge, Heap, Radix Sort y más ordenan un arreglo paso a paso, con el pseudocódigo resaltado y cada movimiento explicado.",
