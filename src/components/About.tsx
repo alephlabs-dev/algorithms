@@ -11,7 +11,7 @@ import type { DpAlgorithm } from "@/modules/dp/types";
 import { backtrackingProblems } from "@/modules/backtracking/algorithms";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Fourier articles move into its interface.
 import { fourierSeries } from "@/modules/fourier/algorithms";
-import { DP_RACE_DESCRIPTION, MAZE_RACE_DESCRIPTION, STRUCTURE_RACE_DESCRIPTION, GRAPH_RACE_DESCRIPTION, PATH_RACE_DESCRIPTION, RACE_DESCRIPTION } from "@/consts/race";
+import { DP_RACE_DESCRIPTION, MAZE_RACE_DESCRIPTION, STRUCTURE_RACE_DESCRIPTION } from "@/consts/race";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Data structures articles move into its interface.
 import { structures } from "@/modules/structures/algorithms";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Data structures articles move into its interface.
@@ -46,6 +46,7 @@ import { MUD_COST, type PathAlgorithm } from "@/modules/pathfinding/types";
 import { pathPseudocode } from "@/modules/pathfinding/searches";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Sorting articles move into its interface.
 import { algorithmGroups } from "@/modules/sorting/algorithmGroups";
+import { GRAPH_RACE_DESCRIPTION, PATH_RACE_DESCRIPTION, RACE_DESCRIPTION } from "@/consts/race";
 // eslint-disable-next-line house/module-boundaries -- TODO(#190): the Sorting articles move into its interface.
 import { sortingAlgorithms } from "@/modules/sorting/algorithms";
 import { localized } from "@/i18n";

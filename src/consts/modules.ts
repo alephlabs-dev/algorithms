@@ -1,20 +1,20 @@
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the Backtracking landing entry moves into its manifest.
-import { backtrackingProblems } from "../modules/backtracking/algorithms";
+import { backtrackingProblems } from "@/modules/backtracking/algorithms";
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the DP landing entry moves into its manifest.
-import { dpProblems } from "../modules/dp/algorithms";
+import { dpProblems } from "@/modules/dp/algorithms";
 import type { Route } from "@/routes";
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the Fourier landing entry moves into its manifest.
-import { fourierSeries } from "../modules/fourier/algorithms";
+import { fourierSeries } from "@/modules/fourier/algorithms";
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the Data structures landing entry moves into its manifest.
-import { structures } from "../modules/structures/algorithms";
+import { structures } from "@/modules/structures/algorithms";
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the Graphs landing entry moves into its manifest.
-import { graphAlgorithms } from "../modules/graphs/algorithms";
+import { graphAlgorithms } from "@/modules/graphs/algorithms";
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the Mazes landing entry moves into its manifest.
 import { MAZE_ALGORITHMS } from "@/modules/mazes/generators";
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the Pathfinding landing entry moves into its manifest.
-import { pathAlgorithms } from "../modules/pathfinding/algorithms";
+import { pathAlgorithms } from "@/modules/pathfinding/algorithms";
 // eslint-disable-next-line house/module-boundaries -- TODO(#187): the Sorting landing entry moves into its manifest.
-import { sortingAlgorithms } from "../modules/sorting/algorithms";
+import { sortingAlgorithms } from "@/modules/sorting/algorithms";
 import { localized } from "@/i18n";
 
 const text = localized({
