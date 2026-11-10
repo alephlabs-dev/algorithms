@@ -24,3 +24,8 @@ export const DP_RACE_DESCRIPTION = localized({
   en: "The same knapsack three ways, one subproblem per tick each. The table fills every cell once, row by row. Plain recursion asks for the corner and splits each question in two, so it works out the same subproblems again and again, and the count grows exponentially with the items. Memoized recursion asks the same way but writes each answer down: a repeat is a lookup, and it only touches the cells the answer needs.",
   es: "La misma mochila de tres formas, un subproblema por tic cada una. La tabla llena cada celda una vez, fila por fila. La recursión simple pregunta por la esquina y divide cada pregunta en dos, así que calcula los mismos subproblemas una y otra vez, y la cuenta crece exponencialmente con los objetos. La recursión con memoización pregunta igual, pero anota cada respuesta: una repetición es una consulta, y solo toca las celdas que necesita la respuesta.",
 });
+
+export const MAZE_RACE_DESCRIPTION = localized({
+  en: "Same seed, same size, same start cell. Each tick, every generator takes one decision. There's no winner: carving faster doesn't make a better maze. Watch Wilson's first random walk wander before it speeds up, then compare the dead-end cells: few means long, winding corridors; many means lots of short branches.",
+  es: "Misma semilla, mismo tamaño, misma celda de inicio. En cada tic, cada generador toma una decisión. No hay ganador: excavar más rápido no hace un laberinto mejor. Mira cómo la primera caminata al azar de Wilson deambula antes de acelerar, y después compara las celdas sin salida: pocas significan pasillos largos y sinuosos; muchas, montones de ramas cortas.",
+});

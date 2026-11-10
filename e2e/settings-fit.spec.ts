@@ -29,6 +29,7 @@ const PAGES = [
   '/backtracking',
   '/backtracking/sudoku',
   '/mazes',
+  '/mazes/race',
   // Spanish runs longer.
   '/es/sorting/insertion-sort',
   '/es/pathfinding',

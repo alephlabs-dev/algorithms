@@ -78,7 +78,11 @@ const HINTS: { [M in ModuleId]: Hints<M> } = {
   },
   dp: { start: text.dp, algorithm: (algorithm) => text.dpHowItWorks(dpProblems[algorithm].named), race: text.dpRace },
   backtracking: { start: text.backtracking, algorithm: (algorithm) => backtrackingProblems[algorithm].howItWorks },
-  mazes: { start: text.mazes, algorithm: (algorithm) => text.algorithm(mazeAlgorithms[algorithm].named) },
+  mazes: {
+    start: text.mazes,
+    algorithm: (algorithm) => text.algorithm(mazeAlgorithms[algorithm].named),
+    race: text.race,
+  },
 };
 
 /** The modules with hints, from the table. */

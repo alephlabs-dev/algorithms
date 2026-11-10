@@ -89,8 +89,8 @@ const LINKS: { [M in ModuleId]: { page: Route; search: string; carries: Partial<
   },
   mazes: {
     page: { module: "mazes", page: "algorithm", algorithm: "dfs" },
-    search: mazesLink.write({ size: "large", seed: 424242 }, SPEED),
-    carries: { algorithm: "dfs", size: "large", seed: 424242 },
+    search: mazesLink.write({ size: "large", seed: 424242, racers: ["prim", "wilson"] }, SPEED),
+    carries: { algorithm: "dfs", size: "large", seed: 424242, racers: ["prim", "wilson"] },
   },
 };
 
@@ -178,6 +178,7 @@ describe("module engines", () => {
       ["backtracking", within("backtracking", { queensN: 8 })],
       ["mazes", within("mazes", { size: "small" })],
       ["mazes", within("mazes", { seed: 7 })],
+      ["mazes", within("mazes", { racers: ["dfs", "kruskal"] })],
     ];
     for (const [module, change] of changes) {
       const state = stateFor(module, "single", false);

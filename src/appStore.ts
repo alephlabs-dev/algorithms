@@ -19,7 +19,8 @@ export type View = "single" | "race";
 export type Module = ModuleId;
 export type Theme = "dark" | "light";
 export { MAX_RACERS, MIN_RACERS } from "./modules/slice";
-export { raceMaxGridSize, type Brush } from "./modules/pathfinding.slice";
+export { raceMaxGridSize } from "./pathfinding";
+export { type Brush } from "./modules/pathfinding.slice";
 
 export const tourDone = (module: Module) => {
   try {

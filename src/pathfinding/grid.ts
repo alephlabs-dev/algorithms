@@ -14,6 +14,15 @@ const dimensions: Record<GridSize, { wide: [number, number]; phone: [number, num
 
 export const gridSizes: GridSize[] = ["small", "medium", "large"];
 
+/** Race lanes are a quarter of the stage, so bigger grids get too small to follow. */
+export const raceMaxGridSize = (isMobile: boolean): GridSize => (isMobile ? "small" : "medium");
+
+/** The grid size to use: the one asked for, capped in a race. */
+export const fitGridSize = (size: GridSize, view: "single" | "race", isMobile: boolean): GridSize => {
+  const cap = raceMaxGridSize(isMobile);
+  return view === "race" && gridSizes.indexOf(size) > gridSizes.indexOf(cap) ? cap : size;
+};
+
 export const gridDimensions = (size: GridSize, isMobile: boolean) => {
   const [rows, cols] = dimensions[size][isMobile ? "phone" : "wide"];
   return { rows, cols };

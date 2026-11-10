@@ -17,6 +17,7 @@ const routes = [
   '/dynamic-programming',
   '/backtracking',
   '/mazes',
+  '/mazes/race',
 ];
 const CONTROLS = [
   'button',

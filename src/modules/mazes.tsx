@@ -1,7 +1,9 @@
 import { MazeStage } from "@/components/Mazes/MazeStage";
 import { MazeFacts, MazeLegend, MazeStatsInline } from "@/components/Mazes/MazeTools";
+import { MazeRaceLanes } from "@/components/Race/MazeRaceLanes";
 import { MazeSettings } from "@/components/Settings/SettingsPanel";
 import { mazeAlgorithms, mazeSizeLabels } from "@/consts/mazeAlgorithms";
+import { MAZE_RACE_DESCRIPTION } from "@/consts/race";
 import { localized } from "@/i18n";
 import { MAZE_ALGORITHMS, mazePseudocode, type MazeAlgorithm } from "@/mazes";
 import { useStore } from "@/store";
@@ -15,12 +17,16 @@ const text = localized({
     maze: "maze",
     size: (size: string) => `${size} maze`,
     newRun: "New maze",
+    tagline: "Same seed, same clock",
+    unit: { one: "step", short: "steps" },
   },
   es: {
     title: "Laberintos",
     maze: "laberinto",
     size: (size) => `Laberinto ${size.toLowerCase()}`,
     newRun: "Laberinto nuevo",
+    tagline: "Misma semilla, mismo reloj",
+    unit: { one: "paso", short: "pasos" },
   },
 });
 
@@ -50,6 +56,14 @@ export const mazesUI: ModuleUI = {
 
   about: (s) => mazeAlgorithms[s.mazes.algorithm],
   summary: (s) => `${mazeAlgorithms[s.mazes.algorithm].texture} · ${mazeAlgorithms[s.mazes.algorithm].timeComplexity}`,
+  race: {
+    Stage: MazeRaceLanes,
+    racers: (s) => s.mazes.racers,
+    toggleRacer: (id) => useStore.getState().actions.mazes.toggleRacer(id as MazeAlgorithm),
+    tagline: text.tagline,
+    description: MAZE_RACE_DESCRIPTION,
+    unit: text.unit,
+  },
 
   code: {
     lines: (s) => mazePseudocode[s.mazes.algorithm],

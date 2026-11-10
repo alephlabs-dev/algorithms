@@ -857,6 +857,12 @@ export const mazesTour = localized<TourStep[]>({
       title: "A new maze",
       text: () => "Another random maze of the same size. Share the link to show someone this exact one.",
     },
+    {
+      anchor: "race",
+      title: "Side by side",
+      text: () =>
+        "Carve the same seed with up to four generators at once. There's no winner: compare their dead-end cells to see each texture.",
+    },
   ],
   es: [
     {
@@ -921,6 +927,12 @@ export const mazesTour = localized<TourStep[]>({
       anchor: "new",
       title: "Un laberinto nuevo",
       text: () => "Otro laberinto al azar del mismo tamaño. Comparte el enlace para mostrarle a alguien este mismo.",
+    },
+    {
+      anchor: "race",
+      title: "Lado a lado",
+      text: () =>
+        "Excava la misma semilla con hasta cuatro generadores a la vez. No hay ganador: compara sus celdas sin salida para ver cada textura.",
     },
   ],
 });

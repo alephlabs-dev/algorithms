@@ -18,6 +18,7 @@ const resolvedScrim = (page: Page) =>
 const races = [
   '/sorting/race?size=10&speed=8x&race=insertion,quick',
   '/pathfinding/race?speed=8x',
+  '/mazes/race?size=small&speed=8x',
 ];
 
 for (const theme of ['light', 'dark'] as const) {
