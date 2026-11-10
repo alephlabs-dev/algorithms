@@ -165,7 +165,10 @@ const kruskal: MazeGenerator = function* (grid, _start, random) {
       yield { type: "skip", wall, region: members.get(ra)!.slice(), line: 7 };
       continue;
     }
-    yield { type: "join", wall, regions: [members.get(ra)!.slice(), members.get(rb)!.slice()], line: 5 };
+    const left = regions - 1;
+    // The wall that joins the last two regions ends the run: it lights up "stop".
+    const line = left === 1 ? 6 : 5;
+    yield { type: "join", wall, regions: [members.get(ra)!.slice(), members.get(rb)!.slice()], left, line };
     open.add(wall);
     // The smaller region joins the larger, so the lists stay cheap to merge.
     const [big, small] = members.get(ra)!.length >= members.get(rb)!.length ? [ra, rb] : [rb, ra];

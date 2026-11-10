@@ -44,11 +44,12 @@ export type MazeStep = {
   | /**
      * Kruskal tests `wall`: the cells on its two sides are in different regions, so it carves
      * the wall and the regions merge. `regions` are their cells (passages included) before
-     * merging, the one on the wall's top or left side first.
+     * merging, the one on the wall's top or left side first. `left` counts the regions after it.
      */ {
       type: "join";
       wall: number;
       regions: [number[], number[]];
+      left: number;
     }
   | /** Kruskal tests `wall`: both its sides are in `region` already, so carving it would close a loop. */ {
       type: "skip";

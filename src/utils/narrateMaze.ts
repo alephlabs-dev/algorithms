@@ -43,7 +43,7 @@ const text = localized({
     pick: (at, side, added) =>
       `Elige ${at} y excava desde ${side}${added ? `; ${count(added, "celda nueva", "celdas nuevas")} en la frontera` : ""}.`,
     lastPick: (at, side) => `Elige ${at} y excava desde ${side}. La frontera queda vacía.`,
-    regions: (n) => `Excava todas las celdas, cada una es una región: ${count(n, "región", "regiones")}.`,
+    regions: (n) => `Excava todas las celdas, cada una en su propia región: ${count(n, "región", "regiones")}.`,
     join: (at, left) =>
       `La pared en ${at} separa dos regiones: excávala y únelas; ${left === 1 ? "queda" : "quedan"} ${count(left, "región", "regiones")}.`,
     lastJoin: (at) => `La pared en ${at} separa las dos últimas regiones: excávala y todo queda unido.`,
@@ -64,17 +64,6 @@ const directionOf = (run: MazeRun, wall: number, cell: number): Direction =>
 
 const OPPOSITE: Record<Direction, Direction> = { up: "down", right: "left", down: "up", left: "right" };
 
-/** Kruskal's regions after frame `index`: one per cell to begin with, one fewer per carved wall. */
-const regionsLeft = (run: MazeRun, index: number) => {
-  let regions = 0;
-  for (let i = 1; i <= index; i++) {
-    const step = run.stepAt(i);
-    if (step?.type === "regions") regions = step.cells.length;
-    else if (step?.type === "join") regions--;
-  }
-  return regions;
-};
-
 /** One plain-language sentence for the decision that led to frame `index`. */
 export const narrateMaze = (run: MazeRun, index: number): string => {
   const step = run.stepAt(index);
@@ -94,10 +83,8 @@ export const narrateMaze = (run: MazeRun, index: number): string => {
     }
     case "regions":
       return text.regions(step.cells.length);
-    case "join": {
-      const left = regionsLeft(run, index);
-      return left === 1 ? text.lastJoin(at(run, step.wall)) : text.join(at(run, step.wall), left);
-    }
+    case "join":
+      return step.left === 1 ? text.lastJoin(at(run, step.wall)) : text.join(at(run, step.wall), step.left);
     case "skip":
       return text.skip(at(run, step.wall));
     case "carve":

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createAppStore } from "@/appStore";
 import { routePath } from "@/routes";
-import { ACTIVE, CARVED, FRONTIER, OTHER_REGION, REGION, SKIPPED, WALL } from "@/mazes";
+import { ACTIVE, CARVED, FRONTIER, MAZE_ALGORITHMS, OTHER_REGION, REGION, SKIPPED, WALL } from "@/mazes";
 import { linkFor, readLocation } from "@/urlState";
 import { routeIn } from "./engine";
 import { mazesSlice as slice, type MazesState } from "./mazes.slice";
@@ -59,7 +59,7 @@ const expectPerfect = (s: MazesState) => {
 const SEEDS = Array.from({ length: 20 }, (_, k) => (k * 2654435761 + 17) >>> 0);
 
 describe("mazes slice", () => {
-  for (const algorithm of ["dfs", "prim", "kruskal"] as const)
+  for (const algorithm of MAZE_ALGORITHMS)
     for (const size of ["small", "medium", "large"] as const)
       for (const ctx of [single, phone])
         it(`${algorithm} carves a perfect maze on every ${size} grid (${ctx.isMobile ? "phone" : "wide"})`, () => {
@@ -175,7 +175,7 @@ describe("mazes slice", () => {
     expect(prim.run.length).not.toBe(dfs.run.length);
   });
 
-  for (const algorithm of ["dfs", "prim", "kruskal"] as const) {
+  for (const algorithm of MAZE_ALGORITHMS) {
     it(`${algorithm}: the same link gives the same maze, frame for frame; another seed, another maze`, () => {
       const a = at(`/mazes/${algorithm}`, "?size=medium&seed=abc");
       const b = at(`/mazes/${algorithm}`, "?size=medium&seed=abc");
@@ -213,7 +213,7 @@ describe("mazes slice", () => {
   });
 
   it("the dead ends in the stats are the cells the last frame marks", () => {
-    for (const algorithm of ["dfs", "prim", "kruskal"])
+    for (const algorithm of MAZE_ALGORITHMS)
       for (const seed of SEEDS) {
         const s = at(`/mazes/${algorithm}`, `?size=large&seed=${seed.toString(36)}`);
         const last = lastFrame(s);

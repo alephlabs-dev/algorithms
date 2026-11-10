@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { localized } from "@/i18n";
-import type { MazeAlgorithm } from "@/mazes";
+import { hasStartCell, type MazeAlgorithm } from "@/mazes";
 import { MUD_COST } from "@/pathfinding";
 import { useStore, type Theme } from "@/store";
 import { Swatch } from "@/components/TourSwatch";
@@ -767,6 +767,8 @@ const mazeTones = localized<Record<MazeAlgorithm, (theme: Theme) => ReactNode>>(
   },
 });
 const mazeTonesNow = (theme: Theme) => mazeTones[useStore.getState().mazes.algorithm](theme);
+/** Whether the generator on stage grows from a start cell (Kruskal doesn't). */
+const startsNow = () => hasStartCell[useStore.getState().mazes.algorithm];
 
 // Dead-end cells are the tertiary color; mazes are the only tour that names it.
 const deadEndColor = localized<Record<Theme, string>>({
@@ -781,8 +783,14 @@ export const mazesTour = localized<TourStep[]>({
       title: "The grid",
       text: () => (
         <>
-          Every cell starts walled in. The algorithm carves passages from the <Swatch className="bg-primary" />
-          start until every cell is joined, with exactly one route between any two.
+          Every cell starts walled in. The algorithm carves passages{" "}
+          {startsNow() && (
+            <>
+              from the <Swatch className="bg-primary" />
+              start{" "}
+            </>
+          )}
+          until every cell is joined, with exactly one route between any two.
         </>
       ),
     },
@@ -839,8 +847,14 @@ export const mazesTour = localized<TourStep[]>({
       title: "La cuadrícula",
       text: () => (
         <>
-          Todas las celdas empiezan amuralladas. El algoritmo excava pasillos desde el <Swatch className="bg-primary" />
-          inicio hasta unir todas las celdas, con un único camino entre dos cualesquiera.
+          Todas las celdas empiezan amuralladas. El algoritmo excava pasillos{" "}
+          {startsNow() && (
+            <>
+              desde el <Swatch className="bg-primary" />
+              inicio{" "}
+            </>
+          )}
+          hasta unir todas las celdas, con un único camino entre dos cualesquiera.
         </>
       ),
     },
