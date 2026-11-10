@@ -1,5 +1,5 @@
 import { FRAMES_PER_TURN, isWave, waveAt, type FourierRun, type Point, type Wave } from "@/fourier";
-import { hexToRgb, readColors, type CanvasColors, type RGB } from "./theme";
+import { hexToRgb, mix, readColors, type CanvasColors, type RGB } from "./theme";
 
 export type FourierRenderInput = {
   run: FourierRun;
@@ -8,11 +8,6 @@ export type FourierRenderInput = {
   stroke: Point[] | null;
 };
 
-const mix = (a: RGB, b: RGB, t: number): RGB => [
-  a[0] + (b[0] - a[0]) * t,
-  a[1] + (b[1] - a[1]) * t,
-  a[2] + (b[2] - a[2]) * t,
-];
 const css = (c: RGB, alpha = 1) => `rgb(${c[0] | 0} ${c[1] | 0} ${c[2] | 0} / ${alpha})`;
 
 /** Where a run's math lands on the canvas: an origin and how many pixels a unit is. */

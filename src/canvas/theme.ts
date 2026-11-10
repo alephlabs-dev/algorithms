@@ -61,3 +61,14 @@ export const hexToRgb = (hex: string): RGB => {
   const n = parseInt(hex.slice(1), 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 };
+
+/** A linear blend from `a` (t = 0) to `b` (t = 1), per channel; not rounded or clamped. */
+export const mix = (a: RGB, b: RGB, t: number): RGB => [
+  a[0] + (b[0] - a[0]) * t,
+  a[1] + (b[1] - a[1]) * t,
+  a[2] + (b[2] - a[2]) * t,
+];
+
+/** The floor and walls of a grid, shared by pathfinding and mazes so a maze looks the same in both. */
+export const gridFloor = (colors: CanvasColors): RGB => mix(hexToRgb(colors.background), hexToRgb(colors.edge), 0.55);
+export const gridWall = (colors: CanvasColors): RGB => mix(hexToRgb(colors.background), hexToRgb(colors.bar), 0.55);
