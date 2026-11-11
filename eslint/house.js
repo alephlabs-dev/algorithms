@@ -143,6 +143,18 @@ const pathToBrowser = (start, root) => {
   return null;
 };
 
+/**
+ * The shared files the prerender renders in Node (src/seo/render.tsx and what it renders), besides each module's
+ * content.tsx: like the content, none of them may reach the browser's side (module-boundaries' `prerender` option).
+ */
+export const prerenderFiles = [
+  "src/seo/render.tsx",
+  "src/Page.tsx",
+  "src/components/About.tsx",
+  "src/components/Landing/Landing.tsx",
+  "src/modules/contents.ts",
+];
+
 const moduleBoundaries = {
   meta: {
     type: "problem",

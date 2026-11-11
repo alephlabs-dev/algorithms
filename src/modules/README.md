@@ -70,8 +70,8 @@ Four rules, enforced by the lint (`house/module-boundaries` in `eslint/house.js`
   `src/i18n.ts` and `src/routes.ts`. Its `algorithms.ts` runs there too: the same imports, plus types from its own
   folder or shared code. `tsconfig.node.json` finds every module folder's `manifest.ts`, `types.ts` and
   `algorithms.ts` by glob, and lists the shared file they reach (`src/utils/gridSize.ts`, for a type).
-- `content.tsx` renders in Node (the prerender), and so do the shared files the lint lists as `prerender`
-  (`src/seo/render.tsx`, `src/Page.tsx`, `About`, `Landing`, `contents.ts`): none of them reaches the store, the
+- `content.tsx` renders in Node (the prerender), and so do the shared files listed in `prerenderFiles`
+  (`eslint/house.js`): none of them reaches the store, the
   app's entry, the interface or slice registries, or any module's `ui.tsx` or `slice.ts`, directly or through
   other files (type imports aside). They reach modules only through `contents.ts` (and `manifests.ts`, Node-safe,
   for the landing cards). `src/seo/render.test.ts` renders pages in Node, so anything else that reads the

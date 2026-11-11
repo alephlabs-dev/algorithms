@@ -4,7 +4,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
-import { house } from "./eslint/house.js";
+import { house, prerenderFiles } from "./eslint/house.js";
 
 // House rules from UX.md: only our own components, only theme colors.
 export default defineConfig([
@@ -60,15 +60,7 @@ export default defineConfig([
             "src/modules/index.ts": "ui",
             "src/modules/contents.ts": "content",
           },
-          // What the prerender renders in Node (besides each module's content.tsx): none of it may reach the store,
-          // an interface or a slice, which need the browser. Modules come in only through src/modules/contents.ts.
-          prerender: [
-            "src/seo/render.tsx",
-            "src/Page.tsx",
-            "src/components/About.tsx",
-            "src/components/Landing/Landing.tsx",
-            "src/modules/contents.ts",
-          ],
+          prerender: prerenderFiles,
         },
       ],
     },

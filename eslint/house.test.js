@@ -2,7 +2,7 @@ import { RuleTester } from "eslint";
 import path from "node:path";
 import tseslint from "typescript-eslint";
 import { afterAll, describe, it } from "vitest";
-import { house } from "./house.js";
+import { house, prerenderFiles } from "./house.js";
 
 RuleTester.afterAll = afterAll;
 RuleTester.describe = describe;
@@ -44,7 +44,7 @@ const registries = [
       "src/modules/index.ts": "ui",
       "src/modules/contents.ts": "content",
     },
-    prerender: ["src/components/About.tsx"],
+    prerender: prerenderFiles,
   },
 ];
 // TypeScript's parser, for `import type`.

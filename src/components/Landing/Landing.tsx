@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
-import { modules } from "@/consts/modules";
 import { moduleContents } from "@/modules/contents";
+import { manifests } from "@/modules/manifests";
 import { localized } from "@/i18n";
-import { HOME, MODULES, type Route } from "@/routes";
+import { HOME, MODULES, type ModuleId, type Route } from "@/routes";
 import { cn } from "@/utils/cn";
 import { PageLink } from "../PageLink";
 import { AlephMark } from "../ui/aleph-mark";
@@ -33,8 +33,6 @@ const text = localized({
     startSorting: "Start with sorting",
     tryPathfinding: "Try pathfinding",
     open: (n: number) => `${n} OPEN`,
-    inPreparation: (n: number) => ` · ${n} IN PREPARATION`,
-    preparing: "IN PREPARATION",
     openModule: "Open →",
     features: "Features",
     featureList: [
@@ -58,8 +56,6 @@ const text = localized({
     startSorting: "Empieza con ordenamiento",
     tryPathfinding: "Prueba búsqueda de caminos",
     open: (n) => `${n} ABIERTOS`,
-    inPreparation: (n) => ` · ${n} EN PREPARACIÓN`,
-    preparing: "EN PREPARACIÓN",
     openModule: "Abrir →",
     features: "Funciones",
     featureList: [
@@ -73,15 +69,15 @@ const text = localized({
   },
 });
 
-/** The landing's live demo, from the module whose content has one. */
-const HeroDemo = MODULES.map((id) => moduleContents[id].HeroDemo).find((demo) => demo !== undefined);
+/** The module whose live demo plays in the landing's hero. */
+const HERO_MODULE: ModuleId = "pathfinding";
+const HeroDemo = moduleContents[HERO_MODULE].HeroDemo;
 
 /**
  * The front page: what this is, a live search to show it, and an index of
  * the modules. Pure, like the articles, so the build prerenders it whole.
  */
 export const Landing = ({ onNavigate, actions }: Props) => {
-  const open = modules.filter((m) => m.route);
   return (
     <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-24 px-4 pb-16 text-foreground md:px-8 lg:gap-32">
       <header className="flex flex-wrap items-center justify-between gap-2 pt-5 sm:gap-4 md:pt-7">
@@ -160,45 +156,28 @@ export const Landing = ({ onNavigate, actions }: Props) => {
             {text.modules}
           </h2>
           <span className="font-mono text-xs text-foreground/60">
-            {text.open(open.length)}
-            {open.length < modules.length && text.inPreparation(modules.length - open.length)}
+            {text.open(MODULES.length)}
           </span>
         </div>
         <ol className="flex flex-col">
-          {modules.map((m, k) => {
+          {MODULES.map((id, k) => {
             const number = String(k + 1).padStart(2, "0");
-            if (!m.route) {
-              return (
-                <li
-                  key={m.id}
-                  className="flex flex-wrap items-center gap-x-8 gap-y-2 border-b border-edge py-5 text-foreground/60"
-                >
-                  <span className="w-10 font-mono text-sm">{number}</span>
-                  <div className="flex min-w-0 flex-[1_1_280px] flex-col gap-1">
-                    <h3 className="text-xl font-semibold">{m.title}</h3>
-                    <p className="text-sm">{m.summary}</p>
-                  </div>
-                  <span className="rounded-full border border-dashed border-line px-3 py-1 font-mono text-[11px]">
-                    {text.preparing}
-                  </span>
-                </li>
-              );
-            }
-            const { Thumbnail } = moduleContents[m.id];
+            const { title, summary, count } = manifests[id].landing;
+            const { Thumbnail } = moduleContents[id];
             return (
-              <li key={m.id} className="border-b border-edge">
+              <li key={id} className="border-b border-edge">
                 <PageLink
-                  to={m.route}
+                  to={{ module: id, page: "start" }}
                   onNavigate={onNavigate}
                   className="group flex flex-wrap items-center gap-x-8 gap-y-4 py-7 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   <span className="w-10 font-mono text-sm text-primary">{number}</span>
                   <div className="flex min-w-0 flex-[1_1_280px] flex-col gap-1.5">
                     <div className="flex flex-wrap items-baseline gap-x-3">
-                      <h3 className="text-2xl font-semibold md:text-3xl">{m.title}</h3>
-                      <span className="font-mono text-xs text-foreground/60">{m.count}</span>
+                      <h3 className="text-2xl font-semibold md:text-3xl">{title}</h3>
+                      <span className="font-mono text-xs text-foreground/60">{count}</span>
                     </div>
-                    <p className="text-[15px] text-foreground/75">{m.summary}</p>
+                    <p className="text-[15px] text-foreground/75">{summary}</p>
                   </div>
                   <div className="hidden w-56 shrink-0 sm:block"><Thumbnail /></div>
                   <span className="font-semibold transition-colors group-hover:text-primary">{text.openModule}</span>
