@@ -9,7 +9,7 @@ import { useStore } from "@/store";
 import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";
 import { FactLine } from "@/components/ui/fact-line";
-import { NativeSelect } from "@/components/ui/native-select";
+import { Select } from "@/components/ui/select";
 import { popoverClass } from "@/components/ui/popover";
 import { SectionLabel } from "@/components/ui/section-label";
 import { SegmentedControl } from "@/components/ui/segmented";
@@ -117,21 +117,20 @@ export const ShapeGrid = ({ onPick, columns = "grid-cols-4" }: { onPick?: () => 
   );
 };
 
-/** The settings' drawing picker: one closed field with the drawings in groups, so settings fit without scrolling (UX.md rule 14). */
+/** The settings' drawing picker: one closed field opening the drawings with their thumbnails, in groups. */
 export const DrawingSelect = () => {
   const { shape, setShape } = useStore(useShallow((s) => ({ shape: s.fourier.shape, setShape: s.actions.fourier.setShape })));
   const own = shapeOptions[shapeOptions.length - 1];
+  const option = ({ value, label }: ShapeOption) => ({ value, label, icon: <ShapeThumb shape={value} className="h-7 w-7 shrink-0" /> });
   return (
-    <NativeSelect
+    <Select
       label={text.drawingField}
       value={shape}
       onChange={(value) => setShape(value as FourierShape)}
+      columns={2}
       groups={[
-        ...shapeGroups.map((group) => ({
-          label: group.label,
-          options: group.shapes.map((option) => ({ value: option.value, label: option.label })),
-        })),
-        { options: [{ value: own.value, label: own.label }] },
+        ...shapeGroups.map((group) => ({ label: group.label, options: group.shapes.map(option) })),
+        { options: [option(own)] },
       ]}
     />
   );
