@@ -1,6 +1,5 @@
 import { localized } from "@/i18n";
-import type { StructureAlgorithm } from "./types";
-import type { StructurePreset, StructureSize } from "./presets";
+import type { StructureAlgorithm, StructurePreset, StructureSize } from "./types";
 
 type StructureText = {
   title: string;

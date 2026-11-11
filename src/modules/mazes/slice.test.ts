@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createAppStore } from "@/appStore";
 import { routePath } from "@/routes";
-import { MAZE_ALGORITHMS, isMazeCell, mazePseudocode } from "./generators";
+import { isMazeCell, mazePseudocode } from "./generators";
+import { MAZE_ALGORITHMS } from "./types";
 import { ACTIVE, CARVED, FRONTIER, OTHER_REGION, REGION, SKIPPED, WALK, WALL } from "./types";
 import { linkFor, readLocation } from "@/urlState";
 import { routeIn } from "@/modules/engine";
@@ -381,7 +382,7 @@ describe("mazes race", () => {
     const s = racing("?size=small&seed=abc");
     const longest = Math.max(...s.raceRuns.map((r) => r.length - 1));
     expect(slice.engine.lastIndex(s, "race")).toBe(longest);
-    expect(slice.engine.pace("race")).toBe("mazeRace");
+    expect(slice.engine.pace("race")).toBe(30);
   });
 });
 

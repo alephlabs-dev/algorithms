@@ -1,6 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "@/store";
-import type { ModuleId } from "./engine";
+import type { ModuleId } from "@/routes";
 import { backtrackingUI } from "./backtracking/ui";
 import { dpUI } from "./dp/ui";
 import { fourierUI } from "./fourier/ui";

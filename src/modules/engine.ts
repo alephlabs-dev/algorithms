@@ -1,7 +1,7 @@
 import type { Question } from "@/game";
-import { modulePages, moduleRoute, type ModuleId, type Route } from "@/routes";
+import { MODULES, modulePages, moduleRoute, type ModuleId, type Route } from "@/routes";
 import type { StoreState, View } from "@/store";
-import { speedFor, type Pace } from "@/utils/speed";
+import { speedFor } from "@/utils/speed";
 import { backtrackingSlice } from "./backtracking/slice";
 import { dpSlice } from "./dp/slice";
 import { fourierSlice } from "./fourier/slice";
@@ -12,8 +12,6 @@ import type { BoundSlice, ModuleSlice, SliceContext } from "./slice";
 import { sortingSlice } from "./sorting/slice";
 import { structuresSlice } from "./structures/slice";
 
-/** The modules the app has (their pages are in @/routes). Each one declares its slice in ./<id>/slice.ts and its interface in ./<id>/ui.tsx. */
-export type { ModuleId };
 
 /**
  * Every module's slice, by id: the one place a module is registered with the store.
@@ -29,8 +27,6 @@ export const slices = {
   backtracking: backtrackingSlice,
   mazes: mazesSlice,
 } satisfies Record<ModuleId, unknown>;
-
-export const MODULES = Object.keys(slices) as ModuleId[];
 
 /** Each module's state, under its id. */
 export type SliceStates = { [M in ModuleId]: ReturnType<(typeof slices)[M]["hydrate"]> };
@@ -68,8 +64,8 @@ export type ModuleEngine = {
   lastIndex: (s: StoreState, view: View) => number;
   /** Share of a beat the step into frame `index` takes in single view (races tick evenly). */
   stepWeight: (s: StoreState, index: number) => number;
-  /** Which target pace 1× is tuned to (see utils/speed). */
-  pace: (view: View) => Pace;
+  /** How many seconds a run in `view` should take at most at 1× (see autoSpeed in utils/speed). */
+  pace: (view: View) => number;
   /** The algorithm on stage in this module (in backtracking, the problem), on stage or not. */
   current: (s: StoreState) => string;
   /** The page the store is on, within this module. */

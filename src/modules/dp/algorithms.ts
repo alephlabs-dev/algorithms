@@ -1,6 +1,5 @@
 import { localized } from "@/i18n";
-import type { DpAlgorithm } from "./types";
-import type { Method } from "./work";
+import type { DpAlgorithm, Method } from "./types";
 
 type DpText = {
   title: string;

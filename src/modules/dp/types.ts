@@ -6,6 +6,9 @@
  */
 
 export type DpAlgorithm = "edit" | "lcs" | "knapsack";
+
+/** Three ways to the same knapsack answer, for the race. */
+export type Method = "table" | "memo" | "recursion";
 /** The problems on two words. */
 export type WordsAlgorithm = "edit" | "lcs";
 

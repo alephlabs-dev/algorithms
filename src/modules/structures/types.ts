@@ -9,6 +9,10 @@ export const STRUCTURE_ALGORITHMS = ["bst", "avl", "heap", "chaining", "probing"
 export type StructureAlgorithm = (typeof STRUCTURE_ALGORITHMS)[number];
 /** The two search trees: the ones that race. */
 export type TreeAlgorithm = "bst" | "avl";
+
+/** What a new run starts from, and how many values it inserts. */
+export type StructurePreset = "random" | "ascending" | "example";
+export type StructureSize = "small" | "medium" | "large";
 export const isHashTable = (a: StructureAlgorithm): a is "chaining" | "probing" => a === "chaining" || a === "probing";
 
 export type OperationKind = "insert" | "search" | "delete";

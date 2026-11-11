@@ -1,7 +1,5 @@
-import type { Item } from "./types";
+import type { Item, Method } from "./types";
 
-/** Three ways to the same knapsack answer, for the race. */
-export type Method = "table" | "memo" | "recursion";
 export const methods: Method[] = ["table", "memo", "recursion"];
 
 /** One subproblem solved (or looked up): K for the first `i` items and room `w`. */

@@ -1,7 +1,8 @@
 import { questionsOf } from "@/game";
 import { structureQuestions } from "./questions";
 import { decodeOperations, encodeOperations, MAX_OPERATIONS } from "./operations";
-import { presetOperations, type StructurePreset, type StructureSize } from "./presets";
+import { presetOperations } from "./presets";
+import type { StructurePreset, StructureSize } from "./types";
 import { recordStructure } from "./record";
 import { TreeRecorder } from "./tree";
 import type { HashEvent, Operation, StructureAlgorithm, StructureRun, TreeAlgorithm, TreeEvent } from "./types";
@@ -9,6 +10,7 @@ import type { View } from "@/appStore";
 import { structuresLink, type StructuresLink } from "./link";
 import { newSeed, seededRandom } from "@/utils/random";
 import { defineModule, type SliceContext } from "@/modules/slice";
+import { sentences } from "./sentences";
 
 export type StructuresState = {
   algorithm: StructureAlgorithm;
@@ -73,6 +75,7 @@ const STEP_WEIGHT: Record<TreeEvent["type"] | HashEvent["type"], number> = {
 };
 
 export const structuresSlice = defineModule<StructuresState, StructureAlgorithm, StructuresLink>()({
+  sentences,
   tourKey: "tour-done-structures",
 
   link: structuresLink,
@@ -118,7 +121,7 @@ export const structuresSlice = defineModule<StructuresState, StructureAlgorithm,
     lastIndex: (s, view) =>
       view === "race" ? Math.max(0, ...s.raceRuns.map((r) => r.frames.length - 1)) : s.run.frames.length - 1,
     stepWeight: (s, index) => STEP_WEIGHT[s.run.frames[index]?.event.type ?? "done"],
-    pace: (view) => (view === "race" ? "structureRace" : "structures"),
+    pace: (view) => (view === "race" ? 25 : 30),
     search: (s, ctx) =>
       structuresLink.write(
         {

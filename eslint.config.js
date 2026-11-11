@@ -52,7 +52,13 @@ export default defineConfig([
     rules: {
       "house/module-boundaries": [
         "error",
-        { registries: { "src/modules/engine.ts": "slice", "src/modules/index.ts": "ui" } },
+        {
+          registries: {
+            "src/modules/manifests.ts": "manifest",
+            "src/modules/engine.ts": "slice",
+            "src/modules/index.ts": "ui",
+          },
+        },
       ],
     },
   },

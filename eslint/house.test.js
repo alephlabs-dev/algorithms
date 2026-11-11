@@ -36,7 +36,9 @@ tester.run("no-native-controls", house.rules["no-native-controls"], {
 // Module boundaries (docs/adr/0003): the files are named from the repo root.
 const at = (file) => path.join(import.meta.dirname, "..", file);
 const boundaries = house.rules["module-boundaries"];
-const registries = [{ registries: { "src/modules/engine.ts": "slice", "src/modules/index.ts": "ui" } }];
+const registries = [
+  { registries: { "src/modules/manifests.ts": "manifest", "src/modules/engine.ts": "slice", "src/modules/index.ts": "ui" } },
+];
 // TypeScript's parser, for `import type`.
 const moduleTester = new RuleTester({ languageOptions: { parser: tseslint.parser } });
 
@@ -50,11 +52,18 @@ moduleTester.run("module-boundaries", boundaries, {
     // Each registry imports its piece of every module.
     { code: "import { mazesSlice } from './mazes/slice';", filename: at("src/modules/engine.ts"), options: registries },
     { code: "import { mazesUI } from '@/modules/mazes/ui';", filename: at("src/modules/index.ts"), options: registries },
+    { code: "import { mazesManifest } from './mazes/manifest';", filename: at("src/modules/manifests.ts"), options: registries },
     // A manifest runs in Node: its own types, i18n and routes only.
     { code: "import type { MazeAlgorithm } from './types';", filename: at("src/modules/mazes/manifest.ts"), options: registries },
     { code: "import { localized } from '@/i18n';", filename: at("src/modules/mazes/manifest.ts"), options: registries },
     { code: "import { localized } from '../../i18n.ts';", filename: at("src/modules/mazes/manifest.ts"), options: registries },
     { code: "import type { Pages } from '../../routes';", filename: at("src/modules/mazes/manifest.ts"), options: registries },
+    { code: "import { mazeAlgorithms } from './algorithms';", filename: at("src/modules/mazes/manifest.ts"), options: registries },
+    // So is its algorithms.ts, which the manifest reads names from; types it only borrows are erased.
+    { code: "import { localized } from '@/i18n';", filename: at("src/modules/mazes/algorithms.ts"), options: registries },
+    { code: "import { MAZE_ALGORITHMS } from './types';", filename: at("src/modules/mazes/algorithms.ts"), options: registries },
+    { code: "import type { Method } from './work';", filename: at("src/modules/dp/algorithms.ts"), options: registries },
+    { code: "import type { GridSize } from '@/utils/gridSize';", filename: at("src/modules/mazes/algorithms.ts"), options: registries },
     // Shared files next to the module folders aren't modules.
     { code: "import { defineModule } from './slice';", filename: at("src/modules/sorting.slice.ts"), options: registries },
   ],
@@ -103,6 +112,24 @@ moduleTester.run("module-boundaries", boundaries, {
       options: registries,
       errors: [{ messageId: "manifest" }],
     })),
+    // Nor does its algorithms.ts, except for types.
+    ...[
+      "import { MAZE_ALGORITHMS } from './generators';",
+      "import { gridDimensions } from '@/utils/gridSize';",
+      "import { useState } from 'react';",
+      "import type { PathAlgorithm } from '@/modules/pathfinding/types';",
+    ].map((code) => ({
+      code,
+      filename: at("src/modules/mazes/algorithms.ts"),
+      options: registries,
+      errors: [{ messageId: "algorithms" }],
+    })),
+    {
+      code: "import { mazeAlgorithms } from './mazes/algorithms';",
+      filename: at("src/modules/manifests.ts"),
+      options: registries,
+      errors: [{ messageId: "registry", data: { to: "mazes" } }],
+    },
     // A registry imports only its own piece, and the module's folder isn't an entry point.
     {
       code: "import { mazesUI } from './mazes/ui';",

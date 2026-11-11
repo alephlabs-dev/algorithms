@@ -1,7 +1,7 @@
 import type { LinkCodec } from "./link";
 import type { View } from "@/appStore";
 import type { Question } from "@/game";
-import type { Pace, SpeedPreset } from "@/utils/speed";
+import type { SpeedPreset } from "@/utils/speed";
 
 /**
  * A module's part of the link the app opened on: the algorithm its page names (none on
@@ -19,6 +19,9 @@ export type SliceContext = {
   isMobile: boolean;
   isPortrait: boolean;
 };
+
+/** One step sentence, and the run that says it (to find it in the app). */
+export type StepSentence = { sentence: string; run: string };
 
 /** A change to a slice; null changes nothing. */
 export type Patch<S> = Partial<S> | null;
@@ -38,6 +41,11 @@ export type ModuleSlice<
   A extends Record<string, Action<S>>,
   B extends Record<string, Action<S>> = Record<never, never>,
 > = {
+  /**
+   * Every step sentence of representative runs, each with the run that says it ("mazes dfs large
+   * narrow seed 1"). Not used by the app: e2e/step-sentences-fit.spec.ts measures each in the caption.
+   */
+  sentences: () => Iterable<StepSentence>;
   /** Remembers that the module's tour was seen (in localStorage). */
   tourKey: string;
   /** Reads and writes the module's own params in a link (see ./link.ts). */
@@ -74,8 +82,8 @@ export type ModuleSlice<
     lastIndex: (slice: S, view: View) => number;
     /** Share of a beat the step into frame `index` takes in single view (races tick evenly). */
     stepWeight: (slice: S, index: number) => number;
-    /** Which target pace 1× is tuned to (see utils/speed). */
-    pace: (view: View) => Pace;
+    /** How many seconds a run in `view` should take at most at 1× (see autoSpeed in utils/speed). */
+    pace: (view: View) => number;
     /** The query string that reproduces the run, written with `link.write`. */
     search: (slice: S, ctx: SliceContext) => string;
     /** Guess mode: the questions for the run on stage, in frame order. Without it, the module has no guess mode. */

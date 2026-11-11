@@ -1,4 +1,5 @@
-import { structurePresets, structureSizes, type StructurePreset, type StructureSize } from "./presets";
+import { structurePresets, structureSizes } from "./presets";
+import type { StructurePreset, StructureSize } from "./types";
 import { isOneOf, speedParam, toQuery, type LinkCodec } from "@/modules/link";
 
 /** A data structure's run as a link carries it: the operations so far, and what "new values" makes. */

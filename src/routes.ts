@@ -1,136 +1,92 @@
-// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Backtracking pages move into its manifest.
-import type { BacktrackingProblem } from "./modules/backtracking/types";
-// eslint-disable-next-line house/module-boundaries -- TODO(#187): the DP pages move into its manifest.
-import type { DpAlgorithm } from "./modules/dp/types";
-// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Fourier pages move into its manifest.
-import type { FourierAlgorithm } from "./modules/fourier/types";
-// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Data structures pages move into its manifest.
-import type { StructureAlgorithm } from "./modules/structures/types";
-// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Graphs pages move into its manifest.
-import type { GraphAlgorithm } from "./modules/graphs/types";
-// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Mazes pages move into its manifest.
-import type { MazeAlgorithm } from "./modules/mazes/types";
-// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Pathfinding pages move into its manifest.
-import type { PathAlgorithm } from "./modules/pathfinding/types";
-// eslint-disable-next-line house/module-boundaries -- TODO(#187): the Sorting pages move into its manifest.
-import type { Algorithm } from "./modules/sorting/types";
 import { lang, LANG_PREFIX, stripLang, type Lang } from "./i18n";
+import { manifests } from "./modules/manifests";
 
 /** Where the site is published; canonical URLs, the sitemap and social cards use it. */
 export const SITE_URL = "https://algorithms-aleph.vercel.app";
 
-/** The modules the app has. */
-export type ModuleId = "sorting" | "pathfinding" | "graphs" | "fourier" | "structures" | "dp" | "backtracking" | "mazes";
+/** The modules the app has: one manifest each, registered in ./modules/manifests.ts. */
+export type ModuleId = keyof typeof manifests;
 
-type Pages = {
+/** Every module, in the order the landing page, the menu and the sitemap list them: the manifests' order. */
+export const MODULES = Object.keys(manifests) as ModuleId[];
+
+/** A page's title and description, for search engines and social cards. The title leaves out the site's name, which every page adds. */
+export type Meta = { title: string; description: string };
+
+type Pages<Id extends string> = {
   /** The start page's path; the module's other pages hang under it. */
   base: string;
   /** Each algorithm's slug (in backtracking, each problem's): /sorting/quick-sort. */
-  slugs: Record<string, string>;
+  slugs: Record<Id, string>;
   /** Whether the module has a race page, at <base>/race. */
   race: boolean;
 };
 
 /**
- * Every module's pages: a start page, one page per algorithm, and a race page
- * if it has one. Adding a module or an algorithm means editing this table only.
+ * What a module tells the rest of the app about itself without React or a browser, so the
+ * prerender and e2e can read it in Node (docs/adr/0003): its pages, what search engines and
+ * the "About …" hint say on each, and its card on the landing page. Each module declares
+ * one in ./modules/<id>/manifest.ts, which imports only Node-safe code (a lint rule checks).
  */
-export const modulePages = {
-  sorting: {
-    base: "/sorting",
-    slugs: {
-      selection: "selection-sort",
-      insertion: "insertion-sort",
-      bubble: "bubble-sort",
-      cocktail: "cocktail-shaker-sort",
-      shell: "shell-sort",
-      quick: "quick-sort",
-      merge: "merge-sort",
-      heap: "heap-sort",
-      radix: "radix-sort",
-    } satisfies Record<Algorithm, string>,
-    race: true,
-  },
-  pathfinding: {
-    base: "/pathfinding",
-    slugs: {
-      bfs: "breadth-first-search",
-      dfs: "depth-first-search",
-      dijkstra: "dijkstra",
-      astar: "a-star",
-      greedy: "greedy-best-first-search",
-    } satisfies Record<PathAlgorithm, string>,
-    race: true,
-  },
-  graphs: {
-    base: "/graphs",
-    slugs: {
-      bfs: "breadth-first-search",
-      dfs: "depth-first-search",
-      dijkstra: "dijkstra",
-      prim: "prim",
-      kruskal: "kruskal",
-      topo: "topological-sort",
-    } satisfies Record<GraphAlgorithm, string>,
-    race: true,
-  },
-  fourier: {
-    base: "/fourier",
-    slugs: {
-      square: "square-wave",
-      sawtooth: "sawtooth-wave",
-      triangle: "triangle-wave",
-      epicycles: "epicycles",
-    } satisfies Record<FourierAlgorithm, string>,
-    race: false,
-  },
-  structures: {
-    base: "/structures",
-    slugs: {
-      bst: "binary-search-tree",
-      avl: "avl-tree",
-      heap: "min-heap",
-      chaining: "hash-table-chaining",
-      probing: "hash-table-linear-probing",
-    } satisfies Record<StructureAlgorithm, string>,
-    race: true,
-  },
-  dp: {
-    base: "/dynamic-programming",
-    slugs: {
-      edit: "edit-distance",
-      lcs: "longest-common-subsequence",
-      knapsack: "knapsack",
-    } satisfies Record<DpAlgorithm, string>,
-    race: true,
-  },
-  backtracking: {
-    base: "/backtracking",
-    slugs: {
-      queens: "n-queens",
-      sudoku: "sudoku",
-    } satisfies Record<BacktrackingProblem, string>,
-    race: false,
-  },
-  mazes: {
-    base: "/mazes",
-    slugs: {
-      dfs: "dfs",
-      prim: "prim",
-      kruskal: "kruskal",
-      wilson: "wilson",
-    } satisfies Record<MazeAlgorithm, string>,
-    race: true,
-  },
-} as const satisfies Record<ModuleId, Pages>;
+export type ModuleManifest<Id extends string = string> = {
+  /** A start page, one page per algorithm, and a race page if it has one. */
+  pages: Pages<Id>;
+  /** Whether its text is in Spanish. Untranslated modules still get /es pages, in English and marked noindex. */
+  translated: boolean;
+  /** Its card on the landing page. */
+  landing: {
+    title: string;
+    summary: string;
+    /** How much is in it, e.g. "9 algorithms". */
+    count: string;
+  };
+  /** What search engines see on each page. */
+  seo: {
+    /** The module's name in the breadcrumb trail. */
+    section: string;
+    start: Meta;
+    /** An algorithm page's meta, plus its own name in the breadcrumb trail. */
+    algorithm: (algorithm: Id) => Meta & { crumb: string };
+    race?: Meta;
+  };
+  /**
+   * The hint under the stage on each page. The start page's says "About …" and just takes you
+   * to the article; the others name the article's first explanation ("How X works"), so they open it too.
+   */
+  hints: {
+    start: string;
+    /** The race page's, when it isn't "How the race works". */
+    race?: string;
+  } & (
+    | {
+        /** What works on an algorithm page, as its hint names it: "Insertion Sort" in "How Insertion Sort works". */
+        works: (algorithm: Id) => string;
+      }
+    | {
+        /** The explanation's own title, for modules whose titles don't read "How … works" in every language. */
+        heading: (algorithm: Id) => string;
+      }
+  );
+  /**
+   * A link to one of its algorithm pages with settings that differ from the defaults, its query
+   * as the module's link codec writes it at 2× speed. Shared tests open every module on it.
+   */
+  example: { algorithm: Id; search: string };
+} & (
+  | { pages: { race: true }; seo: { race: Meta } }
+  | { pages: { race: false }; seo: { race?: never }; hints: { race?: never } }
+);
 
-const MODULES = Object.keys(modulePages) as ModuleId[];
+/** Every module's pages, from its manifest. */
+export const modulePages = Object.fromEntries(MODULES.map((module) => [module, manifests[module].pages])) as {
+  [M in ModuleId]: (typeof manifests)[M]["pages"];
+};
 
 /** The algorithms a module has pages for (in backtracking, the problems). */
-export type AlgorithmOf<M extends ModuleId> = keyof (typeof modulePages)[M]["slugs"] & string;
+export type AlgorithmOf<M extends ModuleId> = keyof (typeof manifests)[M]["pages"]["slugs"] & string;
 
 /** The modules with a race page. */
-export type RacingModule = { [M in ModuleId]: (typeof modulePages)[M]["race"] extends true ? M : never }[ModuleId];
+export type RacingModule = { [M in ModuleId]: (typeof manifests)[M]["pages"]["race"] extends true ? M : never }[ModuleId];
 
 /** The kinds of page every module has (the race only in some). */
 export type ModulePage = "start" | "algorithm" | "race";
@@ -175,7 +131,7 @@ export const routeFromPath = (pathname: string): Route | null => {
   const path = stripLang(pathname).replace(/\/+$/, "") || "/";
   if (path === "/") return HOME;
   for (const module of MODULES) {
-    const { base, slugs, race } = modulePages[module] as Pages;
+    const { base, slugs, race } = modulePages[module] as Pages<string>;
     if (path === base) return moduleRoute(module, "start");
     if (!path.startsWith(`${base}/`)) continue;
     const slug = path.slice(base.length + 1);
@@ -190,7 +146,7 @@ export const routeFromPath = (pathname: string): Route | null => {
 export const allRoutes: Route[] = [
   HOME,
   ...MODULES.flatMap((module) => {
-    const { slugs, race } = modulePages[module] as Pages;
+    const { slugs, race } = modulePages[module] as Pages<string>;
     return [
       moduleRoute(module, "start"),
       ...Object.keys(slugs).map((algorithm) => moduleRoute(module, "algorithm", algorithm)),
@@ -203,20 +159,10 @@ export const allRoutes: Route[] = [
 export const moduleOf = (route: Route): ModuleId | null => (route.page === "home" ? null : route.module);
 
 /**
- * Modules whose text is in Spanish. Their /es pages are indexed and linked
- * with hreflang. A new module that isn't translated yet still gets /es pages,
- * in English and marked noindex, until it's added here.
+ * Modules whose text is in Spanish (their manifests say so). Their /es pages are indexed and linked
+ * with hreflang. A module that isn't translated yet still gets /es pages, in English and marked noindex.
  */
-export const TRANSLATED_MODULES: ReadonlySet<ModuleId> = new Set([
-  "sorting",
-  "pathfinding",
-  "graphs",
-  "structures",
-  "dp",
-  "fourier",
-  "backtracking",
-  "mazes",
-]);
+export const TRANSLATED_MODULES: ReadonlySet<ModuleId> = new Set(MODULES.filter((module) => manifests[module].translated));
 
 /** Whether a page has a Spanish version worth indexing. The landing page does. */
 export const isTranslated = (route: Route, translated: ReadonlySet<ModuleId> = TRANSLATED_MODULES): boolean => {

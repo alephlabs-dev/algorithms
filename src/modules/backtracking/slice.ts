@@ -8,6 +8,7 @@ import { queensQuestions } from "./questions";
 import { localized } from "@/i18n";
 import { backtrackingLink, type BacktrackingLink } from "./link";
 import { defineModule } from "@/modules/slice";
+import { sentences } from "./sentences";
 
 /** Both problems keep their run, so switching between them doesn't lose either. */
 export type BacktrackingState = {
@@ -39,6 +40,7 @@ const guessText = localized({
 const sudokuRunOf = (puzzle: SudokuPuzzle, order: FillOrder) => new SudokuRun(SUDOKU_PUZZLES[puzzle], order);
 
 export const backtrackingSlice = defineModule<BacktrackingState, BacktrackingProblem, BacktrackingLink>()({
+  sentences,
   tourKey: "tour-done-backtracking",
 
   link: backtrackingLink,
@@ -89,7 +91,7 @@ export const backtrackingSlice = defineModule<BacktrackingState, BacktrackingPro
   engine: {
     lastIndex: (s) => runOf(s).length - 1,
     stepWeight: (s, index) => STEP_WEIGHT[runOf(s).frameAt(index).event.type],
-    pace: () => "backtracking",
+    pace: () => 40,
     // Sudoku asks nothing yet (#143).
     game: (s) => (s.problem === "queens" ? questionsOf(s.queensRun, queensQuestions) : []),
     gameUnavailable: (s) => (s.problem === "queens" ? null : guessText.queensOnly),

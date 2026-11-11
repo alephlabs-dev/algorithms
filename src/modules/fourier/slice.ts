@@ -3,6 +3,7 @@ import { decodePath, encodePath, linkShape } from "./shapes";
 import type { FourierAlgorithm, FourierShape, Point } from "./types";
 import { fourierLink, type FourierLink } from "./link";
 import { defineModule } from "@/modules/slice";
+import { sentences } from "./sentences";
 
 export type FourierState = {
   algorithm: FourierAlgorithm;
@@ -25,6 +26,7 @@ const runOf = (s: Pick<FourierState, "algorithm" | "circles" | "shape" | "path">
   new FourierRun(s.algorithm, s.circles, s.shape, s.path);
 
 export const fourierSlice = defineModule<FourierState, FourierAlgorithm, FourierLink>()({
+  sentences,
   tourKey: "tour-done-fourier",
 
   link: fourierLink,
@@ -70,7 +72,7 @@ export const fourierSlice = defineModule<FourierState, FourierAlgorithm, Fourier
     // A frame per degree; every frame gets the same beat, so circles turn at an even pace.
     lastIndex: (s) => s.run.length - 1,
     stepWeight: () => 1,
-    pace: () => "fourier",
+    pace: () => 12,
     search: (s, ctx) =>
       fourierLink.write(
         {
