@@ -1,8 +1,8 @@
 import { manifests } from "@/modules/manifests";
-import { MODULES, type Route } from "@/routes";
+import { MODULES, type ModuleId, type Route } from "@/routes";
 
 export type ModuleInfo = {
-  id: string;
+  id: ModuleId;
   title: string;
   summary: string;
   /** How much is in it, e.g. "9 algorithms". Modules still in preparation have none. */

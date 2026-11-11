@@ -157,3 +157,9 @@ export const structureSizeLabels: Record<StructureSize, string> = { small: "7", 
 
 export const structurePresetLabel = (preset: StructurePreset) =>
   structurePresetOptions.find((p) => p.value === preset)!.label;
+
+/** What the race view is and what to watch for: next to the racers, in the articles and in search results. */
+export const raceDescription = localized({
+  en: "The same values, in the same order, into a plain binary search tree and an AVL tree. Each tick, both take one step. Feed them ascending values to see why balancing exists.",
+  es: "Los mismos valores, en el mismo orden, en un árbol binario de búsqueda simple y en un árbol AVL. En cada tic, los dos dan un paso. Dales valores ascendentes para ver por qué existe el balanceo.",
+});

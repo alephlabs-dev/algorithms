@@ -223,3 +223,9 @@ const text = localized<Record<Algorithm, AlgorithmText>>({
 export const sortingAlgorithms = Object.fromEntries(
   (Object.keys(data) as Algorithm[]).map((id) => [id, { ...text[id], ...data[id] }])
 ) as Record<Algorithm, AlgorithmDetails>;
+
+/** What the race view is and what to watch for: next to the racers, in the articles and in search results. */
+export const raceDescription = localized({
+  en: "Same array, same clock. Each tick is one operation (a comparison, a swap or a write), so the lanes show how much work each algorithm really does.",
+  es: "Mismo arreglo, mismo reloj. Cada tic es una operación (una comparación, un intercambio o una escritura), así que los carriles muestran cuánto trabajo hace de verdad cada algoritmo.",
+});

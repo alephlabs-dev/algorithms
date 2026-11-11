@@ -72,13 +72,82 @@ const onlyTypes = (node) =>
   node.type === "ImportDeclaration" &&
   (node.importKind === "type" || (node.specifiers.length > 0 && node.specifiers.every((s) => s.importKind === "type")));
 
+/**
+ * Code the prerender can't load: it reads the browser (window, document) when it loads, or leads to code that does.
+ * The store, the app's entry, the interface and slice registries, and every module's interface and slice.
+ */
+const browserOnly = (file, root) => {
+  if (["src/store", "src/main", "src/modules/index", "src/modules/engine"].includes(file)) return true;
+  const target = moduleOf(file, root);
+  return target?.file === "ui" || target?.file === "slice";
+};
+
+/** The file on disk an import resolves to (repo-relative, without extension), or null for none. */
+const fileOnDisk = (file, root) => {
+  for (const suffix of [".ts", ".tsx", "/index.ts", "/index.tsx"]) {
+    const full = path.join(root, file + suffix);
+    if (fs.existsSync(full)) return full;
+  }
+  return null;
+};
+
+// Every import, export-from and dynamic import(), with what it brings in.
+const IMPORT = /(?:^|[\n;])\s*(?:import|export)\s+(type\s+)?(?:([\s\S]*?)\s+from\s+)?["']([^"']+)["']|\bimport\(\s*["']([^"']+)["']\s*\)/g;
+const typesOnly = (names) => /^\{[\s\S]*\}$/.test(names) && names.slice(1, -1).split(",").every((n) => !n.trim() || /^type\s/.test(n.trim()));
+
+const importsCache = new Map();
+/** The files a file imports values from (repo-relative, without extension), read from disk. */
+const valueImports = (full, root) => {
+  const mtime = fs.statSync(full).mtimeMs;
+  const cached = importsCache.get(full);
+  if (cached?.mtime === mtime) return cached.imports;
+  const imports = [];
+  for (const [, type, names, source, dynamic] of fs.readFileSync(full, "utf8").matchAll(IMPORT)) {
+    if (type || (names && typesOnly(names.trim()))) continue;
+    const resolved = resolveImport(source ?? dynamic, full, root);
+    if (resolved) imports.push(resolved);
+  }
+  importsCache.set(full, { mtime, imports });
+  return imports;
+};
+
+/** The file an import names, as found on disk ("src/modules" is "src/modules/index"). */
+const canonical = (file, root) => {
+  const full = fileOnDisk(file, root);
+  return full ? withoutExtension(posix(path.relative(root, full))) : file;
+};
+
+/** The shortest chain of imports from `file` to browser-only code, or null when there's none. */
+const pathToBrowser = (start, root) => {
+  const file = canonical(start, root);
+  const queue = [[file]];
+  const seen = new Set([file]);
+  while (queue.length > 0) {
+    const chain = queue.shift();
+    const last = chain[chain.length - 1];
+    if (browserOnly(last, root)) return chain;
+    const full = fileOnDisk(last, root);
+    if (!full) continue;
+    for (const next of valueImports(full, root).map((f) => canonical(f, root))) {
+      if (seen.has(next)) continue;
+      seen.add(next);
+      queue.push([...chain, next]);
+    }
+  }
+  return null;
+};
+
 const moduleBoundaries = {
   meta: {
     type: "problem",
     schema: [
       {
         type: "object",
-        properties: { registries: { type: "object", additionalProperties: { type: "string" } } },
+        properties: {
+          registries: { type: "object", additionalProperties: { type: "string" } },
+          // Shared files the prerender renders in Node (besides each module's content), from the repo root.
+          prerender: { type: "array", items: { type: "string" } },
+        },
         additionalProperties: false,
       },
     ],
@@ -89,6 +158,8 @@ const moduleBoundaries = {
         "A module's algorithms.ts runs in Node through its manifest: it may import only its own types.ts, src/i18n.ts and src/routes.ts, plus types from its own folder or shared code (docs/adr/0003).",
       registry:
         "Shared code reaches module {{to}} only through the registries: its manifest from src/modules/manifests.ts, its slice from src/modules/engine.ts, its interface from src/modules/index.ts (docs/adr/0003).",
+      prerender:
+        "The prerender renders this file in Node, where there's no window: it can't reach {{target}}{{via}}. A module's content (articles, thumbnail) reaches only Node-safe code; the store, interfaces and slices are the browser's side (docs/adr/0003).",
       otherModule: "Module {{from}} can't import from module {{to}}'s folder. Move what both need to shared code (docs/adr/0003).",
     },
   },
@@ -98,6 +169,8 @@ const moduleBoundaries = {
     const importer = moduleOf(withoutExtension(from), root);
     // The piece of every module this file registers ("slice", "ui"), if it's a registry.
     const registers = context.options[0]?.registries?.[from];
+    // Rendered by the prerender in Node: a module's content, or a shared file listed as such.
+    const prerendered = importer?.file === "content" || (context.options[0]?.prerender ?? []).includes(from);
     const check = (node) => {
       if (typeof node.source?.value !== "string") return;
       const resolved = resolveImport(node.source.value, context.filename, root);
@@ -112,6 +185,15 @@ const moduleBoundaries = {
           context.report({ node: node.source, messageId: "algorithms" });
         }
         return;
+      }
+      if (prerendered && resolved !== null && !onlyTypes(node)) {
+        const chain = pathToBrowser(resolved, root);
+        if (chain) {
+          const through = chain.slice(0, -1);
+          const via = through.length > 0 ? ` (through ${through.join(" → ")})` : "";
+          context.report({ node: node.source, messageId: "prerender", data: { target: chain[chain.length - 1], via } });
+          return;
+        }
       }
       if (!target) return;
       if (!importer) {

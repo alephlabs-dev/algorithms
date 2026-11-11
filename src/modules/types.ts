@@ -1,6 +1,6 @@
 import type { ComponentType, ReactNode } from "react";
 import type { StoreState, Theme } from "@/store";
-import type { ModuleId } from "@/routes";
+import type { AlgorithmOf, ModuleId, RacingModule, Route } from "@/routes";
 
 /** One algorithm in a module's pickers. */
 export type AlgorithmChoice = { id: string; title: string; short: string };
@@ -95,4 +95,26 @@ export type ModuleUI = {
   };
 
   tour: TourStep[];
+};
+
+/** What an article gets: in the app, links switch pages without reloading; in static HTML they're plain links. */
+export type Nav = { onNavigate?: (route: Route) => void };
+
+/** A module's articles, one per page. A module with a race page needs a race article, or the typecheck fails. */
+export type ModuleArticles<M extends ModuleId> = {
+  start: ComponentType<Nav>;
+  algorithm: ComponentType<Nav & { algorithm: AlgorithmOf<M> }>;
+} & (M extends RacingModule ? { race: ComponentType<Nav> } : unknown);
+
+/**
+ * What the prerendered page shows of a module: its articles below the stage and
+ * its landing thumbnail. The prerender renders it in Node, so it never reaches
+ * the store or the module's interface and slice (lint rule house/module-boundaries).
+ */
+export type ModuleContent<M extends ModuleId> = {
+  articles: ModuleArticles<M>;
+  /** A small, still picture of the module for its landing card, drawn from a real run. */
+  Thumbnail: ComponentType;
+  /** A live demo for the landing page's hero. One module has it. */
+  HeroDemo?: ComponentType;
 };

@@ -1,9 +1,8 @@
 import { DpRaceLanes } from "./DpRaceLanes";
 import { DpStage } from "./DpStage";
 import { DpFacts, DpLegend, DpStatsInline, DpTools } from "./DpTools";
-import { DpSettings } from "@/components/Settings/SettingsPanel";
-import { dpMethods, dpProblems } from "./algorithms";
-import { DP_RACE_DESCRIPTION } from "@/consts/race";
+import { DpSettings } from "./Settings";
+import { dpMethods, dpProblems, raceDescription } from "./algorithms";
 import { dpPseudocode } from "./pseudocode";
 import { encodeItems, EXAMPLE_CAPACITY, EXAMPLE_ITEMS, wordPairs } from "./presets";
 import { methods } from "./work";
@@ -12,7 +11,7 @@ import type { DpAlgorithm } from "./types";
 import { localized } from "@/i18n";
 import { useStore } from "@/store";
 import { narrateDp } from "./narrate";
-import { dpTour } from "@/modules/tours";
+import { dpTour } from "./tour";
 import type { ModuleUI } from "@/modules/types";
 
 const text = localized({
@@ -102,7 +101,7 @@ export const dpUI: ModuleUI = {
     racers: () => methods,
     toggleRacer: () => {},
     tagline: text.tagline,
-    description: DP_RACE_DESCRIPTION,
+    description: raceDescription,
     unit: text.unit,
     racerName: (id) => dpMethods[id as Method].short,
   },

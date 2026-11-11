@@ -1,12 +1,11 @@
 import type { ReactNode } from "react";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { modules } from "@/consts/modules";
+import { moduleContents } from "@/modules/contents";
 import { localized } from "@/i18n";
-import { HOME, type Route } from "@/routes";
+import { HOME, MODULES, type Route } from "@/routes";
 import { cn } from "@/utils/cn";
 import { PageLink } from "../PageLink";
-import { HeroDemo } from "./HeroDemo";
-import { DpThumb, FourierThumb, GraphThumb, MazeThumb, PathThumb, QueensThumb, SortingThumb, StructureThumb } from "./Thumbnails";
 import { AlephMark } from "../ui/aleph-mark";
 
 type Props = {
@@ -74,16 +73,8 @@ const text = localized({
   },
 });
 
-const thumbs: Record<string, ReactNode> = {
-  sorting: <SortingThumb className="h-16 w-full" />,
-  pathfinding: <PathThumb className="w-full" />,
-  graphs: <GraphThumb className="h-20 w-full" />,
-  fourier: <FourierThumb className="h-24 w-full" />,
-  structures: <StructureThumb className="h-20 w-full" />,
-  dp: <DpThumb className="h-24 w-full" />,
-  backtracking: <QueensThumb className="h-24 w-full" />,
-  mazes: <MazeThumb className="h-24" />,
-};
+/** The landing's live demo, from the module whose content has one. */
+const HeroDemo = MODULES.map((id) => moduleContents[id].HeroDemo).find((demo) => demo !== undefined);
 
 /**
  * The front page: what this is, a live search to show it, and an index of
@@ -159,7 +150,7 @@ export const Landing = ({ onNavigate, actions }: Props) => {
           </div>
         </div>
         <div className="min-w-0 flex-[1_1_520px]">
-          <HeroDemo />
+          {HeroDemo && <HeroDemo />}
         </div>
       </section>
 
@@ -193,6 +184,7 @@ export const Landing = ({ onNavigate, actions }: Props) => {
                 </li>
               );
             }
+            const { Thumbnail } = moduleContents[m.id];
             return (
               <li key={m.id} className="border-b border-edge">
                 <PageLink
@@ -208,7 +200,7 @@ export const Landing = ({ onNavigate, actions }: Props) => {
                     </div>
                     <p className="text-[15px] text-foreground/75">{m.summary}</p>
                   </div>
-                  <div className="hidden w-56 shrink-0 sm:block">{thumbs[m.id]}</div>
+                  <div className="hidden w-56 shrink-0 sm:block"><Thumbnail /></div>
                   <span className="font-semibold transition-colors group-hover:text-primary">{text.openModule}</span>
                 </PageLink>
               </li>

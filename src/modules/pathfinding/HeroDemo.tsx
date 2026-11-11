@@ -1,17 +1,11 @@
 import { useEffect, useRef } from "react";
 import { GridRenderer } from "@/canvas/gridRenderer";
-// eslint-disable-next-line house/module-boundaries -- TODO(#190): the landing's Pathfinding demo moves into its interface.
-import { pathGridCells, pathPalette } from "@/modules/pathfinding/paint";
-// eslint-disable-next-line house/module-boundaries -- TODO(#190): the landing's Pathfinding demo moves into its interface.
-import { pathAlgorithms } from "@/modules/pathfinding/algorithms";
-// eslint-disable-next-line house/module-boundaries -- TODO(#190): the landing's Pathfinding demo moves into its interface.
-import { applyPreset, emptyGrid, type Preset } from "@/modules/pathfinding/grid";
-// eslint-disable-next-line house/module-boundaries -- TODO(#190): the landing's Pathfinding demo moves into its interface.
-import { pathSearches } from "@/modules/pathfinding/searches";
-// eslint-disable-next-line house/module-boundaries -- TODO(#190): the landing's Pathfinding demo moves into its interface.
-import { PathTimeline } from "@/modules/pathfinding/timeline";
-// eslint-disable-next-line house/module-boundaries -- TODO(#190): the landing's Pathfinding demo moves into its interface.
-import type { Grid, PathAlgorithm } from "@/modules/pathfinding/types";
+import { pathGridCells, pathPalette } from "./paint";
+import { pathAlgorithms } from "./algorithms";
+import { applyPreset, emptyGrid, type Preset } from "./grid";
+import { pathSearches } from "./searches";
+import { PathTimeline } from "./timeline";
+import type { Grid, PathAlgorithm } from "./types";
 import { count } from "@/utils/count";
 import { seededRandom } from "@/utils/random";
 import { localized } from "@/i18n";

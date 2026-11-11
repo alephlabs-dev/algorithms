@@ -5,7 +5,7 @@ import {
   BacktrackingStatsInline,
   BacktrackingTools,
 } from "./BacktrackingTools";
-import { BacktrackingSettings } from "@/components/Settings/SettingsPanel";
+import { BacktrackingSettings } from "./Settings";
 import { queensPseudocode, sudokuPseudocodeFor } from "./pseudocode";
 import { runOf } from "./run";
 import type { BacktrackingProblem } from "./types";
@@ -14,7 +14,7 @@ import { localized } from "@/i18n";
 import { useStore, type StoreState } from "@/store";
 import { count } from "@/utils/count";
 import { narrateBacktracking, narrateSudoku } from "./narrate";
-import { backtrackingTour } from "@/modules/tours";
+import { backtrackingTour } from "./tour";
 import type { ModuleUI } from "@/modules/types";
 
 const text = localized({

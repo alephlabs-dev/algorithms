@@ -2,17 +2,16 @@ import { PathFacts } from "./PathFacts";
 import { PathStage } from "./PathStage";
 import { PathLegend, PathStatsInline, PathTools } from "./PathTools";
 import { PathRaceLanes } from "./PathRaceLanes";
-import { PathSettings } from "@/components/Settings/SettingsPanel";
-import { pathAlgorithms, pathTraits } from "./algorithms";
+import { PathSettings } from "./Settings";
+import { pathAlgorithms, pathTraits, raceDescription } from "./algorithms";
 import { gridSizeLabels, presetLabel } from "./labels";
-import { PATH_RACE_DESCRIPTION } from "@/consts/race";
 import { pathPseudocode } from "./searches";
 import type { PathAlgorithm } from "./types";
 import { localized } from "@/i18n";
 import { engines } from "@/modules/engine";
 import { selectPathFrame, useStore } from "@/store";
 import { narratePath } from "./narrate";
-import { pathfindingTour } from "@/modules/tours";
+import { pathfindingTour } from "./tour";
 import type { ModuleUI } from "@/modules/types";
 
 const text = localized({
@@ -84,7 +83,7 @@ export const pathfindingUI: ModuleUI = {
     racers: (s) => s.pathfinding.racers,
     toggleRacer: (id) => useStore.getState().actions.pathfinding.toggleRacer(id as PathAlgorithm),
     tagline: text.tagline,
-    description: PATH_RACE_DESCRIPTION,
+    description: raceDescription,
     unit: text.unit,
   },
 

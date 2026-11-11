@@ -45,7 +45,8 @@ export default defineConfig([
     },
   },
   // Module boundaries (docs/adr/0003): a module keeps to its folder in src/modules/<id>/, shared code
-  // (e2e included) reaches it only through the registries, and its manifest imports only Node-safe code.
+  // (e2e included) reaches it only through the registries, its manifest imports only Node-safe code, and
+  // what the prerender renders (its content) never reaches the browser's side.
   {
     files: ["**/*.{ts,tsx}"],
     plugins: { house },
@@ -57,7 +58,17 @@ export default defineConfig([
             "src/modules/manifests.ts": "manifest",
             "src/modules/engine.ts": "slice",
             "src/modules/index.ts": "ui",
+            "src/modules/contents.ts": "content",
           },
+          // What the prerender renders in Node (besides each module's content.tsx): none of it may reach the store,
+          // an interface or a slice, which need the browser. Modules come in only through src/modules/contents.ts.
+          prerender: [
+            "src/seo/render.tsx",
+            "src/Page.tsx",
+            "src/components/About.tsx",
+            "src/components/Landing/Landing.tsx",
+            "src/modules/contents.ts",
+          ],
         },
       ],
     },
