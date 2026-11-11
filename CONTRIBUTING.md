@@ -32,7 +32,7 @@ Browser tests serve a production build on port 4173; `PORT=<n>` picks another.
 
 Each algorithm is a generator that yields the steps it takes (compare, swap, visit a cell, place a queen…) plus the pseudocode line, without touching React or timers. A timeline runs it once and records every frame, with a full snapshot every so often, so any frame can be rebuilt quickly. The UI just picks a frame: pausing, stepping, seeking and racing are all index changes.
 
-The app is split into **modules** (sorting, pathfinding, graphs…). A module is a state slice plus an interface, and the shared UI never asks which module is on stage. [`src/modules/README.md`](src/modules/README.md) explains the pieces and how to add a module. Stages draw on a canvas, and the animation loop only runs while something moves.
+The app is split into **modules** (sorting, pathfinding, graphs…). A module is a manifest, a state slice, an interface and its prerendered content, and the shared UI never asks which module is on stage. [`src/modules/README.md`](src/modules/README.md) explains the pieces and how to add a module. Stages draw on a canvas, and the animation loop only runs while something moves.
 
 The words we use for things (a *run*, a *racer*, an *input*, a *key moment*) are in [`GLOSSARY.md`](GLOSSARY.md), and the decisions behind the design are in [`docs/adr/`](docs/adr). UI work follows [`UX.md`](UX.md); code follows [`CODING_STANDARDS.md`](CODING_STANDARDS.md).
 

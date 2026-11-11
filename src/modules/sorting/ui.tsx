@@ -3,16 +3,15 @@ import { AlgorithmVisualizer } from "./AlgorithmVisualizer";
 import { Complexity } from "./Complexity";
 import { RaceLanes } from "./RaceLanes";
 import { Legend, StatsInline } from "./RunInfo";
-import { SortingSettings } from "@/components/Settings/SettingsPanel";
+import { SortingSettings } from "./Settings";
 import { algorithmGroups } from "./algorithmGroups";
 import { inputOrders } from "./inputOrders";
-import { RACE_DESCRIPTION } from "@/consts/race";
-import { sortingAlgorithms } from "./algorithms";
+import { raceDescription, sortingAlgorithms } from "./algorithms";
 import { localized } from "@/i18n";
 import { selectFrame, useStore } from "@/store";
 import type { Algorithm } from "./types";
 import { narrate } from "./narrate";
-import { sortingTour } from "@/modules/tours";
+import { sortingTour } from "./tour";
 import type { ModuleUI } from "@/modules/types";
 
 const text = localized({
@@ -81,7 +80,7 @@ export const sortingUI: ModuleUI = {
     racers: (s) => s.sorting.racers,
     toggleRacer: (id) => useStore.getState().actions.sorting.toggleRacer(id as Algorithm),
     tagline: text.tagline,
-    description: RACE_DESCRIPTION,
+    description: raceDescription,
     unit: text.unit,
   },
 

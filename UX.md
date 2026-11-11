@@ -9,7 +9,7 @@ Each rule says what it means here and gives one example from a screen that alrea
 Each view exists for one thing. Everything else on it supports that thing and gives way to it.
 
 - **In this app:** a module page is for watching the run on the stage (each module's stage in its folder, `src/modules/<module>/`). Pickers, settings, pseudocode and the written explanation support it.
-- **Example:** on a sorting algorithm page the bars fill the stage. The pseudocode (`NowCard` in `src/components/Pseudocode.tsx`) waits behind a tab of the side panel on wide screens (`SidePanel` in `src/components/Settings/ModuleSettings.tsx`), and the explanation lives below the fold in `src/components/About.tsx`.
+- **Example:** on a sorting algorithm page the bars fill the stage. The pseudocode (`NowCard` in `src/components/Pseudocode.tsx`) waits behind a tab of the side panel on wide screens (`SidePanel` in `src/components/Settings/ModuleSettings.tsx`), and the explanation lives below the fold (`src/components/About.tsx`, with the articles in `src/modules/sorting/articles.tsx`).
 - **The stage stays put:** nothing above the stage changes height during playback, so the stage doesn't move while a run plays. The step sentence over it always takes two lines of room, one line or two, and never grows (`StepCaption` in `src/components/Pseudocode.tsx`; checked by `e2e/stage-stays-put.spec.ts`). On wider screens the legend sits beside it only while the sentence still gets at least the room it has on a 393px phone; otherwise the legend drops to its own line (`src/App.tsx`). So every step sentence fits in two lines at 393px, in every language, and then fits at every size: write a shorter one rather than let it be cut (checked at all four sizes by `e2e/step-sentences-fit.spec.ts`: in CI, or locally with `make e2e-sentences`).
 
 ## 2. Clear hierarchy: the primary thing is seen first and stands out
@@ -30,14 +30,14 @@ Leave room around things. When a screen gets crowded, show less on it, not small
 
 Secondary content isn't laid out next to the primary one. It sits behind one of these and comes out when asked for.
 
-- **In this app:** drawers/sheets are `src/components/ui/drawer.tsx`; popovers are `src/components/ui/popover.ts` with Radix Popover; tab-like switches are `src/components/ui/segmented.tsx` (for example Visualize / Race in `src/components/ViewSwitch.tsx`). `src/components/ui/slider.tsx` scrubs playback (`Slider` in `src/components/Controls/Progress.tsx`) and picks settings with fixed steps (`StepSlider`, the array size in `src/components/Settings/SettingsPanel.tsx`). Collapsible sections are `src/components/ui/disclosure.tsx` (the explanations under the stage, `Explanation` in `src/components/About.tsx`).
+- **In this app:** drawers/sheets are `src/components/ui/drawer.tsx`; popovers are `src/components/ui/popover.ts` with Radix Popover; tab-like switches are `src/components/ui/segmented.tsx` (for example Visualize / Race in `src/components/ViewSwitch.tsx`). `src/components/ui/slider.tsx` scrubs playback (`Slider` in `src/components/Controls/Progress.tsx`) and picks settings with fixed steps (`StepSlider`, the array size in `src/modules/sorting/Settings.tsx`). Collapsible sections are `src/components/ui/disclosure.tsx` (the explanations under the stage, `Explanation` in `src/components/Article.tsx`).
 - **Example:** on phones the pseudocode opens from a sheet (`CodeSheet` in `src/components/Pseudocode.tsx`), and on desktop the longer explanation of a module opens from the ⓘ button as a popover (`AboutButton` in `src/components/TopBar.tsx`).
 
 ## 5. Every screen has a clear flow: where the user clicks and in what order
 
 At any moment it's obvious what to press next, and the steps come in an order that makes sense.
 
-- **In this app:** each module's guided tour (`src/modules/tours.tsx`) spells that order out, and screens should match it.
+- **In this app:** each module's guided tour (`src/modules/<id>/tour.tsx`) spells that order out, and screens should match it.
 - **Example:** the sorting tour goes pick an algorithm → the array → play it → follow each step → set the pace → change the array → the guessing game → race them. Guess mode has its own short flow: turn Guess on (`GameToggle` in `src/components/Game.tsx`), press Play, answer in the panel under the stage, read the result.
 
 ## 6. Only theme colors

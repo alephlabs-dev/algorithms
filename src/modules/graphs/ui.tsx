@@ -1,16 +1,15 @@
 import { GraphStage } from "./GraphStage";
 import { GraphRaceLanes } from "./GraphRaceLanes";
 import { GraphFacts, GraphLegend, GraphStatsInline, GraphTools } from "./GraphTools";
-import { GraphSettings } from "@/components/Settings/SettingsPanel";
-import { graphAlgorithms } from "./algorithms";
+import { GraphSettings } from "./Settings";
+import { graphAlgorithms, raceDescription } from "./algorithms";
 import { graphPresetLabel, graphSizeLabels } from "./labels";
-import { GRAPH_RACE_DESCRIPTION } from "@/consts/race";
 import { graphPseudocode } from "./searches";
 import type { GraphAlgorithm } from "./types";
 import { localized } from "@/i18n";
 import { useStore } from "@/store";
 import { narrateGraph } from "./narrate";
-import { graphsTour } from "@/modules/tours";
+import { graphsTour } from "./tour";
 import type { ModuleUI } from "@/modules/types";
 
 const text = localized({
@@ -70,7 +69,7 @@ export const graphsUI: ModuleUI = {
     racers: (s) => s.graphs.racers,
     toggleRacer: (id) => useStore.getState().actions.graphs.toggleRacer(id as GraphAlgorithm),
     tagline: text.tagline,
-    description: GRAPH_RACE_DESCRIPTION,
+    description: raceDescription,
     unit: text.unit,
   },
 

@@ -4,7 +4,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 import { defineConfig, globalIgnores } from "eslint/config";
-import { house } from "./eslint/house.js";
+import { house, prerenderFiles } from "./eslint/house.js";
 
 // House rules from UX.md: only our own components, only theme colors.
 export default defineConfig([
@@ -45,7 +45,8 @@ export default defineConfig([
     },
   },
   // Module boundaries (docs/adr/0003): a module keeps to its folder in src/modules/<id>/, shared code
-  // (e2e included) reaches it only through the registries, and its manifest imports only Node-safe code.
+  // (e2e included) reaches it only through the registries, its manifest imports only Node-safe code, and
+  // what the prerender renders (its content) never reaches the browser's side.
   {
     files: ["**/*.{ts,tsx}"],
     plugins: { house },
@@ -57,7 +58,9 @@ export default defineConfig([
             "src/modules/manifests.ts": "manifest",
             "src/modules/engine.ts": "slice",
             "src/modules/index.ts": "ui",
+            "src/modules/contents.ts": "content",
           },
+          prerender: prerenderFiles,
         },
       ],
     },

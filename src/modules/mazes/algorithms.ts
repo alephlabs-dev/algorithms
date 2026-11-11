@@ -133,3 +133,9 @@ export const mazeSizeLabels = localized<Record<GridSize, string>>({
   en: { small: "Small", medium: "Medium", large: "Large" },
   es: { small: "Pequeño", medium: "Mediano", large: "Grande" },
 });
+
+/** What the race view is and what to watch for: next to the racers, in the articles and in search results. */
+export const raceDescription = localized({
+  en: "Same seed, same size, same start cell. Each tick, every generator takes one decision. There's no winner: carving faster doesn't make a better maze. Watch Wilson's first random walk wander before it speeds up, then compare the dead-end cells: few means long, winding corridors; many means lots of short branches.",
+  es: "Misma semilla, mismo tamaño, misma celda de inicio. En cada tic, cada generador toma una decisión. No hay ganador: excavar más rápido no hace un laberinto mejor. Mira cómo la primera caminata al azar de Wilson deambula antes de acelerar, y después compara las celdas sin salida: pocas significan pasillos largos y sinuosos; muchas, montones de ramas cortas.",
+});

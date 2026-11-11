@@ -1,16 +1,15 @@
 import { MazeStage } from "./MazeStage";
 import { MazeFacts, MazeLegend, MazeStatsInline } from "./MazeTools";
 import { MazeRaceLanes } from "./MazeRaceLanes";
-import { MazeSettings } from "@/components/Settings/SettingsPanel";
-import { mazeAlgorithms, mazeSizeLabels } from "./algorithms";
-import { MAZE_RACE_DESCRIPTION } from "@/consts/race";
+import { MazeSettings } from "./Settings";
+import { mazeAlgorithms, mazeSizeLabels, raceDescription } from "./algorithms";
 import { localized } from "@/i18n";
 import { mazePseudocode } from "./generators";
 import { MAZE_ALGORITHMS } from "./types";
 import type { MazeAlgorithm } from "./types";
 import { useStore } from "@/store";
 import { narrateMaze } from "./narrate";
-import { mazesTour } from "@/modules/tours";
+import { mazesTour } from "./tour";
 import type { ModuleUI } from "@/modules/types";
 
 const text = localized({
@@ -63,7 +62,7 @@ export const mazesUI: ModuleUI = {
     racers: (s) => s.mazes.racers,
     toggleRacer: (id) => useStore.getState().actions.mazes.toggleRacer(id as MazeAlgorithm),
     tagline: text.tagline,
-    description: MAZE_RACE_DESCRIPTION,
+    description: raceDescription,
     unit: text.unit,
   },
 

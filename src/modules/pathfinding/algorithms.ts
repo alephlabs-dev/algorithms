@@ -172,3 +172,9 @@ export const pathTraits = (algorithm: PathAlgorithm) => {
   const guarantee = shortest === "cost" ? traits.cheapest : shortest === "steps" ? traits.fewest : traits.any;
   return `${guarantee} · ${weighted ? traits.counts : traits.ignores}`;
 };
+
+/** What the race view is and what to watch for: next to the racers, in the articles and in search results. */
+export const raceDescription = localized({
+  en: "Same grid, same clock. Each tick, every search examines one cell, so the first to reach the target is the one that looked at the fewest cells. Then compare the paths they found.",
+  es: "Misma cuadrícula, mismo reloj. En cada tic, cada búsqueda revisa una celda, así que la primera en llegar al destino es la que revisó menos celdas. Después compara los caminos que encontraron.",
+});

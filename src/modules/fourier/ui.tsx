@@ -1,6 +1,6 @@
 import { FourierStage } from "./FourierStage";
 import { FourierFacts, FourierLegend, FourierStatsInline, FourierTools } from "./FourierTools";
-import { FourierSettings } from "@/components/Settings/SettingsPanel";
+import { FourierSettings } from "./Settings";
 import { fourierSeries, shapeLabel } from "./algorithms";
 import { fourierPseudocode } from "./pseudocode";
 import { isWave } from "./run";
@@ -9,7 +9,7 @@ import { localized } from "@/i18n";
 import { useStore } from "@/store";
 import { count } from "@/utils/count";
 import { narrateFourier } from "./narrate";
-import { fourierTour } from "@/modules/tours";
+import { fourierTour } from "./tour";
 import type { ModuleUI } from "@/modules/types";
 
 const text = localized({

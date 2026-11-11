@@ -1,5 +1,5 @@
 import { StructureRaceLanes } from "./StructureRaceLanes";
-import { StructureSettings } from "@/components/Settings/SettingsPanel";
+import { StructureSettings } from "./Settings";
 import { StructureStage } from "./StructureStage";
 import {
   StructureFacts,
@@ -7,14 +7,13 @@ import {
   StructureStatsInline,
   StructureTools,
 } from "./StructureTools";
-import { STRUCTURE_RACE_DESCRIPTION } from "@/consts/race";
-import { structurePresetLabel, structures, structureSizeLabels } from "./algorithms";
+import { raceDescription, structurePresetLabel, structures, structureSizeLabels } from "./algorithms";
 import { structurePseudocode } from "./pseudocode";
 import type { StructureAlgorithm } from "./types";
 import { localized } from "@/i18n";
 import { useStore } from "@/store";
 import { narrateTree } from "./narrate";
-import { structuresTour } from "@/modules/tours";
+import { structuresTour } from "./tour";
 import type { ModuleUI } from "@/modules/types";
 
 const text = localized({
@@ -87,7 +86,7 @@ export const structuresUI: ModuleUI = {
     racers: () => ["bst", "avl"],
     toggleRacer: () => {},
     tagline: text.tagline,
-    description: STRUCTURE_RACE_DESCRIPTION,
+    description: raceDescription,
     unit: text.unit,
   },
 

@@ -137,3 +137,9 @@ const text = localized<Record<GraphAlgorithm, GraphAlgorithmText>>({
 export const graphAlgorithms = Object.fromEntries(
   (Object.keys(data) as GraphAlgorithm[]).map((id) => [id, { ...text[id], ...data[id], named: text[id].named ?? text[id].title }])
 ) as Record<GraphAlgorithm, GraphAlgorithmDetails>;
+
+/** What the race view is and what to watch for: next to the racers, in the articles and in search results. */
+export const raceDescription = localized({
+  en: "Same graph, same clock. Each tick, every algorithm takes one step, so the first to finish is the one with the least to do. Prim and Kruskal always end with trees of the same weight, by different routes.",
+  es: "Mismo grafo, mismo reloj. En cada tic, cada algoritmo da un paso, así que el primero en terminar es el que tiene menos trabajo. Prim y Kruskal siempre terminan con árboles del mismo peso, por caminos distintos.",
+});

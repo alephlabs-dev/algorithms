@@ -1,8 +1,6 @@
-// eslint-disable-next-line house/module-boundaries -- TODO(#190): sorting's race text moves into its module.
-import { RACE_DESCRIPTION } from "@/consts/race";
 import { localized } from "@/i18n";
 import type { ModuleManifest } from "@/routes";
-import { sortingAlgorithms } from "./algorithms";
+import { raceDescription, sortingAlgorithms } from "./algorithms";
 import type { Algorithm } from "./types";
 
 const text = localized({
@@ -61,7 +59,7 @@ export const sortingManifest = {
   seo: {
     section: text.section,
     start: { title: text.moduleTitle, description: text.moduleDescription },
-    race: { title: text.raceTitle, description: text.raceDescription(RACE_DESCRIPTION) },
+    race: { title: text.raceTitle, description: text.raceDescription(raceDescription) },
     algorithm: (algorithm: Algorithm) => {
       const { title, timeComplexity } = sortingAlgorithms[algorithm];
       return {

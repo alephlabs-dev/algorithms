@@ -2,7 +2,7 @@ import { RuleTester } from "eslint";
 import path from "node:path";
 import tseslint from "typescript-eslint";
 import { afterAll, describe, it } from "vitest";
-import { house } from "./house.js";
+import { house, prerenderFiles } from "./house.js";
 
 RuleTester.afterAll = afterAll;
 RuleTester.describe = describe;
@@ -37,7 +37,15 @@ tester.run("no-native-controls", house.rules["no-native-controls"], {
 const at = (file) => path.join(import.meta.dirname, "..", file);
 const boundaries = house.rules["module-boundaries"];
 const registries = [
-  { registries: { "src/modules/manifests.ts": "manifest", "src/modules/engine.ts": "slice", "src/modules/index.ts": "ui" } },
+  {
+    registries: {
+      "src/modules/manifests.ts": "manifest",
+      "src/modules/engine.ts": "slice",
+      "src/modules/index.ts": "ui",
+      "src/modules/contents.ts": "content",
+    },
+    prerender: prerenderFiles,
+  },
 ];
 // TypeScript's parser, for `import type`.
 const moduleTester = new RuleTester({ languageOptions: { parser: tseslint.parser } });
@@ -66,6 +74,12 @@ moduleTester.run("module-boundaries", boundaries, {
     { code: "import type { GridSize } from '@/utils/gridSize';", filename: at("src/modules/mazes/algorithms.ts"), options: registries },
     // Shared files next to the module folders aren't modules.
     { code: "import { defineModule } from './slice';", filename: at("src/modules/sorting.slice.ts"), options: registries },
+    // A module's content and the prerendered pages reach Node-safe code, and types from anywhere.
+    { code: "import { MazeArticle } from './articles';", filename: at("src/modules/mazes/content.tsx"), options: registries },
+    { code: "import type { Theme } from '@/store';", filename: at("src/modules/mazes/content.tsx"), options: registries },
+    { code: "import { type Theme } from '@/store';", filename: at("src/modules/mazes/content.tsx"), options: registries },
+    { code: "export type { Theme } from '@/store';", filename: at("src/modules/mazes/content.tsx"), options: registries },
+    { code: "import { moduleContents } from '@/modules/contents';", filename: at("src/components/About.tsx"), options: registries },
   ],
   invalid: [
     {
@@ -142,6 +156,48 @@ moduleTester.run("module-boundaries", boundaries, {
       filename: at("src/modules/engine.ts"),
       options: registries,
       errors: [{ messageId: "registry", data: { to: "mazes" } }],
+    },
+    // A module's content is rendered by the prerender in Node: it never reaches the browser's store.
+    {
+      code: "import { useStore } from '@/store';",
+      filename: at("src/modules/mazes/content.tsx"),
+      options: registries,
+      errors: [{ messageId: "prerender", data: { target: "src/store", via: "" } }],
+    },
+    // Nor through another file: sorting's settings read the store.
+    {
+      code: "import { SortingSettings } from './Settings';",
+      filename: at("src/modules/sorting/content.tsx"),
+      options: registries,
+      errors: [{ messageId: "prerender", data: { target: "src/store", via: " (through src/modules/sorting/Settings)" } }],
+    },
+    // Nor through a dynamic import in another file, whatever follows it.
+    {
+      code: "import { load } from '../../../eslint/fixtures/lazyStore';",
+      filename: at("src/modules/mazes/content.tsx"),
+      options: registries,
+      errors: [{ messageId: "prerender", data: { target: "src/store", via: " (through eslint/fixtures/lazyStore)" } }],
+    },
+    // Re-exports and dynamic imports count, in the file itself too.
+    ...["export { useStore } from '@/store';", "const store = import('@/store');"].map((code) => ({
+      code,
+      filename: at("src/modules/mazes/content.tsx"),
+      options: registries,
+      errors: [{ messageId: "prerender" }],
+    })),
+    // Nor its own interface or slice.
+    ...["import { mazesUI } from './ui';", "import { mazesSlice } from './slice';"].map((code) => ({
+      code,
+      filename: at("src/modules/mazes/content.tsx"),
+      options: registries,
+      errors: [{ messageId: "prerender" }],
+    })),
+    // The shared files the prerender renders keep to the same side: modules only through their content.
+    {
+      code: "import { moduleUIs } from '@/modules';",
+      filename: at("src/components/About.tsx"),
+      options: registries,
+      errors: [{ messageId: "prerender", data: { target: "src/modules/index", via: "" } }],
     },
   ],
 });
