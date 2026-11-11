@@ -1,21 +1,20 @@
-import { test, expect, type Locator, type Page } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { gotoApp } from './goto';
+import { SMALLEST } from './settings';
 
-// Runs on every device project. The algorithm picker on phones and tablets (UX.md rule 11, #97):
-// modules whose algorithms fit as one row of segments at 393px show them inline; the rest keep
-// ui/NativeSelect, a styled trigger over a native <select> so phones open their own picker.
+// Runs on every device project. The algorithm picker on phones and tablets (UX.md rule 11, #195): a field
+// that opens a drawer with the same grouped list as the desktop popover. No module shows its algorithms
+// inline as segments.
 
-// 'too long': 5 or fewer algorithms, but flagged namesTooLongForSegments, so a select.
-type Picker = 'segments' | 'select' | 'too long';
-const modules: { route: string; tourKey: string; picker: Picker; tour: string | null }[] = [
-  { route: '/sorting/insertion-sort', tourKey: 'tour-done', picker: 'select', tour: 'Pick an algorithm' },
-  { route: '/graphs', tourKey: 'tour-done-graphs', picker: 'select', tour: 'Pick an algorithm' },
-  { route: '/pathfinding', tourKey: 'tour-done-pathfinding', picker: 'segments', tour: 'Pick a search' },
-  { route: '/structures', tourKey: 'tour-done-structures', picker: 'too long', tour: 'Pick a structure' },
-  { route: '/fourier', tourKey: 'tour-done-fourier', picker: 'segments', tour: 'Pick a series' },
-  { route: '/dynamic-programming', tourKey: 'tour-done-dp', picker: 'too long', tour: 'Pick a problem' },
-  { route: '/backtracking', tourKey: 'tour-done-backtracking', picker: 'segments', tour: null },
-  { route: '/mazes', tourKey: 'tour-done-mazes', picker: 'segments', tour: null },
+const modules: { route: string; tourKey: string; tour: string | null }[] = [
+  { route: '/sorting/insertion-sort', tourKey: 'tour-done', tour: 'Pick an algorithm' },
+  { route: '/graphs', tourKey: 'tour-done-graphs', tour: 'Pick an algorithm' },
+  { route: '/pathfinding', tourKey: 'tour-done-pathfinding', tour: 'Pick a search' },
+  { route: '/structures', tourKey: 'tour-done-structures', tour: 'Pick a structure' },
+  { route: '/fourier', tourKey: 'tour-done-fourier', tour: 'Pick a series' },
+  { route: '/dynamic-programming', tourKey: 'tour-done-dp', tour: 'Pick a problem' },
+  { route: '/backtracking', tourKey: 'tour-done-backtracking', tour: null },
+  { route: '/mazes', tourKey: 'tour-done-mazes', tour: null },
 ];
 const languages = [
   { prefix: '', name: 'Algorithm', lang: 'en' },
@@ -25,110 +24,40 @@ const languages = [
 /** The phone and tablet bar is on screen (below lg). */
 const phoneBar = (page: Page) => page.evaluate(() => !matchMedia('(min-width: 1024px)').matches);
 
-/** Each segment's label lies inside its segment's padding box, on one line. */
-const overflowing = (group: Locator) =>
-  group.getByRole('radio').evaluateAll((radios) =>
-    radios
-      .map((radio) => {
-        const label = radio.querySelector<HTMLElement>('[data-segment-label]');
-        if (!label) return `${radio.textContent}: no label`;
-        const box = radio.getBoundingClientRect();
-        const style = getComputedStyle(radio);
-        const left = box.left + parseFloat(style.paddingLeft) - 0.5;
-        const right = box.right - parseFloat(style.paddingRight) + 0.5;
-        const text = label.getBoundingClientRect();
-        const lines = label.getClientRects().length;
-        return text.left < left || text.right > right || lines !== 1
-          ? `${label.textContent}: ${Math.round(text.width)}px in ${Math.round(right - left)}px, ${lines} lines`
-          : null;
-      })
-      .filter(Boolean),
-  );
-
-/**
- * The select's short names laid out as the inline row would be: a copy of the page's own
- * segmented control (the view switch), one segment per name, as wide as the bar. Returns
- * the names that overflow their segment.
- */
-const overflowingAsSegments = async (page: Page, select: Locator) => {
-  await select.evaluate((el) => {
-    const bar = el.closest('[data-tour="picker"]')!.parentElement!.parentElement!;
-    const source = [...document.querySelectorAll<HTMLElement>('[data-tour="race"] [role="radiogroup"]')].find((g) =>
-      g.checkVisibility(),
-    )!;
-    const shorts = [...(el as HTMLSelectElement).options].map((o) => o.dataset.short ?? o.text);
-    const row = source.cloneNode(false) as HTMLElement;
-    row.dataset.measure = '';
-    row.setAttribute('aria-label', 'measure');
-    row.style.gridTemplateColumns = `repeat(${shorts.length}, minmax(0, 1fr))`;
-    const template = source.querySelector('[role="radio"][aria-checked="false"]')!;
-    for (const short of shorts) {
-      const segment = template.cloneNode(false) as HTMLElement;
-      const label = document.createElement('span');
-      label.dataset.segmentLabel = '';
-      label.className = 'whitespace-nowrap';
-      label.textContent = short;
-      segment.append(label);
-      row.append(segment);
-    }
-    bar.append(row);
-  });
-  const row = page.locator('[data-measure]');
-  const result = await overflowing(row);
-  await row.evaluate((el) => el.remove());
-  return result;
-};
-
 for (const m of modules) {
   for (const l of languages) {
-    test(`${l.prefix}${m.route} picks the algorithm with ${m.picker}`, async ({ page }) => {
+    test(`${l.prefix}${m.route} picks the algorithm from a drawer`, async ({ page }, testInfo) => {
+      await page.setViewportSize(SMALLEST[testInfo.project.name]);
       await page.addInitScript((key) => localStorage.setItem(key, 'true'), m.tourKey);
       await gotoApp(page, `${l.prefix}${m.route}`);
       await expect(page.locator('html')).toHaveAttribute('lang', l.lang);
       test.skip(!(await phoneBar(page)), 'the phone and tablet bar only');
 
-      const segments = page.getByRole('radiogroup', { name: l.name, exact: true });
-      const select = page.getByRole('combobox', { name: l.name, exact: true });
-      if (m.picker === 'segments') {
-        await expect(segments).toBeVisible();
-        await expect(select).toHaveCount(0);
-        expect(await overflowing(segments), 'labels that do not fit on one line').toEqual([]);
+      await expect(page.getByRole('radiogroup', { name: l.name, exact: true })).toHaveCount(0);
+      const field = page.getByRole('button', { name: new RegExp(`^${l.name}:`) });
+      await expect(field).toBeVisible();
+      const before = await field.getAttribute('aria-label');
 
-        // Picking a segment puts that algorithm on stage.
-        const second = segments.getByRole('radio').nth(1);
-        await second.click();
-        await expect(second).toHaveAttribute('aria-checked', 'true');
-        await expect(segments.getByRole('radio', { checked: true })).toHaveCount(1);
-      } else {
-        await expect(select).toBeVisible();
-        await expect(segments).toHaveCount(0);
-        await expect(select).toHaveCSS('appearance', 'none');
-        // Picking another option puts that algorithm on stage.
-        const current = await select.inputValue();
-        const values = await select.locator('option').evaluateAll((os) => os.map((o) => (o as HTMLOptionElement).value));
-        const other = values.find((v) => v !== current)!;
-        await select.selectOption(other);
-        await expect(select).toHaveValue(other);
-      }
-    });
-  }
+      await field.click();
+      const drawer = page.getByRole('dialog', { name: l.name, exact: true });
+      const list = drawer.getByRole('listbox', { name: l.name, exact: true });
+      await expect(list).toBeVisible();
+      await expect(list.getByRole('option', { selected: true })).toHaveCount(1);
+      await expect(list.getByRole('option', { selected: true })).toBeFocused();
 
-  // The flag holds while some name, in some language, doesn't fit its segment.
-  if (m.picker === 'too long') {
-    test(`${m.route} names really overflow segments at 393px`, async ({ page }) => {
-      test.skip(page.viewportSize()?.width !== 393, 'measured at 393px (iPhone)');
-      await page.addInitScript((key) => localStorage.setItem(key, 'true'), m.tourKey);
-      const overflows: string[] = [];
-      for (const l of languages) {
-        await gotoApp(page, `${l.prefix}${m.route}`);
-        const select = page.getByRole('combobox', { name: l.name, exact: true });
-        await expect(select).toBeVisible();
-        overflows.push(...(await overflowingAsSegments(page, select)).map((o) => `${l.lang} ${o}`));
-      }
-      expect(
-        overflows,
-        `every short name fits as a segment in English and Spanish: remove namesTooLongForSegments from ${m.route}`,
-      ).not.toEqual([]);
+      // The whole list fits the drawer without scrolling (UX.md rule 14).
+      await page.waitForTimeout(500);
+      const fit = await drawer.locator('[data-sheet-body]').evaluate((el) => {
+        const box = el.getBoundingClientRect();
+        return { scroll: el.scrollHeight, client: el.clientHeight, top: box.top };
+      });
+      expect(fit.scroll, `the list overflows by ${fit.scroll - fit.client}px`).toBeLessThanOrEqual(fit.client);
+      expect(fit.top).toBeGreaterThanOrEqual(0);
+
+      // Picking another closes the drawer and puts that algorithm on stage.
+      await list.getByRole('option', { selected: false }).first().click();
+      await expect(drawer).toBeHidden();
+      await expect(field).not.toHaveAttribute('aria-label', before!);
     });
   }
 

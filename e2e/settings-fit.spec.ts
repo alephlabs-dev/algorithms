@@ -1,16 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { gotoApp } from './goto';
-import { hasSettingsPanel } from './settings';
+import { hasSettingsPanel, SMALLEST } from './settings';
 
 // Runs on every device project. UX.md rule 14: controls never scroll. At the smallest size of
 // each layout, every module page's settings fit their container (marked data-settings) on screen.
-
-const SMALLEST: Record<string, { width: number; height: number }> = {
-  iphone: { width: 393, height: 852 },
-  ipad: { width: 834, height: 1194 },
-  'ipad-landscape': { width: 1194, height: 834 },
-  desktop: { width: 1280, height: 800 },
-};
 
 const PAGES = [
   '/sorting/insertion-sort',

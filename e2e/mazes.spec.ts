@@ -55,14 +55,10 @@ test('mazes: carve a maze, resize it, draw a new one and reopen its link', async
   expect(errors).toEqual([]);
 });
 
-/** Picks an algorithm: a segment on phones and tablets, the pill's list on wide screens. */
-const pickAlgorithm = async (page: Page, short: string, title: string) => {
-  const segments = page.getByRole('radiogroup', { name: 'Algorithm', exact: true });
-  if (await segments.isVisible()) await segments.getByRole('radio', { name: short }).click();
-  else {
-    await page.getByRole('button', { name: /^Algorithm: / }).click();
-    await page.getByRole('button', { name: title }).click();
-  }
+/** Picks an algorithm from its list: the field's drawer on phones and tablets, the pill's popover on wide screens. */
+const pickAlgorithm = async (page: Page, title: string) => {
+  await page.getByRole('button', { name: /^Algorithm: / }).click();
+  await page.getByRole('option', { name: title }).click();
 };
 
 test('mazes: switch to Prim on the same seed and reopen its link', async ({ page, context }) => {
@@ -71,7 +67,7 @@ test('mazes: switch to Prim on the same seed and reopen its link', async ({ page
   await page.addInitScript(() => localStorage.setItem('tour-done-mazes', 'true'));
   await gotoApp(page, '/mazes?size=small&seed=abc&speed=8x');
 
-  await pickAlgorithm(page, 'Prim', "Randomized Prim's Algorithm");
+  await pickAlgorithm(page, "Randomized Prim's Algorithm");
   await expect(page).toHaveURL(/\/mazes\/prim\?size=small&seed=abc/);
   await expect(page.getByRole('heading', { level: 1, name: "Randomized Prim's Algorithm" })).toBeAttached();
   // Prim's legend names the frontier (phones hide the legend, but it's on the page).
@@ -98,7 +94,7 @@ test('mazes: switch to Kruskal, which stops as soon as every cell is joined', as
   await page.addInitScript(() => localStorage.setItem('tour-done-mazes', 'true'));
   await gotoApp(page, '/mazes/prim?size=small&seed=abc&speed=8x');
 
-  await pickAlgorithm(page, 'Kruskal', "Randomized Kruskal's Algorithm");
+  await pickAlgorithm(page, "Randomized Kruskal's Algorithm");
   await expect(page).toHaveURL(/\/mazes\/kruskal\?size=small&seed=abc/);
   await expect(page.getByRole('heading', { level: 1, name: "Randomized Kruskal's Algorithm" })).toBeAttached();
   // Kruskal's legend tells a carved wall from a skipped one, and has no start cell.
@@ -131,7 +127,7 @@ test('mazes: switch to Wilson on the same seed and reopen its link', async ({ pa
   await page.addInitScript(() => localStorage.setItem('tour-done-mazes', 'true'));
   await gotoApp(page, '/mazes?size=small&seed=abc&speed=8x');
 
-  await pickAlgorithm(page, 'Wilson', "Wilson's Algorithm");
+  await pickAlgorithm(page, "Wilson's Algorithm");
   await expect(page).toHaveURL(/\/mazes\/wilson\?size=small&seed=abc/);
   await expect(page.getByRole('heading', { level: 1, name: "Wilson's Algorithm" })).toBeAttached();
   // Wilson's legend names the walk (phones hide the legend, but it's on the page).

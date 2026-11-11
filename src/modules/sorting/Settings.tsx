@@ -3,7 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useStore } from "@/store";
 import { localized } from "@/i18n";
 import { Field } from "@/components/Settings/Field";
-import { NativeSelect } from "@/components/ui/native-select";
+import { Select } from "@/components/ui/select";
 import { SegmentedControl } from "@/components/ui/segmented";
 import { StepSlider } from "@/components/ui/slider";
 import { inputOrders } from "./inputOrders";
@@ -67,21 +67,20 @@ const SizePicker = () => {
   );
 };
 
-/** How the array starts out, as one closed field; the field's help says what the chosen order is for. */
+/** How the array starts out, as one closed field; each order in the list says what it's for. */
 const InputPicker = () => {
   const s = useSettings();
   return (
-    <NativeSelect
+    <Select
       label={text.input}
       value={s.inputOrder}
-      onChange={(order) => {
-        if (order !== s.inputOrder) s.setInputOrder(order as InputOrder);
-      }}
+      onChange={(order) => s.setInputOrder(order as InputOrder)}
       groups={[
         {
           options: (Object.keys(inputOrders) as InputOrder[]).map((order) => ({
             value: order,
             label: inputOrders[order].label,
+            description: inputOrders[order].description,
           })),
         },
       ]}

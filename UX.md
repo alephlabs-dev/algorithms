@@ -51,7 +51,7 @@ Every color comes from the theme. No hex, `rgb()`, `hsl()` or `oklch()` values i
 
 Never controls with the browser's default look. Every control lives in `src/components/ui/`; those components may use the native element inside, always with our own styles and theme colors.
 
-- **In this app:** `src/components/ui/` holds `button`, `segmented`, `slider`, `drawer`, `popover`, `preset-buttons`, `list-item`, `badge`, `section-label`, `fact-line`, `tooltip`, `disclosure`, `text-field`, `native-select`.
+- **In this app:** `src/components/ui/` holds `button`, `segmented`, `slider`, `drawer`, `popover`, `preset-buttons`, `list-item`, `badge`, `section-label`, `fact-line`, `tooltip`, `disclosure`, `text-field`, `select`.
 - **Example:** the speed control (`src/components/Controls/SpeedControl.tsx`) is our `SegmentedControl` (role `radiogroup`), not a native `<select>` or radio buttons.
 
 ## 8. Secondary content on phones and tablets
@@ -59,7 +59,7 @@ Never controls with the browser's default look. Every control lives in `src/comp
 - Phones and iPad portrait: settings open in a modal bottom sheet over the stage, with the `--color-scrim` backdrop. The stage never resizes or moves under it, and opening or closing it doesn't change playback. It closes with its ✕, a swipe down, a tap on the backdrop or Escape. Its content fits without scrolling (rule 14).
 - Play and speed stay in the dock, never in the settings sheet.
 - Explanatory content followed during playback (the pseudocode) may open in its own non-modal sheet.
-- Choices that don't fit inline open in a modal sheet with a close button. Never stack sheets.
+- Choices that don't fit inline open in a modal sheet with a close button. Never stack sheets: a select inside a sheet slides the sheet to its list in place, like iOS Settings (rule 11).
 - Tabs or segmented controls switch between content the learner doesn't need to see at the same time. A separate route only for long, independent content.
 - iPad landscape and desktop: a side panel beside the stage, never covering it, with two tabs: Settings (the default; fits without scrolling, rule 14) and Pseudocode. It keeps the last tab picked for the session.
 - Which control a choice uses is rule 10; the algorithm picker is rule 11.
@@ -72,13 +72,17 @@ Never controls with the browser's default look. Every control lives in `src/comp
 ## 10. Choosing a control
 
 - Up to 5 named values: segmented. More than 5 ordered numeric values where approximate is fine: a slider with fixed steps, its value always visible beside it (never under the finger), live effect. An exact value in a small range, picked a step at a time: a stepper. A value the learner types (a number to insert, a word): a text field (rule 12).
+- More named values, or names too long for one row of segments: a select (rule 11). The algorithm picker is always a select, never segments.
 - Speed is segmented with 4–5 fixed values; array size is a stepped slider.
 
-## 11. Algorithm picker
+## 11. Selects and the algorithm picker
 
-- Desktop and iPad landscape: the picker pill in the top bar opens a popover with the algorithms (`PickerPill` in `src/components/TopBar.tsx`). The rest of this rule is phones and tablets.
-- `ui/NativeSelect`: a styled closed trigger (`appearance: none`, theme colors, our own icon) over a native `<select>`.
-- Modules with 5 or fewer algorithms show all options inline instead: one row of equal segments with their short names, on its own line. If a module's names don't fit that row at 393px in every language, it keeps the `NativeSelect`; never invent shorter names (`namesTooLongForSegments` in the module, measured by `e2e/algorithm-picker.spec.ts`).
+- No select ever opens the browser's or the OS's list. Every select is `ui/Select`: a closed field in our look (the value, our chevron) that opens our own list.
+- iPad landscape and desktop: the list opens in a popover (Radix Popover). The algorithm picker is the pill in the top bar (`PickerPill` in `src/components/TopBar.tsx`); the settings' selects (sorting's Input, Fourier's Drawing) open beside the side panel.
+- Phones and iPad portrait: the algorithm field in the top bar opens a drawer with the same grouped list as the desktop popover (groups and their hints). A select inside the settings sheet doesn't open a second sheet (rule 8): the sheet slides to the option list with "‹ Back" and ✕. Picking an option applies it and slides back on its own; Back returns without a change; ✕ closes the whole sheet.
+- The list is a WAI-ARIA listbox: focus starts on the option picked, arrows move, Home/End jump, Enter or Space picks, Escape closes.
+- Option rows show what helps the choice: sorting's Input shows each order's description, Fourier's Drawing each drawing's thumbnail, grouped.
+- Every list fits without scrolling at its layout's smallest size (rule 14; checked by `e2e/option-lists.spec.ts` and `e2e/algorithm-picker.spec.ts`). A list that doesn't fit is regrouped (fewer words, options side by side), never scrolled.
 
 ## 12. Text fields
 
