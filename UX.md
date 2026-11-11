@@ -78,7 +78,7 @@ Never controls with the browser's default look. Every control lives in `src/comp
 ## 11. Selects and the algorithm picker
 
 - No select ever opens the browser's or the OS's list. Every select is `ui/Select`: a closed field in our look (the value, our chevron) that opens our own list.
-- iPad landscape and desktop: the list opens in a popover (Radix Popover). The algorithm picker is the pill in the top bar (`PickerPill` in `src/components/TopBar.tsx`); the settings' selects (sorting's Input, Fourier's Drawing) open beside the side panel.
+- iPad landscape and desktop: the list opens in a popover (Radix Popover). The algorithm picker is the pill in the top bar (`PickerPill` in `src/components/TopBar.tsx`); the settings' selects (sorting's Input, Fourier's Drawing) open under their field like any dropdown; above it when only that fits, beside it when neither does.
 - Phones and iPad portrait: the algorithm field in the top bar opens a drawer with the same grouped list as the desktop popover (groups and their hints). A select inside the settings sheet doesn't open a second sheet (rule 8): the sheet slides to the option list with "‹ Back" and ✕. Picking an option applies it and slides back on its own; Back returns without a change; ✕ closes the whole sheet.
 - The list is a WAI-ARIA listbox: focus starts on the option picked, arrows move, Home/End jump, Enter or Space picks, Escape closes.
 - Option rows show what helps the choice: sorting's Input shows each order's description, Fourier's Drawing each drawing's thumbnail, grouped.

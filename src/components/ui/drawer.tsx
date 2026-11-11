@@ -109,23 +109,22 @@ const SheetBody = ({
         <DrawerTitle className={cn("flex items-center gap-2 text-xl font-semibold", shown && "sr-only")}>
           {title}
         </DrawerTitle>
-        {shown && page && (
-          <div className="flex min-w-0 items-center gap-1">
-            <button
-              type="button"
-              onClick={pages.back}
-              className="tap-target relative -ml-2 flex h-11 shrink-0 items-center gap-0.5 rounded-full pl-1 pr-3 text-base font-semibold text-foreground transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
-            >
-              <ChevronLeftIcon aria-hidden className="h-5 w-5" />
-              {text.back}
-            </button>
-            <h3 className="truncate text-xl font-semibold">{page.title}</h3>
-          </div>
+        {shown && (
+          <button
+            type="button"
+            onClick={pages.back}
+            className="tap-target relative -ml-2 flex h-11 shrink-0 items-center gap-0.5 rounded-full pl-1 pr-3 text-[15px] font-medium text-foreground/80 transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            <ChevronLeftIcon aria-hidden className="h-5 w-5" />
+            {text.back}
+          </button>
         )}
         <DrawerClose asChild>
           <CloseButton />
         </DrawerClose>
       </div>
+      {/* Back and ✕ on the top row, the page's title under them: the biggest text on the page. */}
+      {shown && page && <h3 className="-mt-2 text-xl font-semibold">{page.title}</h3>}
       <SheetPagesContext.Provider value={pages}>
         {/* Both pages share one cell, so the sheet is as tall as the taller one and doesn't jump. */}
         <div className="grid overflow-x-clip">

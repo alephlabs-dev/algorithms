@@ -95,6 +95,9 @@ test('beside the stage, Input opens a popover list that works by keyboard', asyn
   await field.click();
   const list = page.getByRole('listbox', { name: 'Input' });
   await expect(list).toBeVisible();
+  // Like any dropdown: under the field, where it fits.
+  const [fieldBox, listBox] = [(await field.boundingBox())!, (await list.boundingBox())!];
+  expect(listBox.y).toBeGreaterThan(fieldBox.y + fieldBox.height);
   await expect(list.getByRole('option', { name: /^Reversed/ })).toContainText('Largest first');
   await expectFits(list);
   // Focus starts on the option picked.

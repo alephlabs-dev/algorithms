@@ -1,6 +1,17 @@
 import { ChevronDownIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import * as Popover from "@radix-ui/react-popover";
-import { Fragment, useEffect, useId, useRef, useState, type ComponentProps, type KeyboardEvent, type ReactNode } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ComponentProps,
+  type KeyboardEvent,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@/utils/cn";
@@ -159,6 +170,60 @@ const Field = ({
   </button>
 );
 
+const GAP = 8;
+const MARGIN = 16;
+
+type Side = "bottom" | "top" | "left";
+
+/** Below the field, like any dropdown; above it when only that fits; beside it when neither does. */
+const sideFor = (field: DOMRect, height: number): Side => {
+  const fits = (space: number) => space - GAP - MARGIN >= height;
+  if (fits(window.innerHeight - field.bottom)) return "bottom";
+  if (fits(field.top)) return "top";
+  return "left";
+};
+
+/** The list in a popover by its field, on the side where it fits whole (UX.md rule 14). */
+const PopoverSelect = ({
+  open,
+  onOpenChange,
+  field,
+  children,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  field: ReactElement<ComponentProps<"button">>;
+  children: ReactNode;
+}) => {
+  const [side, setSide] = useState<Side>("bottom");
+  const trigger = useRef<HTMLButtonElement>(null);
+  // Measured once the list is on the page, before it's shown.
+  const measure = useCallback((node: HTMLDivElement | null) => {
+    if (node && trigger.current) setSide(sideFor(trigger.current.getBoundingClientRect(), node.offsetHeight));
+  }, []);
+  return (
+    <Popover.Root open={open} onOpenChange={onOpenChange}>
+      <Popover.Trigger asChild ref={trigger}>
+        {field}
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          ref={measure}
+          side={side}
+          // Under or over the field, a list wider than it grows leftwards (the side panel is at the screen's
+          // right); beside it, the list starts level with it.
+          align={side === "left" ? "start" : "end"}
+          sideOffset={GAP}
+          collisionPadding={MARGIN}
+          className={cn(popoverClass, "w-max min-w-(--radix-popover-trigger-width) max-w-sm")}
+        >
+          {children}
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  );
+};
+
 /**
  * Our own select (UX.md rule 11), never the OS list. Beside the stage (iPad
  * landscape, desktop) it opens a popover; on phones and iPad portrait a
@@ -204,21 +269,9 @@ export const Select = ({ label, value, onChange, groups, columns, className, "da
 
   if (wide) {
     return (
-      <Popover.Root open={open} onOpenChange={setOpen}>
-        <Popover.Trigger asChild>{field}</Popover.Trigger>
-        <Popover.Portal>
-          {/* Beside the stage the field sits in the side panel: the list opens to its left, where it has the full height. */}
-          <Popover.Content
-            side="left"
-            align="start"
-            sideOffset={8}
-            collisionPadding={16}
-            className={cn(popoverClass, "w-max min-w-(--radix-popover-trigger-width) max-w-sm")}
-          >
-            {list(pickThen(close))}
-          </Popover.Content>
-        </Popover.Portal>
-      </Popover.Root>
+      <PopoverSelect open={open} onOpenChange={setOpen} field={field}>
+        {list(pickThen(close))}
+      </PopoverSelect>
     );
   }
 
