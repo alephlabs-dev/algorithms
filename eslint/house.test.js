@@ -78,6 +78,7 @@ moduleTester.run("module-boundaries", boundaries, {
     { code: "import { MazeArticle } from './articles';", filename: at("src/modules/mazes/content.tsx"), options: registries },
     { code: "import type { Theme } from '@/store';", filename: at("src/modules/mazes/content.tsx"), options: registries },
     { code: "import { type Theme } from '@/store';", filename: at("src/modules/mazes/content.tsx"), options: registries },
+    { code: "export type { Theme } from '@/store';", filename: at("src/modules/mazes/content.tsx"), options: registries },
     { code: "import { moduleContents } from '@/modules/contents';", filename: at("src/components/About.tsx"), options: registries },
   ],
   invalid: [
@@ -170,6 +171,20 @@ moduleTester.run("module-boundaries", boundaries, {
       options: registries,
       errors: [{ messageId: "prerender", data: { target: "src/store", via: " (through src/modules/sorting/Settings)" } }],
     },
+    // Nor through a dynamic import in another file, whatever follows it.
+    {
+      code: "import { load } from '../../../eslint/fixtures/lazyStore';",
+      filename: at("src/modules/mazes/content.tsx"),
+      options: registries,
+      errors: [{ messageId: "prerender", data: { target: "src/store", via: " (through eslint/fixtures/lazyStore)" } }],
+    },
+    // Re-exports and dynamic imports count, in the file itself too.
+    ...["export { useStore } from '@/store';", "const store = import('@/store');"].map((code) => ({
+      code,
+      filename: at("src/modules/mazes/content.tsx"),
+      options: registries,
+      errors: [{ messageId: "prerender" }],
+    })),
     // Nor its own interface or slice.
     ...["import { mazesUI } from './ui';", "import { mazesSlice } from './slice';"].map((code) => ({
       code,

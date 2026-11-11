@@ -73,7 +73,8 @@ Four rules, enforced by the lint (`house/module-boundaries` in `eslint/house.js`
 - `content.tsx` renders in Node (the prerender), and so do the shared files the lint lists as `prerender`
   (`src/seo/render.tsx`, `src/Page.tsx`, `About`, `Landing`, `contents.ts`): none of them reaches the store, the
   app's entry, the interface or slice registries, or any module's `ui.tsx` or `slice.ts`, directly or through
-  other files (type imports aside). `src/seo/render.test.ts` renders pages in Node, so anything else that reads the
+  other files (type imports aside). They reach modules only through `contents.ts` (and `manifests.ts`, Node-safe,
+  for the landing cards). `src/seo/render.test.ts` renders pages in Node, so anything else that reads the
   browser at load fails it.
 
 An import that breaks a rule and can't be fixed yet gets a per-line `eslint-disable-next-line` with a TODO naming

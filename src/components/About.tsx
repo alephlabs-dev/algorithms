@@ -12,11 +12,7 @@ import { PageLink } from "./PageLink";
  * because the build also renders it to static HTML for each page.
  */
 
-type Props = {
-  route: Route;
-  /** In the app, links switch pages without reloading; in static HTML they're plain links. */
-  onNavigate?: (route: Route) => void;
-};
+type Props = Nav & { route: Route };
 
 const text = localized({
   en: {
@@ -34,6 +30,7 @@ const text = localized({
 /** The page's article; the landing page has none. */
 const PageArticle = ({ route, onNavigate }: Props) => {
   if (route.page === "home") return null;
+  // TypeScript can't pair route.module with its own articles here; the registry's type checks each module's set.
   const pages = moduleContents[route.module].articles as {
     start: ComponentType<Nav>;
     algorithm: ComponentType<Nav & { algorithm: string }>;
