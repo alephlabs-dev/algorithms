@@ -4,6 +4,7 @@ import { GridRenderer } from "@/canvas/gridRenderer";
 import { mazeGridCells, mazePalette } from "./paint";
 import { mazeAlgorithms } from "./algorithms";
 import { useElementSize } from "@/hooks/useElementSize";
+import { useReportStageAspect } from "@/hooks/useReportStageAspect";
 import { localized } from "@/i18n";
 import type { MazeRun } from "./run";
 import type { MazeFrame } from "./types";
@@ -72,6 +73,8 @@ export const MazeCanvas = ({ run, frame, gridId, label }: CanvasProps) => {
 
 /** The single view: one maze being carved. */
 export const MazeStage = () => {
+  const ref = useRef<HTMLDivElement>(null);
+  useReportStageAspect(ref);
   const { run, frame, gridId, algorithm } = useStore(
     useShallow((s) => ({
       run: s.mazes.run,
@@ -82,7 +85,7 @@ export const MazeStage = () => {
   );
 
   return (
-    <div data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col">
+    <div ref={ref} data-tour="bars" className="relative flex h-full min-h-0 min-w-0 flex-col">
       <MazeCanvas
         run={run}
         frame={frame}

@@ -427,3 +427,41 @@ describe("mazes in the store", () => {
     expect(app.getState().mazes.size).toBe("small");
   });
 });
+
+describe("mazes on a phone's stage", () => {
+  const onPhone = (search: string) =>
+    createAppStore({ url: readLocation("/mazes/dfs", search), isMobile: true, isPortrait: true, theme: "dark" });
+
+  it("carves as many rows as the stage holds at the width's cell size, from the same seed", () => {
+    const app = onPhone("?size=small&seed=abc");
+    const seed = app.getState().mazes.seed;
+    // iPhone Safari with its bars: a 361 × 259 stage.
+    app.getState().setStageAspect(259 / 361);
+    const { run } = app.getState().mazes;
+    expect([run.rows, run.cols]).toEqual([7, 11]);
+    expect(run.seed).toBe(seed);
+    expect(run.frameAt(Infinity).stats.deadEnds).toBeGreaterThan(0);
+  });
+
+  it("a link opened on a phone with another stage still carves a whole maze", () => {
+    const app = onPhone("?size=medium&seed=abc");
+    app.getState().setStageAspect(0.4);
+    const { run } = app.getState().mazes;
+    expect([run.rows, run.cols]).toEqual([5, 15]);
+    expect(app.getState().mazes.seed).toBe(parseInt("abc", 36));
+    expect(run.frameAt(Infinity).stats.deadEnds).toBeGreaterThan(0);
+  });
+
+  it("race lanes keep the upright grid", () => {
+    const app = onPhone("?size=small&seed=abc");
+    app.getState().setStageAspect(259 / 361);
+    app.getState().setView("race");
+    for (const run of app.getState().mazes.raceRuns) expect([run.rows, run.cols]).toEqual([13, 11]);
+  });
+
+  it("a desktop ignores the stage's shape", () => {
+    const app = createAppStore({ url: readLocation("/mazes/dfs", "?size=small&seed=abc"), isMobile: false, isPortrait: false, theme: "dark" });
+    app.getState().setStageAspect(0.3);
+    expect([app.getState().mazes.run.rows, app.getState().mazes.run.cols]).toEqual([11, 21]);
+  });
+});

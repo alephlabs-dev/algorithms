@@ -49,8 +49,8 @@ test('BFS guess mode marks four cells, takes a tap on one and keeps score', asyn
 // Guess mode plays where cells are big enough for its letters on screen (14px on sharp screens, 16px
 // otherwise), whatever the grid size. Phones keep the whole stage: the question takes the dock's place.
 const tooSmall: Record<string, string | null> = {
-  // 393 × 659, 3×: the medium grid's cells are 10px.
-  iphone: 'medium',
+  // 393 × 659, 3×: phone grids span the stage's width (#198), so even the big grid's cells are 17px.
+  iphone: null,
   // Both iPads (2×) still have 15px cells or more on the big grid.
   ipad: null,
   'ipad-landscape': null,

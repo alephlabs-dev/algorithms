@@ -15,6 +15,7 @@ import { moveDuration } from "@/utils/speed";
 import { cn } from "@/utils/cn";
 import { localized } from "@/i18n";
 import { GAME_ROOM } from "@/components/Game";
+import { useReportStageAspect } from "@/hooks/useReportStageAspect";
 
 const text = localized({
   en: {
@@ -271,6 +272,7 @@ export const PathStage = () => {
     }),
   );
   useReportCellSize(ref);
+  useReportStageAspect(ref);
   const answered = useAnsweredMarks();
   const { title } = pathAlgorithms[algorithm];
   return (

@@ -36,6 +36,8 @@ export type StoreState = SliceStates & {
   isMobile: boolean;
   /** The window is taller than wide: grids and graphs are laid out upright. */
   isPortrait: boolean;
+  /** The single-view stage's height over its width, as last measured on a phone; null before. */
+  stageAspect: number | null;
   module: Module;
   /** One algorithm with all the details, or several racing on the same input. */
   view: View;
@@ -72,6 +74,8 @@ export type StoreState = SliceStates & {
   createNewArray: () => void;
   setIsMobile: (isMobile: boolean) => void;
   setIsPortrait: (isPortrait: boolean) => void;
+  /** The stage measured a new shape: phone grids are laid out again to span its width. */
+  setStageAspect: (stageAspect: number) => void;
   setSpeedPreset: (preset: SpeedPreset) => void;
   setScrubbing: (isScrubbing: boolean) => void;
   setHelpOpen: (isHelpOpen: boolean) => void;
@@ -218,7 +222,7 @@ const fitsFor = (state: StoreState, modules: Module[] = MODULES) =>
 const initialState = ({ url, isMobile, isPortrait }: StoreEnv) => {
   const view = url.view ?? "single";
   const speedPreset = url.speed ?? DEFAULT_PRESET;
-  const shared = { isMobile, isPortrait, module: url.module, view, isModuleStart: url.isModuleStart, speedPreset };
+  const shared = { isMobile, isPortrait, stageAspect: null, module: url.module, view, isModuleStart: url.isModuleStart, speedPreset };
   const modules = Object.fromEntries(
     MODULES.map((m) => {
       const ctx: SliceContext = { ...shared, view: m === url.module ? view : "single" };
@@ -345,6 +349,15 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
     setIsPortrait: (isPortrait) => {
       set({ isPortrait });
       replaceRun((state) => fitsFor(state));
+    },
+
+    // Only a run that hasn't started is laid out again: one under way (or a question) carries on,
+    // and the next new grid fits the stage.
+    setStageAspect: (stageAspect) => {
+      const { stageAspect: known, isPlaying, frameIndex, gameQuestion } = get();
+      if (stageAspect === known) return;
+      set({ stageAspect });
+      if (!isPlaying && frameIndex === 0 && !gameQuestion) replaceRun((state) => fitsFor(state));
     },
 
     setSpeedPreset: (speedPreset) => set({ speedPreset }),
