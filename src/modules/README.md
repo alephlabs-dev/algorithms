@@ -45,7 +45,7 @@ Mazes was the first one (#186); the others followed it (#189). A module's folder
 | `sentences.ts` | Its step sentence runs, the slice's `sentences` |
 | `link.test.ts` | Its example link opens with every setting, and its pages and params read back |
 | `types.ts` | Its domain types and constants; no imports, so Node can read it |
-| `generators.ts`, `run.ts` | Domain code: the algorithms and the run that records their steps |
+| `generators.ts`, `run.ts` | Domain code: the algorithms and the run that records their steps (Mazes keeps its generators in `src/utils/mazeGenerators.ts`, since pathfinding's maze preset carves with them too) |
 | `algorithms.ts` | Each algorithm's names and texts, its race text (`raceDescription`), and other module constants |
 | `narrate.ts` | The step sentences |
 | `paint.ts`, `paint.test.ts` | How it looks on a shared canvas renderer (`src/canvas/`) |

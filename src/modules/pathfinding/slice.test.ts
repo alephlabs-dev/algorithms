@@ -125,6 +125,17 @@ describe("pathfinding in the store", () => {
     expect(app.getState().pathfinding.grid).toEqual(drawn);
   });
 
+  it("a screen turned and back during the race still gives the drawn grid back", () => {
+    const app = storeAt(href({ module: "pathfinding", page: "algorithm", algorithm: "astar" }));
+    app.getState().actions.pathfinding.setGridSize("large");
+    const drawn = drawOn(app);
+    app.getState().setView("race");
+    app.getState().setIsPortrait(true);
+    app.getState().setIsPortrait(false);
+    app.getState().setView("single");
+    expect(app.getState().pathfinding.grid).toEqual(drawn);
+  });
+
   it.each([
     ["the size", (app: ReturnType<typeof storeAt>) => app.getState().actions.pathfinding.setGridSize("medium")],
     ["the preset", (app: ReturnType<typeof storeAt>) => app.getState().actions.pathfinding.applyGridPreset("walls")],

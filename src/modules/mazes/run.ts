@@ -1,5 +1,5 @@
 import { seededRandom } from "@/utils/random";
-import { hasStartCell, mazeGenerators, startCell } from "@/utils/mazeGenerators";
+import { hasStartCell, mazeGenerators, startCell, type MazeGrid, type MazeStep } from "@/utils/mazeGenerators";
 import {
   CARVED,
   DEAD_END,
@@ -14,8 +14,6 @@ import {
   type MazeAlgorithm,
   type MazeCellState,
   type MazeFrame,
-  type MazeGrid,
-  type MazeStep,
 } from "./types";
 
 type State = {

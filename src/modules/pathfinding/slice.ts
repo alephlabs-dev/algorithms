@@ -149,7 +149,7 @@ const resized = (s: PathfindingState, ctx: SliceContext, requested: GridSize) =>
 };
 
 /** A whole grid and its size put on stage at once (one remembered from before a race, a maze from Mazes). */
-const loaded = (s: PathfindingState, ctx: SliceContext, gridSize: GridSize, grid: Grid, keepShape: boolean) => ({
+const withGrid = (s: PathfindingState, ctx: SliceContext, gridSize: GridSize, grid: Grid, keepShape: boolean) => ({
   gridSize,
   keepShape,
   gridBeforeRace: null,
@@ -219,7 +219,7 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
      * end in opposite corner cells of the maze, so it stays perfect (one way through).
      */
     openMaze: (s, ctx, maze: CarvedMaze, gridSize: GridSize) => ({
-      ...loaded(s, ctx, gridSize, gridFromMaze(maze), true),
+      ...withGrid(s, ctx, gridSize, gridFromMaze(maze), true),
       gridSizeBeforeRace: null,
     }),
     applyGridPreset: (s, ctx, preset: Preset) => withPreset(s, ctx, preset),
@@ -248,7 +248,7 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
     if (size === s.gridSize) return { gridSizeBeforeRace: beforeRace, raceRuns: raceRunsFor(ctx.view, s.racers, s.grid) };
     const kept = s.gridBeforeRace;
     if (ctx.view === "single" && kept && fitsStage(kept.grid, kept.keepShape, size, ctx))
-      return { ...loaded(s, ctx, size, kept.grid, kept.keepShape), gridSizeBeforeRace: beforeRace };
+      return { ...withGrid(s, ctx, size, kept.grid, kept.keepShape), gridSizeBeforeRace: beforeRace };
     return {
       ...resized(s, ctx, size),
       gridSizeBeforeRace: beforeRace,
@@ -258,7 +258,11 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
 
   // Upright grids for narrow screens, wide ones otherwise, and a phone's as tall as its stage
   // holds. A phone keeps a grid it opened or painted while its columns still fit.
-  fit: (s, ctx) => (fitsStage(s.grid, s.keepShape, s.gridSize, ctx) ? null : resized(s, ctx, s.gridSize)),
+  // A grid kept aside for after a race stays kept: the screen changed, not the learner's grid.
+  fit: (s, ctx) =>
+    fitsStage(s.grid, s.keepShape, s.gridSize, ctx)
+      ? null
+      : { ...resized(s, ctx, s.gridSize), gridBeforeRace: s.gridBeforeRace },
 
   // "New" means another layout of the same kind (a clear grid becomes a maze).
   newInput: (s, ctx) => withPreset(s, ctx, s.gridPreset === "clear" ? "maze" : s.gridPreset),

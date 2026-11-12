@@ -1,13 +1,11 @@
 /**
- * The Mazes module's types. The generators and their steps are shared with pathfinding's maze
- * preset (@/utils/mazeGenerators); a MazeRun records the steps, and each cell shows a state.
+ * The Mazes module's types. The generators and their steps live in shared code
+ * (@/utils/mazeGenerators), since pathfinding's maze preset carves with them too; a MazeRun
+ * records the steps, and each cell shows a state.
  */
 
-import type { MazeGeneratorName } from "@/utils/mazeGenerators";
-
-export type { MazeGenerator, MazeGrid, MazeStep } from "@/utils/mazeGenerators";
-
-export type MazeAlgorithm = MazeGeneratorName;
+/** The generators the module shows: the shared ones (MazeGeneratorName). */
+export type MazeAlgorithm = "dfs" | "prim" | "kruskal" | "wilson";
 
 /** Every generator, in the order the UI shows them. */
 export const MAZE_ALGORITHMS: MazeAlgorithm[] = ["dfs", "prim", "kruskal", "wilson"];

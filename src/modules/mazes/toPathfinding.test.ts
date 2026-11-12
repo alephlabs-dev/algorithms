@@ -84,16 +84,20 @@ describe("solving a maze from Mazes in pathfinding", () => {
     expect(state.pathfinding.run.frameAt(Infinity).found).toBe(true);
   });
 
-  it("the maze is back as it was after a race that shrinks it", () => {
-    const app = mazesAt("kruskal", "large");
+  it.each([
+    [false, "large"],
+    [true, "medium"],
+    [true, "large"],
+  ] as const)("on a phone: %s, a %s maze is back as it was after a race that shrinks it", (isMobile, size) => {
+    const app = mazesAt("kruskal", size, isMobile);
     const link = pathfindingLinkFor(app.getState());
-    app.getState().actions.pathfinding.openMaze(link.maze, "large");
+    app.getState().actions.pathfinding.openMaze(link.maze, size);
     applyRoute(app, link.route);
     const imported = app.getState().pathfinding.grid;
     app.getState().setView("race");
-    expect(app.getState().pathfinding.gridSize).toBe("medium");
+    expect(app.getState().pathfinding.gridSize).not.toBe(size);
     app.getState().setView("single");
-    expect(app.getState().pathfinding.gridSize).toBe("large");
+    expect(app.getState().pathfinding.gridSize).toBe(size);
     expect(app.getState().pathfinding.grid).toEqual(imported);
   });
 });
