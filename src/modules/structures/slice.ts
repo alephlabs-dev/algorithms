@@ -6,7 +6,7 @@ import type { StructurePreset, StructureSize } from "./types";
 import { recordStructure } from "./record";
 import { TreeRecorder } from "./tree";
 import type { HashEvent, Operation, StructureAlgorithm, StructureRun, TreeAlgorithm, TreeEvent } from "./types";
-import type { View } from "@/appStore";
+import type { StageView } from "@/appStore";
 import { structuresLink, type StructuresLink } from "./link";
 import { newSeed, seededRandom } from "@/utils/random";
 import { defineModule, type SliceContext } from "@/modules/slice";
@@ -30,7 +30,7 @@ export type StructuresState = {
 // The race is the point of AVL: the same operations, with and without balancing.
 const RACERS: TreeAlgorithm[] = ["bst", "avl"];
 
-const raceRunsFor = (view: View, ops: Operation[]) =>
+const raceRunsFor = (view: StageView, ops: Operation[]) =>
   view === "race" ? RACERS.map((a) => new TreeRecorder(a, ops)) : [];
 
 /** The runs after the operations change: the single one and, in a race, both racers. */

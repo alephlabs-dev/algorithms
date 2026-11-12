@@ -1,6 +1,7 @@
 import type { Question } from "@/game";
 import { MODULES, modulePages, moduleRoute, type ModuleId, type Route } from "@/routes";
-import type { StoreState, View } from "@/store";
+import type { StoreState } from "@/appStore";
+import { stageViewOf, type StageView } from "@/view";
 import { speedFor } from "@/utils/speed";
 import { backtrackingSlice } from "./backtracking/slice";
 import { dpSlice } from "./dp/slice";
@@ -39,7 +40,7 @@ export type SliceAlgorithm<M extends ModuleId> = ReturnType<(typeof slices)[M]["
 
 /** What a module's slice reads from the shared store: its own view is single while it's off stage. */
 export const contextFor = (s: StoreState, module: ModuleId): SliceContext => ({
-  view: s.module === module ? s.view : "single",
+  view: s.module === module ? stageViewOf(s.view) : "single",
   isModuleStart: s.isModuleStart,
   speedPreset: s.speedPreset,
   isMobile: s.isMobile,
@@ -62,11 +63,11 @@ export const routeIn = (module: ModuleId, algorithm: string, ctx: SliceContext):
  */
 export type ModuleEngine = {
   /** The last playback position: a frame index in single view, the race clock in race view. */
-  lastIndex: (s: StoreState, view: View) => number;
+  lastIndex: (s: StoreState, view: StageView) => number;
   /** Share of a beat the step into frame `index` takes in single view (races tick evenly). */
   stepWeight: (s: StoreState, index: number) => number;
   /** How many seconds a run in `view` should take at most at 1× (see autoSpeed in utils/speed). */
-  pace: (view: View) => number;
+  pace: (view: StageView) => number;
   /** The algorithm on stage in this module (in backtracking, the problem), on stage or not. */
   current: (s: StoreState) => string;
   /** The page the store is on, within this module. */
@@ -75,7 +76,7 @@ export type ModuleEngine = {
   search: (s: StoreState) => string;
   /** Guess mode: the questions for the run on stage, in frame order. Without it, the module has no guess mode. */
   game?: (s: StoreState) => Question[];
-  /** Why guess mode can't play the run on stage, shown on its toggle; null when it can. */
+  /** Why guess mode can't play the run on stage, shown in the guess view; null when it can. */
   gameUnavailable?: (s: StoreState) => string | null;
 };
 
@@ -106,5 +107,6 @@ export const engines = Object.fromEntries(MODULES.map((m) => [m, engineOf(m)])) 
  */
 export const selectSpeed = (s: StoreState) => {
   const engine = engines[s.module];
-  return speedFor(s.speedPreset, engine.lastIndex(s, s.view), engine.pace(s.view));
+  const view = stageViewOf(s.view);
+  return speedFor(s.speedPreset, engine.lastIndex(s, view), engine.pace(view));
 };

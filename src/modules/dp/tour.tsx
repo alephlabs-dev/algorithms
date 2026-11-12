@@ -38,7 +38,7 @@ export const dpTour = localized<TourStep[]>({
       anchor: "game",
       title: "A guessing game",
       text: () =>
-        "Turn on Guess and playback stops before the key moments to ask what comes next. Answer, then watch whether you were right. It keeps score.",
+        "Pick Guess and playback stops before the key moments to ask what comes next. Answer, then watch whether you were right. It keeps score.",
     },
     {
       anchor: "narration",
@@ -83,7 +83,7 @@ export const dpTour = localized<TourStep[]>({
       anchor: "game",
       title: "Un juego de adivinar",
       text: () =>
-        "Activa Adivina y la reproducción se detiene antes de los momentos clave para preguntarte qué sigue. Responde y mira si acertaste. Lleva el puntaje.",
+        "Elige Adivina y la reproducción se detiene antes de los momentos clave para preguntarte qué sigue. Responde y mira si acertaste. Lleva el puntaje.",
     },
     {
       anchor: "narration",

@@ -7,8 +7,8 @@ import { useElementSize } from "@/hooks/useElementSize";
 import { EMPTY, MUD, WALL, type Grid, type PathFrame, type Terrain } from "./types";
 import { withMarker, withTerrain } from "./grid";
 import { FEEDBACK_MS, isCellQuestion, type CellQuestion } from "@/game";
-import { selectGameQuestion, selectLastIndex, selectPathFrame, useStore } from "@/store";
-import { engines, selectSpeed } from "@/modules/engine";
+import { selectGameQuestion, selectGuessPlaying, selectLastIndex, selectPathFrame, useStore } from "@/store";
+import { selectSpeed } from "@/modules/engine";
 import { count } from "@/utils/count";
 import { describeFrame } from "./describeFrame";
 import { moveDuration } from "@/utils/speed";
@@ -220,7 +220,7 @@ const useReportCellSize = (ref: React.RefObject<HTMLDivElement | null>) => {
       phone: s.isMobile,
       rows: s.pathfinding.grid.rows,
       cols: s.pathfinding.grid.cols,
-      panelOpen: s.isGameOn && s.view === "single" && engines.pathfinding.gameUnavailable?.(s) === null,
+      panelOpen: selectGuessPlaying(s),
       setCellSize: s.actions.pathfinding.setCellSize,
     })),
   );

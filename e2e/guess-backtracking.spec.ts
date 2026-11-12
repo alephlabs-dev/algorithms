@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { gotoApp } from './goto';
+import { guessScore, pickGuess, stepCaption, unavailableNote } from './guess';
 
 // Runs on every device project. Guess mode in backtracking: N-Queens asks where the next queen lands; Sudoku doesn't play yet.
 test('N-Queens guess mode asks which column the queen lands in, takes an answer and keeps score', async ({ page }) => {
@@ -8,9 +9,7 @@ test('N-Queens guess mode asks which column the queen lands in, takes an answer 
   await page.addInitScript(() => localStorage.setItem('tour-done-backtracking', 'true'));
   await gotoApp(page, '/backtracking/n-queens?n=4&speed=8x');
 
-  const toggle = page.getByRole('button', { name: /Guess mode/ });
-  await toggle.click();
-  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await pickGuess(page);
 
   await page.getByRole('button', { name: 'Play', exact: true }).click();
 
@@ -25,7 +24,7 @@ test('N-Queens guess mode asks which column the queen lands in, takes an answer 
 
   const status = page.getByRole('status', { name: 'How it went' });
   await expect(status).toContainText('Right: columns 1 and 2 are attacked (by the queen in row 1), so it lands in column 3.');
-  await expect(toggle).toHaveAccessibleName(/1 right out of 1\b/);
+  await expect(guessScore(page)).toHaveAccessibleName('Score: 1 right out of 1');
   expect(errors).toEqual([]);
 });
 
@@ -35,12 +34,13 @@ test('Sudoku says guess mode works with N-Queens for now, and asks nothing', asy
   await page.addInitScript(() => localStorage.setItem('tour-done-backtracking', 'true'));
   await gotoApp(page, '/backtracking/sudoku?puzzle=easy&speed=8x');
 
-  const toggle = page.getByRole('button', { name: /Guess mode/ });
-  await expect(toggle).toHaveAccessibleName(/Guess mode unavailable: Guess works with N-Queens for now/);
-  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
-  // Touch screens don't show the title: tapping the toggle shows the reason.
-  await toggle.click();
-  await expect(page.getByText('Guess works with N-Queens for now.')).toBeVisible();
+  await pickGuess(page);
+  // The reason takes the dock's place: nothing plays, so nothing is asked.
+  await expect(unavailableNote(page, 'Guess works with N-Queens for now.')).toBeVisible();
+  // The step stays neutral: no "Press play" without a Play, and the reason only once.
+  await expect(stepCaption(page)).toHaveText('Guess mode is paused.');
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeHidden();
+  await expect(page.getByRole('dialog', { name: 'Your guess' })).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
@@ -50,5 +50,5 @@ test('the backtracking tour ends on the guessing game', async ({ page }) => {
   for (let k = 0; k < 10 && !(await step.isVisible()); k++) {
     await page.getByRole('button', { name: 'Next', exact: true }).click();
   }
-  await expect(step).toContainText('With N-Queens, turn on Guess');
+  await expect(step).toContainText('With N-Queens, pick Guess');
 });

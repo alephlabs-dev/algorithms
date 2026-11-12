@@ -1,4 +1,4 @@
-import type { View } from "@/appStore";
+import type { StageView } from "@/appStore";
 import { SORT_ALGORITHMS, sortAlgorithms } from "./generators";
 import { Timeline, type StepKind } from "./timeline";
 import { sizes, sizesFor } from "./sizesMap";
@@ -54,7 +54,7 @@ const runFor = (algorithm: Algorithm, items: readonly number[]) => new Timeline(
 
 const itemsFor = (size: number, order: InputOrder, seed: number) => generateItems(size, order, seededRandom(seed));
 
-const raceRunsFor = (view: View, racers: Algorithm[], items: readonly number[]) =>
+const raceRunsFor = (view: StageView, racers: Algorithm[], items: readonly number[]) =>
   view === "race" ? racers.map((a) => runFor(a, items)) : [];
 
 /** The biggest size on offer (see sizesFor). */

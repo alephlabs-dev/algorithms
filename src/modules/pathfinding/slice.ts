@@ -1,4 +1,4 @@
-import type { View } from "@/appStore";
+import type { StageView } from "@/appStore";
 import { applyPreset, decodeCells, emptyGrid, encodeCells, type Preset } from "./grid";
 import { PATH_ALGORITHMS, pathSearches } from "./searches";
 import { PathTimeline, type PathStepKind } from "./timeline";
@@ -93,7 +93,7 @@ const DEFAULT_RACERS: PathAlgorithm[] = ["bfs", "dijkstra", "astar", "greedy"];
 
 const runFor = (algorithm: PathAlgorithm, grid: Grid) => new PathTimeline(pathSearches[algorithm], grid);
 
-const raceRunsFor = (view: View, racers: PathAlgorithm[], grid: Grid) =>
+const raceRunsFor = (view: StageView, racers: PathAlgorithm[], grid: Grid) =>
   view === "race" ? racers.map((a) => runFor(a, grid)) : [];
 
 

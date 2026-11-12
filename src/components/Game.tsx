@@ -1,38 +1,20 @@
 import { CheckCircledIcon, CrossCircledIcon, ResetIcon, TargetIcon } from "@radix-ui/react-icons";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { useElementSize } from "@/hooks/useElementSize";
-
-const SEEN_KEY = "guess-seen";
-// Remembered per browser: until someone has tried it, the toggle says it's new (the tour may be long done).
-const seenBefore = () => {
-  try {
-    return localStorage.getItem(SEEN_KEY) === "true";
-  } catch {
-    return true;
-  }
-};
-import * as Popover from "@radix-ui/react-popover";
 import { useShallow } from "zustand/react/shallow";
+import { useElementSize } from "@/hooks/useElementSize";
 import { localized } from "@/i18n";
 import { useModuleUI } from "@/modules";
-import { engines } from "@/modules/engine";
 import { FEEDBACK_MS, isCellQuestion, type Question } from "@/game";
-import { selectGameQuestion, useStore, type StoreState } from "@/store";
+import { selectGameQuestion, selectGameUnavailable, selectGuessPlaying, useStore, type StoreState } from "@/store";
 import { cn } from "@/utils/cn";
 import { Button } from "./ui/button";
-import { popoverClass } from "./ui/popover";
 
 const text = localized({
   en: {
-    unavailable: (why: string) => `Guess mode unavailable: ${why}`,
-    on: (right: number, asked: number) => `Guess mode on, ${right} right out of ${asked}: turn it off`,
-    off: "Guess mode: it stops to ask what comes next",
-    newLabel: (label: string) => `New: ${label}`,
-    toggle: "Guess",
-    new: "New",
     dialog: "Your guess",
     status: "How it went",
     streak: (n: number) => ` ${n} in a row.`,
+    score: (right: number, asked: number) => `Score: ${right} right out of ${asked}`,
     reset: (right: number, asked: number) => `Score ${right} out of ${asked}: start over`,
     resetTitle: "Start the score over",
     spots: "Spots",
@@ -44,16 +26,10 @@ const text = localized({
     idle: "Guess is on: playback stops before key moments to ask what comes next.",
   },
   es: {
-    unavailable: (why) => `Modo adivinanza no disponible: ${why}`,
-    on: (right, asked) =>
-      `Modo adivinanza activado, ${right} ${right === 1 ? "acierto" : "aciertos"} de ${asked}: desactívalo`,
-    off: "Modo adivinanza: se detiene para preguntar qué sigue",
-    newLabel: (label) => `Nuevo: ${label}`,
-    toggle: "Adivina",
-    new: "Nuevo",
     dialog: "Tu respuesta",
     status: "Cómo te fue",
     streak: (n) => ` ${n} seguidas.`,
+    score: (right, asked) => `Puntaje: ${right} ${right === 1 ? "acierto" : "aciertos"} de ${asked}`,
     reset: (right, asked) => `Puntaje: ${right} de ${asked}. Empezar de nuevo`,
     resetTitle: "Reiniciar el puntaje",
     spots: "Lugares",
@@ -65,110 +41,17 @@ const text = localized({
   },
 });
 
-/** Whether the module on stage has a guess mode, in the view on stage. */
-const useHasGame = () => useStore((s) => s.view === "single" && engines[s.module].game !== undefined);
-
-/** Why guess mode can't play the run on stage (too many items, say), or null when it can. */
-const useGameUnavailable = () => useStore((s) => engines[s.module].gameUnavailable?.(s) ?? null);
-
-/**
- * Turns guess mode on and off, and while it's on, keeps the score: "Guess 3/5"
- * where there's room, the target and "3/5" on phones.
- */
-export const GameToggle = ({ compact }: { compact?: boolean }) => {
-  const { isOn, toggle, score } = useStore(
-    useShallow((s) => ({ isOn: s.isGameOn, toggle: s.toggleGame, score: s.gameScore })),
-  );
-  const unavailable = useGameUnavailable();
-  const { gameFix } = useModuleUI();
-  // Only the label: the fix itself is worked out on the tap, from the store as it is then.
-  const fixLabel = useStore((s) => gameFix?.(s)?.label ?? null);
-  const [seen, setSeen] = useState(seenBefore);
-  if (!useHasGame()) return null;
-  // Guess is on and can play this run; when it can't, the toggle looks off.
-  const playing = isOn && unavailable === null;
-  // "New" only where Guess can be tried: a toggle that only says why it's off would never clear it.
-  const isNew = !seen && unavailable === null;
-  const tally = `${score.right}/${score.asked}`;
-  const markSeen = () => {
-    if (seen) return;
-    setSeen(true);
-    try {
-      localStorage.setItem(SEEN_KEY, "true");
-    } catch {
-      // Private mode: it just says "new" again next time.
-    }
-  };
-  const onClick = () => {
-    if (unavailable) return;
-    toggle();
-    markSeen();
-  };
-  const label = unavailable
-    ? text.unavailable(unavailable)
-    : playing
-      ? text.on(score.right, score.asked)
-      : text.off;
-  const button = (
-    <Button
-      variant={playing ? "primary" : "ghost"}
-      size={compact && !playing ? "icon" : "sm"}
-      onClick={onClick}
-      aria-pressed={playing}
-      aria-label={isNew ? text.newLabel(label) : label}
-      title={label}
-      data-tour="game"
-      className={cn(
-        "relative h-10 shrink-0",
-        (!compact || playing) && "gap-1.5 px-3.5",
-        compact && playing && "px-3",
-        !playing && !compact && "border border-line/70",
-        unavailable && "cursor-not-allowed opacity-50 hover:bg-transparent",
-      )}
-    >
-      <TargetIcon />
-      {!compact && text.toggle}
-      {playing && <span className="font-mono text-xs">{tally}</span>}
-      {isNew &&
-        (compact ? (
-          <span
-            aria-hidden
-            className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-secondary ring-2 ring-background"
-          />
-        ) : (
-          <span
-            aria-hidden
-            className="absolute -right-2 -top-2 rounded-full bg-secondary px-1.5 py-px text-[10px] font-bold uppercase leading-4 text-background"
-          >
-            {text.new}
-          </span>
-        ))}
-    </Button>
-  );
-  if (!unavailable) return button;
-  // Not disabled: touch screens never show the title, so the toggle opens a note saying why it's off.
+/** The score so far, "3/5", read out in full. */
+export const Tally = ({ className }: { className?: string }) => {
+  const score = useStore((s) => s.gameScore);
   return (
-    <Popover.Root>
-      <Popover.Trigger asChild>{button}</Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content align="end" sideOffset={8} className={cn(popoverClass, "flex w-64 flex-col gap-3 text-sm")}>
-          <p>{unavailable}.</p>
-          {fixLabel && (
-            <Button
-              variant="secondary"
-              size="sm"
-              className="self-start"
-              onClick={() => {
-                gameFix?.(useStore.getState())?.apply();
-                markSeen();
-              }}
-            >
-              {fixLabel}
-            </Button>
-          )}
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+    <span
+      role="img"
+      aria-label={text.score(score.right, score.asked)}
+      className={cn("shrink-0 font-mono text-xs font-semibold text-foreground/70", className)}
+    >
+      {score.right}/{score.asked}
+    </span>
   );
 };
 
@@ -186,12 +69,8 @@ const optionClass =
 
 type Feedback = NonNullable<StoreState["gameFeedback"]>;
 
-/** Guess mode is on, in single view, and can play the run on stage. */
-const useGuessOn = () => {
-  const on = useStore((s) => s.isGameOn && s.view === "single");
-  const unavailable = useGameUnavailable();
-  return on && unavailable === null;
-};
+/** In the guess view, and guess mode can play the run on stage. */
+const useGuessOn = () => useStore(selectGuessPlaying);
 
 /** The card guess mode asks and answers in. */
 const Card = ({
@@ -237,6 +116,7 @@ const FeedbackLine = ({ feedback }: { feedback: Feedback }) => {
           <span className="font-semibold text-primary">{text.streak(score.streak)}</span>
         )}
       </span>
+      <Tally className="mt-0.5" />
       <button
         type="button"
         onClick={reset}
@@ -257,7 +137,8 @@ const QuestionBody = ({ question }: { question: Question }) => {
     <>
       <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
         <TargetIcon className="shrink-0 text-secondary" />
-        {question.prompt}
+        <span className="flex-1">{question.prompt}</span>
+        <Tally />
       </p>
       {question.kind === "choice" && (
         <div className="flex flex-wrap gap-2">
@@ -394,17 +275,39 @@ export const GameLayer = () => {
       ) : (
         <p className="flex items-center gap-2 px-1 pb-2 text-sm text-foreground/60">
           <TargetIcon className="shrink-0" />
-          {text.idle}
+          <span className="flex-1">{text.idle}</span>
+          <Tally />
         </p>
       )}
     </div>
   );
 };
 
+/** Why the guess view can't play the run on stage, and the one tap that makes it playable, if there is one. */
+const UnavailableNote = ({ why }: { why: string }) => {
+  const { gameFix } = useModuleUI();
+  // Only the label: the fix itself is worked out on the tap, from the store as it is then.
+  const fixLabel = useStore((s) => gameFix?.(s)?.label ?? null);
+  return (
+    <>
+      <p className="flex items-center gap-2 text-sm text-foreground">
+        <TargetIcon className="shrink-0 text-foreground/60" />
+        <span className="flex-1">{why}.</span>
+      </p>
+      {fixLabel && (
+        <Button variant="secondary" size="sm" className="self-start" onClick={() => gameFix?.(useStore.getState())?.apply()}>
+          {fixLabel}
+        </Button>
+      )}
+    </>
+  );
+};
+
 /**
- * The playback dock, and on phones the question waiting for an answer in its place: at least
+ * The playback dock, and in its place on phones the question waiting for an answer: at least
  * as tall as the dock was, so the stage keeps its size. Playback can't go on until it's
- * answered; then the dock is back. The dock stays mounted throughout: it drives playback.
+ * answered; then the dock is back. In the guess view, while guess mode can't play the run on
+ * stage, a note says why in its place on every screen. The dock stays mounted throughout: it drives playback.
  */
 export const GameDock = ({ hidden, children }: { hidden?: boolean; children: ReactNode }) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -414,14 +317,16 @@ export const GameDock = ({ hidden, children }: { hidden?: boolean; children: Rea
   if (height > 0 && height !== dockHeight) setDockHeight(height);
   const waiting = useStore((s) => (s.isMobile ? selectGameQuestion(s) : null));
   const question = useGuessOn() ? waiting : null;
+  const unavailable = useStore((s) => (s.view === "guess" ? selectGameUnavailable(s) : null));
+  const replaced = question !== null || unavailable !== null;
   return (
     <>
-      <div ref={ref} className={cn("w-full", (hidden || question) && "hidden")}>
+      <div ref={ref} className={cn("w-full", (hidden || replaced) && "hidden")}>
         {children}
       </div>
-      {question && !hidden && (
-        <Card question className="mx-auto max-w-5xl rounded-3xl p-4" style={{ minHeight: dockHeight || undefined }}>
-          <QuestionBody question={question} />
+      {replaced && !hidden && (
+        <Card question={question !== null} className="mx-auto max-w-5xl rounded-3xl p-4" style={{ minHeight: dockHeight || undefined }}>
+          {question ? <QuestionBody question={question} /> : unavailable && <UnavailableNote why={unavailable} />}
         </Card>
       )}
     </>

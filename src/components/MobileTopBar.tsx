@@ -16,7 +16,7 @@ import { Drawer, DrawerClose, DrawerSheet, DrawerTrigger } from "./ui/drawer";
 import { SettingsPanel } from "./Settings/ModuleSettings";
 import { FieldChevron, fieldClass, Select } from "./ui/select";
 import { ViewSwitch } from "./ViewSwitch";
-import { GameToggle } from "./Game";
+import { useHasViewSwitch } from "./views";
 import { localized } from "@/i18n";
 
 const text = localized({
@@ -126,18 +126,17 @@ const RacersField = () => {
 
 /** The view switch and share link, above the picker. */
 const ViewRow = () => {
-  const { race, title } = useModuleUI();
+  const { title } = useModuleUI();
   return (
     <div className="flex items-center gap-2">
       <ModuleButton />
-      {/* A module without a race names itself here instead. */}
-      {race ? (
-        // Phones stretch it; from iPad up it's as wide as in the desktop bar, so it doesn't outweigh the picker.
-        <ViewSwitch className="min-w-0 flex-1 md:w-56 md:flex-none md:mr-auto" />
+      {/* A module with one view names itself here instead; the name gives way first, the switch never. */}
+      {useHasViewSwitch() ? (
+        // Phones stretch it; from iPad up it's as wide as its labels need, so it doesn't outweigh the picker.
+        <ViewSwitch className="flex-1 md:min-w-56 md:flex-none md:mr-auto" />
       ) : (
-        <span className="flex-1 pl-1 text-[15px] font-semibold">{title}</span>
+        <span className="min-w-0 flex-1 truncate pl-1 text-[15px] font-semibold">{title}</span>
       )}
-      <GameToggle compact />
       <ShareButton iconOnly />
       <ThemeToggle />
     </div>

@@ -15,7 +15,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "./ui/button";
 import { popoverClass } from "./ui/popover";
 import { ViewSwitch } from "./ViewSwitch";
-import { GameToggle } from "./Game";
+import { useHasViewSwitch } from "./views";
 import { localized } from "@/i18n";
 
 const text = localized({
@@ -166,7 +166,7 @@ const Summary = () => {
 /** Desktop: what's on stage (a pill to change it) on the left, the view and actions on the right. */
 export const TopBar = ({ className }: { className?: string }) => {
   const view = useStore((s) => s.view);
-  const hasRace = useModuleUI().race !== undefined;
+  const hasViewSwitch = useHasViewSwitch();
   return (
     <header className={cn("flex items-center gap-3", className)}>
       {/* Only the summary gives way when names run long (Spanish ones do). */}
@@ -178,8 +178,7 @@ export const TopBar = ({ className }: { className?: string }) => {
       <AboutButton />
       <Summary />
       <div className="ml-auto flex items-center gap-2">
-        <GameToggle />
-        {hasRace && <ViewSwitch className="w-56" />}
+        {hasViewSwitch && <ViewSwitch className="min-w-56" />}
         <ShareButton iconOnly />
         <ThemeToggle />
         <LanguageButton />

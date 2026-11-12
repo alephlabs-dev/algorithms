@@ -9,6 +9,7 @@ import { Playback } from "./Playback";
 import { Progress } from "./Progress";
 import { SpeedControl, SpeedCycleButton } from "./SpeedControl";
 import { localized } from "@/i18n";
+import { Tally } from "../Game";
 
 const text = localized({
   en: {
@@ -40,6 +41,7 @@ const text = localized({
  */
 export const Controls = ({ className }: { className?: string }) => {
   const { newRunLabel } = useModuleUI();
+  const guessing = useStore((s) => s.view === "guess");
   const { isPlaying, play, pause, stepForward, stepBackward, createNewArray, atStart, atEnd } = useStore(
     useShallow((s) => ({
       isPlaying: s.isPlaying,
@@ -86,7 +88,8 @@ export const Controls = ({ className }: { className?: string }) => {
     <Button
       variant="primary"
       data-tour="play"
-      className="h-16 w-16 shrink-0 px-0 md:h-14 md:w-14 [&_svg]:size-6 md:[&_svg]:size-5"
+      // Phones under 380px wide (the guess view's score joins the row) get a 56px Play, so the row keeps its gaps.
+      className="h-16 w-16 shrink-0 px-0 max-[380px]:h-14 max-[380px]:w-14 md:h-14 md:w-14 [&_svg]:size-6 md:[&_svg]:size-5"
       onClick={isPlaying ? pause : play}
       aria-label={playLabel}
       aria-keyshortcuts="Space"
@@ -122,11 +125,13 @@ export const Controls = ({ className }: { className?: string }) => {
       {/* Phones: timeline first, buttons under it, within thumb reach. */}
       <Progress className="md:hidden" />
       <div className="flex items-center justify-between md:hidden">
-        <SpeedCycleButton />
+        <SpeedCycleButton className="max-[380px]:w-11 max-[380px]:text-xs" />
         {prev}
         {playButton}
         {next}
         {newArray}
+        {/* In the guess view, the score stays in sight between questions. */}
+        {guessing && <Tally className="text-sm" />}
       </div>
 
       <div className="hidden items-center gap-2 md:flex">
