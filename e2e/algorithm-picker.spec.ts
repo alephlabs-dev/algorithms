@@ -56,16 +56,16 @@ for (const module of modules) {
     });
   }
 
-  // A tour that lights the picker lights it where it is on screen. Steps are found by the control they
-  // light, so this holds for any module whose tour has one.
+  // Every module with a picker has a tour step that lights it, where it is on screen. Steps are found
+  // by the control they light, so this holds for any module.
   test(`the tour lights the picker on screen on ${route}`, async ({ page }) => {
     await gotoApp(page, route);
     const bubble = page.locator('[role="dialog"][aria-modal="true"][data-anchor]');
     await expect(bubble).toBeVisible();
-    // Step through to the picker's step, if the tour has one.
+    // Step through to the picker's step; a tour that ends without one fails.
     while ((await bubble.getAttribute('data-anchor')) !== 'picker') {
       const next = bubble.getByRole('button', { name: 'Next', exact: true });
-      if ((await next.count()) === 0) return;
+      expect(await next.count(), `the ${module} tour has no step on the picker`).toBe(1);
       await next.click();
     }
     const picker = page.locator('[data-tour="picker"]:visible');
