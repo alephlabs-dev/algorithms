@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { StoreState } from "@/appStore";
 import { engines } from "@/modules/engine";
-import { EXAMPLE_SPEED, stateFor, within } from "@/modules/testing";
+import { EXAMPLE_SPEED, defaultsOf, openLink, reopened, stateFor, within } from "@/modules/testing";
 import { routePath } from "@/routes";
 import { readLocation } from "@/urlState";
 import { fourierLink } from "./link";
@@ -56,5 +56,24 @@ describe("Fourier's link", () => {
       });
       expect(readLocation("/fourier/square-wave", "?circles=999").link.params).toEqual({});
     });
+  });
+});
+
+describe("fourier's captured links", () => {
+  // Full links as the app wrote them before the link codecs moved into the modules (#128), opened on a
+  // phone held upright: old shared links keep opening the same run.
+  const links: [path: string, query: string][] = [
+    ["/fourier/epicycles", "?circles=25&shape=star&speed=2x"],
+    ["/fourier/square-wave", "?circles=10"],
+  ];
+
+  it("round-trips a full link of every page kind it writes", () => {
+    for (const [path, query] of links) expect(reopened(path, query), path + query).toBe(query);
+  });
+
+  it("falls back to the defaults on values it doesn't have", () => {
+    const s = openLink("/fourier/epicycles", "?circles=999&shape=moon&path=***");
+    const d = defaultsOf("/fourier/epicycles");
+    expect(s.fourier).toMatchObject({ circles: d.fourier.circles, shape: "heart", path: null });
   });
 });

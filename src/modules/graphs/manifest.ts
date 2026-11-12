@@ -75,6 +75,7 @@ export const graphsManifest = {
     start: text.about,
     works: (algorithm: GraphAlgorithm) => graphAlgorithms[algorithm].named,
   },
+  tourKey: "tour-done-graphs",
   example: {
     algorithm: "dijkstra",
     search:

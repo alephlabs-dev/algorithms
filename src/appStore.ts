@@ -8,6 +8,7 @@ import {
   type SliceAlgorithm,
   type SliceStates,
 } from "./modules/engine";
+import { manifests } from "./modules/manifests";
 import { MODULES, type ModuleId } from "./routes";
 import type { Link, Patch, SliceContext } from "./modules/slice";
 import { linkFor, type UrlLocation } from "./urlState";
@@ -21,7 +22,7 @@ export { MAX_RACERS, MIN_RACERS } from "./modules/slice";
 
 export const tourDone = (module: Module) => {
   try {
-    return localStorage.getItem(slices[module].tourKey) === "true";
+    return localStorage.getItem(manifests[module].tourKey) === "true";
   } catch {
     return false;
   }
@@ -285,7 +286,7 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
     },
     closeTour: () => {
       try {
-        localStorage.setItem(slices[get().module].tourKey, "true");
+        localStorage.setItem(manifests[get().module].tourKey, "true");
       } catch {
         // Blocked storage: the tour may open again next visit.
       }

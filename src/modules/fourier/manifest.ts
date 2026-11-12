@@ -62,6 +62,7 @@ export const fourierManifest = {
     start: text.about,
     works: (algorithm: FourierAlgorithm) => text.series(fourierSeries[algorithm]),
   },
+  tourKey: "tour-done-fourier",
   example: {
     algorithm: "epicycles",
     search:

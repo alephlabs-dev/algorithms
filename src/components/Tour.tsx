@@ -135,6 +135,8 @@ const TourDialog = ({ steps }: { steps: TourStep[] }) => {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        // What this step lights, so e2e can find a step by its control in any module.
+        data-anchor={step.anchor}
         className="absolute left-0 top-0 flex w-[min(22rem,calc(100vw-24px))] flex-col gap-3 rounded-3xl border border-edge bg-surface p-5 text-foreground shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.3,1.1,0.4,1)] motion-reduce:transition-none"
       >
         <div className="flex items-start gap-3">

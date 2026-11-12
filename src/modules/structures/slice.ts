@@ -76,7 +76,6 @@ const STEP_WEIGHT: Record<TreeEvent["type"] | HashEvent["type"], number> = {
 
 export const structuresSlice = defineModule<StructuresState, StructureAlgorithm, StructuresLink>()({
   sentences,
-  tourKey: "tour-done-structures",
 
   link: structuresLink,
   hydrate: (link, ctx) => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { engines } from "@/modules/engine";
-import { EXAMPLE_SPEED, stateFor, within } from "@/modules/testing";
+import { EXAMPLE_SPEED, defaultsOf, openLink, reopened, stateFor, within } from "@/modules/testing";
 import { routePath } from "@/routes";
 import { readLocation } from "@/urlState";
 import { seededRandom } from "@/utils/random";
@@ -85,5 +85,34 @@ describe("sorting's link", () => {
         link: { params: sorting },
       });
     });
+  });
+});
+
+describe("sorting's captured links", () => {
+  // Full links as the app wrote them before the link codecs moved into the modules (#128), opened on a
+  // phone held upright: old shared links keep opening the same run.
+  const links: [path: string, query: string][] = [
+    ["/sorting/heap-sort", "?size=20&input=reversed&mode=bars&speed=2x&seed=1lka0qk&race=shell%2Cquick%2Cheap"],
+    ["/sorting/race", "?size=10&input=fewUnique&mode=bars&seed=35afkg&race=insertion%2Cmerge"],
+  ];
+
+  it("round-trips a full link of every page kind it writes", () => {
+    for (const [path, query] of links) expect(reopened(path, query), path + query).toBe(query);
+  });
+
+  it("falls back to the defaults on values it doesn't have", () => {
+    const s = openLink("/sorting/heap-sort", "?size=37&input=shuffled&mode=dots&speed=4&seed=-1&race=quick");
+    const d = defaultsOf("/sorting/heap-sort");
+    expect(s.sorting).toMatchObject({ size: d.sorting.size, inputOrder: "random", displayMode: "bars", racers: d.sorting.racers });
+    expect(s.speedPreset).toBe(d.speedPreset);
+  });
+
+  it("keeps racers unique and in order, and rejects too few or too many", () => {
+    const racers = (race: string) => openLink("/sorting/race", `?race=${race}`).sorting.racers;
+    const d = defaultsOf("/sorting/race").sorting.racers;
+    expect(racers("merge,bubble,merge")).toEqual(["bubble", "merge"]);
+    expect(racers("quick")).toEqual(d);
+    expect(racers("selection,insertion,bubble,cocktail,shell")).toEqual(d);
+    expect(racers("bfs,dfs")).toEqual(d);
   });
 });

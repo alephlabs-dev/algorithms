@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { engines } from "@/modules/engine";
-import { EXAMPLE_SPEED, stateFor, within } from "@/modules/testing";
+import { EXAMPLE_SPEED, defaultsOf, openLink, reopened, stateFor, within } from "@/modules/testing";
 import { routePath } from "@/routes";
 import { readLocation } from "@/urlState";
 import { seededRandom } from "@/utils/random";
@@ -65,5 +65,33 @@ describe("pathfinding's link", () => {
       expect(at("astar")).toBeUndefined();
       expect(at("quick,merge")).toBeUndefined();
     });
+  });
+});
+
+describe("pathfinding's captured links", () => {
+  // Full links as the app wrote them before the link codecs moved into the modules (#128), opened on a
+  // phone held upright: old shared links keep opening the same run.
+  const links: [path: string, query: string][] = [
+    ["/pathfinding/a-star", "?grid=small&cells=VVVVBAAUERUFREAVEVVERBQVEQUAQBVVUQAEFFFRRQBAVVUV&from=1v&to=23&race=bfs%2Castar%2Cgreedy&speed=2x"],
+    ["/pathfinding/race", "?grid=small&cells=VVVVBAAUERUFREAVEVVERBQVEQUAQBVVUQAEFFFRRQBAVVUV&from=1v&to=23&race=bfs%2Castar%2Cgreedy&speed=2x"],
+  ];
+
+  it("round-trips a full link of every page kind it writes", () => {
+    for (const [path, query] of links) expect(reopened(path, query), path + query).toBe(query);
+  });
+
+  it("falls back to the defaults on values it doesn't have", () => {
+    const s = openLink("/pathfinding/a-star", "?grid=huge&cells=***&from=-1&to=zz&race=bfs");
+    const d = defaultsOf("/pathfinding/a-star");
+    expect(s.pathfinding).toMatchObject({ gridSize: d.pathfinding.gridSize, racers: d.pathfinding.racers });
+  });
+
+  it("keeps racers unique and in order, and rejects too few or too many", () => {
+    const racers = (race: string) => openLink("/pathfinding/race", `?race=${race}`).pathfinding.racers;
+    const d = defaultsOf("/pathfinding/race").pathfinding.racers;
+    expect(racers("greedy,bfs,greedy")).toEqual(["bfs", "greedy"]);
+    expect(racers("astar")).toEqual(d);
+    expect(racers("bfs,dfs,dijkstra,astar,greedy")).toEqual(d);
+    expect(racers("quick,merge")).toEqual(d);
   });
 });

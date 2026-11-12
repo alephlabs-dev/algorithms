@@ -63,5 +63,6 @@ export const mazesManifest = {
     start: text.about,
     works: (algorithm: MazeAlgorithm) => mazeAlgorithms[algorithm].named,
   },
+  tourKey: "tour-done-mazes",
   example: { algorithm: "dfs", search: "?size=large&seed=93ci&race=prim%2Cwilson&speed=2x" },
 } as const satisfies ModuleManifest<MazeAlgorithm>;

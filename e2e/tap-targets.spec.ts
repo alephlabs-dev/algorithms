@@ -1,24 +1,14 @@
 import { test, expect, type Page } from '@playwright/test';
 import { gotoApp } from './goto';
 import { openGrid } from './grids';
+import { algorithmPageOf, MODULES, routePath, routesOf, skipTours, startOf } from './modules';
 
 // UX.md: on phones and tablets every visible button, link and form control is at least 44×44 px.
 // The hit area counts, not just the visible box: an absolutely positioned ::before/::after can grow it.
 // Exempt (UX.md): links inside running text, i.e. inside a <p>.
 const MIN = 44;
-const routes = [
-  '/',
-  '/sorting/insertion-sort',
-  '/sorting/race',
-  '/pathfinding',
-  '/graphs',
-  '/fourier',
-  '/structures',
-  '/dynamic-programming',
-  '/backtracking',
-  '/mazes',
-  '/mazes/race',
-];
+// The landing page, and each module's start page, one algorithm page and race page, from the manifests.
+const routes = ['/', ...MODULES.flatMap((module) => [startOf(module), algorithmPageOf(module), ...routesOf(module).filter((r) => r.page === 'race')]).map(routePath)];
 const CONTROLS = [
   'button',
   'a[href]',
@@ -35,7 +25,6 @@ const CONTROLS = [
   '[role="option"]',
 ].join(',');
 
-const TOUR_KEYS = ['tour-done', 'tour-done-pathfinding', 'tour-done-graphs', 'tour-done-fourier', 'tour-done-structures', 'tour-done-dp', 'tour-done-backtracking', 'tour-done-mazes'];
 const TOUCH = ['iphone', 'ipad', 'ipad-landscape'];
 
 /** Every visible control on the page smaller than MIN × MIN, counting a ::before/::after that grows its hit area. */
@@ -71,9 +60,7 @@ const smallControls = (page: Page) =>
 for (const route of routes) {
   test(`tap targets are at least ${MIN}×${MIN} on ${route}`, async ({ page }, info) => {
     test.skip(!TOUCH.includes(info.project.name), 'phones and tablets only');
-    await page.addInitScript((keys) => {
-      for (const key of keys) localStorage.setItem(key, 'true');
-    }, TOUR_KEYS);
+    await skipTours(page);
     await gotoApp(page, route);
     await page.waitForLoadState('networkidle');
     expect(await smallControls(page), `controls smaller than ${MIN}×${MIN}`).toEqual([]);
@@ -90,9 +77,7 @@ const guessPages: { name: string; url: (info: Parameters<typeof openGrid>[0]) =>
 for (const { name, url } of guessPages) {
   test(`tap targets are at least ${MIN}×${MIN} with a ${name} guess question open`, async ({ page }, info) => {
     test.skip(!TOUCH.includes(info.project.name), 'phones and tablets only');
-    await page.addInitScript((keys) => {
-      for (const key of keys) localStorage.setItem(key, 'true');
-    }, TOUR_KEYS);
+    await skipTours(page);
     await gotoApp(page, url(info));
     const toggle = page.getByRole('button', { name: /Guess mode/ });
     await toggle.click();

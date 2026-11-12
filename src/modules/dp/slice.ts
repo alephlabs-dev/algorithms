@@ -46,7 +46,6 @@ const STEP_WEIGHT: Record<DpEvent["type"], number> = {
 
 export const dpSlice = defineModule<DpState, DpAlgorithm, DpLink>()({
   sentences,
-  tourKey: "tour-done-dp",
 
   link: dpLink,
   hydrate: (link, ctx) => {

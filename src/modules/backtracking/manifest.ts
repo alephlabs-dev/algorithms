@@ -54,5 +54,6 @@ export const backtrackingManifest = {
     start: text.about,
     heading: (algorithm: BacktrackingProblem) => backtrackingProblems[algorithm].howItWorks,
   },
+  tourKey: "tour-done-backtracking",
   example: { algorithm: "queens", search: "?n=5&puzzle=easy&speed=2x" },
 } as const satisfies ModuleManifest<BacktrackingProblem>;

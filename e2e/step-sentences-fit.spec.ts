@@ -2,6 +2,8 @@ import path from 'node:path';
 import { test, expect } from '@playwright/test';
 import { gotoApp } from './goto';
 import { createServer } from 'vite';
+import { moduleRoute } from '../src/routes';
+import { algorithmsOf, MODULES, routePath, skipTours, startOf, type ModuleId } from './modules';
 
 // The step sentence above the stage is always two lines tall, so the stage never moves (#111), and cuts
 // what doesn't fit (#113). So every sentence must fit in two lines in the caption of its module's page, at
@@ -13,19 +15,15 @@ const MAX_LINES = 2;
 /** The caption's text width on a 393px phone: 393 − 2×16 page padding + 12 (its -ml-3) − 2×12 padding − 16 icon − 8 gap. */
 const PHONE_TEXT_WIDTH = 325;
 type Lang = 'en' | 'es';
-/** One page per module, whose caption says that module's sentences; sudoku's legend differs from n-queens'. */
-const PAGES: { module: string; url: string }[] = [
-  { module: 'sorting', url: '/sorting/insertion-sort' },
-  { module: 'pathfinding', url: '/pathfinding' },
-  { module: 'graphs', url: '/graphs' },
-  { module: 'dp', url: '/dynamic-programming' },
-  { module: 'structures', url: '/structures' },
-  { module: 'backtracking', url: '/backtracking/n-queens' },
-  { module: 'backtracking', url: '/backtracking/sudoku' },
-  { module: 'fourier', url: '/fourier' },
-  { module: 'mazes', url: '/mazes' },
-];
-const TOUR_KEYS = ['tour-done', 'tour-done-pathfinding', 'tour-done-graphs', 'tour-done-fourier', 'tour-done-structures', 'tour-done-dp', 'tour-done-backtracking', 'tour-done-mazes'];
+/**
+ * Each sentence is measured on the page of the algorithm whose run says it (a run reads "<module> <algorithm> …"),
+ * since the legend beside the caption can differ by algorithm (sudoku's from n-queens'); a run that names no
+ * algorithm page is measured on its module's start page. All from the manifests, so a new module is covered.
+ */
+const pageFor = (run: string): string => {
+  const [module, algorithm] = run.split(' ') as [ModuleId, string];
+  return routePath(algorithmsOf(module).includes(algorithm) ? moduleRoute(module, 'algorithm', algorithm) : startOf(module));
+};
 // About 2 minutes across the four projects, enough to slow the rest of the suite into timeouts on a
 // laptop. CI always runs it (STEP_SENTENCES=1 in .github/workflows/ci.yml); locally: make e2e-sentences.
 test.skip(!process.env.STEP_SENTENCES, 'slow: set STEP_SENTENCES=1 (make e2e-sentences); CI always runs it');
@@ -66,11 +64,12 @@ for (const lang of ['en', 'es'] as Lang[]) {
     const sentences = await sentencesIn(lang);
     expect(sentences.length).toBeGreaterThan(1000);
 
-    await page.addInitScript((keys) => keys.forEach((key) => localStorage.setItem(key, 'true')), TOUR_KEYS);
+    for (const module of MODULES) expect(sentences.some((s) => s.run.split(' ')[0] === module), `${module} has sentences`).toBe(true);
+    const pages = Map.groupBy(sentences, (s) => pageFor(s.run));
+
+    await skipTours(page);
     const tooLong: string[] = [];
-    for (const { module, url } of PAGES) {
-      const own = sentences.filter((s) => s.run.split(' ')[0] === module);
-      expect(own.length, `${module} has sentences`).toBeGreaterThan(0);
+    for (const [url, own] of pages) {
       await gotoApp(page, lang === 'en' ? url : `/es${url}`);
       await page.evaluate(() => document.fonts.ready);
 

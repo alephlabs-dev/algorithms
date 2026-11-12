@@ -72,6 +72,8 @@ export type ModuleManifest<Id extends string = string> = {
    * as the module's link codec writes it at 2× speed. Shared tests open every module on it.
    */
   example: { algorithm: Id; search: string };
+  /** The localStorage key that remembers its tour was seen. In the manifest so e2e can skip every tour. */
+  tourKey: string;
 } & (
   | { pages: { race: true }; seo: { race: Meta } }
   | { pages: { race: false }; seo: { race?: never }; hints: { race?: never } }

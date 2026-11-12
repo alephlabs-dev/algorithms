@@ -73,6 +73,7 @@ export const pathfindingManifest = {
     start: text.about,
     works: (algorithm: PathAlgorithm) => pathAlgorithms[algorithm].named,
   },
+  tourKey: "tour-done-pathfinding",
   example: {
     algorithm: "dijkstra",
     search:

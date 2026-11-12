@@ -95,7 +95,6 @@ const guessUnavailable = (s: SortingState) =>
 export const sortingSlice = defineModule<SortingState, Algorithm, SortingLink>()({
   sentences,
   // The first module's key, from before every module had a tour.
-  tourKey: "tour-done",
 
   link: sortingLink,
   hydrate: (link, ctx) => {

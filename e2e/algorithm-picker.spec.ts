@@ -1,21 +1,14 @@
 import { test, expect, type Page } from '@playwright/test';
 import { gotoApp } from './goto';
+import { algorithmsOf, isTranslated, MODULES, routePath, skipTours, startOf } from './modules';
 import { SMALLEST } from './settings';
 
 // Runs on every device project. The algorithm picker on phones and tablets (UX.md rule 11, #195): a field
 // that opens a drawer with the same grouped list as the desktop popover. No module shows its algorithms
 // inline as segments.
 
-const modules: { route: string; tourKey: string; tour: string | null }[] = [
-  { route: '/sorting/insertion-sort', tourKey: 'tour-done', tour: 'Pick an algorithm' },
-  { route: '/graphs', tourKey: 'tour-done-graphs', tour: 'Pick an algorithm' },
-  { route: '/pathfinding', tourKey: 'tour-done-pathfinding', tour: 'Pick a search' },
-  { route: '/structures', tourKey: 'tour-done-structures', tour: 'Pick a structure' },
-  { route: '/fourier', tourKey: 'tour-done-fourier', tour: 'Pick a series' },
-  { route: '/dynamic-programming', tourKey: 'tour-done-dp', tour: 'Pick a problem' },
-  { route: '/backtracking', tourKey: 'tour-done-backtracking', tour: null },
-  { route: '/mazes', tourKey: 'tour-done-mazes', tour: null },
-];
+// Every module with two algorithms or more, from the manifests.
+const modules = MODULES.filter((module) => algorithmsOf(module).length >= 2);
 const languages = [
   { prefix: '', name: 'Algorithm', lang: 'en' },
   { prefix: '/es', name: 'Algoritmo', lang: 'es' },
@@ -24,12 +17,14 @@ const languages = [
 /** The phone and tablet bar is on screen (below lg). */
 const phoneBar = (page: Page) => page.evaluate(() => !matchMedia('(min-width: 1024px)').matches);
 
-for (const m of modules) {
+for (const module of modules) {
+  const route = routePath(startOf(module));
   for (const l of languages) {
-    test(`${l.prefix}${m.route} picks the algorithm from a drawer`, async ({ page }, testInfo) => {
+    if (l.lang === 'es' && !isTranslated(module)) continue;
+    test(`${l.prefix}${route} picks the algorithm from a drawer`, async ({ page }, testInfo) => {
       await page.setViewportSize(SMALLEST[testInfo.project.name]);
-      await page.addInitScript((key) => localStorage.setItem(key, 'true'), m.tourKey);
-      await gotoApp(page, `${l.prefix}${m.route}`);
+      await skipTours(page);
+      await gotoApp(page, `${l.prefix}${route}`);
       await expect(page.locator('html')).toHaveAttribute('lang', l.lang);
       test.skip(!(await phoneBar(page)), 'the phone and tablet bar only');
 
@@ -61,13 +56,20 @@ for (const m of modules) {
     });
   }
 
-  const tour = m.tour;
-  if (!tour) continue;
-  test(`the tour's first step on ${m.route} lights the picker on screen`, async ({ page }) => {
-    await gotoApp(page, m.route);
-    await expect(page.getByRole('dialog', { name: tour })).toBeVisible();
+  // A tour that lights the picker lights it where it is on screen. Steps are found by the control they
+  // light, so this holds for any module whose tour has one.
+  test(`the tour lights the picker on screen on ${route}`, async ({ page }) => {
+    await gotoApp(page, route);
+    const bubble = page.locator('[role="dialog"][aria-modal="true"][data-anchor]');
+    await expect(bubble).toBeVisible();
+    // Step through to the picker's step, if the tour has one.
+    while ((await bubble.getAttribute('data-anchor')) !== 'picker') {
+      const next = bubble.getByRole('button', { name: 'Next', exact: true });
+      if ((await next.count()) === 0) return;
+      await next.click();
+    }
     const picker = page.locator('[data-tour="picker"]:visible');
-    const light = page.locator('[role="dialog"][aria-modal="true"]').locator('xpath=preceding-sibling::div[1]');
+    const light = bubble.locator('xpath=preceding-sibling::div[1]');
     await expect
       .poll(async () => {
         const p = await picker.boundingBox();
