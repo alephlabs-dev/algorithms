@@ -2,10 +2,10 @@ import type { View } from "@/appStore";
 import { MAZE_ALGORITHMS } from "./types";
 import { MazeRun } from "./run";
 import type { MazeAlgorithm, MazeStep } from "./types";
-import { fitGridSize, gridDimensions, sizeForView, type GridSize } from "@/utils/gridSize";
+import { fitGridSize, sizeForView, stageGridDimensions, type GridSize } from "@/utils/gridSize";
 import { newSeed } from "@/utils/random";
 import { mazesLink, type MazesLink } from "./link";
-import { defineModule, isNarrow, toggleRacer, withRacer, type SliceContext } from "@/modules/slice";
+import { defineModule, toggleRacer, withRacer, type SliceContext } from "@/modules/slice";
 import { sentences } from "./sentences";
 
 export type MazesState = {
@@ -28,9 +28,9 @@ export type MazesState = {
 // All four: the race is about comparing every texture on one seed.
 const DEFAULT_RACERS: MazeAlgorithm[] = [...MAZE_ALGORITHMS];
 
-/** The same grid dimensions as pathfinding, upright on narrow screens. */
+/** The same grid dimensions as pathfinding: upright on narrow screens, as tall as a phone's stage holds. */
 const runFor = (algorithm: MazeAlgorithm, size: GridSize, seed: number, ctx: SliceContext) =>
-  new MazeRun(algorithm, gridDimensions(size, isNarrow(ctx)), seed);
+  new MazeRun(algorithm, stageGridDimensions(size, ctx), seed);
 
 const raceRunsFor = (view: View, racers: MazeAlgorithm[], size: GridSize, seed: number, ctx: SliceContext) =>
   view === "race" ? racers.map((a) => runFor(a, size, seed, ctx)) : [];
@@ -117,9 +117,10 @@ export const mazesSlice = defineModule<MazesState, MazeAlgorithm, MazesLink>()({
       : { ...withRun(s, ctx, { size }), sizeBeforeRace: beforeRace };
   },
 
-  // Upright grids for narrow screens, wide ones otherwise; the same seed carves them.
+  // Upright grids for narrow screens, wide ones otherwise, and a phone's as tall as its stage
+  // holds; the same seed carves them.
   fit: (s, ctx) => {
-    const { rows, cols } = gridDimensions(s.size, isNarrow(ctx));
+    const { rows, cols } = stageGridDimensions(s.size, ctx);
     return s.run.rows === rows && s.run.cols === cols ? null : withRun(s, ctx, {});
   },
 

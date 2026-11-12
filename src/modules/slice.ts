@@ -18,6 +18,8 @@ export type SliceContext = {
   speedPreset: SpeedPreset;
   isMobile: boolean;
   isPortrait: boolean;
+  /** The single-view stage's height over its width once measured, null before: phones fit grids to it. */
+  stageAspect?: number | null;
 };
 
 /** One step sentence, and the run that says it (to find it in the app). */

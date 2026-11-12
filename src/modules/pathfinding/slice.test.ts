@@ -4,6 +4,8 @@ import { href, routePath } from "@/routes";
 import { routeIn } from "@/modules/engine";
 import { linkFor, readLocation } from "@/urlState";
 import { pathfindingSlice as slice, type PathfindingState } from "./slice";
+import { encodeCells } from "./grid";
+import { searchFor } from "@/navigation";
 import { MAX_RACERS, type SliceContext } from "@/modules/slice";
 
 const single: SliceContext = {
@@ -101,3 +103,86 @@ describe("pathfinding in the store", () => {
   });
 });
 
+describe("pathfinding on a phone's stage", () => {
+  const onPhone = (search = "") =>
+    createAppStore({ url: readLocation("/pathfinding", search), isMobile: true, isPortrait: true, theme: "dark" });
+  // iPhone Safari with its bars: a 361 × 259 stage.
+  const SAFARI = 259 / 361;
+  const shape = (app: ReturnType<typeof onPhone>) => [app.getState().pathfinding.grid.rows, app.getState().pathfinding.grid.cols];
+  const isValid = (grid: PathfindingState["grid"]) =>
+    grid.cells.length === grid.rows * grid.cols &&
+    grid.start < grid.cells.length &&
+    grid.end < grid.cells.length &&
+    grid.start !== grid.end;
+
+  it("lays out as many rows as the stage holds at the width's cell size", () => {
+    const app = onPhone();
+    app.getState().setStageAspect(SAFARI);
+    expect(shape(app)).toEqual([7, 11]);
+    expect(isValid(app.getState().pathfinding.grid)).toBe(true);
+    expect(app.getState().pathfinding.run.frameAt(Infinity).found).toBe(true);
+  });
+
+  it("a link made on this phone opens the same grid", () => {
+    const made = onPhone();
+    made.getState().setStageAspect(SAFARI);
+    const opened = onPhone(searchFor(made.getState()));
+    opened.getState().setStageAspect(SAFARI);
+    expect(opened.getState().pathfinding.grid).toEqual(made.getState().pathfinding.grid);
+  });
+
+  it("a link from the old 13 × 11 phone grid still opens that grid", () => {
+    // No walls; start and target on the middle row, as a new grid has them.
+    const cells = encodeCells(new Uint8Array(13 * 11));
+    const app = onPhone(`?grid=small&cells=${cells}&from=${(6 * 11 + 1).toString(36)}&to=${(6 * 11 + 9).toString(36)}`);
+    app.getState().setStageAspect(SAFARI);
+    const { grid, run } = app.getState().pathfinding;
+    expect([grid.rows, grid.cols, grid.start, grid.end]).toEqual([13, 11, 67, 75]);
+    expect(run.frameAt(Infinity).found).toBe(true);
+  });
+
+  it("a link whose cells fit no grid of its size opens a fresh one that fits the stage", () => {
+    const app = onPhone(`?grid=small&cells=${encodeCells(new Uint8Array(12 * 11))}&from=1&to=2`);
+    app.getState().setStageAspect(SAFARI);
+    expect(shape(app)).toEqual([7, 11]);
+    expect(isValid(app.getState().pathfinding.grid)).toBe(true);
+  });
+
+  it("a desktop link's grid doesn't fit a phone: it opens a fresh one that fits the stage", () => {
+    // The wide small grid is 11 × 21: as many cells as an upright 21 × 11.
+    const cells = encodeCells(new Uint8Array(11 * 21));
+    const app = onPhone(`?grid=small&cells=${cells}&from=${(5 * 21 + 3).toString(36)}&to=${(5 * 21 + 17).toString(36)}`);
+    app.getState().setStageAspect(SAFARI);
+    expect(shape(app)).toEqual([7, 11]);
+    expect(isValid(app.getState().pathfinding.grid)).toBe(true);
+  });
+
+  it("the stage changing shape mid-run leaves the run alone", () => {
+    const app = onPhone();
+    app.getState().setStageAspect(SAFARI);
+    app.getState().seek(3);
+    const { grid } = app.getState().pathfinding;
+    app.getState().setStageAspect(452 / 361);
+    expect(app.getState().pathfinding.grid).toBe(grid);
+    expect(app.getState().frameIndex).toBe(3);
+    // A new grid fits the stage it has now.
+    app.getState().actions.pathfinding.setGridSize("small");
+    expect(shape(app)).toEqual([13, 11]);
+  });
+
+  it("a grid the learner painted stays when the stage changes shape", () => {
+    const app = onPhone();
+    app.getState().setStageAspect(SAFARI);
+    const painted = { ...app.getState().pathfinding.grid, cells: new Uint8Array(7 * 11) };
+    app.getState().actions.pathfinding.editGrid(painted);
+    app.getState().setStageAspect(452 / 361);
+    expect(app.getState().pathfinding.grid).toEqual(painted);
+  });
+
+  it("a new size fits the stage", () => {
+    const app = onPhone();
+    app.getState().setStageAspect(SAFARI);
+    app.getState().actions.pathfinding.setGridSize("large");
+    expect(shape(app)).toEqual([15, 21]);
+  });
+});

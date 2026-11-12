@@ -44,6 +44,7 @@ export const contextFor = (s: StoreState, module: ModuleId): SliceContext => ({
   speedPreset: s.speedPreset,
   isMobile: s.isMobile,
   isPortrait: s.isPortrait,
+  stageAspect: s.stageAspect,
 });
 
 /**
