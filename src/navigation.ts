@@ -25,7 +25,7 @@ export const applyRoute = (app: AppStore, route: Route) => {
   if (route.page === "race") {
     if (store.module !== module) store.pick(module, algorithm);
     if (app.getState().view !== "race") store.setView("race");
-  } else if (store.module !== module || store.view !== "single" || current !== algorithm) {
+  } else if (store.module !== module || store.view === "race" || current !== algorithm) {
     store.pick(module, algorithm);
   }
   app.setState({ isLanding: false, isModuleStart: route.page === "start" });

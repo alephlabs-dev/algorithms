@@ -30,7 +30,7 @@ Leave room around things. When a screen gets crowded, show less on it, not small
 
 Secondary content isn't laid out next to the primary one. It sits behind one of these and comes out when asked for.
 
-- **In this app:** drawers/sheets are `src/components/ui/drawer.tsx`; popovers are `src/components/ui/popover.ts` with Radix Popover; tab-like switches are `src/components/ui/segmented.tsx` (for example Visualize / Race in `src/components/ViewSwitch.tsx`). `src/components/ui/slider.tsx` scrubs playback (`Slider` in `src/components/Controls/Progress.tsx`) and picks settings with fixed steps (`StepSlider`, the array size in `src/modules/sorting/Settings.tsx`). Collapsible sections are `src/components/ui/disclosure.tsx` (the explanations under the stage, `Explanation` in `src/components/Article.tsx`).
+- **In this app:** drawers/sheets are `src/components/ui/drawer.tsx`; popovers are `src/components/ui/popover.ts` with Radix Popover; tab-like switches are `src/components/ui/segmented.tsx` (for example Visualize / Race / Guess in `src/components/ViewSwitch.tsx`). `src/components/ui/slider.tsx` scrubs playback (`Slider` in `src/components/Controls/Progress.tsx`) and picks settings with fixed steps (`StepSlider`, the array size in `src/modules/sorting/Settings.tsx`). Collapsible sections are `src/components/ui/disclosure.tsx` (the explanations under the stage, `Explanation` in `src/components/Article.tsx`).
 - **Example:** on phones the pseudocode opens from a sheet (`CodeSheet` in `src/components/Pseudocode.tsx`), and on desktop the longer explanation of a module opens from the ⓘ button as a popover (`AboutButton` in `src/components/TopBar.tsx`).
 
 ## 5. Every screen has a clear flow: where the user clicks and in what order
@@ -38,7 +38,7 @@ Secondary content isn't laid out next to the primary one. It sits behind one of 
 At any moment it's obvious what to press next, and the steps come in an order that makes sense.
 
 - **In this app:** each module's guided tour (`src/modules/<id>/tour.tsx`) spells that order out, and screens should match it.
-- **Example:** the sorting tour goes pick an algorithm → the array → play it → follow each step → set the pace → change the array → the guessing game → race them. Guess mode has its own short flow: turn Guess on (`GameToggle` in `src/components/Game.tsx`), press Play, answer in the panel under the stage, read the result.
+- **Example:** the sorting tour goes pick an algorithm → the array → play it → follow each step → set the pace → change the array → the guessing game → race them. Guess mode has its own short flow: pick Guess in the view switch (`ViewSwitch` in `src/components/ViewSwitch.tsx`), press Play, answer in the panel under the stage (on phones, in the dock's place), read the result.
 
 ## 6. Only theme colors
 

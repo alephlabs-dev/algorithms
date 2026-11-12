@@ -1,4 +1,4 @@
-import type { View } from "@/appStore";
+import type { StageView } from "@/appStore";
 import { decodeItems, encodeItems, EXAMPLE_CAPACITY, EXAMPLE_ITEMS, RACE_CAPACITY, RACE_ITEMS, randomItems, wordPairs } from "./presets";
 import { DpRun } from "./run";
 import { KnapsackRun } from "./knapsack";
@@ -29,7 +29,7 @@ export type DpState = {
 const runFor = (s: Pick<DpState, "algorithm" | "a" | "b" | "items" | "capacity">): TableRun =>
   s.algorithm === "knapsack" ? new KnapsackRun(s.items, s.capacity) : new DpRun(s.algorithm, s.a, s.b);
 
-const raceRunsFor = (view: View, items: Item[], capacity: number) =>
+const raceRunsFor = (view: StageView, items: Item[], capacity: number) =>
   view === "race" ? methods.map((m) => new KnapsackWork(m, items, capacity)) : [];
 
 const isTextbookBag = (items: Item[], capacity: number) =>

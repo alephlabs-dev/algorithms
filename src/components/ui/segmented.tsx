@@ -7,6 +7,8 @@ export type SegmentedOption<T extends string | number> = {
   /** Shown as a tooltip and used as the accessible name when the label is short. */
   title?: string;
   disabled?: boolean;
+  /** Where the guided tour points at this option. */
+  "data-tour"?: string;
 };
 
 type Props<T extends string | number> = {
@@ -20,6 +22,8 @@ type Props<T extends string | number> = {
   columns?: number;
   /** Compact (36px) rows for pointer layouts; touch layouts keep 44px. */
   compact?: boolean;
+  /** Never narrower than its labels on one line: what's around it gives way instead. */
+  fit?: boolean;
   className?: string;
 };
 
@@ -38,6 +42,7 @@ export const SegmentedControl = <T extends string | number>({
   disabled,
   columns,
   compact,
+  fit,
   className,
 }: Props<T>) => {
   const groupRef = useRef<HTMLDivElement>(null);
@@ -104,7 +109,7 @@ export const SegmentedControl = <T extends string | number>({
         perRow < options.length ? "rounded-2xl" : "rounded-full",
         className
       )}
-      style={{ gridTemplateColumns: `repeat(${perRow}, minmax(0, 1fr))` }}
+      style={{ gridTemplateColumns: `repeat(${perRow}, ${fit ? "minmax(max-content, 1fr)" : "minmax(0, 1fr)"})` }}
     >
       <span
         ref={indicatorRef}
@@ -124,6 +129,7 @@ export const SegmentedControl = <T extends string | number>({
             aria-checked={selected}
             aria-label={option.title}
             title={option.title}
+            data-tour={option["data-tour"]}
             tabIndex={selected ? 0 : -1}
             disabled={disabled || option.disabled}
             onClick={() => onChange(option.value)}
@@ -132,6 +138,7 @@ export const SegmentedControl = <T extends string | number>({
             className={cn(
               "tap-target relative flex items-center justify-center gap-1.5 px-2 text-sm leading-tight text-foreground/80 transition-colors hover:bg-accent hover:text-foreground disabled:opacity-40 disabled:hover:bg-transparent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary [&_svg]:size-4",
               compact ? "min-h-10 lg:min-h-9" : "min-h-10",
+              fit && "whitespace-nowrap",
               rounded,
               "transition-colors duration-200",
               selected && "font-semibold text-background hover:bg-transparent hover:text-background"

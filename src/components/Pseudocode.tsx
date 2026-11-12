@@ -2,7 +2,7 @@ import { CodeIcon } from "@radix-ui/react-icons";
 import { useShallow } from "zustand/react/shallow";
 import { useThrottled } from "@/hooks/useThrottled";
 import { useModuleUI } from "@/modules";
-import { useStore, type StoreState } from "@/store";
+import { selectGameUnavailable, useStore, type StoreState } from "@/store";
 import { selectSpeed } from "@/modules/engine";
 import { cn } from "@/utils/cn";
 import { stepsPerSecond } from "@/utils/speed";
@@ -56,6 +56,9 @@ const useNarration = () => {
   const index = useThrottled(frameIndex, UPDATE_INTERVAL_MS);
   // Narrates from the store as it is now, at the throttled position.
   const sentence = useStore((s) => (tooFast ? "" : code.narrate(s, index)));
+  // The guess view can't play this run: the step says why, instead of asking for a Play that isn't there (UX.md rule 5).
+  const unavailable = useStore((s) => (s.view === "guess" ? selectGameUnavailable(s) : null));
+  if (unavailable) return { sentence: `${unavailable}.`, muted: false };
   if (tooFast) return { sentence: text.tooFast, muted: true };
   return { sentence, muted: false };
 };

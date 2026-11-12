@@ -5,7 +5,7 @@ An interactive visualizer where learners watch algorithms run step by step, race
 ## Language
 
 **Guess mode**:
-A way of playing a run where playback stops just before a key moment and asks the learner what happens next, keeping score and streak.
+A way of playing a run where playback stops just before a key moment and asks the learner what happens next, keeping score and streak. The guess view plays the run on stage this way.
 _Avoid_: Game mode, quiz
 
 **Key moment**:
@@ -21,7 +21,7 @@ One visualizer of the app, such as sorting, pathfinding, backtracking or mazes, 
 _Avoid_: Section, category, visualizer type
 
 **View**:
-How a module shows its runs: single (one run on stage) or race (several racers side by side on the same input).
+How a module shows its runs: single (one run on stage), race (several racers side by side on the same input) or guess (one run on stage, played in guess mode).
 _Avoid_: Mode, layout
 
 **Racer**:

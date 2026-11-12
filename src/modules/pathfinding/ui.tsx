@@ -58,9 +58,9 @@ export const pathfindingUI: ModuleUI = {
       : {
           label: text.smallGrid,
           apply: () => {
-            const { actions, isGameOn, toggleGame } = useStore.getState();
+            const { actions, setView } = useStore.getState();
             actions.pathfinding.setGridSize("small");
-            if (!isGameOn) toggleGame();
+            setView("guess");
           },
         },
 

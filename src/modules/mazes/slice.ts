@@ -1,4 +1,4 @@
-import type { View } from "@/appStore";
+import type { StageView } from "@/appStore";
 import { MAZE_ALGORITHMS } from "./types";
 import { MazeRun } from "./run";
 import type { MazeAlgorithm, MazeStep } from "./types";
@@ -32,7 +32,7 @@ const DEFAULT_RACERS: MazeAlgorithm[] = [...MAZE_ALGORITHMS];
 const runFor = (algorithm: MazeAlgorithm, size: GridSize, seed: number, ctx: SliceContext) =>
   new MazeRun(algorithm, stageGridDimensions(size, ctx), seed);
 
-const raceRunsFor = (view: View, racers: MazeAlgorithm[], size: GridSize, seed: number, ctx: SliceContext) =>
+const raceRunsFor = (view: StageView, racers: MazeAlgorithm[], size: GridSize, seed: number, ctx: SliceContext) =>
   view === "race" ? racers.map((a) => runFor(a, size, seed, ctx)) : [];
 
 /** A new size or seed: the single run and the racers carve it again. A race caps the size. */

@@ -1,5 +1,5 @@
 import type { LinkCodec } from "./link";
-import type { View } from "@/appStore";
+import type { StageView } from "@/appStore";
 import type { Question } from "@/game";
 import type { SpeedPreset } from "@/utils/speed";
 
@@ -12,8 +12,8 @@ export type Link<P = object, Id extends string = string> = { algorithm?: Id; par
 
 /** What a slice reads from the shared store. It never writes it. */
 export type SliceContext = {
-  /** This module's view: the shared one while it's on stage, single otherwise. */
-  view: View;
+  /** What this module's stage holds: the shared view's while it's on stage, single otherwise. */
+  view: StageView;
   isModuleStart: boolean;
   speedPreset: SpeedPreset;
   isMobile: boolean;
@@ -79,16 +79,16 @@ export type ModuleSlice<
   /** What playback needs: how long a run is and how its steps are paced, and the query string of its link. */
   engine: {
     /** The last playback position: a frame index in single view, the race clock in race view. */
-    lastIndex: (slice: S, view: View) => number;
+    lastIndex: (slice: S, view: StageView) => number;
     /** Share of a beat the step into frame `index` takes in single view (races tick evenly). */
     stepWeight: (slice: S, index: number) => number;
     /** How many seconds a run in `view` should take at most at 1× (see autoSpeed in utils/speed). */
-    pace: (view: View) => number;
+    pace: (view: StageView) => number;
     /** The query string that reproduces the run, written with `link.write`. */
     search: (slice: S, ctx: SliceContext) => string;
     /** Guess mode: the questions for the run on stage, in frame order. Without it, the module has no guess mode. */
     game?: (slice: S) => Question[];
-    /** Why guess mode can't play the run on stage, shown on its toggle; null when it can. */
+    /** Why guess mode can't play the run on stage, shown in the guess view; null when it can. */
     gameUnavailable?: (slice: S) => string | null;
   };
 };

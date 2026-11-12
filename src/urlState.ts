@@ -1,4 +1,4 @@
-import type { View } from "./appStore";
+import type { StageView } from "./appStore";
 import { isOneOf, type LinkCodec } from "./modules/link";
 import { slices, type SliceLink } from "./modules/engine";
 import type { Link } from "./modules/slice";
@@ -11,7 +11,7 @@ export type UrlLocation = {
   isModuleStart: boolean;
   module: ModuleId;
   /** Race or single, when the page (or an old link) says. */
-  view?: View;
+  view?: StageView;
   speed?: SpeedPreset;
   /** The open module's part of the link: its page's algorithm and the params its own codec read. */
   link: Link;
@@ -31,7 +31,7 @@ const SORTING_ALGORITHMS = Object.keys(modulePages.sorting.slugs) as AlgorithmOf
  * Before modules had pages, every link was sorting's home page with the algorithm
  * and view in the query (/?algo=quick&view=race). Those links still open them.
  */
-const readLegacy = (params: URLSearchParams): { algorithm?: AlgorithmOf<"sorting">; view?: View } => {
+const readLegacy = (params: URLSearchParams): { algorithm?: AlgorithmOf<"sorting">; view?: StageView } => {
   const algorithm = params.get("algo");
   const view = params.get("view");
   return {

@@ -1,4 +1,4 @@
-import type { View } from "@/appStore";
+import type { StageView } from "@/appStore";
 import { decodeGraph, encodeGraph, graphAspect, makeGraph, type GraphPreset, type GraphSize } from "./graph";
 import { GRAPH_ALGORITHMS, type Graph, type GraphAlgorithm, type GraphStep } from "./types";
 import { graphTimelineFor } from "./run";
@@ -44,11 +44,11 @@ const STEP_WEIGHT: Record<GraphStep["type"], number> = {
 
 const DEFAULT_RACERS: GraphAlgorithm[] = ["bfs", "dfs", "prim", "kruskal"];
 
-const raceRunsFor = (view: View, racers: GraphAlgorithm[], graph: Graph) =>
+const raceRunsFor = (view: StageView, racers: GraphAlgorithm[], graph: Graph) =>
   view === "race" ? racers.map((a) => graphTimelineFor(a, graph)) : [];
 
 /** Race lanes are a quarter of the stage: graphs there stay at a size that reads. */
-const fitSize = (size: GraphSize, view: View, isMobile: boolean): GraphSize => {
+const fitSize = (size: GraphSize, view: StageView, isMobile: boolean): GraphSize => {
   const cap: GraphSize = isMobile ? "small" : "medium";
   const order: GraphSize[] = ["small", "medium", "large"];
   return view === "race" && order.indexOf(size) > order.indexOf(cap) ? cap : size;

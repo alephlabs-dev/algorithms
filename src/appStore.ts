@@ -14,7 +14,9 @@ import type { Link, Patch, SliceContext } from "./modules/slice";
 import { linkFor, type UrlLocation } from "./urlState";
 import { DEFAULT_PRESET, type SpeedPreset } from "./utils/speed";
 
-export type View = "single" | "race";
+import { stageViewOf, type StageView, type View } from "./view";
+
+export { stageViewOf, type StageView, type View } from "./view";
 /** Which visualizer is on stage. */
 export type Module = ModuleId;
 export type Theme = "dark" | "light";
@@ -39,7 +41,7 @@ export type StoreState = SliceStates & {
   /** The single-view stage's height over its width, as last measured on a phone; null before. */
   stageAspect: number | null;
   module: Module;
-  /** One algorithm with all the details, or several racing on the same input. */
+  /** One algorithm with all the details, several racing on the same input, or one played in guess mode. */
   view: View;
   /** On the landing page (/), in front of the modules. */
   isLanding: boolean;
@@ -85,14 +87,11 @@ export type StoreState = SliceStates & {
   closeTour: () => void;
 
   play: () => void;
-  /** Guess mode: playback stops before the frames that would give an answer away, and asks. */
-  isGameOn: boolean;
   gameScore: GameScore;
   /** The question waiting for an answer, if any. */
   gameQuestion: Question | null;
   /** How the last answer went, for a moment, and the question it answered. `id` is when, from Date.now(). */
   gameFeedback: { right: boolean; text: string; id: number; question: Question } | null;
-  toggleGame: () => void;
   answerGame: (answer: Answer) => void;
   /** A clean score, and every question of the run on stage asked again. */
   resetGame: () => void;
@@ -106,7 +105,7 @@ export type StoreState = SliceStates & {
 
 export const selectFrame = (state: StoreState) => state.sorting.run.frameAt(state.frameIndex);
 export const selectPathFrame = (state: StoreState) => state.pathfinding.run.frameAt(state.frameIndex);
-export const selectLastIndex = (state: StoreState) => engines[state.module].lastIndex(state, state.view);
+export const selectLastIndex = (state: StoreState) => engines[state.module].lastIndex(state, stageViewOf(state.view));
 
 /** The runs the race lanes show: one per racer of the module on stage, none outside race view. */
 export const selectRaceRuns = (state: StoreState): readonly unknown[] => {
@@ -116,14 +115,16 @@ export const selectRaceRuns = (state: StoreState): readonly unknown[] => {
 };
 // The playback speed is derived too: selectSpeed lives in modules/engine, so tests can import it without a browser.
 
-/** Guess mode's questions for the run on stage (none in a race, or without guess mode). */
+/** Guess mode's questions for the run on stage (none outside the guess view). */
 export const gameQuestionsOf = (state: StoreState): Question[] =>
-  state.isGameOn && state.view === "single" ? (engines[state.module].game?.(state) ?? []) : [];
+  state.view === "guess" ? (engines[state.module].game?.(state) ?? []) : [];
 
-/** Guess mode is on and can play the run on stage. */
+/** Why guess mode can't play the run on stage (too many items, say), or null when it can. */
+export const selectGameUnavailable = (state: StoreState) => engines[state.module].gameUnavailable?.(state) ?? null;
+
+/** In the guess view, and guess mode can play the run on stage. */
 export const selectGuessPlaying = (state: StoreState) =>
-  state.isGameOn &&
-  state.view === "single" &&
+  state.view === "guess" &&
   engines[state.module].game !== undefined &&
   !engines[state.module].gameUnavailable?.(state);
 
@@ -201,7 +202,7 @@ const merged = (patches: (Partial<StoreState> | null)[]) => {
  * Every slice's race runs after the view or the module on stage changes: `module`
  * gets `view`, the others none. Written once, so no module keeps a stale race.
  */
-const racesFor = (state: StoreState, view: View, module: Module = state.module) =>
+const racesFor = (state: StoreState, view: StageView, module: Module = state.module) =>
   merged(
     MODULES.map((m) => {
       const { forView } = loose[m];
@@ -220,7 +221,7 @@ const fitsFor = (state: StoreState, modules: Module[] = MODULES) =>
   );
 
 const initialState = ({ url, isMobile, isPortrait }: StoreEnv) => {
-  const view = url.view ?? "single";
+  const view: View = url.view ?? "single";
   const speedPreset = url.speed ?? DEFAULT_PRESET;
   const shared = { isMobile, isPortrait, stageAspect: null, module: url.module, view, isModuleStart: url.isModuleStart, speedPreset };
   const modules = Object.fromEntries(
@@ -284,7 +285,7 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
     isTourOpen: !tourDone(initial.module) && initial.view === "single" && !initial.isLanding,
     openTour: () => {
       // Each tour walks through the single view of its module.
-      if (get().view === "race") get().setView("single");
+      if (get().view !== "single") get().setView("single");
       get().pause();
       set({ isTourOpen: true, isHelpOpen: false });
     },
@@ -301,12 +302,13 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
 
     pick: (module, algorithm) => {
       replaceRun((state) => {
-        // Picking one algorithm leaves any race.
+        // Picking one algorithm leaves any race; the guess view stays while the module has guess mode.
+        const view: View = state.view === "guess" && engines[module].game ? "guess" : "single";
         const races = racesFor(state, "single", module);
         const ctx = { ...contextFor(state, module), view: "single" as const, isModuleStart: false };
         const pick = (s: object) => loose[module].pick(s, ctx, algorithm);
         const picked = patchSlice({ ...state, ...races }, module, pick, ctx);
-        return { module, view: "single", isModuleStart: false, ...races, ...picked };
+        return { module, view, isModuleStart: false, gameFeedback: null, ...races, ...picked };
       });
     },
 
@@ -319,7 +321,14 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
 
     // Within the module on stage: its race runs on its own input.
     setView: (view) => {
-      replaceRun((state) => ({ view, isModuleStart: false, ...racesFor(state, view) }));
+      const { view: from } = get();
+      if (view === from) return;
+      // Between the single and guess views the run stays; playback stops, so guess mode's first question isn't missed.
+      if (from !== "race" && view !== "race") {
+        set({ view, isModuleStart: false, isPlaying: false, gameQuestion: null, gameFeedback: null });
+        return;
+      }
+      replaceRun((state) => ({ view, isModuleStart: false, gameFeedback: null, ...racesFor(state, stageViewOf(view)) }));
     },
 
     createNewArray: () => {
@@ -365,26 +374,20 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
     setHelpOpen: (isHelpOpen) => set({ isHelpOpen }),
 
     play: () =>
-      set((state) => ({
-        isPlaying: true,
-        gameFeedback: null,
-        // Replay from the start if the run already finished.
-        frameIndex: state.frameIndex >= selectLastIndex(state) ? 0 : state.frameIndex,
-      })),
+      set((state) => {
+        // The guess view plays only a run guess mode can play.
+        if (state.view === "guess" && selectGameUnavailable(state)) return {};
+        return {
+          isPlaying: true,
+          gameFeedback: null,
+          // Replay from the start if the run already finished.
+          frameIndex: state.frameIndex >= selectLastIndex(state) ? 0 : state.frameIndex,
+        };
+      }),
 
-    isGameOn: false,
     gameScore: NEW_SCORE,
     gameQuestion: null,
     gameFeedback: null,
-
-    toggleGame: () =>
-      set((state) => ({
-        isGameOn: !state.isGameOn,
-        gameQuestion: null,
-        gameFeedback: null,
-        // Turning it on stops playback, so the first question isn't missed mid-run.
-        isPlaying: state.isGameOn ? state.isPlaying : false,
-      })),
 
     answerGame: (answer) =>
       set((state) => {

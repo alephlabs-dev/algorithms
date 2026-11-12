@@ -20,7 +20,7 @@ export const stateFor = (module: ModuleId, view: View, isModuleStart: boolean): 
     theme: "dark",
   });
   expect(store.getState().speedPreset).toBe(EXAMPLE_SPEED);
-  if (view === "race") store.getState().setView("race");
+  if (view !== "single") store.getState().setView(view);
   // Switching view leaves the module's start page, so the start page is set afterwards.
   return { ...store.getState(), isModuleStart };
 };

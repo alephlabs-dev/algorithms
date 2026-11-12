@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { gotoApp } from './goto';
+import { guessScore, guessSegment, pickGuess, stepCaption, unavailableNote } from './guess';
 import { openGrid } from './grids';
 
 // Runs on every device project. Guess mode in pathfinding: which lettered cell the search visits next.
@@ -10,9 +11,7 @@ test('BFS guess mode marks four cells, takes a tap on one and keeps score', asyn
   const { rows, cols, start, query } = openGrid(testInfo);
   await gotoApp(page, `/pathfinding/breadth-first-search?${query}&speed=8x`);
 
-  const toggle = page.getByRole('button', { name: /Guess mode/ });
-  await toggle.click();
-  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await pickGuess(page);
   const stage = page.locator('[data-tour="bars"]');
   const before = await stage.boundingBox();
   const play = page.getByRole('button', { name: 'Play', exact: true });
@@ -40,7 +39,7 @@ test('BFS guess mode marks four cells, takes a tap on one and keeps score', asyn
 
   const status = page.getByRole('status', { name: 'How it went' });
   await expect(status).toContainText('Right. BFS takes the nearest ring first. D is 1 step from the start; A, B and C are 2.');
-  await expect(toggle).toHaveAccessibleName(/1 right out of 1\b/);
+  await expect(guessScore(page)).toHaveAccessibleName('Score: 1 right out of 1');
   // Answered: the dock is back, playing on.
   await expect(page.getByRole('button', { name: 'Pause', exact: true })).toBeVisible();
   expect(errors).toEqual([]);
@@ -58,30 +57,35 @@ const tooSmall: Record<string, string | null> = {
   desktop: 'large',
 };
 
-test('where cells are too small, one tap switches to the small grid with guess mode on', async ({ page }, testInfo) => {
+test('where cells are too small, the guess view says so and one tap switches to the small grid', async ({ page }, testInfo) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.addInitScript(() => localStorage.setItem('tour-done-pathfinding', 'true'));
   const grid = tooSmall[testInfo.project.name];
-  const toggle = page.getByRole('button', { name: /Guess mode/ });
+  const play = page.getByRole('button', { name: 'Play', exact: true });
+  const reason = unavailableNote(page, 'Guess needs bigger cells: pick a smaller grid.');
 
   if (grid === null) {
     // The big grid plays here.
     await gotoApp(page, '/pathfinding/breadth-first-search?grid=large');
-    await expect(toggle).toHaveAccessibleName(/Guess mode: it stops to ask/);
+    await pickGuess(page);
+    await expect(play).toBeVisible();
+    await expect(reason).toBeHidden();
     expect(errors).toEqual([]);
     return;
   }
 
   await gotoApp(page, `/pathfinding/breadth-first-search?grid=${grid}`);
-  await expect(toggle).toHaveAccessibleName('Guess mode unavailable: Guess needs bigger cells: pick a smaller grid');
-  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
-  // Touch screens don't show the title: tapping the toggle shows the reason, and the way out.
-  await toggle.click();
-  await expect(page.getByText('Guess needs bigger cells: pick a smaller grid.')).toBeVisible();
+  await pickGuess(page);
+  // The reason, and the way out, take the dock's place.
+  await expect(reason).toBeVisible();
+  await expect(stepCaption(page)).toHaveText('Guess needs bigger cells: pick a smaller grid.');
+  await expect(play).toBeHidden();
   await page.getByRole('button', { name: 'Switch to the small grid' }).click();
 
-  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await expect(guessSegment(page)).toHaveAttribute('aria-checked', 'true');
+  await expect(reason).toBeHidden();
+  await expect(play).toBeVisible();
   await expect(page).toHaveURL(/grid=small/);
   expect(errors).toEqual([]);
 });

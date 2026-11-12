@@ -9,6 +9,7 @@ import { Playback } from "./Playback";
 import { Progress } from "./Progress";
 import { SpeedControl, SpeedCycleButton } from "./SpeedControl";
 import { localized } from "@/i18n";
+import { Tally } from "../Game";
 
 const text = localized({
   en: {
@@ -40,6 +41,7 @@ const text = localized({
  */
 export const Controls = ({ className }: { className?: string }) => {
   const { newRunLabel } = useModuleUI();
+  const guessing = useStore((s) => s.view === "guess");
   const { isPlaying, play, pause, stepForward, stepBackward, createNewArray, atStart, atEnd } = useStore(
     useShallow((s) => ({
       isPlaying: s.isPlaying,
@@ -127,6 +129,8 @@ export const Controls = ({ className }: { className?: string }) => {
         {playButton}
         {next}
         {newArray}
+        {/* In the guess view, the score stays in sight between questions. */}
+        {guessing && <Tally className="text-sm" />}
       </div>
 
       <div className="hidden items-center gap-2 md:flex">

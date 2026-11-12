@@ -42,7 +42,7 @@ export const backtrackingTour = localized<TourStep[]>({
       anchor: "game",
       title: "A guessing game",
       text: () =>
-        "With N-Queens, turn on Guess and playback stops before a queen lands to ask which column it takes, or whether the row is a dead end. It keeps score.",
+        "With N-Queens, pick Guess and playback stops before a queen lands to ask which column it takes, or whether the row is a dead end. It keeps score.",
     },
   ],
   es: [
@@ -81,7 +81,7 @@ export const backtrackingTour = localized<TourStep[]>({
       anchor: "game",
       title: "Un juego de adivinar",
       text: () =>
-        "Con N reinas, activa Adivina y la reproducción se detiene antes de que caiga una reina para preguntarte en qué columna cae, o si la fila es un callejón sin salida. Lleva el puntaje.",
+        "Con N reinas, elige Adivina y la reproducción se detiene antes de que caiga una reina para preguntarte en qué columna cae, o si la fila es un callejón sin salida. Lleva el puntaje.",
     },
   ],
 });

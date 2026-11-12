@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { gotoApp } from './goto';
+import { pickGuess } from './guess';
 import { openGrid } from './grids';
 import { algorithmPageOf, MODULES, routePath, routesOf, skipTours, startOf, type ModuleId } from './modules';
 
@@ -80,9 +81,7 @@ for (const { name, url } of guessPages) {
     test.skip(!TOUCH.includes(info.project.name), 'phones and tablets only');
     await skipTours(page);
     await gotoApp(page, url(info));
-    const toggle = page.getByRole('button', { name: /Guess mode/ });
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    await pickGuess(page);
     await page.getByRole('button', { name: 'Play', exact: true }).click();
     const question = page.getByRole('dialog', { name: 'Your guess' });
     await expect(question).toBeVisible();

@@ -52,7 +52,7 @@ export const sortingTour = localized<TourStep[]>({
       anchor: "game",
       title: "A guessing game",
       text: () =>
-        `Turn on Guess and playback stops before the key moments to ask what comes next. Answer, then watch whether you were right. It keeps score. For now it plays with ${sortGuessSizes} items, and not every algorithm asks yet.`,
+        `Pick Guess and playback stops before the key moments to ask what comes next. Answer, then watch whether you were right. It keeps score. For now it plays with ${sortGuessSizes} items, and not every algorithm asks yet.`,
     },
     {
       anchor: "race",
@@ -107,7 +107,7 @@ export const sortingTour = localized<TourStep[]>({
       anchor: "game",
       title: "Un juego de adivinanzas",
       text: () =>
-        `Activa Adivina y la reproducción se detiene antes de los momentos clave para preguntarte qué sigue. Responde y mira si acertaste. Lleva el puntaje. Por ahora funciona con ${sortGuessSizes} elementos, y no todos los algoritmos preguntan todavía.`,
+        `Elige Adivina y la reproducción se detiene antes de los momentos clave para preguntarte qué sigue. Responde y mira si acertaste. Lleva el puntaje. Por ahora funciona con ${sortGuessSizes} elementos, y no todos los algoritmos preguntan todavía.`,
     },
     {
       anchor: "race",

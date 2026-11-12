@@ -59,7 +59,7 @@ export const pathfindingTour = localized<TourStep[]>({
       anchor: "game",
       title: "A guessing game",
       text: () =>
-        "Turn on Guess and playback stops to ask which of four lettered cells the search visits next: each search picks its own way. It keeps score.",
+        "Pick Guess and playback stops to ask which of four lettered cells the search visits next: each search picks its own way. It keeps score.",
     },
   ],
   es: [
@@ -114,7 +114,7 @@ export const pathfindingTour = localized<TourStep[]>({
       anchor: "game",
       title: "Un juego de adivinar",
       text: () =>
-        "Activa Adivina y la reproducción se detiene para preguntarte cuál de cuatro celdas con letra visita la búsqueda ahora: cada búsqueda elige a su manera. Lleva el puntaje.",
+        "Elige Adivina y la reproducción se detiene para preguntarte cuál de cuatro celdas con letra visita la búsqueda ahora: cada búsqueda elige a su manera. Lleva el puntaje.",
     },
   ],
 });
