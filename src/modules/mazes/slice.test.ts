@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { createAppStore } from "@/appStore";
 import { routePath } from "@/routes";
-import { isMazeCell, mazePseudocode } from "./generators";
+import { isMazeCell, mazePseudocode } from "@/utils/mazeGenerators";
 import { MAZE_ALGORITHMS } from "./types";
 import { ACTIVE, CARVED, FRONTIER, OTHER_REGION, REGION, SKIPPED, WALK, WALL } from "./types";
 import { linkFor, readLocation } from "@/urlState";
-import { routeIn } from "@/modules/engine";
+import { routeIn } from "@/routes";
 import { mazesSlice as slice, type MazesState } from "./slice";
 import { MAX_RACERS, type SliceContext } from "@/modules/slice";
 

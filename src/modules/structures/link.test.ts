@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { engines } from "@/modules/engine";
+import { searchFor } from "@/navigation";
 import { EXAMPLE_SPEED, defaultsOf, openLink, reopened, stateFor, within } from "@/modules/testing";
 import { structuresLink } from "./link";
 import { structuresManifest } from "./manifest";
@@ -34,7 +34,7 @@ describe("data structures' link", () => {
     ];
     for (const change of changes) {
       const state = stateFor("structures", "single", false);
-      expect(engines.structures.search(change(state))).not.toBe(engines.structures.search(state));
+      expect(searchFor(change(state))).not.toBe(searchFor(state));
     }
   });
 });

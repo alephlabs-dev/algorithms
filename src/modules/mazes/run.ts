@@ -1,5 +1,5 @@
 import { seededRandom } from "@/utils/random";
-import { hasStartCell, mazeCells, mazeGenerators } from "./generators";
+import { hasStartCell, mazeGenerators, startCell, type MazeGrid, type MazeStep } from "@/utils/mazeGenerators";
 import {
   CARVED,
   DEAD_END,
@@ -14,8 +14,6 @@ import {
   type MazeAlgorithm,
   type MazeCellState,
   type MazeFrame,
-  type MazeGrid,
-  type MazeStep,
 } from "./types";
 
 type State = {
@@ -125,12 +123,6 @@ const apply = (s: State, step: MazeStep) => {
   }
 };
 
-/** The start cell a seed picks: the first draw of its random source, so every generator on the seed starts there. */
-const startOf = (grid: MazeGrid, random: () => number) => {
-  const cells = mazeCells(grid);
-  return cells[Math.floor(random() * cells.length)];
-};
-
 /** A whole maze being carved, recorded up front: frame i is the grid after i decisions. */
 export class MazeRun {
   readonly length: number;
@@ -152,7 +144,7 @@ export class MazeRun {
     this.cols = grid.cols;
     const random = seededRandom(seed);
     // Kruskal never uses its start cell, but drawing it keeps the seed's other random choices aligned with the rest.
-    const start = startOf(grid, random);
+    const start = startCell(grid, random);
     this.start = hasStartCell[algorithm] ? start : null;
     const initial: State = {
       states: new Uint8Array(grid.rows * grid.cols),

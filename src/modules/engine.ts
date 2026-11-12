@@ -1,8 +1,7 @@
 import type { Question } from "@/game";
-import { MODULES, modulePages, moduleRoute, type ModuleId, type Route } from "@/routes";
+import { MODULES, routeIn, type ModuleId, type Route } from "@/routes";
 import type { StoreState } from "@/appStore";
 import { stageViewOf, type StageView } from "@/view";
-import { speedFor } from "@/utils/speed";
 import { backtrackingSlice } from "./backtracking/slice";
 import { dpSlice } from "./dp/slice";
 import { fourierSlice } from "./fourier/slice";
@@ -49,15 +48,6 @@ export const contextFor = (s: StoreState, module: ModuleId): SliceContext => ({
 });
 
 /**
- * The page a module is on, the same way for every module: its race (if it has
- * one), its start page, or `algorithm`'s page.
- */
-export const routeIn = (module: ModuleId, algorithm: string, ctx: SliceContext): Route => {
-  if (ctx.view === "race" && modulePages[module].race) return moduleRoute(module, "race");
-  return ctx.isModuleStart ? moduleRoute(module, "start") : moduleRoute(module, "algorithm", algorithm);
-};
-
-/**
  * What playback needs from a module, without React: how long a run is and
  * how its steps are paced. Read by the store and the playback loop.
  */
@@ -100,13 +90,3 @@ const engineOf = (module: ModuleId): ModuleEngine => {
 };
 
 export const engines = Object.fromEntries(MODULES.map((m) => [m, engineOf(m)])) as Record<ModuleId, ModuleEngine>;
-
-/**
- * The speed playback runs at: the chosen preset, as a multiple of the pace of the
- * run on stage. Worked out from the state, so it follows every new run by itself.
- */
-export const selectSpeed = (s: StoreState) => {
-  const engine = engines[s.module];
-  const view = stageViewOf(s.view);
-  return speedFor(s.speedPreset, engine.lastIndex(s, view), engine.pace(view));
-};

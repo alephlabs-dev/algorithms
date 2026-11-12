@@ -8,6 +8,8 @@ Amended in #190: the articles, the landing thumbnails and the landing's live dem
 
 Amended in #188: each module's tour key moves from its slice to its manifest, since e2e runs in Node and needs every key to keep tours from opening over the page. Measured then with a throwaway module: adding one touches 4 files outside its folder, one entry in each registry (see `src/modules/README.md`).
 
+Amended in #149: Mazes opens its finished maze in pathfinding. The first version reached pathfinding's slice through `engine.ts`, which the folder rule let through, since the registries are shared code. Now a module may not import values from any registry (`engine.ts`, `index.ts`, `manifests.ts`, `contents.ts`), only their types, which the same lint rule enforces. One module opens another by writing a link to it: the grid link's codec moved to shared code (`src/utils/gridLink.ts`, with the maze generators in `src/utils/mazeGenerators.ts`), and the app opens such a link the way a fresh page load would (`loadLink` in the store). Helpers that modules took from `engine.ts` but that never needed a registry moved out of it: `routeIn` to `src/routes.ts`, `selectSpeed` to the store.
+
 ## Considered options
 
 - **One registry holding everything, React included**: one line per module, but Node (e2e, prerender) couldn't import it.

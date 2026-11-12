@@ -8,7 +8,7 @@ import { EMPTY, MUD, WALL, type Grid, type PathFrame, type Terrain } from "./typ
 import { withMarker, withTerrain } from "./grid";
 import { FEEDBACK_MS, isCellQuestion, type CellQuestion } from "@/game";
 import { selectGameQuestion, selectGuessPlaying, selectLastIndex, selectPathFrame, useStore } from "@/store";
-import { selectSpeed } from "@/modules/engine";
+import { selectSpeed } from "@/store";
 import { count } from "@/utils/count";
 import { describeFrame } from "./describeFrame";
 import { moveDuration } from "@/utils/speed";

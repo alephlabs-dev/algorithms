@@ -1,5 +1,6 @@
 import type { StageView } from "@/appStore";
-import { applyPreset, decodeCells, emptyGrid, encodeCells, type Preset } from "./grid";
+import { applyPreset, emptyGrid, type Preset } from "./grid";
+import { decodeCells, encodeCells, rowsParam, usualRows } from "@/utils/gridLink";
 import { PATH_ALGORITHMS, pathSearches } from "./searches";
 import { PathTimeline, type PathStepKind } from "./timeline";
 import type { Grid, PathAlgorithm } from "./types";
@@ -27,6 +28,11 @@ export type PathfindingState = {
   gridSize: GridSize;
   /** The size the learner had before a race capped it, given back when the race ends; null otherwise. */
   gridSizeBeforeRace: GridSize | null;
+  /**
+   * The grid on stage before a race shrank it, given back with its size when the race ends, unless
+   * the learner changed the size, the preset or the grid during it; null otherwise.
+   */
+  gridBeforeRace: { grid: Grid; keepShape: boolean } | null;
   grid: Grid;
   /**
    * The grid came from a link or the learner painted it, so a phone's stage changing shape
@@ -103,9 +109,6 @@ const gridFor = (size: GridSize, ctx: SliceContext, preset: Preset) => {
   return applyPreset(emptyGrid(rows, cols), preset, seededRandom(newSeed()));
 };
 
-/** The rows a size has before any stage is measured: a link without its own rows has these. */
-const usualRows = (size: GridSize, ctx: SliceContext) => stageGridDimensions(size, { ...ctx, stageAspect: null }).rows;
-
 /**
  * How many rows a link's grid has: on a phone, the ones the link names (they follow the stage
  * it was made on), if odd and not too few; otherwise the size's usual rows.
@@ -139,7 +142,22 @@ const runsFor = (s: PathfindingState, ctx: SliceContext, grid: Grid) => ({
 const resized = (s: PathfindingState, ctx: SliceContext, requested: GridSize) => {
   const gridSize = fitGridSize(requested, ctx.view, ctx.isMobile);
   const grid = gridFor(gridSize, ctx, s.gridPreset);
-  return { gridSize, keepShape: false, inputId: s.inputId + 1, ...runsFor(s, ctx, grid) };
+  return { gridSize, keepShape: false, gridBeforeRace: null, inputId: s.inputId + 1, ...runsFor(s, ctx, grid) };
+};
+
+/** A whole grid and its size put on stage at once: the one kept aside for after a race. */
+const withGrid = (s: PathfindingState, ctx: SliceContext, gridSize: GridSize, grid: Grid, keepShape: boolean) => ({
+  gridSize,
+  keepShape,
+  gridBeforeRace: null,
+  inputId: s.inputId + 1,
+  ...runsFor(s, ctx, grid),
+});
+
+/** Whether a grid fits the stage: its shape, or on a phone any rows for a grid the learner opened or painted. */
+const fitsStage = (grid: Grid, keepShape: boolean, gridSize: GridSize, ctx: SliceContext) => {
+  const { rows, cols } = stageGridDimensions(gridSize, ctx);
+  return grid.cols === cols && (grid.rows === rows || (ctx.isMobile && keepShape));
 };
 
 /** Fits the stage: the grid's own shape when the stage holds one like it, a fresh grid's otherwise. */
@@ -149,6 +167,7 @@ const withPreset = (s: PathfindingState, ctx: SliceContext, gridPreset: Preset) 
   return {
     gridPreset,
     keepShape: false,
+    gridBeforeRace: null,
     inputId: s.inputId + 1,
     ...runsFor(s, ctx, applyPreset(base, gridPreset, seededRandom(newSeed()))),
   };
@@ -168,6 +187,7 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
       algorithm,
       gridSize,
       gridSizeBeforeRace: beforeRace,
+      gridBeforeRace: null,
       grid,
       keepShape,
       gridPreset: "maze",
@@ -190,7 +210,7 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
     // A size picked during a race is the learner's choice from then on.
     setGridSize: (s, ctx, size: GridSize) => ({ ...resized(s, ctx, size), gridSizeBeforeRace: null }),
     /** Replaces the grid after an edit (painting, moving a marker); the search restarts. */
-    editGrid: (s, ctx, grid: Grid) => ({ ...runsFor(s, ctx, grid), keepShape: true }),
+    editGrid: (s, ctx, grid: Grid) => ({ ...runsFor(s, ctx, grid), keepShape: true, gridBeforeRace: null }),
     applyGridPreset: (s, ctx, preset: Preset) => withPreset(s, ctx, preset),
     toggleRacer: (s, ctx, racer: PathAlgorithm) => {
       const racers = toggleRacer(PATH_ALGORITHMS, s.racers, racer);
@@ -209,21 +229,45 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
 
   addRacer: (s, racer) => ({ racers: withRacer(PATH_ALGORITHMS, s.racers, racer) }),
 
-  // A big grid gets a fresh layout at the largest size a race shows well; leaving the race
-  // lays one out again at the size from before.
+  // A big grid gets a fresh layout at the largest size a race shows well, and the learner's
+  // grid is kept aside; leaving the race gives it back, or lays one out again at the size from
+  // before if it was changed during the race.
   forView: (s, ctx) => {
     const { size, beforeRace } = sizeForView(s.gridSize, s.gridSizeBeforeRace, ctx.view, ctx.isMobile);
-    return size === s.gridSize
-      ? { gridSizeBeforeRace: beforeRace, raceRuns: raceRunsFor(ctx.view, s.racers, s.grid) }
-      : { ...resized(s, ctx, size), gridSizeBeforeRace: beforeRace };
+    if (size === s.gridSize) return { gridSizeBeforeRace: beforeRace, raceRuns: raceRunsFor(ctx.view, s.racers, s.grid) };
+    const kept = s.gridBeforeRace;
+    if (ctx.view === "single" && kept && fitsStage(kept.grid, kept.keepShape, size, ctx))
+      return { ...withGrid(s, ctx, size, kept.grid, kept.keepShape), gridSizeBeforeRace: beforeRace };
+    return {
+      ...resized(s, ctx, size),
+      gridSizeBeforeRace: beforeRace,
+      gridBeforeRace: ctx.view === "race" ? { grid: s.grid, keepShape: s.keepShape } : null,
+    };
   },
 
   // Upright grids for narrow screens, wide ones otherwise, and a phone's as tall as its stage
   // holds. A phone keeps a grid it opened or painted while its columns still fit.
-  fit: (s, ctx) => {
-    const { rows, cols } = stageGridDimensions(s.gridSize, ctx);
-    const fits = s.grid.cols === cols && (s.grid.rows === rows || (ctx.isMobile && s.keepShape));
-    return fits ? null : resized(s, ctx, s.gridSize);
+  // A grid kept aside for after a race stays kept: the screen changed, not the learner's grid.
+  fit: (s, ctx) =>
+    fitsStage(s.grid, s.keepShape, s.gridSize, ctx)
+      ? null
+      : { ...resized(s, ctx, s.gridSize), gridBeforeRace: s.gridBeforeRace },
+
+  // A link from another module (Mazes' "solve it"): its grid, algorithm and racers, if it names
+  // them, the same way hydrate reads them; the brush, the preset and anything unnamed stay.
+  openLink: (s, link, ctx) => {
+    const { params } = link;
+    const algorithm = link.algorithm ?? s.algorithm;
+    const racers = params.racers ?? s.racers;
+    const named = { ...s, algorithm, racers };
+    const namesGrid = [params.gridSize, params.cells, params.start, params.end].some((p) => p !== undefined);
+    if (namesGrid) {
+      const gridSize = fitGridSize(params.gridSize ?? s.gridSize, ctx.view, ctx.isMobile);
+      const { grid, keepShape } = gridFromLink(params, gridSize, ctx);
+      return { algorithm, racers, ...withGrid(named, ctx, gridSize, grid, keepShape), gridSizeBeforeRace: null };
+    }
+    if (algorithm === s.algorithm && racers === s.racers) return null;
+    return { algorithm, racers, ...runsFor(named, ctx, s.grid) };
   },
 
   // "New" means another layout of the same kind (a clear grid becomes a maze).
@@ -243,7 +287,7 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
         {
           gridSize: s.gridSize,
           cells: encodeCells(s.grid.cells),
-          rows: s.grid.rows === usualRows(s.gridSize, ctx) ? undefined : s.grid.rows,
+          rows: rowsParam(s.grid.rows, s.gridSize, ctx),
           start: s.grid.start,
           end: s.grid.end,
           racers: s.racers,

@@ -4,7 +4,7 @@ import { MazeRaceLanes } from "./MazeRaceLanes";
 import { MazeSettings } from "./Settings";
 import { mazeAlgorithms, mazeSizeLabels, raceDescription } from "./algorithms";
 import { localized } from "@/i18n";
-import { mazePseudocode } from "./generators";
+import { mazePseudocode } from "@/utils/mazeGenerators";
 import { MAZE_ALGORITHMS } from "./types";
 import type { MazeAlgorithm } from "./types";
 import { useStore } from "@/store";

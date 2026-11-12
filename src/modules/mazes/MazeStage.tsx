@@ -8,7 +8,7 @@ import { useReportStageAspect } from "@/hooks/useReportStageAspect";
 import { localized } from "@/i18n";
 import type { MazeRun } from "./run";
 import type { MazeFrame } from "./types";
-import { selectSpeed } from "@/modules/engine";
+import { selectSpeed } from "@/store";
 import { useStore } from "@/store";
 import { describeMazeFrame } from "./narrate";
 import { moveDuration } from "@/utils/speed";

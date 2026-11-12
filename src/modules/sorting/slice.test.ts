@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createAppStore } from "@/appStore";
+import { applyRoute } from "@/navigation";
 import { href, routePath } from "@/routes";
-import { routeIn } from "@/modules/engine";
+import { routeIn } from "@/routes";
 import { linkFor, readLocation } from "@/urlState";
 import type { SliceContext } from "@/modules/slice";
 import { sortingSlice as slice, type SortingState } from "./slice";
@@ -82,6 +83,20 @@ describe("sorting in the store", () => {
     big.getState().actions.sorting.setDisplayMode("numbers");
     expect(big.getState().sorting.displayMode).toBe("numbers");
     expect([big.getState().sorting.size, big.getState().frameIndex]).toEqual([20, 0]);
+  });
+
+  it("a link opened in the app keeps the array unless its query names a new one", () => {
+    const heap = { module: "sorting", page: "algorithm", algorithm: "heap" } as const;
+    const app = storeAt(href(heap));
+    app.getState().actions.sorting.setSize(30);
+    app.getState().actions.sorting.setInputOrder("reversed");
+    app.getState().seek(4);
+    const { sorting } = app.getState();
+    applyRoute(app, heap, "?speed=4x");
+    expect([app.getState().sorting, app.getState().frameIndex, app.getState().speedPreset]).toEqual([sorting, 4, "4x"]);
+    // A size in the query: a new array of that size, the same order.
+    applyRoute(app, heap, "?size=10");
+    expect([app.getState().sorting.size, app.getState().sorting.inputOrder]).toEqual([10, "reversed"]);
   });
 
   it("a phone gets at most 200 bars, even when the screen shrinks later", () => {

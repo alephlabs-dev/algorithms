@@ -12,7 +12,7 @@ import { manifests } from "./modules/manifests";
 import { MODULES, type ModuleId } from "./routes";
 import type { Link, Patch, SliceContext } from "./modules/slice";
 import { linkFor, type UrlLocation } from "./urlState";
-import { DEFAULT_PRESET, type SpeedPreset } from "./utils/speed";
+import { DEFAULT_PRESET, speedFor, type SpeedPreset } from "./utils/speed";
 
 import { stageViewOf, type StageView, type View } from "./view";
 
@@ -74,6 +74,11 @@ export type StoreState = SliceStates & {
   setView: (view: View) => void;
   /** "New": another input of the same kind for the module on stage. */
   createNewArray: () => void;
+  /**
+   * Opens a link in the app: its module takes what the link names (its grid, its algorithm, the
+   * speed) and keeps the rest. The page itself is applied by the caller (applyRoute).
+   */
+  loadLink: (url: UrlLocation) => void;
   setIsMobile: (isMobile: boolean) => void;
   setIsPortrait: (isPortrait: boolean) => void;
   /** The stage measured a new shape: phone grids are laid out again to span its width. */
@@ -113,7 +118,15 @@ export const selectRaceRuns = (state: StoreState): readonly unknown[] => {
   const slice: object = state[state.module];
   return "raceRuns" in slice ? (slice.raceRuns as readonly unknown[]) : [];
 };
-// The playback speed is derived too: selectSpeed lives in modules/engine, so tests can import it without a browser.
+/**
+ * The speed playback runs at: the chosen preset, as a multiple of the pace of the
+ * run on stage. Worked out from the state, so it follows every new run by itself.
+ */
+export const selectSpeed = (s: StoreState) => {
+  const engine = engines[s.module];
+  const view = stageViewOf(s.view);
+  return speedFor(s.speedPreset, engine.lastIndex(s, view), engine.pace(view));
+};
 
 /** Guess mode's questions for the run on stage (none outside the guess view). */
 export const gameQuestionsOf = (state: StoreState): Question[] =>
@@ -178,6 +191,9 @@ type LooseSlice = {
   forView?: (slice: object, ctx: SliceContext) => object;
   fit?: (slice: object, ctx: SliceContext) => Patch<object>;
   newInput: (slice: object, ctx: SliceContext) => Patch<object>;
+  openLink?: (slice: object, link: Link, ctx: SliceContext) => Patch<object>;
+  link: { read: (params: URLSearchParams) => object };
+  engine: { search: (slice: object, ctx: SliceContext) => string };
 };
 const loose = slices as unknown as Record<Module, LooseSlice>;
 
@@ -329,6 +345,27 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
         return;
       }
       replaceRun((state) => ({ view, isModuleStart: false, gameFeedback: null, ...racesFor(state, stageViewOf(view)) }));
+    },
+
+    loadLink: (url) => {
+      if (url.speed) set({ speedPreset: url.speed });
+      replaceRun((state) => {
+        const { module } = url;
+        const slice = loose[module];
+        const ctx: SliceContext = {
+          ...contextFor(state, module),
+          view: module === state.module ? stageViewOf(url.view ?? "single") : "single",
+          isModuleStart: url.isModuleStart,
+        };
+        const link = linkFor(url, module);
+        if (slice.openLink) return patchSlice(state, module, (s) => slice.openLink!(s, link, ctx), ctx);
+        // No openLink: the module's own link, with the new link's params over it; nothing new, nothing changes.
+        const algorithm = link.algorithm ?? slice.current(state[module]);
+        if (!Object.keys(link.params).length && algorithm === slice.current(state[module])) return null;
+        const current = slice.link.read(new URLSearchParams(slice.engine.search(state[module], ctx)));
+        const hydrated = slice.hydrate({ algorithm, params: { ...current, ...link.params } }, ctx);
+        return { [module]: hydrated } as Partial<StoreState>;
+      });
     },
 
     createNewArray: () => {

@@ -1,96 +1,14 @@
 /**
- * Maze generation on an odd grid where walls are whole cells, like pathfinding's maze preset.
- * Maze cells sit on odd (row, column) positions; carving opens the wall cell between two of
- * them. Cells are numbered row by row: cell = row * cols + col. Like the other modules, each
- * generator describes what it does one decision at a time, and a MazeRun records the steps.
+ * The Mazes module's types. The generators and their steps live in shared code
+ * (@/utils/mazeGenerators), since pathfinding's maze preset carves with them too; a MazeRun
+ * records the steps, and each cell shows a state.
  */
 
+/** The generators the module shows: the shared ones (MazeGeneratorName). */
 export type MazeAlgorithm = "dfs" | "prim" | "kruskal" | "wilson";
 
 /** Every generator, in the order the UI shows them. */
 export const MAZE_ALGORITHMS: MazeAlgorithm[] = ["dfs", "prim", "kruskal", "wilson"];
-
-/** The walled-in grid a maze is carved from. Odd rows and columns, so walls go all around. */
-export type MazeGrid = { rows: number; cols: number };
-
-export type MazeStep = {
-  /** Pseudocode line (0-based) this step belongs to. */
-  line: number;
-} & (
-  | /**
-     * Carves the start cell, the first one in the maze. DFS pushes it on its stack; Prim
-     * puts its neighbours on the frontier, given as `frontier`.
-     */ { type: "start"; cell: number; frontier?: number[] }
-  | /** Opens `wall` between the current cell and `cell`, and carves `cell`. DFS pushes it. */ {
-      type: "carve";
-      wall: number;
-      cell: number;
-    }
-  | /** DFS takes `cell` off its stack, along with `wall`, the passage back to the cell before it (if any). */ {
-      type: "backtrack";
-      cell: number;
-      wall: number | null;
-    }
-  | /**
-     * Prim takes `cell` off the frontier and carves it in through `wall`, which joins it to the
-     * maze; `frontier` are the neighbours it adds to the frontier.
-     */ {
-      type: "pick";
-      cell: number;
-      wall: number;
-      frontier: number[];
-    }
-  | /** Kruskal carves every cell, each its own region, before testing any wall. */ {
-      type: "regions";
-      cells: number[];
-    }
-  | /**
-     * Kruskal tests `wall`: the cells on its two sides are in different regions, so it carves
-     * the wall and the regions merge. `regions` are their cells (passages included) before
-     * merging, the one on the wall's top or left side first. `left` counts the regions after it.
-     */ {
-      type: "join";
-      wall: number;
-      regions: [number[], number[]];
-      left: number;
-    }
-  | /** Kruskal tests `wall`: both its sides are in `region` already, so carving it would close a loop. */ {
-      type: "skip";
-      wall: number;
-      region: number[];
-    }
-  | /** Wilson puts its first cell in the maze: carved, with nothing joined to it yet. */ {
-      type: "first";
-      cell: number;
-    }
-  | /** Wilson starts a random walk at `cell`, a cell outside the maze. */ { type: "walkStart"; cell: number }
-  | /**
-     * Wilson's walk steps from its end through `wall` to `cell`, a random neighbour: a cell
-     * not on the walk yet, one already on it (the walk crossed itself, a loop to erase next)
-     * or one in the maze (the walk joins it next).
-     */ {
-      type: "walk";
-      cell: number;
-      wall: number;
-      to: "new" | "loop" | "maze";
-    }
-  | /**
-     * Wilson erases the loop the walk just closed: `erased` are its cells and walls, walled in
-     * again. The walk goes on from `cell`, where it crossed itself.
-     */ {
-      type: "erase";
-      cell: number;
-      erased: number[];
-    }
-  | /** Wilson's walk reached the maze: `carved` are its cells and walls, carved in all at once. */ {
-      type: "carveWalk";
-      carved: number[];
-    }
-  | /** The maze is done: every dead-end cell gets marked. */ { type: "done"; deadEnds: number[] }
-);
-
-/** A generator: given the grid, the start cell and the seeded random source, its decisions in order. */
-export type MazeGenerator = (grid: MazeGrid, start: number, random: () => number) => Generator<MazeStep, void>;
 
 /** What a cell shows. A wall is any cell not carved yet (or never: the corners between maze cells). */
 export const WALL = 0;

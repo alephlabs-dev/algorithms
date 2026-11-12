@@ -26,12 +26,12 @@ let batching = false;
 // Writes the store's page into the address bar; set up by startUrlSync.
 let write: (mode: "push" | "replace") => void = () => {};
 
-/** Switches the app to a page, as a link click would, with one history entry for it. */
-export const navigate = (route: Route) => {
+/** Switches the app to a page (with its query, if given), as a link click would, with one history entry for it. */
+export const navigate = (route: Route, search?: string) => {
   const before = useStore.getState();
   batching = true;
   try {
-    applyRoute(useStore, route);
+    applyRoute(useStore, route, search);
   } finally {
     batching = false;
   }

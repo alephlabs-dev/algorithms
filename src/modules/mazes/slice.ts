@@ -1,7 +1,8 @@
 import type { StageView } from "@/appStore";
 import { MAZE_ALGORITHMS } from "./types";
 import { MazeRun } from "./run";
-import type { MazeAlgorithm, MazeStep } from "./types";
+import type { MazeAlgorithm } from "./types";
+import type { MazeStep } from "@/utils/mazeGenerators";
 import { fitGridSize, sizeForView, stageGridDimensions, type GridSize } from "@/utils/gridSize";
 import { newSeed } from "@/utils/random";
 import { mazesLink, type MazesLink } from "./link";

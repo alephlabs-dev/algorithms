@@ -1,3 +1,4 @@
+import { carvedCells } from "@/utils/mazeGenerators";
 import { EMPTY, MUD, MUD_COST, WALL, type Grid, type Terrain } from "./types";
 
 export const cellOf = (grid: Pick<Grid, "cols">, row: number, col: number) => row * grid.cols + col;
@@ -54,36 +55,14 @@ export const withMarker = (grid: Grid, marker: "start" | "end", cell: number): G
 export type Preset = "clear" | "maze" | "walls" | "terrain";
 
 /**
- * A maze carved by randomized depth-first search: corridors on odd cells, so
- * every open cell is reachable and there's exactly one way between two points.
+ * A maze carved by the Mazes module's randomized depth-first search: corridors on odd cells,
+ * so every open cell is reachable and there's exactly one way between two points, until a few
+ * gaps open more.
  */
 const carveMaze = (grid: Grid, random: () => number) => {
   const { rows, cols } = grid;
   const cells = new Uint8Array(rows * cols).fill(WALL);
-  const odd = (n: number) => (n % 2 === 0 ? Math.max(1, n - 1) : n);
-  const startRow = odd(Math.min(rowOf(grid, grid.start), rows - 2));
-  const startCol = odd(Math.min(colOf(grid, grid.start), cols - 2));
-  const stack: [number, number][] = [[startRow, startCol]];
-  cells[cellOf(grid, startRow, startCol)] = EMPTY;
-  while (stack.length) {
-    const [r, c] = stack[stack.length - 1];
-    const options = (
-      [
-        [r - 2, c],
-        [r, c + 2],
-        [r + 2, c],
-        [r, c - 2],
-      ] as [number, number][]
-    ).filter(([nr, nc]) => nr > 0 && nr < rows - 1 && nc > 0 && nc < cols - 1 && cells[cellOf(grid, nr, nc)] === WALL);
-    if (!options.length) {
-      stack.pop();
-      continue;
-    }
-    const [nr, nc] = options[Math.floor(random() * options.length)];
-    cells[cellOf(grid, (r + nr) / 2, (c + nc) / 2)] = EMPTY;
-    cells[cellOf(grid, nr, nc)] = EMPTY;
-    stack.push([nr, nc]);
-  }
+  for (const cell of carvedCells("dfs", grid, random)) cells[cell] = EMPTY;
   // Open a few extra gaps so there's more than one route and searches differ.
   for (let k = 0; k < (rows * cols) / 40; k++) {
     const r = 1 + Math.floor(random() * (rows - 2));
@@ -92,7 +71,8 @@ const carveMaze = (grid: Grid, random: () => number) => {
   }
   // Start and end may sit on cells the maze never opens (moved by hand, or on
   // even rows and columns); open the shortest way from each into the maze.
-  const root = cellOf(grid, startRow, startCol);
+  // Every maze cell is joined to every other: the first one stands for them all.
+  const root = cellOf(grid, 1, 1);
   for (const marker of [grid.start, grid.end]) {
     cells[marker] = EMPTY;
     joinTo(cells, grid, root, marker);
@@ -164,31 +144,5 @@ const smoothMud = (cells: Uint8Array, grid: Grid) => {
     const around = [i - grid.cols, i + grid.cols, colOf(grid, i) > 0 ? i - 1 : -1, colOf(grid, i) < grid.cols - 1 ? i + 1 : -1];
     const mud = around.filter((n) => n >= 0 && n < cells.length && copy[n] === MUD).length;
     cells[i] = mud >= 2 ? MUD : mud === 0 ? EMPTY : copy[i];
-  }
-};
-
-// Sharing: terrain packs 4 cells per byte (2 bits each), then base64url.
-
-export const encodeCells = (cells: Uint8Array): string => {
-  const bytes = new Uint8Array(Math.ceil(cells.length / 4));
-  cells.forEach((t, i) => (bytes[i >> 2] |= t << ((i & 3) * 2)));
-  let binary = "";
-  bytes.forEach((b) => (binary += String.fromCharCode(b)));
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-};
-
-export const decodeCells = (text: string, count: number): Uint8Array | null => {
-  try {
-    const binary = atob(text.replace(/-/g, "+").replace(/_/g, "/"));
-    if (binary.length !== Math.ceil(count / 4)) return null;
-    const cells = new Uint8Array(count);
-    for (let i = 0; i < count; i++) {
-      const t = (binary.charCodeAt(i >> 2) >> ((i & 3) * 2)) & 3;
-      if (t > MUD) return null;
-      cells[i] = t;
-    }
-    return cells;
-  } catch {
-    return null;
   }
 };
