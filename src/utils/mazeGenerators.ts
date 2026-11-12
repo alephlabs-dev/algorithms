@@ -369,9 +369,6 @@ const carvedBy = (step: MazeStep): number[] => {
   }
 };
 
-/** A finished maze: its grid and the cells left open (every maze cell and the walls carved between them). */
-export type CarvedMaze = MazeGrid & { open: ReadonlySet<number> };
-
 /**
  * A finished maze's open cells, as a MazeRun on the same random source ends: every maze cell
  * and every wall carved between two of them. The start cell is the source's first draw.

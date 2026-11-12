@@ -1,6 +1,6 @@
 import type { StageView } from "@/appStore";
-import { applyPreset, decodeCells, emptyGrid, encodeCells, gridFromMaze, type Preset } from "./grid";
-import type { CarvedMaze } from "@/utils/mazeGenerators";
+import { applyPreset, emptyGrid, type Preset } from "./grid";
+import { decodeCells, encodeCells, rowsParam, usualRows } from "@/utils/gridLink";
 import { PATH_ALGORITHMS, pathSearches } from "./searches";
 import { PathTimeline, type PathStepKind } from "./timeline";
 import type { Grid, PathAlgorithm } from "./types";
@@ -109,9 +109,6 @@ const gridFor = (size: GridSize, ctx: SliceContext, preset: Preset) => {
   return applyPreset(emptyGrid(rows, cols), preset, seededRandom(newSeed()));
 };
 
-/** The rows a size has before any stage is measured: a link without its own rows has these. */
-const usualRows = (size: GridSize, ctx: SliceContext) => stageGridDimensions(size, { ...ctx, stageAspect: null }).rows;
-
 /**
  * How many rows a link's grid has: on a phone, the ones the link names (they follow the stage
  * it was made on), if odd and not too few; otherwise the size's usual rows.
@@ -148,7 +145,7 @@ const resized = (s: PathfindingState, ctx: SliceContext, requested: GridSize) =>
   return { gridSize, keepShape: false, gridBeforeRace: null, inputId: s.inputId + 1, ...runsFor(s, ctx, grid) };
 };
 
-/** A whole grid and its size put on stage at once (one remembered from before a race, a maze from Mazes). */
+/** A whole grid and its size put on stage at once: the one kept aside for after a race. */
 const withGrid = (s: PathfindingState, ctx: SliceContext, gridSize: GridSize, grid: Grid, keepShape: boolean) => ({
   gridSize,
   keepShape,
@@ -214,14 +211,6 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
     setGridSize: (s, ctx, size: GridSize) => ({ ...resized(s, ctx, size), gridSizeBeforeRace: null }),
     /** Replaces the grid after an edit (painting, moving a marker); the search restarts. */
     editGrid: (s, ctx, grid: Grid) => ({ ...runsFor(s, ctx, grid), keepShape: true, gridBeforeRace: null }),
-    /**
-     * Puts a finished maze from Mazes on stage at its size: walls where it left walls, start and
-     * end in opposite corner cells of the maze, so it stays perfect (one way through).
-     */
-    openMaze: (s, ctx, maze: CarvedMaze, gridSize: GridSize) => ({
-      ...withGrid(s, ctx, gridSize, gridFromMaze(maze), true),
-      gridSizeBeforeRace: null,
-    }),
     applyGridPreset: (s, ctx, preset: Preset) => withPreset(s, ctx, preset),
     toggleRacer: (s, ctx, racer: PathAlgorithm) => {
       const racers = toggleRacer(PATH_ALGORITHMS, s.racers, racer);
@@ -281,7 +270,7 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
         {
           gridSize: s.gridSize,
           cells: encodeCells(s.grid.cells),
-          rows: s.grid.rows === usualRows(s.gridSize, ctx) ? undefined : s.grid.rows,
+          rows: rowsParam(s.grid.rows, s.gridSize, ctx),
           start: s.grid.start,
           end: s.grid.end,
           racers: s.racers,

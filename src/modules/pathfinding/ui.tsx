@@ -8,8 +8,7 @@ import { gridSizeLabels, presetLabel } from "./labels";
 import { pathPseudocode } from "./searches";
 import type { PathAlgorithm } from "./types";
 import { localized } from "@/i18n";
-import { engines } from "@/modules/engine";
-import { selectPathFrame, useStore } from "@/store";
+import { selectGameUnavailable, selectPathFrame, useStore } from "@/store";
 import { narratePath } from "./narrate";
 import { pathfindingTour } from "./tour";
 import type { ModuleUI } from "@/modules/types";
@@ -53,7 +52,7 @@ export const pathfindingUI: ModuleUI = {
   newRunLabel: text.newRun,
   // Cells too small for guess mode's letters: the small grid has the biggest.
   gameFix: (s) =>
-    s.pathfinding.gridSize === "small" || !engines.pathfinding.gameUnavailable?.(s)
+    s.pathfinding.gridSize === "small" || !selectGameUnavailable(s)
       ? null
       : {
           label: text.smallGrid,

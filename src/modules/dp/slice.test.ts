@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EXAMPLE_CAPACITY, EXAMPLE_ITEMS, RACE_CAPACITY, RACE_ITEMS, wordPairs } from "./presets";
 import { methods } from "./work";
 import { routePath } from "@/routes";
-import { routeIn } from "@/modules/engine";
+import { routeIn } from "@/routes";
 import { linkFor, readLocation } from "@/urlState";
 import { dpSlice as slice, type DpState } from "./slice";
 import type { SliceContext } from "@/modules/slice";

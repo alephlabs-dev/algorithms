@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { engines } from "@/modules/engine";
+import { searchFor } from "@/navigation";
 import { EXAMPLE_SPEED, defaultsOf, openLink, reopened, stateFor, within } from "@/modules/testing";
 import { routePath } from "@/routes";
 import { readLocation } from "@/urlState";
@@ -33,7 +33,7 @@ describe("graphs' link", () => {
     ];
     for (const change of changes) {
       const state = stateFor("graphs", "single", false);
-      expect(engines.graphs.search(change(state))).not.toBe(engines.graphs.search(state));
+      expect(searchFor(change(state))).not.toBe(searchFor(state));
     }
   });
 

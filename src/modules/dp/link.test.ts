@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { engines } from "@/modules/engine";
+import { searchFor } from "@/navigation";
 import { EXAMPLE_SPEED, defaultsOf, openLink, reopened, stateFor, within } from "@/modules/testing";
 import { readLocation } from "@/urlState";
 import { dpLink } from "./link";
@@ -26,7 +26,7 @@ describe("dynamic programming's link", () => {
     ];
     for (const change of changes) {
       const state = stateFor("dp", "single", false);
-      expect(engines.dp.search(change(state))).not.toBe(engines.dp.search(state));
+      expect(searchFor(change(state))).not.toBe(searchFor(state));
     }
   });
 

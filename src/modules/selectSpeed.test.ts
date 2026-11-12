@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { StoreState } from "@/store";
 import { stepsPerSecond } from "@/utils/speed";
-import { selectSpeed } from "./engine";
+import { selectSpeed } from "@/appStore";
 
 type Run = { length: number; totalOps: number };
 

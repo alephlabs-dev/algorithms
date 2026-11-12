@@ -80,6 +80,13 @@ moduleTester.run("module-boundaries", boundaries, {
     { code: "import { type Theme } from '@/store';", filename: at("src/modules/mazes/content.tsx"), options: registries },
     { code: "export type { Theme } from '@/store';", filename: at("src/modules/mazes/content.tsx"), options: registries },
     { code: "import { moduleContents } from '@/modules/contents';", filename: at("src/components/About.tsx"), options: registries },
+    // A module may name the registries' types: they're erased, so it reaches no other module.
+    { code: "import type { SliceStates } from '@/modules/engine';", filename: at("src/modules/mazes/link.test.ts"), options: registries },
+    { code: "import { type SliceStates } from '../engine';", filename: at("src/modules/mazes/slice.ts"), options: registries },
+    { code: "import type { ModuleManifest } from '@/modules/manifests';", filename: at("src/modules/mazes/ui.tsx"), options: registries },
+    // Shared code that isn't a registry stays open to modules.
+    { code: "import { searchFor } from '@/navigation';", filename: at("src/modules/mazes/link.test.ts"), options: registries },
+    { code: "import { useStore } from '@/store';", filename: at("src/modules/mazes/ui.tsx"), options: registries },
   ],
   invalid: [
     {
@@ -192,6 +199,49 @@ moduleTester.run("module-boundaries", boundaries, {
       options: registries,
       errors: [{ messageId: "prerender" }],
     })),
+    // A module never reaches the registries' values: through them it could reach every other module.
+    {
+      code: "import { slices } from '@/modules/engine';",
+      filename: at("src/modules/mazes/toPathfinding.ts"),
+      options: registries,
+      errors: [{ messageId: "registryInModule", data: { from: "mazes", registry: "src/modules/engine" } }],
+    },
+    {
+      code: "import { engines } from '../engine';",
+      filename: at("src/modules/mazes/link.test.ts"),
+      options: registries,
+      errors: [{ messageId: "registryInModule", data: { from: "mazes", registry: "src/modules/engine" } }],
+    },
+    {
+      code: "import { useModuleUI } from '@/modules';",
+      filename: at("src/modules/mazes/MazeTools.tsx"),
+      options: registries,
+      errors: [{ messageId: "registryInModule", data: { from: "mazes", registry: "src/modules/index" } }],
+    },
+    {
+      code: "import { moduleUIs } from '@/modules/index';",
+      filename: at("src/modules/mazes/ui.tsx"),
+      options: registries,
+      errors: [{ messageId: "registryInModule", data: { from: "mazes", registry: "src/modules/index" } }],
+    },
+    {
+      code: "import { manifests } from '@/modules/manifests';",
+      filename: at("src/modules/mazes/slice.ts"),
+      options: registries,
+      errors: [{ messageId: "registryInModule", data: { from: "mazes", registry: "src/modules/manifests" } }],
+    },
+    {
+      code: "import { moduleContents } from '@/modules/contents';",
+      filename: at("src/modules/mazes/articles.tsx"),
+      options: registries,
+      errors: [{ messageId: "registryInModule", data: { from: "mazes", registry: "src/modules/contents" } }],
+    },
+    {
+      code: "export { engines } from '@/modules/engine';",
+      filename: at("src/modules/mazes/slice.ts"),
+      options: registries,
+      errors: [{ messageId: "registryInModule", data: { from: "mazes", registry: "src/modules/engine" } }],
+    },
     // The shared files the prerender renders keep to the same side: modules only through their content.
     {
       code: "import { moduleUIs } from '@/modules';",

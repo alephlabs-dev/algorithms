@@ -3,7 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useThrottled } from "@/hooks/useThrottled";
 import { useModuleUI } from "@/modules";
 import { selectGameUnavailable, useStore, type StoreState } from "@/store";
-import { selectSpeed } from "@/modules/engine";
+import { selectSpeed } from "@/store";
 import { cn } from "@/utils/cn";
 import { stepsPerSecond } from "@/utils/speed";
 import { BottomSheet } from "./ui/bottom-sheet";

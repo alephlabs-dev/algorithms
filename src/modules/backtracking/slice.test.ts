@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { routePath } from "@/routes";
-import { routeIn } from "@/modules/engine";
+import { routeIn } from "@/routes";
 import { linkFor, readLocation } from "@/urlState";
 import { backtrackingSlice as slice, type BacktrackingState } from "./slice";
 import type { SliceContext } from "@/modules/slice";

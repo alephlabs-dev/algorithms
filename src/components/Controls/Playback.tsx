@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { selectLastIndex, useStore } from "@/store";
-import { engines, selectSpeed } from "@/modules/engine";
+import { engines } from "@/modules/engine";
+import { selectSpeed } from "@/store";
 import { stepDelay } from "@/utils/speed";
 
 // Cap so a slow frame (tab in background, big seek) can't jump half the run at once.

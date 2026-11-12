@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createAppStore } from "@/appStore";
 import { href, routePath } from "@/routes";
-import { routeIn } from "@/modules/engine";
+import { routeIn } from "@/routes";
 import { linkFor, readLocation } from "@/urlState";
 import type { SliceContext } from "@/modules/slice";
 import { sortingSlice as slice, type SortingState } from "./slice";

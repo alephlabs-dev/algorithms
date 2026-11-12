@@ -110,6 +110,15 @@ export const HOME: Route = { page: "home" };
 export const moduleRoute = (module: ModuleId, page: ModulePage, algorithm?: string): ModuleRoute =>
   (page === "algorithm" ? { module, page, algorithm } : { module, page }) as ModuleRoute;
 
+/**
+ * The page a module is on, the same way for every module: its race (if it has
+ * one), its start page, or `algorithm`'s page.
+ */
+export const routeIn = (module: ModuleId, algorithm: string, ctx: { view: "single" | "race"; isModuleStart: boolean }): Route => {
+  if (ctx.view === "race" && modulePages[module].race) return moduleRoute(module, "race");
+  return ctx.isModuleStart ? moduleRoute(module, "start") : moduleRoute(module, "algorithm", algorithm);
+};
+
 export const routePath = (route: Route): string => {
   if (route.page === "home") return "/";
   const { base, slugs } = modulePages[route.module];

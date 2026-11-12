@@ -17,7 +17,8 @@ export const PageLink = ({
   to: Route;
   /** The query string the page opens with (its settings), when it isn't the page's defaults. */
   search?: string;
-  onNavigate?: (route: Route) => void;
+  /** Switches page in the app, with the link's query when it has one. */
+  onNavigate?: (route: Route, search?: string) => void;
   children: ReactNode;
   className?: string;
   "aria-label"?: string;
@@ -31,7 +32,7 @@ export const PageLink = ({
       if (!onNavigate || event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
       event.preventDefault();
       // Draw the new page first: WebKit stops a smooth scroll when the page changes under it.
-      flushSync(() => onNavigate(to));
+      flushSync(() => onNavigate(to, search || undefined));
       // No explicit behavior: it follows the theme's scroll-behavior, which glides
       // only when the learner hasn't asked for reduced motion.
       window.scrollTo({ top: 0 });

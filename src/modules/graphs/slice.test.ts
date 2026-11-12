@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createAppStore } from "@/appStore";
 import { graphAspect } from "./graph";
 import { href, routePath } from "@/routes";
-import { routeIn } from "@/modules/engine";
+import { routeIn } from "@/routes";
 import { linkFor, readLocation } from "@/urlState";
 import { graphsSlice as slice, type GraphsState } from "./slice";
 import { MAX_RACERS, MIN_RACERS, type SliceContext } from "@/modules/slice";

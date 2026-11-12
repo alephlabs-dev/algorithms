@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { engines, type SliceStates } from "@/modules/engine";
+import { routeFor, searchFor } from "@/navigation";
+import type { SliceStates } from "@/modules/engine";
 import { EXAMPLE_SPEED, defaultsOf, openLink, reopened, stateFor, within } from "@/modules/testing";
 import { routePath } from "@/routes";
 import { readLocation } from "@/urlState";
@@ -21,8 +22,8 @@ describe("backtracking's link", () => {
 
   it("puts every setting it shares in its link, so editing it changes the link", () => {
     const state = stateFor("backtracking", "single", false);
-    expect(engines.backtracking.search(within("backtracking", { queensN: 8 })(state))).not.toBe(
-      engines.backtracking.search(state),
+    expect(searchFor(within("backtracking", { queensN: 8 })(state))).not.toBe(
+      searchFor(state),
     );
   });
 
@@ -30,12 +31,12 @@ describe("backtracking's link", () => {
     const sudokuWith = (change: Partial<SliceStates["backtracking"]>) =>
       within("backtracking", { problem: "sudoku", ...change })(stateFor("backtracking", "single", false));
     const sudoku = sudokuWith({});
-    const route = engines.backtracking.route(sudoku);
+    const route = routeFor(sudoku);
     expect(routePath(route)).toBe("/backtracking/sudoku");
-    const hard = engines.backtracking.search(sudokuWith({ sudokuPuzzle: "hard" }));
-    expect(hard).not.toBe(engines.backtracking.search(sudoku));
+    const hard = searchFor(sudokuWith({ sudokuPuzzle: "hard" }));
+    expect(hard).not.toBe(searchFor(sudoku));
     expect(readLocation(routePath(route), hard).link.params).toEqual({ puzzle: "hard" });
-    const mrv = engines.backtracking.search(sudokuWith({ sudokuOrder: "mrv" }));
+    const mrv = searchFor(sudokuWith({ sudokuOrder: "mrv" }));
     expect(readLocation(routePath(route), mrv).link.params).toEqual({ puzzle: "easy", order: "mrv" });
   });
 

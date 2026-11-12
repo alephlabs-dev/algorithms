@@ -59,10 +59,13 @@ Shared helpers stay shared: the grid renderer, the theme and the other canvas he
 `TourSwatch.tsx` and `tourColors.ts` for tours, `thumbnail.ts` for thumbnails), Guess mode's question types and helpers in `src/game/`, utilities in `src/utils/`.
 Module-specific e2e specs stay in `e2e/`.
 
-Four rules, enforced by the lint (`house/module-boundaries` in `eslint/house.js`):
+Five rules, enforced by the lint (`house/module-boundaries` in `eslint/house.js`):
 
 - A module imports from its own folder and from shared code, never from another module's folder. What two
   modules need goes to shared code.
+- A module never imports values from the registries (`engine.ts`, `index.ts`, `manifests.ts`, `contents.ts`):
+  through them it could reach every other module. Their types are fine. A module that opens another one writes a
+  link to it, with codecs from shared code (Mazes → pathfinding writes `src/utils/gridLink.ts`'s grid link).
 - Shared code (e2e included) reaches a module only through the registries: `manifests.ts` imports its
   `manifest`, `engine.ts` its `slice`, `index.ts` its `ui`, `contents.ts` its `content`. Nothing else imports from a
   module folder.

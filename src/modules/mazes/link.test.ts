@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { engines } from "@/modules/engine";
 import { searchFor } from "@/navigation";
 import { EXAMPLE_SPEED, defaultsOf, openLink, reopened, stateFor, within } from "@/modules/testing";
 import { mazesLink } from "./link";
@@ -26,7 +25,7 @@ describe("mazes' link", () => {
     ];
     for (const change of changes) {
       const state = stateFor("mazes", "single", false);
-      expect(engines.mazes.search(change(state))).not.toBe(engines.mazes.search(state));
+      expect(searchFor(change(state))).not.toBe(searchFor(state));
     }
   });
 });

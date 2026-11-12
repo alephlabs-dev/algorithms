@@ -23,7 +23,9 @@ test('mazes: solve the maze on stage in pathfinding, then play the search to a p
   await solve.click();
 
   await expect(page).toHaveURL(/\/pathfinding\/a-star\?grid=small&cells=/);
-  expect(new URL(page.url()).pathname + new URL(page.url()).search).toBe(href);
+  // Pathfinding opened the link's grid: its own link carries the same one (and adds its racers).
+  const grid = (url: string) => ['grid', 'cells', 'rows', 'from', 'to'].map((key) => new URL(url, page.url()).searchParams.get(key));
+  expect(grid(page.url())).toEqual(grid(href!));
   await expect(page.getByRole('heading', { level: 1, name: 'A* Search' })).toBeAttached();
   // The settings sheet went with the page it was opened on.
   await expect(page.getByRole('dialog', { name: 'Settings' })).toBeHidden();

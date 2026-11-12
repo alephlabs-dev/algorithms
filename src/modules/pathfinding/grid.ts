@@ -1,4 +1,4 @@
-import { carvedCells, type CarvedMaze } from "@/utils/mazeGenerators";
+import { carvedCells } from "@/utils/mazeGenerators";
 import { EMPTY, MUD, MUD_COST, WALL, type Grid, type Terrain } from "./types";
 
 export const cellOf = (grid: Pick<Grid, "cols">, row: number, col: number) => row * grid.cols + col;
@@ -115,16 +115,6 @@ const joinTo = (cells: Uint8Array, grid: Grid, root: number, from: number) => {
   }
 };
 
-/**
- * A maze from Mazes as it was carved: open cells empty, every other cell a wall, start and end on
- * the maze cells in opposite corners (top left, bottom right), so it stays a perfect maze.
- */
-export const gridFromMaze = ({ rows, cols, open }: CarvedMaze): Grid => {
-  const cells = new Uint8Array(rows * cols).fill(WALL);
-  for (const cell of open) cells[cell] = EMPTY;
-  return { rows, cols, cells, start: cellOf({ cols }, 1, 1), end: cellOf({ cols }, rows - 2, cols - 2) };
-};
-
 /** Fills the grid with a ready-made layout, keeping start and end where they are (or nearby, for mazes). */
 export const applyPreset = (grid: Grid, preset: Preset, random: () => number): Grid => {
   const { rows, cols } = grid;
@@ -154,31 +144,5 @@ const smoothMud = (cells: Uint8Array, grid: Grid) => {
     const around = [i - grid.cols, i + grid.cols, colOf(grid, i) > 0 ? i - 1 : -1, colOf(grid, i) < grid.cols - 1 ? i + 1 : -1];
     const mud = around.filter((n) => n >= 0 && n < cells.length && copy[n] === MUD).length;
     cells[i] = mud >= 2 ? MUD : mud === 0 ? EMPTY : copy[i];
-  }
-};
-
-// Sharing: terrain packs 4 cells per byte (2 bits each), then base64url.
-
-export const encodeCells = (cells: Uint8Array): string => {
-  const bytes = new Uint8Array(Math.ceil(cells.length / 4));
-  cells.forEach((t, i) => (bytes[i >> 2] |= t << ((i & 3) * 2)));
-  let binary = "";
-  bytes.forEach((b) => (binary += String.fromCharCode(b)));
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-};
-
-export const decodeCells = (text: string, count: number): Uint8Array | null => {
-  try {
-    const binary = atob(text.replace(/-/g, "+").replace(/_/g, "/"));
-    if (binary.length !== Math.ceil(count / 4)) return null;
-    const cells = new Uint8Array(count);
-    for (let i = 0; i < count; i++) {
-      const t = (binary.charCodeAt(i >> 2) >> ((i & 3) * 2)) & 3;
-      if (t > MUD) return null;
-      cells[i] = t;
-    }
-    return cells;
-  } catch {
-    return null;
   }
 };

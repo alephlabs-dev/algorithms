@@ -1,6 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
 import { useStore } from "@/store";
-import { selectSpeed } from "@/modules/engine";
+import { selectSpeed } from "@/store";
 import { cn } from "@/utils/cn";
 import { formatStepsPerSecond, presetLabels, speedPresets, type SpeedPreset } from "@/utils/speed";
 import { Button } from "../ui/button";

@@ -3,7 +3,7 @@ import type { Frame } from "./types";
 import { BarsRenderer, type DisplayMode } from "./barsRenderer";
 import { useElementSize } from "@/hooks/useElementSize";
 import { useStore } from "@/store";
-import { selectSpeed } from "@/modules/engine";
+import { selectSpeed } from "@/store";
 import { moveDuration } from "@/utils/speed";
 
 type Props = {

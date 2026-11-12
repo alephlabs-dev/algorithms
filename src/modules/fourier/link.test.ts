@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { searchFor } from "@/navigation";
 import type { StoreState } from "@/appStore";
-import { engines } from "@/modules/engine";
 import { EXAMPLE_SPEED, defaultsOf, openLink, reopened, stateFor, within } from "@/modules/testing";
 import { routePath } from "@/routes";
 import { readLocation } from "@/urlState";
@@ -42,7 +42,7 @@ describe("Fourier's link", () => {
     ];
     for (const change of changes) {
       const state = stateFor("fourier", "single", false);
-      expect(engines.fourier.search(change(state))).not.toBe(engines.fourier.search(state));
+      expect(searchFor(change(state))).not.toBe(searchFor(state));
     }
   });
 

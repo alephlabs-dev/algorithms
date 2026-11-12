@@ -179,6 +179,8 @@ const moduleBoundaries = {
       prerender:
         "The prerender renders this file in Node, where there's no window: it can't reach {{target}}{{via}}. A module's content (articles, thumbnail) reaches only Node-safe code; the store, interfaces and slices are the browser's side (docs/adr/0003).",
       otherModule: "Module {{from}} can't import from module {{to}}'s folder. Move what both need to shared code (docs/adr/0003).",
+      registryInModule:
+        "Module {{from}} can't import values from {{registry}}: through a registry it could reach every other module. Import its types only, or move what's needed to shared code (docs/adr/0003).",
     },
   },
   create: (context) => {
@@ -187,6 +189,12 @@ const moduleBoundaries = {
     const importer = moduleOf(withoutExtension(from), root);
     // The piece of every module this file registers ("slice", "ui"), if it's a registry.
     const registers = context.options[0]?.registries?.[from];
+    // The registries, as imports resolve them ("@/modules" is the folder's index.ts).
+    const registryFiles = new Set(Object.keys(context.options[0]?.registries ?? {}).map(withoutExtension));
+    const registryOf = (resolved) => {
+      const file = resolved === "src/modules" ? "src/modules/index" : resolved;
+      return registryFiles.has(file) ? file : null;
+    };
     // Rendered by the prerender in Node: a module's content, or a shared file listed as such.
     const prerendered = importer?.file === "content" || (context.options[0]?.prerender ?? []).includes(from);
     const check = (node) => {
@@ -212,6 +220,11 @@ const moduleBoundaries = {
           context.report({ node: node.source, messageId: "prerender", data: { target: chain[chain.length - 1], via } });
           return;
         }
+      }
+      const registry = importer && registryOf(resolved);
+      if (registry && !onlyTypes(node)) {
+        context.report({ node: node.source, messageId: "registryInModule", data: { from: importer.id, registry } });
+        return;
       }
       if (!target) return;
       if (!importer) {

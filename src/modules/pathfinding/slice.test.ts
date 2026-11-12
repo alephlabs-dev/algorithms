@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { createAppStore, selectLastIndex, selectRaceRuns } from "@/appStore";
 import { href, routePath } from "@/routes";
-import { routeIn } from "@/modules/engine";
+import { routeIn } from "@/routes";
 import { linkFor, readLocation } from "@/urlState";
 import { pathfindingSlice as slice, type PathfindingState } from "./slice";
-import { encodeCells } from "./grid";
+import { encodeCells } from "@/utils/gridLink";
 import { MUD, WALL } from "./types";
 import { searchFor } from "@/navigation";
 import { MAX_RACERS, type SliceContext } from "@/modules/slice";

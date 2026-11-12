@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { engines } from "@/modules/engine";
+import { searchFor } from "@/navigation";
 import { EXAMPLE_SPEED, defaultsOf, openLink, reopened, stateFor, within } from "@/modules/testing";
 import { routePath } from "@/routes";
 import { readLocation } from "@/urlState";
 import { seededRandom } from "@/utils/random";
-import { applyPreset, emptyGrid, encodeCells } from "./grid";
+import { applyPreset, emptyGrid } from "./grid";
+import { encodeCells } from "@/utils/gridLink";
 import { pathfindingLink } from "./link";
 import { pathfindingManifest } from "./manifest";
 import type { PathAlgorithm } from "./types";
@@ -33,7 +34,7 @@ describe("pathfinding's link", () => {
     ];
     for (const change of changes) {
       const state = stateFor("pathfinding", "single", false);
-      expect(engines.pathfinding.search(change(state))).not.toBe(engines.pathfinding.search(state));
+      expect(searchFor(change(state))).not.toBe(searchFor(state));
     }
   });
 

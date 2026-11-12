@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { circleOptions } from "./run";
 import type { Point } from "./types";
 import { routePath } from "@/routes";
-import { routeIn } from "@/modules/engine";
+import { routeIn } from "@/routes";
 import { linkFor, readLocation } from "@/urlState";
 import { fourierSlice as slice, type FourierState } from "./slice";
 import type { SliceContext } from "@/modules/slice";

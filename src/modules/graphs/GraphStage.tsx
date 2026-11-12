@@ -6,7 +6,7 @@ import { useElementSize } from "@/hooks/useElementSize";
 import { edgeName, nodeName, withEdgeToggled, withNodeAt, withStart } from "./graph";
 import type { GraphAlgorithm, GraphFrame } from "./types";
 import { selectLastIndex, useStore } from "@/store";
-import { selectSpeed } from "@/modules/engine";
+import { selectSpeed } from "@/store";
 import { cn } from "@/utils/cn";
 import { count } from "@/utils/count";
 import { moveDuration } from "@/utils/speed";

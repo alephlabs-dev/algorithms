@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createAppStore } from "@/appStore";
-import { slices } from "@/modules/engine";
 import { applyRoute } from "@/navigation";
 import { routePath } from "@/routes";
-import { linkFor, readLocation } from "@/urlState";
+import { readLocation } from "@/urlState";
 import { gridSizes, type GridSize } from "@/utils/gridSize";
 import { isMazeCell } from "@/utils/mazeGenerators";
 import { pathfindingLinkFor } from "./toPathfinding";
@@ -17,11 +16,17 @@ const mazesAt = (algorithm: MazeAlgorithm, size: GridSize, isMobile = false) =>
     theme: "dark",
   });
 
-/** The pathfinding grid a fresh page load opens on the link. */
+/** The link to solve the maze on stage in pathfinding. */
+const linkFrom = (app: ReturnType<typeof mazesAt>) => {
+  const s = app.getState();
+  return pathfindingLinkFor({ ...s, algorithm: s.pathfinding.algorithm });
+};
+
+/** What a fresh page load of the link opens. */
 const openedFrom = ({ route, search }: ReturnType<typeof pathfindingLinkFor>, isMobile = false) => {
   const location = readLocation(routePath(route), search);
-  const ctx = { view: "single" as const, isModuleStart: false, speedPreset: "1x" as const, isMobile, isPortrait: isMobile };
-  return { location, state: slices.pathfinding.hydrate(linkFor(location, "pathfinding"), ctx) };
+  const app = createAppStore({ url: location, isMobile, isPortrait: isMobile, theme: "dark" });
+  return { location, state: app.getState().pathfinding };
 };
 
 /** Cells reachable from start, through open cells. */
@@ -51,7 +56,7 @@ describe("solving a maze from Mazes in pathfinding", () => {
           const app = mazesAt(algorithm, size, isMobile);
           const { run } = app.getState().mazes;
           const { states } = run.frameAt(run.length - 1);
-          const { location, state } = openedFrom(pathfindingLinkFor(app.getState()), isMobile);
+          const { location, state } = openedFrom(linkFrom(app), isMobile);
           expect(location.module).toBe("pathfinding");
           expect(state.algorithm).toBe("astar");
           expect(state.gridSize).toBe(size);
@@ -68,15 +73,14 @@ describe("solving a maze from Mazes in pathfinding", () => {
     const app = mazesAt("prim", "small");
     app.getState().pick("pathfinding", "bfs");
     app.getState().pick("mazes", "prim");
-    const { route } = pathfindingLinkFor(app.getState());
+    const { route } = linkFrom(app);
     expect(route).toEqual({ module: "pathfinding", page: "algorithm", algorithm: "bfs" });
   });
 
   it("in the app, opens the same grid a fresh page load of the link does", () => {
     const app = mazesAt("wilson", "large");
-    const link = pathfindingLinkFor(app.getState());
-    app.getState().actions.pathfinding.openMaze(link.maze, app.getState().mazes.size);
-    applyRoute(app, link.route);
+    const link = linkFrom(app);
+    applyRoute(app, link.route, link.search);
     const state = app.getState();
     expect([state.module, state.view]).toEqual(["pathfinding", "single"]);
     expect(state.pathfinding.gridSize).toBe("large");
@@ -90,9 +94,8 @@ describe("solving a maze from Mazes in pathfinding", () => {
     [true, "large"],
   ] as const)("on a phone: %s, a %s maze is back as it was after a race that shrinks it", (isMobile, size) => {
     const app = mazesAt("kruskal", size, isMobile);
-    const link = pathfindingLinkFor(app.getState());
-    app.getState().actions.pathfinding.openMaze(link.maze, size);
-    applyRoute(app, link.route);
+    const link = linkFrom(app);
+    applyRoute(app, link.route, link.search);
     const imported = app.getState().pathfinding.grid;
     app.getState().setView("race");
     expect(app.getState().pathfinding.gridSize).not.toBe(size);

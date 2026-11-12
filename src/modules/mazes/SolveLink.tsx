@@ -21,34 +21,23 @@ const text = localized({
   },
 });
 
-/**
- * The finished maze on stage, opened in pathfinding. A real link (a new tab opens it too); a
- * plain click hands the maze to pathfinding's slice and switches module in the app.
- */
+/** The finished maze on stage, opened in pathfinding: a real link, which the app opens like any other. */
 export const SolveLink = () => {
   const inputs = useStore(
     useShallow((s) => ({
       mazes: s.mazes,
-      pathfinding: s.pathfinding,
+      algorithm: s.pathfinding.algorithm,
       speedPreset: s.speedPreset,
       isMobile: s.isMobile,
       isPortrait: s.isPortrait,
       stageAspect: s.stageAspect,
     })),
   );
-  const openMaze = useStore((s) => s.actions.pathfinding.openMaze);
-  const { route, search, maze } = useMemo(() => pathfindingLinkFor(inputs), [inputs]);
+  const { route, search } = useMemo(() => pathfindingLinkFor(inputs), [inputs]);
   return (
     <Field label={text.label} help={text.help}>
       <Button asChild variant="secondary" className="self-start">
-        <PageLink
-          to={route}
-          search={search}
-          onNavigate={(to) => {
-            openMaze(maze, inputs.mazes.size);
-            navigate(to);
-          }}
-        >
+        <PageLink to={route} search={search} onNavigate={navigate}>
           {text.link}
         </PageLink>
       </Button>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { engines } from "@/modules/engine";
+import { searchFor } from "@/navigation";
 import { EXAMPLE_SPEED, defaultsOf, openLink, reopened, stateFor, within } from "@/modules/testing";
 import { routePath } from "@/routes";
 import { readLocation } from "@/urlState";
@@ -8,6 +8,7 @@ import { generateItems } from "./generateItems";
 import { sortAlgorithms } from "./generators";
 import { sortingLink } from "./link";
 import { sortingManifest } from "./manifest";
+import { sortingSlice } from "./slice";
 import { Timeline } from "./timeline";
 
 describe("sorting's link", () => {
@@ -37,7 +38,7 @@ describe("sorting's link", () => {
     ];
     for (const change of changes) {
       const state = stateFor("sorting", "single", false);
-      expect(engines.sorting.search(change(state))).not.toBe(engines.sorting.search(state));
+      expect(searchFor(change(state))).not.toBe(searchFor(state));
     }
   });
 
@@ -48,12 +49,12 @@ describe("sorting's link", () => {
         size,
         run: new Timeline(sortAlgorithms.insertion, generateItems(size, "random", seededRandom(4))),
       })(stateFor("sorting", "single", false));
-    const game = engines.sorting.game;
+    const game = sortingSlice.engine.game;
     expect(game).toBeDefined();
-    expect(game!(sortingWith(10)).length).toBeGreaterThan(0);
-    expect(game!(sortingWith(20)).length).toBeGreaterThan(0);
-    expect(game!(sortingWith(40))).toEqual([]);
-    expect(game!(sortingWith(400))).toEqual([]);
+    expect(game!(sortingWith(10).sorting).length).toBeGreaterThan(0);
+    expect(game!(sortingWith(20).sorting).length).toBeGreaterThan(0);
+    expect(game!(sortingWith(40).sorting)).toEqual([]);
+    expect(game!(sortingWith(400).sorting)).toEqual([]);
   });
 
   describe("url state", () => {

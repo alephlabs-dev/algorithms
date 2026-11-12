@@ -2,15 +2,14 @@ import { describe, expect, it } from "vitest";
 import { seededRandom } from "@/utils/random";
 import {
   applyPreset,
-  decodeCells,
   emptyGrid,
-  encodeCells,
   neighbors,
   stepCost,
   withTerrain,
 } from "./grid";
 import { gridDimensions, gridSizes } from "@/utils/gridSize";
 import { carvedCells } from "@/utils/mazeGenerators";
+import { CELL, decodeCells, encodeCells } from "@/utils/gridLink";
 import { pathSearches } from "./searches";
 import { PathTimeline } from "./timeline";
 import { EMPTY, MUD, ON_PATH, VISITED, WALL, type Grid, type PathAlgorithm } from "./types";
@@ -207,5 +206,7 @@ describe("pathfinding", () => {
     expect(decodeCells("!!", 10)).toBeNull();
     expect(decodeCells(text, 5)).toBeNull();
     expect([EMPTY, WALL, MUD].every((t) => grid.cells.includes(t))).toBe(true);
+    // Links say what a cell is with the shared codes, which are pathfinding's terrain.
+    expect([EMPTY, WALL, MUD]).toEqual([CELL.open, CELL.wall, CELL.mud]);
   });
 });

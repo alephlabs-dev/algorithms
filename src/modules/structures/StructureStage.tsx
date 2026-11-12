@@ -7,7 +7,7 @@ import { structures } from "./algorithms";
 import { useElementSize } from "@/hooks/useElementSize";
 import { MAX_VALUE, MIN_VALUE, valuesIn, type OperationKind, type StructureAlgorithm, type StructureFrame } from "./types";
 import { selectGameQuestion, useStore } from "@/store";
-import { selectSpeed } from "@/modules/engine";
+import { selectSpeed } from "@/store";
 import { count } from "@/utils/count";
 import { moveDuration } from "@/utils/speed";
 import { cn } from "@/utils/cn";
