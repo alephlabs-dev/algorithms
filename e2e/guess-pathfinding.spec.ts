@@ -79,7 +79,7 @@ test('where cells are too small, the guess view says so and one tap switches to 
   await pickGuess(page);
   // The reason, and the way out, take the dock's place.
   await expect(reason).toBeVisible();
-  await expect(stepCaption(page)).toHaveText('Guess needs bigger cells: pick a smaller grid.');
+  await expect(stepCaption(page)).toHaveText('Guess mode is paused.');
   await expect(play).toBeHidden();
   await page.getByRole('button', { name: 'Switch to the small grid' }).click();
 

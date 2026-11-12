@@ -13,12 +13,14 @@ import { localized } from "@/i18n";
 const text = localized({
   en: {
     tooFast: "Pause or slow down to follow each step.",
+    guessPaused: "Guess mode is paused.",
     currentStep: "Current step",
     pseudocode: "Pseudocode",
     showPseudocode: (step: string) => `${step} Show pseudocode`,
   },
   es: {
     tooFast: "Pausa o baja la velocidad para seguir cada paso.",
+    guessPaused: "Modo adivinanza en pausa.",
     currentStep: "Paso actual",
     pseudocode: "Pseudocódigo",
     showPseudocode: (step) => `${step} Ver pseudocódigo`,
@@ -56,9 +58,9 @@ const useNarration = () => {
   const index = useThrottled(frameIndex, UPDATE_INTERVAL_MS);
   // Narrates from the store as it is now, at the throttled position.
   const sentence = useStore((s) => (tooFast ? "" : code.narrate(s, index)));
-  // The guess view can't play this run: the step says why, instead of asking for a Play that isn't there (UX.md rule 5).
-  const unavailable = useStore((s) => (s.view === "guess" ? selectGameUnavailable(s) : null));
-  if (unavailable) return { sentence: `${unavailable}.`, muted: false };
+  // The guess view can't play this run: no "Press play" without a Play (UX.md rule 5); the dock's notice says why.
+  const paused = useStore((s) => s.view === "guess" && selectGameUnavailable(s) !== null);
+  if (paused) return { sentence: text.guessPaused, muted: true };
   if (tooFast) return { sentence: text.tooFast, muted: true };
   return { sentence, muted: false };
 };

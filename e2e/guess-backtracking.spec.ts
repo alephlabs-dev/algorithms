@@ -37,8 +37,8 @@ test('Sudoku says guess mode works with N-Queens for now, and asks nothing', asy
   await pickGuess(page);
   // The reason takes the dock's place: nothing plays, so nothing is asked.
   await expect(unavailableNote(page, 'Guess works with N-Queens for now.')).toBeVisible();
-  // The step says why too, instead of asking for a Play that isn't there.
-  await expect(stepCaption(page)).toHaveText('Guess works with N-Queens for now.');
+  // The step stays neutral: no "Press play" without a Play, and the reason only once.
+  await expect(stepCaption(page)).toHaveText('Guess mode is paused.');
   await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeHidden();
   await expect(page.getByRole('dialog', { name: 'Your guess' })).toHaveCount(0);
   expect(errors).toEqual([]);

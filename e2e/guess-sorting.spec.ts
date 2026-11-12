@@ -51,15 +51,15 @@ test('with more than 20 items the guess view says why it can\'t play, and doesn\
   // The reason takes the dock's place: nothing plays, so nothing is asked.
   const play = page.getByRole('button', { name: 'Play', exact: true });
   await expect(unavailableNote(page, 'Guess works with 10 or 20 items.')).toBeVisible();
-  // The step says why too, instead of "Press play" (UX.md rule 5).
-  await expect(stepCaption(page)).toHaveText('Guess works with 10 or 20 items.');
+  // The step stays neutral: no "Press play" without a Play (UX.md rule 5), and the reason only once.
+  await expect(stepCaption(page)).toHaveText('Guess mode is paused.');
   await expect(play).toBeHidden();
   await expect(page.getByRole('dialog', { name: 'Your guess' })).toHaveCount(0);
 
   // Visualize plays it.
   await page.getByRole('radio', { name: 'Visualize' }).click();
   await expect(unavailableNote(page, 'Guess works with 10 or 20 items.')).toBeHidden();
-  await expect(stepCaption(page)).not.toHaveText('Guess works with 10 or 20 items.');
+  await expect(stepCaption(page)).not.toHaveText('Guess mode is paused.');
   await play.click();
   await expect(page.getByRole('button', { name: 'Replay', exact: true })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole('dialog', { name: 'Your guess' })).toHaveCount(0);

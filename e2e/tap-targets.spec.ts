@@ -89,3 +89,14 @@ for (const { name, url } of guessPages) {
     expect(await smallControls(page), `controls smaller than ${MIN}×${MIN}`).toEqual([]);
   });
 }
+
+// The narrowest phone, in the guess view: the score joins the dock's row of buttons, which shrink to make room.
+test(`tap targets are at least ${MIN}×${MIN} in the guess view's dock at 360px`, async ({ page }, info) => {
+  test.skip(info.project.name !== 'iphone', 'the narrowest phone, once');
+  await page.setViewportSize({ width: 360, height: 780 });
+  await skipTours(page);
+  await gotoApp(page, '/sorting/insertion-sort?size=10');
+  await pickGuess(page);
+  await expect(page.getByRole('img', { name: 'Score: 0 right out of 0' })).toBeVisible();
+  expect(await smallControls(page), `controls smaller than ${MIN}×${MIN}`).toEqual([]);
+});
