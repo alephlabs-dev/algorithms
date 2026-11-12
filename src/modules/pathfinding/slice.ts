@@ -253,6 +253,23 @@ export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, Pa
       ? null
       : { ...resized(s, ctx, s.gridSize), gridBeforeRace: s.gridBeforeRace },
 
+  // A link from another module (Mazes' "solve it"): its grid, algorithm and racers, if it names
+  // them, the same way hydrate reads them; the brush, the preset and anything unnamed stay.
+  openLink: (s, link, ctx) => {
+    const { params } = link;
+    const algorithm = link.algorithm ?? s.algorithm;
+    const racers = params.racers ?? s.racers;
+    const named = { ...s, algorithm, racers };
+    const namesGrid = [params.gridSize, params.cells, params.start, params.end].some((p) => p !== undefined);
+    if (namesGrid) {
+      const gridSize = fitGridSize(params.gridSize ?? s.gridSize, ctx.view, ctx.isMobile);
+      const { grid, keepShape } = gridFromLink(params, gridSize, ctx);
+      return { algorithm, racers, ...withGrid(named, ctx, gridSize, grid, keepShape), gridSizeBeforeRace: null };
+    }
+    if (algorithm === s.algorithm && racers === s.racers) return null;
+    return { algorithm, racers, ...runsFor(named, ctx, s.grid) };
+  },
+
   // "New" means another layout of the same kind (a clear grid becomes a maze).
   newInput: (s, ctx) => withPreset(s, ctx, s.gridPreset === "clear" ? "maze" : s.gridPreset),
 

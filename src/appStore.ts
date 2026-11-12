@@ -75,8 +75,8 @@ export type StoreState = SliceStates & {
   /** "New": another input of the same kind for the module on stage. */
   createNewArray: () => void;
   /**
-   * Opens a link in the app: its module's slice starts over from it, as a fresh page load
-   * would, and so does the speed it names. The page itself is applied by the caller (applyRoute).
+   * Opens a link in the app: its module takes what the link names (its grid, its algorithm, the
+   * speed) and keeps the rest. The page itself is applied by the caller (applyRoute).
    */
   loadLink: (url: UrlLocation) => void;
   setIsMobile: (isMobile: boolean) => void;
@@ -191,6 +191,9 @@ type LooseSlice = {
   forView?: (slice: object, ctx: SliceContext) => object;
   fit?: (slice: object, ctx: SliceContext) => Patch<object>;
   newInput: (slice: object, ctx: SliceContext) => Patch<object>;
+  openLink?: (slice: object, link: Link, ctx: SliceContext) => Patch<object>;
+  link: { read: (params: URLSearchParams) => object };
+  engine: { search: (slice: object, ctx: SliceContext) => string };
 };
 const loose = slices as unknown as Record<Module, LooseSlice>;
 
@@ -345,16 +348,23 @@ export const createAppStore = (env: StoreEnv) => create<StoreState>((set, get) =
     },
 
     loadLink: (url) => {
+      if (url.speed) set({ speedPreset: url.speed });
       replaceRun((state) => {
         const { module } = url;
+        const slice = loose[module];
         const ctx: SliceContext = {
           ...contextFor(state, module),
           view: module === state.module ? stageViewOf(url.view ?? "single") : "single",
           isModuleStart: url.isModuleStart,
-          ...(url.speed && { speedPreset: url.speed }),
         };
-        const hydrated = loose[module].hydrate(linkFor(url, module), ctx);
-        return { [module]: hydrated, ...(url.speed && { speedPreset: url.speed }) } as Partial<StoreState>;
+        const link = linkFor(url, module);
+        if (slice.openLink) return patchSlice(state, module, (s) => slice.openLink!(s, link, ctx), ctx);
+        // No openLink: the module's own link, with the new link's params over it; nothing new, nothing changes.
+        const algorithm = link.algorithm ?? slice.current(state[module]);
+        if (!Object.keys(link.params).length && algorithm === slice.current(state[module])) return null;
+        const current = slice.link.read(new URLSearchParams(slice.engine.search(state[module], ctx)));
+        const hydrated = slice.hydrate({ algorithm, params: { ...current, ...link.params } }, ctx);
+        return { [module]: hydrated } as Partial<StoreState>;
       });
     },
 

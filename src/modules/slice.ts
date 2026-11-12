@@ -76,6 +76,12 @@ export type ModuleSlice<
   fit?: (slice: S, ctx: SliceContext) => Patch<S>;
   /** "New": another input of the same kind. */
   newInput: (slice: S, ctx: SliceContext) => Patch<S>;
+  /**
+   * A link opened in the app (another module's link to this one): changes only what its params and
+   * algorithm name, keeping the rest as the learner left it; null when it names nothing new. Without
+   * it, the module opens on its current link with the new link's params over it.
+   */
+  openLink?: (slice: S, link: Link<P, Id>, ctx: SliceContext) => Patch<S>;
   /** What playback needs: how long a run is and how its steps are paced, and the query string of its link. */
   engine: {
     /** The last playback position: a frame index in single view, the race clock in race view. */

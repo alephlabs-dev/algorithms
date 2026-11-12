@@ -6,7 +6,7 @@ import { linkFor, readLocation } from "@/urlState";
 import { pathfindingSlice as slice, type PathfindingState } from "./slice";
 import { encodeCells } from "@/utils/gridLink";
 import { MUD, WALL } from "./types";
-import { searchFor } from "@/navigation";
+import { applyRoute, searchFor } from "@/navigation";
 import { MAX_RACERS, type SliceContext } from "@/modules/slice";
 
 const single: SliceContext = {
@@ -149,6 +149,45 @@ describe("pathfinding in the store", () => {
     change(app);
     app.getState().setView("single");
     expect(app.getState().pathfinding.grid).not.toEqual(drawn);
+  });
+
+  /** Pathfinding with the learner's own touches: a drawn grid, mud brush, three racers, a few steps in. */
+  const touched = () => {
+    const app = storeAt(href({ module: "pathfinding", page: "algorithm", algorithm: "astar" }));
+    const drawn = drawOn(app);
+    app.getState().actions.pathfinding.setBrush("mud");
+    app.getState().actions.pathfinding.toggleRacer("greedy");
+    app.getState().seek(5);
+    return { app, drawn, racers: app.getState().pathfinding.racers };
+  };
+  const astar = { module: "pathfinding", page: "algorithm", algorithm: "astar" } as const;
+
+  it("a page link without a query leaves the module as it was", () => {
+    const { app, drawn, racers } = touched();
+    applyRoute(app, astar);
+    applyRoute(app, astar, "");
+    const s = app.getState();
+    expect([s.pathfinding.grid, s.pathfinding.brush, s.pathfinding.racers, s.frameIndex]).toEqual([drawn, "mud", racers, 5]);
+  });
+
+  it("a link with only a speed changes only the speed", () => {
+    const { app, drawn, racers } = touched();
+    applyRoute(app, astar, "?speed=4x");
+    const s = app.getState();
+    expect(s.speedPreset).toBe("4x");
+    expect([s.pathfinding.grid, s.pathfinding.brush, s.pathfinding.racers, s.frameIndex]).toEqual([drawn, "mud", racers, 5]);
+  });
+
+  it("a link with a grid replaces the grid, and only what else it names", () => {
+    const { app, racers } = touched();
+    const { rows, cols } = app.getState().pathfinding.grid;
+    const cells = new Uint8Array(rows * cols);
+    cells[0] = WALL;
+    applyRoute(app, { module: "pathfinding", page: "algorithm", algorithm: "bfs" }, `?grid=medium&cells=${encodeCells(cells)}&from=1&to=2`);
+    const s = app.getState().pathfinding;
+    expect([s.algorithm, s.grid.cells, s.grid.start, s.grid.end]).toEqual(["bfs", cells, 1, 2]);
+    expect([s.brush, s.racers]).toEqual(["mud", racers]);
+    expect(s.run.frameAt(Infinity).found).toBe(true);
   });
 
   it("a grid size picked during the race is the one kept after it", () => {
