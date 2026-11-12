@@ -3,7 +3,7 @@ import { localized } from "@/i18n";
 import { useStore, type Theme } from "@/store";
 import { Swatch } from "@/components/TourSwatch";
 import { colorNames } from "@/components/tourColors";
-import { hasStartCell } from "./generators";
+import { hasStartCell } from "@/utils/mazeGenerators";
 import type { MazeAlgorithm } from "./types";
 import type { TourStep } from "@/modules/types";
 

@@ -5,6 +5,7 @@ import { routeIn } from "@/modules/engine";
 import { linkFor, readLocation } from "@/urlState";
 import { pathfindingSlice as slice, type PathfindingState } from "./slice";
 import { encodeCells } from "./grid";
+import { MUD, WALL } from "./types";
 import { searchFor } from "@/navigation";
 import { MAX_RACERS, type SliceContext } from "@/modules/slice";
 
@@ -91,6 +92,52 @@ describe("pathfinding in the store", () => {
     expect(app.getState().pathfinding.gridSize).toBe("medium");
     app.getState().setView("single");
     expect(app.getState().pathfinding.gridSize).toBe("large");
+  });
+
+  /** The grid on stage with walls and mud drawn on it, away from the markers. */
+  const drawOn = (app: ReturnType<typeof storeAt>) => {
+    const grid = app.getState().pathfinding.grid;
+    const cells = new Uint8Array(grid.cells.length);
+    const free = [...cells.keys()].filter((c) => c !== grid.start && c !== grid.end);
+    for (const c of free.slice(0, 5)) cells[c] = WALL;
+    for (const c of free.slice(5, 9)) cells[c] = MUD;
+    app.getState().actions.pathfinding.editGrid({ ...grid, cells });
+    return app.getState().pathfinding.grid;
+  };
+
+  it.each([
+    [false, "large"],
+    [true, "medium"],
+    [true, "large"],
+  ] as const)("on a phone: %s, a %s grid the learner drew is back as it was after a race that shrinks it", (isMobile, size) => {
+    const app = createAppStore({
+      url: readLocation("/pathfinding/a-star", ""),
+      isMobile,
+      isPortrait: isMobile,
+      theme: "dark",
+    });
+    app.getState().actions.pathfinding.setGridSize(size);
+    const drawn = drawOn(app);
+    app.getState().setView("race");
+    expect(app.getState().pathfinding.gridSize).not.toBe(size);
+    app.getState().setView("single");
+    expect(app.getState().pathfinding.gridSize).toBe(size);
+    expect(app.getState().pathfinding.grid).toEqual(drawn);
+  });
+
+  it.each([
+    ["the size", (app: ReturnType<typeof storeAt>) => app.getState().actions.pathfinding.setGridSize("medium")],
+    ["the preset", (app: ReturnType<typeof storeAt>) => app.getState().actions.pathfinding.applyGridPreset("walls")],
+    ["the grid", (app: ReturnType<typeof storeAt>) => drawOn(app)],
+    ["to a new layout", (app: ReturnType<typeof storeAt>) => app.getState().createNewArray()],
+  ])("a grid changed during the race isn't brought back after it: %s", (_, change) => {
+    const app = storeAt(href({ module: "pathfinding", page: "algorithm", algorithm: "astar" }));
+    app.getState().actions.pathfinding.setGridSize("large");
+    const drawn = drawOn(app);
+    app.getState().setView("race");
+    change(app);
+    app.getState().setView("single");
+    expect(app.getState().pathfinding.grid).not.toEqual(drawn);
   });
 
   it("a grid size picked during the race is the one kept after it", () => {

@@ -14,8 +14,8 @@
   // e2e and the prerender plugin import the route registry (src/routes.ts), so it and every file it imports must be
   // included (a composite project only checks included files). Each module's manifest, and the types.ts and
   // algorithms.ts it may import, are found by glob (docs/adr/0003). The one shared file they read is listed:
-  // src/utils/gridSize.ts (a type).
+  // src/utils/gridSize.ts (a type), and src/utils/mazeGenerators.ts (Mazes' algorithm names).
   "include": ["vite.config.ts", "vite-plugin-prerender.ts", "playwright.config.ts", "e2e", "src/routes.ts", "src/i18n.ts",
     "src/modules/manifests.ts", "src/modules/*/manifest.ts", "src/modules/*/types.ts", "src/modules/*/algorithms.ts",
-    "src/utils/gridSize.ts"]
+    "src/utils/gridSize.ts", "src/utils/mazeGenerators.ts"]
 }

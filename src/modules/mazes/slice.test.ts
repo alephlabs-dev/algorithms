@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createAppStore } from "@/appStore";
 import { routePath } from "@/routes";
-import { isMazeCell, mazePseudocode } from "./generators";
+import { isMazeCell, mazePseudocode } from "@/utils/mazeGenerators";
 import { MAZE_ALGORITHMS } from "./types";
 import { ACTIVE, CARVED, FRONTIER, OTHER_REGION, REGION, SKIPPED, WALK, WALL } from "./types";
 import { linkFor, readLocation } from "@/urlState";

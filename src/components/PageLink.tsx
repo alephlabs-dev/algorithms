@@ -8,19 +8,22 @@ import { href, type Route } from "@/routes";
  */
 export const PageLink = ({
   to,
+  search = "",
   onNavigate,
   children,
   className = "font-semibold underline decoration-line underline-offset-4 hover:decoration-foreground",
   ...rest
 }: {
   to: Route;
+  /** The query string the page opens with (its settings), when it isn't the page's defaults. */
+  search?: string;
   onNavigate?: (route: Route) => void;
   children: ReactNode;
   className?: string;
   "aria-label"?: string;
 }) => (
   <a
-    href={href(to)}
+    href={href(to) + search}
     className={className}
     {...rest}
     onClick={(event: MouseEvent) => {

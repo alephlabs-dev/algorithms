@@ -1,5 +1,5 @@
 import { localized } from "@/i18n";
-import { isMazeCell } from "./generators";
+import { isMazeCell } from "@/utils/mazeGenerators";
 import type { MazeRun } from "./run";
 import { FRONTIER, WALL, type MazeFrame } from "./types";
 import { count } from "@/utils/count";

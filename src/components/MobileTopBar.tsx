@@ -1,5 +1,5 @@
 import { InfoCircledIcon, MixerHorizontalIcon } from "@radix-ui/react-icons";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useModuleUI, useSettingsSummary } from "@/modules";
 import { useAlgorithmGroups } from "./algorithmGroups";
@@ -59,9 +59,16 @@ const InfoButton = ({ label, children }: { label: string; children: ReactNode })
  */
 const SettingsButton = () => {
   const { label: summary } = useSettingsSummary();
+  const module = useStore((s) => s.module);
+  // Open for the module it was opened in: a setting that switches module (Mazes' "solve it") closes it.
+  const [openFor, setOpenFor] = useState<typeof module | null>(null);
   return (
     // The stage stays put under the sheet: no scaling, and playback carries on.
-    <Drawer shouldScaleBackground={false}>
+    <Drawer
+      shouldScaleBackground={false}
+      open={openFor === module}
+      onOpenChange={(open) => setOpenFor(open ? module : null)}
+    >
       <DrawerTrigger asChild>
         <Button
           data-tour="settings"

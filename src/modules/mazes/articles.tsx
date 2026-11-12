@@ -4,7 +4,7 @@ import { PageLink } from "@/components/PageLink";
 import { localized } from "@/i18n";
 import type { Nav } from "@/modules/types";
 import { mazeAlgorithms, raceDescription } from "./algorithms";
-import { mazePseudocode } from "./generators";
+import { mazePseudocode } from "@/utils/mazeGenerators";
 import { MAZE_ALGORITHMS, type MazeAlgorithm } from "./types";
 
 const mazesText = localized({

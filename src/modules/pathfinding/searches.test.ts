@@ -10,6 +10,7 @@ import {
   withTerrain,
 } from "./grid";
 import { gridDimensions, gridSizes } from "@/utils/gridSize";
+import { carvedCells } from "@/utils/mazeGenerators";
 import { pathSearches } from "./searches";
 import { PathTimeline } from "./timeline";
 import { EMPTY, MUD, ON_PATH, VISITED, WALL, type Grid, type PathAlgorithm } from "./types";
@@ -151,6 +152,51 @@ describe("pathfinding", () => {
         }
       }
     }
+  });
+
+  it("carves the Mazes DFS maze, plus a few gaps between its cells", () => {
+    for (const size of gridSizes) {
+      for (const phone of [false, true]) {
+        const { rows, cols } = gridDimensions(size, phone);
+        // Start and end on maze cells (odd row and column), so the maze needs no joining to them.
+        const grid = { ...emptyGrid(rows, cols), start: cols + 1, end: (rows - 2) * cols + cols - 2 };
+        for (let seed = 1; seed <= 20; seed++) {
+          const maze = applyPreset(grid, "maze", seededRandom(seed));
+          const carved = carvedCells("dfs", grid, seededRandom(seed));
+          const open = [...maze.cells.keys()].filter((c) => maze.cells[c] !== WALL);
+          for (const cell of carved) expect(maze.cells[cell]).toBe(EMPTY);
+          // The rest are gaps: walls between two maze cells, inside the border.
+          for (const cell of open.filter((c) => !carved.has(c))) {
+            const [r, c] = [Math.floor(cell / cols), cell % cols];
+            expect((r + c) % 2).toBe(1);
+            expect(r > 0 && r < rows - 1 && c > 0 && c < cols - 1).toBe(true);
+          }
+          // Without the gaps it's a perfect maze on the odd cells: a tree joining every one of them.
+          const cells = new Uint8Array(rows * cols).fill(WALL);
+          for (const cell of carved) cells[cell] = EMPTY;
+          const perfect = { ...grid, cells };
+          const odd = [...cells.keys()].filter((c) => Math.floor(c / cols) % 2 === 1 && (c % cols) % 2 === 1);
+          expect(odd.every((c) => carved.has(c))).toBe(true);
+          expect(carved.size).toBe(2 * odd.length - 1);
+          const seen = new Set([grid.start]);
+          const queue = [grid.start];
+          while (queue.length) for (const n of neighbors(perfect, queue.shift()!)) if (!seen.has(n) && seen.add(n)) queue.push(n);
+          expect(seen.size).toBe(carved.size);
+        }
+      }
+    }
+  });
+
+  it("leaves mazes more than one way through: DFS or greedy takes a longer path than BFS on most seeds", () => {
+    const pathLength = (algorithm: PathAlgorithm, grid: Grid) => finish(algorithm, grid).frame.stats.pathLength;
+    let longer = 0;
+    const seeds = 40;
+    for (let seed = 1; seed <= seeds; seed++) {
+      const grid = applyPreset(emptyGrid(17, 33), "maze", seededRandom(seed));
+      const bfs = pathLength("bfs", grid);
+      if (pathLength("dfs", grid) > bfs || pathLength("greedy", grid) > bfs) longer++;
+    }
+    expect(longer).toBeGreaterThan(seeds / 2);
   });
 
   it("packs terrain into a URL-safe string and back", () => {

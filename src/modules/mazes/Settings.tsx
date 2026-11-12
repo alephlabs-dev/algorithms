@@ -1,6 +1,8 @@
 import { localized } from "@/i18n";
 import { Field } from "@/components/Settings/Field";
+import { useStore } from "@/store";
 import { MazeSizePicker } from "./MazeTools";
+import { SolveLink } from "./SolveLink";
 
 const text = localized({
   en: {
@@ -13,9 +15,15 @@ const text = localized({
   },
 });
 
-/** Mazes' settings: the size is the only one. */
-export const MazeSettings = () => (
-  <Field label={text.mazeSize} help={text.mazeSizeHelp} tour="tools">
-    <MazeSizePicker />
-  </Field>
-);
+/** Mazes' settings: the size, and in single view a way to solve the maze in pathfinding. */
+export const MazeSettings = () => {
+  const single = useStore((s) => s.view !== "race");
+  return (
+    <>
+      <Field label={text.mazeSize} help={text.mazeSizeHelp} tour="tools">
+        <MazeSizePicker />
+      </Field>
+      {single && <SolveLink />}
+    </>
+  );
+};

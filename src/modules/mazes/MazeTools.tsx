@@ -1,6 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
 import { mazeAlgorithms, mazeSizeLabels } from "./algorithms";
-import { hasStartCell } from "./generators";
+import { hasStartCell } from "@/utils/mazeGenerators";
 import type { MazeAlgorithm } from "./types";
 import { localized } from "@/i18n";
 import { gridSizes, raceMaxGridSize, type GridSize } from "@/utils/gridSize";
