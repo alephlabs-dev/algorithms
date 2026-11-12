@@ -1,11 +1,12 @@
 import type { MouseEvent, ReactNode } from "react";
-import { lang, type Lang } from "@/i18n";
+import type { Lang } from "@/i18n";
 import { pathIn } from "@/routes";
 import { useStore } from "@/store";
 import { routeFor } from "@/navigation";
 import { cn } from "@/utils/cn";
+import { languageButtonClass, otherLang } from "./languageButton";
 
-const other: Lang = lang === "en" ? "es" : "en";
+const other = otherLang;
 
 /** Each language named in itself, so a reader of the other one recognizes it. */
 const NAMES: Record<Lang, string> = { en: "English", es: "Español" };
@@ -35,7 +36,7 @@ const LanguageLink = ({ className, children }: { className?: string; children: R
 
 /** Desktop top bar: the other language's code, next to the theme toggle. */
 export const LanguageButton = () => (
-  <LanguageLink className="tap-target relative grid h-9 min-w-9 place-items-center rounded-full px-2 font-mono text-xs font-semibold uppercase text-foreground/80 transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary">
+  <LanguageLink className={languageButtonClass}>
     <span aria-hidden>{other}</span>
     <span className="sr-only">{NAMES[other]}</span>
   </LanguageLink>

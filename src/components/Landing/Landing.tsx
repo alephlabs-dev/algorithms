@@ -5,6 +5,7 @@ import { manifests } from "@/modules/manifests";
 import { localized } from "@/i18n";
 import { HOME, MODULES, type ModuleId, type Route } from "@/routes";
 import { cn } from "@/utils/cn";
+import { HeaderActionsSpace } from "../HeaderActionsSpace";
 import { PageLink } from "../PageLink";
 import { AlephMark } from "../ui/aleph-mark";
 
@@ -113,7 +114,8 @@ export const Landing = ({ onNavigate, actions }: Props) => {
             <GitHubLogoIcon aria-hidden className="h-4 w-4 sm:hidden" />
             <span className="sr-only sm:not-sr-only">GitHub</span>
           </a>
-          {actions}
+          {/* Until the app fills them, their space is kept, so the links never shift (#182). */}
+          {actions || <HeaderActionsSpace />}
         </nav>
       </header>
 
