@@ -82,9 +82,11 @@ the ticket that removes it. The rule itself is never turned off.
 
 ## Adding one
 
+A new module is its folder plus one line in each of the four registries. Nothing else outside the folder.
+
 1. **Manifest:** `src/modules/<id>/manifest.ts` with its pages, search-engine text, hints, landing card,
-   `translated` and an example link, registered in `manifests` (`manifests.ts`). That entry gives the module
-   its id, its place in the order, its pages (`src/routes.ts`) and its prerendered pages and sitemap entries.
+   `translated`, its tour key and an example link, registered in `manifests` (`manifests.ts`). That entry gives
+   the module its id, its place in the order, its pages (`src/routes.ts`) and its prerendered pages and sitemap entries.
 2. **Slice:** the algorithms as step generators recorded into a timeline, then `src/modules/<id>/slice.ts`
    with `defineModule`, registered in `slices` (`engine.ts`). That one entry gives the store the module's
    state, actions and engine; its pace and its step sentence runs (`sentences.ts`) are part of it.
@@ -93,14 +95,27 @@ the ticket that removes it. The rule itself is never turned off.
 4. **Content:** `src/modules/<id>/content.tsx` filling in `ModuleContent`, with its articles (one per page, a race
    article if it races) and landing thumbnail, registered in `moduleContents` (`contents.ts`). The typecheck flags
    a missing registry entry or article.
-5. **Shared tests:** its `link.test.ts` (the example link opens with every setting it carries), a link per page
-   kind in `links.test.ts` (`ROUND_TRIPS`), and its pages and tour key in `e2e/settings-fit.spec.ts`,
-   `e2e/tap-targets.spec.ts` and `e2e/step-sentences-fit.spec.ts` (and `e2e/algorithm-picker.spec.ts` once it has
-   two algorithms or more).
+5. **Its own tests**, in its folder: `slice.test.ts`, and `link.test.ts` (the example link opens with every setting
+   it carries; links it must keep opening the same way).
 
-6. **Guess mode** (optional): give the slice's engine a `game` that lists the run's questions (see `src/game`).
-   Each one names the frame it's asked before, so playback stops there; the stage can draw what the
-   question needs (spots to tap, a cell marked "?") from `selectGameQuestion`.
+The shared tests need no edit: they read every module, its pages, its example link and its tour key from the
+registries (`e2e/modules.ts` for e2e). `links.test.ts` and `engine.test.ts` round-trip its example and race links;
+the smoke, settings-fit, tap-targets and step-sentences-fit specs visit its pages; `algorithm-picker.spec.ts` covers
+it once it has two algorithms or more. A step sentence run reads `<module> <algorithm> …`, so it's measured on
+that algorithm's page.
+
+**What it costs**, measured in #188 by scaffolding a throwaway module (a copy of backtracking, deleted before
+merging) until typecheck, lint, unit tests, the prerender and the shared e2e specs passed with it: **4 files**
+outside its folder, one line (and an import) each:
+
+- `src/modules/manifests.ts`: its id, order, pages, prerender and sitemap entries, and what e2e knows of it.
+- `src/modules/engine.ts`: its slice in the store.
+- `src/modules/index.ts`: its interface in the app.
+- `src/modules/contents.ts`: its articles and thumbnail in the prerendered pages.
+
+**Guess mode** (optional): give the slice's engine a `game` that lists the run's questions (see `src/game`).
+Each one names the frame it's asked before, so playback stops there; the stage can draw what the
+question needs (spots to tap, a cell marked "?") from `selectGameQuestion`.
 
 Each slice has its own test (`<id>/slice.test.ts`), run without a browser. `engine.test.ts` checks that every
 page an engine can be on belongs to it and survives its own URL, and `src/switching.test.ts` pins what switching

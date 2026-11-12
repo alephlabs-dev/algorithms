@@ -6,6 +6,8 @@ The manifest is a separate piece because e2e and the prerender plugin run in Nod
 
 Amended in #190: the articles, the landing thumbnails and the landing's live demo are prerendered, so they can't come from `ui.tsx`, which reaches the store, and the store reads `window` when it loads. Each module gets a fourth piece, `content.tsx` (`ModuleContent`: its articles and thumbnail, and for one module the landing's demo), registered in `moduleContents` (`src/modules/contents.ts`), `Record`-typed by `ModuleId` like the others. Content is the prerender's side and the interface the client's, the same split as `Page` and the slots the app fills after hydration (#140). The same lint rule keeps them apart: a module's `content.tsx`, and the shared files the prerender renders (`prerenderFiles` in `eslint/house.js`), can't reach the store, the app's entry, the interface or slice registries, or any module's `ui.tsx` or `slice.ts`, directly or through other files (type imports aside). They reach modules only through `contents.ts` and, for the landing cards, `manifests.ts`, which is Node-safe by its own rule. Code that reads the browser at load some other way fails `src/seo/render.test.ts`, which renders pages in Node.
 
+Amended in #188: each module's tour key moves from its slice to its manifest, since e2e runs in Node and needs every key to keep tours from opening over the page. Measured then with a throwaway module: adding one touches 4 files outside its folder, one entry in each registry (see `src/modules/README.md`).
+
 ## Considered options
 
 - **One registry holding everything, React included**: one line per module, but Node (e2e, prerender) couldn't import it.
