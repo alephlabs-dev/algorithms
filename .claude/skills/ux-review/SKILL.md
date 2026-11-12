@@ -31,7 +31,7 @@ Judge screens against `UX.md` the way a learner would see them. **Only report. D
 
 ## 3. Look at every route at every size
 
-For each route, in **both themes** (dark and light), at **393×852** (iPhone), **834×1194** (iPad) and **1280×800** (desktop):
+For each route, at **393×852** (iPhone), **834×1194** (iPad) and **1280×800** (desktop), do steps 1–4 in **dark**, then step 5 in **light**:
 
 1. Open it with the browser tool, with the first-visit tour skipped and the theme set. Before the page loads, set these `localStorage` keys: every module's `tourKey` (under `src/modules/<module>/`) to `"true"`, and `theme` to `"dark"` or `"light"`. The app reads its theme only from `localStorage.theme`; it ignores `prefers-color-scheme`, so `colorScheme`/`emulateMedia` alone does nothing. If no browser tool is available, drive the project's Playwright from a Node script kept in the scratchpad (import from `<repo>/node_modules/@playwright/test/index.mjs`).
    **Check the rendered theme after every load**, before any screenshot: the page is light when `document.documentElement.dataset.theme === "light"` and dark otherwise (unset on a fresh load, `"dark"` after using the theme toggle). On a mismatch, **stop the review**: don't judge any screenshot, report `Theme mismatch on <route> at <size>: requested <theme>, rendered <light|dark>`, and stop the preview you started.
@@ -43,10 +43,11 @@ For each route, in **both themes** (dark and light), at **393×852** (iPhone), *
    3. Whitespace: is anything crowded, cramped or touching?
    4. Secondary content: is it behind a tab, collapsible section, drawer/sheet, or slider, rather than laid out next to the primary thing?
    5. Flow: is it clear what to press next, and in what order?
-   6. Only theme colors: anything that doesn't look like the theme? Judge it in both themes; something that works in one and breaks in the other is a finding for the theme where it breaks.
+   6. Only theme colors: anything that doesn't look like the theme, or breaks in the other theme? (Light is checked in step 5.)
    7. Only our own components: any native browser control (select wheel, checkbox, range input, default-styled field)?
 
    And as a learner: every number or name a prompt, caption or option mentions is readable on screen; nothing covers the stage; nothing is cut off or too small to read; tap targets look at least 44×44 on phone and tablet.
+5. Light pass, for rule 6 only: redo steps 1–3 with `theme` set to `"light"` (same route, size and state, same mismatch check), then judge only colors and legibility: anything that doesn't look like the light theme, and any text, number or lit element that is hard to read or tell apart in light. The other rules were judged in dark; don't repeat them.
 
 ## 4. Report
 
@@ -58,4 +59,4 @@ One section per route; inside it, one line per finding:
 - **medium:** a rule is clearly broken but the screen still works.
 - **low:** polish: spacing, alignment, a slightly weak hierarchy.
 
-When a route is clean at a size and theme, say so in one line. Don't invent findings. If something looks off but no rule in `UX.md` covers it, list it under **Not covered by UX.md**. End with the counts per severity and the screenshots' paths. Then stop the preview you started.
+When a route is clean at a size, say so in one line (and whether the light pass was clean). Don't invent findings. If something looks off but no rule in `UX.md` covers it, list it under **Not covered by UX.md**. End with the counts per severity and the screenshots' paths. Then stop the preview you started.
