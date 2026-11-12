@@ -40,7 +40,7 @@ describe("dynamic programming's link", () => {
   });
 });
 
-describe("dp's captured links", () => {
+describe("dynamic programming's captured links", () => {
   // Full links as the app wrote them before the link codecs moved into the modules (#128), opened on a
   // phone held upright: old shared links keep opening the same run.
   const links: [path: string, query: string][] = [

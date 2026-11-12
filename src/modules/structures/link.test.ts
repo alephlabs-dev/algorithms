@@ -39,7 +39,7 @@ describe("data structures' link", () => {
   });
 });
 
-describe("structures's captured links", () => {
+describe("data structures' captured links", () => {
   // Full links as the app wrote them before the link codecs moved into the modules (#128), opened on a
   // phone held upright: old shared links keep opening the same run.
   const links: [path: string, query: string][] = [

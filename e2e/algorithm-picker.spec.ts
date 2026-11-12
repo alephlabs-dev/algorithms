@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { gotoApp } from './goto';
-import { algorithmsOf, isTranslated, MODULES, routePath, skipTours, startOf } from './modules';
+import { algorithmsOf, isModuleTranslated, MODULES, routePath, skipTours, startOf } from './modules';
 import { SMALLEST } from './settings';
 
 // Runs on every device project. The algorithm picker on phones and tablets (UX.md rule 11, #195): a field
@@ -20,7 +20,7 @@ const phoneBar = (page: Page) => page.evaluate(() => !matchMedia('(min-width: 10
 for (const module of modules) {
   const route = routePath(startOf(module));
   for (const l of languages) {
-    if (l.lang === 'es' && !isTranslated(module)) continue;
+    if (l.lang === 'es' && !isModuleTranslated(module)) continue;
     test(`${l.prefix}${route} picks the algorithm from a drawer`, async ({ page }, testInfo) => {
       await page.setViewportSize(SMALLEST[testInfo.project.name]);
       await skipTours(page);

@@ -1,14 +1,15 @@
 import { test, expect, type Page } from '@playwright/test';
 import { gotoApp } from './goto';
 import { openGrid } from './grids';
-import { algorithmPageOf, MODULES, routePath, routesOf, skipTours, startOf } from './modules';
+import { algorithmPageOf, MODULES, routePath, routesOf, skipTours, startOf, type ModuleId } from './modules';
 
 // UX.md: on phones and tablets every visible button, link and form control is at least 44×44 px.
 // The hit area counts, not just the visible box: an absolutely positioned ::before/::after can grow it.
 // Exempt (UX.md): links inside running text, i.e. inside a <p>.
 const MIN = 44;
 // The landing page, and each module's start page, one algorithm page and race page, from the manifests.
-const routes = ['/', ...MODULES.flatMap((module) => [startOf(module), algorithmPageOf(module), ...routesOf(module).filter((r) => r.page === 'race')]).map(routePath)];
+const pagesOf = (module: ModuleId) => [startOf(module), algorithmPageOf(module), ...routesOf(module).filter((r) => r.page === 'race')];
+const routes = ['/', ...MODULES.flatMap(pagesOf).map(routePath)];
 const CONTROLS = [
   'button',
   'a[href]',

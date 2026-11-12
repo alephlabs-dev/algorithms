@@ -6,13 +6,13 @@ pickers, tour, settings — never asks which module is on stage; it asks the mod
 A module is four declarations. The first is its **manifest** (`<id>/manifest.ts`, typed by `ModuleManifest`
 in `src/routes.ts`), what the rest of the app and Node (prerender, e2e) know about it without React: its pages
 and slugs, what search engines and the "About …" hint say on each, its landing card, whether it's translated,
-and an example link with settings that differ from its defaults. The registry `manifests.ts` gives the module
+its tour key, and an example link with settings that differ from its defaults. The registry `manifests.ts` gives the module
 ids (`ModuleId`) and their order (landing, menu, sitemap). The other three:
 
 - **Slice** (`<id>/slice.ts`, typed by `ModuleSlice` in `slice.ts`, no React, no `window`): the module's state
   and how it changes, all as pure functions over its own state. Its input and settings from the link, the
-  algorithm on stage, its actions, "New", its race runs for a view, an input that fits the screen, its tour
-  key, its step sentence runs (`sentences`, for `e2e/step-sentences-fit.spec.ts`), and its engine: how long a
+  algorithm on stage, its actions, "New", its race runs for a view, an input that fits the screen, its step
+  sentence runs (`sentences`, for `e2e/step-sentences-fit.spec.ts`), and its engine: how long a
   run is, how its steps are paced (its pace: the most seconds a run takes at 1×), which page it's on and the
   query string that reproduces the run. The store holds the slice under the module's id (`s.pathfinding.grid`) and binds
   its actions (`s.actions.pathfinding.editGrid(grid)`); only the store writes.
@@ -41,7 +41,7 @@ Mazes was the first one (#186); the others followed it (#189). A module's folder
 | `tour.tsx`, `Settings.tsx` | Its guided tour and its settings, for the interface |
 | `content.tsx` | The content, registered in `moduleContents` (`contents.ts`) |
 | `articles.tsx`, `Thumbnail.tsx` | Its articles below the stage and its landing thumbnail, for the content |
-| `manifest.ts` | Pages, search-engine text, landing entry, hints, example link; registered in `manifests` (`manifests.ts`) |
+| `manifest.ts` | Pages, search-engine text, landing entry, hints, tour key, example link; registered in `manifests` (`manifests.ts`) |
 | `sentences.ts` | Its step sentence runs, the slice's `sentences` |
 | `link.test.ts` | Its example link opens with every setting, and its pages and params read back |
 | `types.ts` | Its domain types and constants; no imports, so Node can read it |

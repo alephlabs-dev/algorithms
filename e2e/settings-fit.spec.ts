@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { gotoApp } from './goto';
-import { isTranslated, MODULES, routePath, routesOf, skipTours } from './modules';
+import { isModuleTranslated, MODULES, routePath, routesOf, skipTours } from './modules';
 import { hasSettingsPanel, SMALLEST } from './settings';
 
 // Runs on every device project. UX.md rule 14: controls never scroll. At the smallest size of
@@ -11,7 +11,7 @@ import { hasSettingsPanel, SMALLEST } from './settings';
 const PAGES = MODULES.flatMap((module) =>
   routesOf(module).flatMap((route) => {
     const path = routePath(route);
-    return isTranslated(module) ? [path, `/es${path}`] : [path];
+    return isModuleTranslated(module) ? [path, `/es${path}`] : [path];
   }),
 );
 

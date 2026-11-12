@@ -73,6 +73,7 @@ export const sortingManifest = {
     start: text.about,
     works: (algorithm: Algorithm) => sortingAlgorithms[algorithm].title,
   },
+  // The first module's key, from before every module had a tour.
   tourKey: "tour-done",
   example: { algorithm: "heap", search: "?size=40&input=reversed&mode=bars&speed=2x&seed=9ix&race=insertion%2Cquick%2Cmerge" },
 } as const satisfies ModuleManifest<Algorithm>;

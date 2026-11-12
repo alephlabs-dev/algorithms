@@ -2,8 +2,7 @@ import path from 'node:path';
 import { test, expect } from '@playwright/test';
 import { gotoApp } from './goto';
 import { createServer } from 'vite';
-import { moduleRoute } from '../src/routes';
-import { algorithmsOf, MODULES, routePath, skipTours, startOf, type ModuleId } from './modules';
+import { algorithmsOf, moduleRoute, MODULES, routePath, skipTours, startOf, type ModuleId } from './modules';
 
 // The step sentence above the stage is always two lines tall, so the stage never moves (#111), and cuts
 // what doesn't fit (#113). So every sentence must fit in two lines in the caption of its module's page, at

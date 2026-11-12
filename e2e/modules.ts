@@ -5,7 +5,7 @@ import { allRoutes, moduleOf, MODULES, moduleRoute, routePath, TRANSLATED_MODULE
 // What shared specs know about the modules, all from the manifests: a new module is covered by every
 // spec that uses these without editing it (docs/adr/0003).
 
-export { MODULES, routePath, type ModuleId, type Route };
+export { MODULES, moduleRoute, routePath, type ModuleId, type Route };
 
 /** The algorithm ids a module has pages for (in backtracking, the problems). */
 export const algorithmsOf = (module: ModuleId): string[] => Object.keys(manifests[module].pages.slugs);
@@ -20,7 +20,7 @@ export const startOf = (module: ModuleId): Route => moduleRoute(module, 'start')
 export const algorithmPageOf = (module: ModuleId): Route => moduleRoute(module, 'algorithm', manifests[module].example.algorithm);
 
 /** Whether a module's /es pages are in Spanish. */
-export const isTranslated = (module: ModuleId) => TRANSLATED_MODULES.has(module);
+export const isModuleTranslated = (module: ModuleId) => TRANSLATED_MODULES.has(module);
 
 /** Every module's tour key. */
 export const TOUR_KEYS = MODULES.map((module) => manifests[module].tourKey);
