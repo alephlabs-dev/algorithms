@@ -70,7 +70,6 @@ const fresh = (s: GraphsState, ctx: SliceContext, preset: GraphPreset, requested
 
 export const graphsSlice = defineModule<GraphsState, GraphAlgorithm, GraphsLink>()({
   sentences,
-  tourKey: "tour-done-graphs",
 
   link: graphsLink,
   hydrate: (link, ctx) => {

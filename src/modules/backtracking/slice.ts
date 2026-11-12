@@ -41,7 +41,6 @@ const sudokuRunOf = (puzzle: SudokuPuzzle, order: FillOrder) => new SudokuRun(SU
 
 export const backtrackingSlice = defineModule<BacktrackingState, BacktrackingProblem, BacktrackingLink>()({
   sentences,
-  tourKey: "tour-done-backtracking",
 
   link: backtrackingLink,
   hydrate: (link) => {

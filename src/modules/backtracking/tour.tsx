@@ -6,6 +6,12 @@ import type { TourStep } from "@/modules/types";
 export const backtrackingTour = localized<TourStep[]>({
   en: [
     {
+      anchor: "picker",
+      title: "Pick a problem",
+      text: () =>
+        "N-Queens (place queens so none attacks another) or Sudoku (fill the grid so no row, column or box repeats a digit).",
+    },
+    {
       anchor: "bars",
       title: "The board",
       text: () =>
@@ -40,6 +46,12 @@ export const backtrackingTour = localized<TourStep[]>({
     },
   ],
   es: [
+    {
+      anchor: "picker",
+      title: "Elige un problema",
+      text: () =>
+        "N reinas (coloca reinas sin que ninguna ataque a otra) o sudoku (llena la cuadrícula sin repetir un dígito en una fila, columna o caja).",
+    },
     {
       anchor: "bars",
       title: "El tablero",

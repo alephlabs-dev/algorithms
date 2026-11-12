@@ -46,8 +46,6 @@ export type ModuleSlice<
    * narrow seed 1"). Not used by the app: e2e/step-sentences-fit.spec.ts measures each in the caption.
    */
   sentences: () => Iterable<StepSentence>;
-  /** Remembers that the module's tour was seen (in localStorage). */
-  tourKey: string;
   /** Reads and writes the module's own params in a link (see ./link.ts). */
   link: LinkCodec<P>;
   /** The slice a visit starts with, from the link (checked against the module's state, with defaults) and the screen. */

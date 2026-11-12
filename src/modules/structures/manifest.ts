@@ -67,5 +67,6 @@ export const structuresManifest = {
     works: (algorithm: StructureAlgorithm) => text.structure(structures[algorithm].named),
     race: text.balancing,
   },
+  tourKey: "tour-done-structures",
   example: { algorithm: "avl", search: "?ops=i10.i20&values=medium&order=ascending&speed=2x" },
 } as const satisfies ModuleManifest<StructureAlgorithm>;

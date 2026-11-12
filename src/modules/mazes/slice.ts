@@ -71,7 +71,6 @@ const STEP_WEIGHT: Record<MazeStep["type"], number> = {
 
 export const mazesSlice = defineModule<MazesState, MazeAlgorithm, MazesLink>()({
   sentences,
-  tourKey: "tour-done-mazes",
 
   link: mazesLink,
   // A broken or missing seed carves a fresh maze.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { engines, type SliceStates } from "@/modules/engine";
-import { EXAMPLE_SPEED, stateFor, within } from "@/modules/testing";
+import { EXAMPLE_SPEED, defaultsOf, openLink, reopened, stateFor, within } from "@/modules/testing";
 import { routePath } from "@/routes";
 import { readLocation } from "@/urlState";
 import { backtrackingLink } from "./link";
@@ -68,6 +68,31 @@ describe("backtracking's link", () => {
       // Row by row is the default and stays out of the link.
       expect(backtrackingLink.write({ puzzle: "hard", order: "rows" }, "1x")).toBe("?puzzle=hard");
       expect(readLocation("/backtracking/sudoku", "?order=random").link.params).toEqual({});
+    });
+  });
+});
+
+describe("backtracking's captured links", () => {
+  // Full links as the app wrote them before the link codecs moved into the modules (#128), opened on a
+  // phone held upright: old shared links keep opening the same run.
+  const links: [path: string, query: string][] = [
+    ["/backtracking/n-queens", "?n=7&speed=2x"],
+    ["/backtracking/sudoku", "?puzzle=hard&order=mrv"],
+    // Row by row is the default and stays out of the link.
+    ["/backtracking/sudoku", "?puzzle=hard"],
+  ];
+
+  it("round-trips a full link of every page kind it writes", () => {
+    for (const [path, query] of links) expect(reopened(path, query), path + query).toBe(query);
+  });
+
+  it("falls back to the defaults on values it doesn't have", () => {
+    const d = defaultsOf("/backtracking/n-queens").backtracking;
+    expect(openLink("/backtracking/n-queens", "?n=3").backtracking.queensN).toBe(d.queensN);
+    expect(openLink("/backtracking/n-queens", "?n=9").backtracking.queensN).toBe(d.queensN);
+    expect(openLink("/backtracking/sudoku", "?puzzle=evil&order=random").backtracking).toMatchObject({
+      sudokuPuzzle: d.sudokuPuzzle,
+      sudokuOrder: "rows",
     });
   });
 });

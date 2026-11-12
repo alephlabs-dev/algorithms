@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { engines } from "@/modules/engine";
-import { EXAMPLE_SPEED, stateFor, within } from "@/modules/testing";
+import { EXAMPLE_SPEED, defaultsOf, openLink, reopened, stateFor, within } from "@/modules/testing";
 import { routePath } from "@/routes";
 import { readLocation } from "@/urlState";
 import { seededRandom } from "@/utils/random";
@@ -52,5 +52,33 @@ describe("graphs' link", () => {
       });
       expect(readLocation("/graphs", "").isModuleStart).toBe(true);
     });
+  });
+});
+
+describe("graphs' captured links", () => {
+  // Full links as the app wrote them before the link codecs moved into the modules (#128), opened on a
+  // phone held upright: old shared links keep opening the same run.
+  const links: [path: string, query: string][] = [
+    ["/graphs/depth-first-search", "?graph=AloGAABCW1G2gj67j9M66NMJAAIHBAIHBQMFBAMDAAEHAwIBAQMFAQIDAQUD&nodes=small&layout=random&race=dfs%2Ckruskal&speed=2x"],
+    ["/graphs/race", "?graph=AloGAABCW1G2gj67j9M66NMJAAIHBAIHBQMFBAMDAAEHAwIBAQMFAQIDAQUD&nodes=small&layout=random&race=dfs%2Ckruskal&speed=2x"],
+  ];
+
+  it("round-trips a full link of every page kind it writes", () => {
+    for (const [path, query] of links) expect(reopened(path, query), path + query).toBe(query);
+  });
+
+  it("falls back to the defaults on values it doesn't have", () => {
+    const s = openLink("/graphs/prim", "?graph=***&nodes=huge&layout=star&race=prim");
+    const d = defaultsOf("/graphs/prim");
+    expect(s.graphs).toMatchObject({ size: d.graphs.size, preset: "random", racers: d.graphs.racers });
+  });
+
+  it("keeps racers unique and in order, and rejects too few or too many", () => {
+    const racers = (race: string) => openLink("/graphs/race", `?race=${race}`).graphs.racers;
+    const d = defaultsOf("/graphs/race").graphs.racers;
+    expect(racers("topo,bfs,topo")).toEqual(["bfs", "topo"]);
+    expect(racers("dfs")).toEqual(d);
+    expect(racers("bfs,dfs,dijkstra,prim,kruskal")).toEqual(d);
+    expect(racers("astar,greedy")).toEqual(d);
   });
 });

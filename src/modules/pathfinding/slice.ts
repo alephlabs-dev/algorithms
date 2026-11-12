@@ -131,7 +131,6 @@ const withPreset = (s: PathfindingState, ctx: SliceContext, gridPreset: Preset) 
 
 export const pathfindingSlice = defineModule<PathfindingState, PathAlgorithm, PathfindingLink>()({
   sentences,
-  tourKey: "tour-done-pathfinding",
 
   link: pathfindingLink,
   hydrate: (link, ctx) => {

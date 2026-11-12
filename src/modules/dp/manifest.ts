@@ -67,5 +67,6 @@ export const dpManifest = {
     works: (algorithm: DpAlgorithm) => text.problem(dpProblems[algorithm].named),
     race: text.race,
   },
+  tourKey: "tour-done-dp",
   example: { algorithm: "lcs", search: "?a=KITTEN&b=SITTING&items=3x4.4x5&cap=7&speed=2x" },
 } as const satisfies ModuleManifest<DpAlgorithm>;
